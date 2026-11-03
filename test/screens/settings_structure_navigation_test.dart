@@ -104,8 +104,9 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(900, 3000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
+    final controller = SleepPermissionController(
+      const _StubPermissionService(),
+    );
     await tester.pumpWidget(
       _wrap(
         SettingsScreen(
@@ -123,10 +124,7 @@ void main() {
     );
 
     expect(find.byKey(const Key('settings_appearance_entry')), findsOneWidget);
-    expect(
-      find.byKey(const Key('settings_health_entry')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('settings_health_entry')), findsOneWidget);
     expect(find.byKey(const Key('settings_steps_entry')), findsNothing);
     expect(find.byKey(const Key('settings_sleep_entry')), findsNothing);
     expect(find.byKey(const Key('settings_pulse_entry')), findsNothing);
@@ -139,8 +137,9 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(900, 3000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
+    final controller = SleepPermissionController(
+      const _StubPermissionService(),
+    );
 
     await tester.pumpWidget(
       _wrap(
@@ -158,13 +157,15 @@ void main() {
     expect(find.byType(AppearanceSettingsScreen), findsOneWidget);
   });
 
-  testWidgets('health entry opens the unified health settings screen',
-      (tester) async {
+  testWidgets('health entry opens the unified health settings screen', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(900, 3000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
+    final controller = SleepPermissionController(
+      const _StubPermissionService(),
+    );
 
     await tester.pumpWidget(
       _wrap(
@@ -188,8 +189,9 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(900, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final controller =
-          SleepPermissionController(const _StubPermissionService());
+      final controller = SleepPermissionController(
+        const _StubPermissionService(),
+      );
 
       await tester.pumpWidget(
         _wrap(
@@ -201,10 +203,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final restartTile =
-          find.byKey(const Key('settings_restart_app_tour_tile'));
-      final healthSection =
-          find.byKey(const Key('settings_section_health_tracking'));
+      final restartTile = find.byKey(
+        const Key('settings_restart_app_tour_tile'),
+      );
+      final healthSection = find.byKey(
+        const Key('settings_section_health_tracking'),
+      );
       final diaryText = find.text('Additional Nutrient in Overview');
 
       expect(restartTile, findsOneWidget);
@@ -222,8 +226,9 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(900, 3000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
+    final controller = SleepPermissionController(
+      const _StubPermissionService(),
+    );
 
     await tester.pumpWidget(
       _wrap(
@@ -239,32 +244,35 @@ void main() {
     expect(restartTile, findsOneWidget);
     expect(
       find.descendant(
-          of: restartTile, matching: find.byIcon(LucideIcons.compass)),
+        of: restartTile,
+        matching: find.byIcon(LucideIcons.compass),
+      ),
       findsOneWidget,
     );
   });
 
   testWidgets(
-      'overview extra nutrient shows dynamic icon for selected nutrient', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(900, 3000));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    'overview extra nutrient shows dynamic icon for selected nutrient',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
+      final controller = SleepPermissionController(
+        const _StubPermissionService(),
+      );
 
-    await tester.pumpWidget(
-      _wrap(
-        SettingsScreen(
-          sleepSyncService: _FakeSleepSettingsService(controller: controller),
-          sleepPermissionController: controller,
+      await tester.pumpWidget(
+        _wrap(
+          SettingsScreen(
+            sleepSyncService: _FakeSleepSettingsService(controller: controller),
+            sleepPermissionController: controller,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    // Default is fiber -> wheat icon
-    expect(find.byIcon(LucideIcons.wheat), findsOneWidget);
-  });
+      // Default is fiber -> wheat icon
+      expect(find.byIcon(LucideIcons.wheat), findsOneWidget);
+    },
+  );
 }

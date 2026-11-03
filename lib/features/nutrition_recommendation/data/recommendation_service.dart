@@ -9,8 +9,11 @@ import '../domain/bayesian_tdee_estimator.dart';
 import '../domain/confidence_models.dart';
 import '../domain/goal_models.dart';
 import '../domain/recommendation_models.dart';
+
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import 'recommendation_due_notification.dart';
 import 'recommendation_input_adapter.dart';
@@ -53,6 +56,8 @@ class AdaptiveNutritionRecommendationService {
   /// `1_1` moved fat off its floor onto a goal-dependent g/kg target.
   /// `1_2` separates latent TDEE estimation from bounded trajectory control.
   static const String algorithmVersion =
+      'tdee_adaptive_recommendation_1_3_confidence_window';
+  static const String _previousConfidenceOnlyVersion =
       'tdee_adaptive_recommendation_1_2_dual_loop';
   static const int _phaseChangeConfirmationWindowDays = 7;
 
@@ -72,20 +77,23 @@ class AdaptiveNutritionRecommendationService {
     AdaptiveRecommendationDueNotifier? dueNotifier,
     AdaptiveRecommendationNotificationPreference? notificationPreference,
     IGoalRepository? goalRepository,
-  })  : _repository = repository ?? RecommendationRepository(),
-        _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
-        _bayesianEngine =
-            bayesianEngine ?? const BayesianNutritionRecommendationEngine(),
-        _dueNotifier =
-            dueNotifier ?? const LocalAdaptiveRecommendationDueNotifier(),
-        _notificationPreference = notificationPreference ??
-            const SharedPreferencesAdaptiveRecommendationNotificationPreference(),
-        _goalRepository = goalRepository ??
-            GoalRepositoryImpl(database: databaseHelper?.dbInstance),
-        _inputAdapter = inputAdapter ??
-            RecommendationInputAdapter(
-              databaseHelper: databaseHelper ?? DatabaseHelper.instance,
-            );
+  }) : _repository = repository ?? RecommendationRepository(),
+       _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
+       _bayesianEngine =
+           bayesianEngine ?? const BayesianNutritionRecommendationEngine(),
+       _dueNotifier =
+           dueNotifier ?? const LocalAdaptiveRecommendationDueNotifier(),
+       _notificationPreference =
+           notificationPreference ??
+           const SharedPreferencesAdaptiveRecommendationNotificationPreference(),
+       _goalRepository =
+           goalRepository ??
+           GoalRepositoryImpl(database: databaseHelper?.dbInstance),
+       _inputAdapter =
+           inputAdapter ??
+           RecommendationInputAdapter(
+             databaseHelper: databaseHelper ?? DatabaseHelper.instance,
+           );
 
   Future<void> saveGoalAndTargetRate({
     required BodyweightGoal goal,
@@ -215,9 +223,7 @@ class AdaptiveNutritionRecommendationService {
   }
 
   /// Recalculates the adaptive recommendation immediately AND applies it to active targets.
-  Future<NutritionRecommendation?> recalculateAndApply({
-    DateTime? now,
-  }) async {
+  Future<NutritionRecommendation?> recalculateAndApply({DateTime? now}) async {
     final recommendation = await recalculateRecommendationNow(now: now);
     await applyLatestRecommendationToActiveTargets();
     return recommendation;
@@ -234,17 +240,17 @@ class AdaptiveNutritionRecommendationService {
   /// 1. recommendation is currently due for this due week
   /// 2. no recommendation has been generated for this due week yet
   /// 3. no due-notification has been sent for this due week yet
-  Future<bool> notifyIfNewRecommendationDue({
-    DateTime? now,
-  }) async {
+  Future<bool> notifyIfNewRecommendationDue({DateTime? now}) async {
     final effectiveNow = now ?? DateTime.now();
     final checkInWeekday = await _resolveCheckInWeekday();
-    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow,
-        checkInWeekday: checkInWeekday);
-    final lastGeneratedDueWeekKey =
-        await _repository.getLastGeneratedDueWeekKey();
-    final latestGeneratedRecommendation =
-        await _repository.getLatestGeneratedRecommendation();
+    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
+    final lastGeneratedDueWeekKey = await _repository
+        .getLastGeneratedDueWeekKey();
+    final latestGeneratedRecommendation = await _repository
+        .getLatestGeneratedRecommendation();
     final generatedDueWeekFromSnapshot =
         latestGeneratedRecommendation?.dueWeekKey;
 
@@ -258,13 +264,13 @@ class AdaptiveNutritionRecommendationService {
 
     final hasGeneratedForCurrentDueWeek =
         lastGeneratedDueWeekKey == dueWeekKey ||
-            generatedDueWeekFromSnapshot == dueWeekKey;
+        generatedDueWeekFromSnapshot == dueWeekKey;
     if (hasGeneratedForCurrentDueWeek) {
       return false;
     }
 
-    final lastNotifiedDueWeekKey =
-        await _repository.getLastDueNotificationWeekKey();
+    final lastNotifiedDueWeekKey = await _repository
+        .getLastDueNotificationWeekKey();
     if (lastNotifiedDueWeekKey == dueWeekKey) {
       return false;
     }
@@ -311,8 +317,9 @@ class AdaptiveNutritionRecommendationService {
     final lastGeneratedDueWeekKey = results[4] as String?;
     final checkInWeekday = results[5] as int;
     final currentDueWeekKey = RecommendationScheduler.dueWeekKeyFor(
-        effectiveNow,
-        checkInWeekday: checkInWeekday);
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
     final isAdaptiveRecommendationDueNow = RecommendationScheduler.isDueNow(
       now: effectiveNow,
       lastGeneratedDueWeekKey: lastGeneratedDueWeekKey,
@@ -349,25 +356,29 @@ class AdaptiveNutritionRecommendationService {
     }
     final checkInWeekday = activeGoal?.startDate.weekday ?? DateTime.monday;
     final effectiveNow = now ?? DateTime.now();
-    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow,
-        checkInWeekday: checkInWeekday);
+    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
     // Keep the adaptive input window stable within one due week by anchoring to
     // the completed day prior to check-in day. This makes in-week force refreshes
     // deterministic instead of drifting with "today".
     final stableWindowEndDay =
         RecommendationScheduler.stableWindowEndDayForDueWeek(
-      effectiveNow,
-      checkInWeekday: checkInWeekday,
-    );
+          effectiveNow,
+          checkInWeekday: checkInWeekday,
+        );
     final latestContext = await Future.wait<dynamic>([
       _repository.getLatestRecommendationSnapshot(),
       _repository.getLatestEstimatorState(),
     ]);
     final latestSnapshot = latestContext[0] as AdaptiveRecommendationSnapshot?;
     final latestRecursiveState = latestContext[1] as BayesianEstimatorState?;
-    final algorithmChanged = latestSnapshot != null &&
+    final algorithmChanged =
+        latestSnapshot != null &&
         latestSnapshot.algorithmVersion != algorithmVersion;
-    final lastGeneratedDueWeekKey = latestSnapshot?.dueWeekKey ??
+    final lastGeneratedDueWeekKey =
+        latestSnapshot?.dueWeekKey ??
         await _repository.getLastGeneratedDueWeekKey();
 
     if (!force &&
@@ -381,8 +392,8 @@ class AdaptiveNutritionRecommendationService {
     }
 
     final priorActivityLevel = await _repository.getPriorActivityLevel();
-    final extraCardioHoursOption =
-        await _repository.getExtraCardioHoursOption();
+    final extraCardioHoursOption = await _repository
+        .getExtraCardioHoursOption();
 
     final results = await Future.wait<dynamic>([
       getGoal(),
@@ -407,7 +418,8 @@ class AdaptiveNutritionRecommendationService {
       anchorDay: phaseAnchorDay,
     );
     final previousRecommendation = latestSnapshot?.recommendation;
-    final recursiveState = algorithmChanged
+    final recursiveState = algorithmChanged &&
+            latestSnapshot.algorithmVersion != _previousConfidenceOnlyVersion
         ? _prepareRecursiveStateForAlgorithmUpgrade(latestRecursiveState)
         : latestRecursiveState;
 
@@ -499,7 +511,7 @@ class AdaptiveNutritionRecommendationService {
   }
 
   Future<BayesianNutritionRecommendationResult>
-      generateOnboardingRecommendationPreview({
+  generateOnboardingRecommendationPreview({
     required BodyweightGoal goal,
     required double targetRateKgPerWeek,
     required double? weightKg,
@@ -534,13 +546,13 @@ class AdaptiveNutritionRecommendationService {
 
     final priorMaintenanceCalories =
         await _estimateMaintenanceForVirtualProfile(
-      profile: virtualProfile,
-      weightKg: weightKg,
-      bodyFatPercent: bodyFatPercent,
-      declaredActivityLevel: effectiveDeclaredActivityLevel,
-      extraCardioHoursOption: effectiveExtraCardioHoursOption,
-      now: effectiveNow,
-    );
+          profile: virtualProfile,
+          weightKg: weightKg,
+          bodyFatPercent: bodyFatPercent,
+          declaredActivityLevel: effectiveDeclaredActivityLevel,
+          extraCardioHoursOption: effectiveExtraCardioHoursOption,
+          now: effectiveNow,
+        );
 
     final input = RecommendationGenerationInput(
       // Onboarding has no adaptive observation history yet. We bootstrap the
@@ -560,11 +572,14 @@ class AdaptiveNutritionRecommendationService {
     );
 
     final checkInWeekday = await _resolveCheckInWeekday();
-    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow,
-        checkInWeekday: checkInWeekday);
+    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
     final onboardingPhaseAnchorDay = RecommendationScheduler.dueWeekStart(
-        effectiveNow,
-        checkInWeekday: checkInWeekday);
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
     final onboardingPhaseState = AdaptiveDietPhaseTrackingState.bootstrap(
       phase: goal.canonicalDietPhase,
       asOfDay: onboardingPhaseAnchorDay,
@@ -597,11 +612,10 @@ class AdaptiveNutritionRecommendationService {
       );
       if (result.recursiveState != null && result.recursiveState!.isValid) {
         await _repository.saveLatestEstimatorState(
-            state: result.recursiveState!);
+          state: result.recursiveState!,
+        );
       }
-      await _repository.saveDietPhaseTrackingState(
-        state: onboardingPhaseState,
-      );
+      await _repository.saveDietPhaseTrackingState(state: onboardingPhaseState);
       if (markAsApplied) {
         await _repository.saveLatestAppliedRecommendation(
           recommendation: result.recommendation,
@@ -617,20 +631,22 @@ class AdaptiveNutritionRecommendationService {
     bool markAsApplied = false,
   }) async {
     final checkInWeekday = await _resolveCheckInWeekday();
-    final dueWeekKey = recommendation.dueWeekKey ??
+    final dueWeekKey =
+        recommendation.dueWeekKey ??
         RecommendationScheduler.dueWeekKeyFor(
           recommendation.generatedAt,
           checkInWeekday: checkInWeekday,
         );
     final syntheticEstimate = BayesianMaintenanceEstimate(
-      posteriorMaintenanceCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
+      posteriorMaintenanceCalories: recommendation.estimatedMaintenanceCalories
+          .toDouble(),
       posteriorStdDevCalories:
           const BayesianEstimatorConfig().priorStdDevCalories,
-      profilePriorMaintenanceCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
-      priorMeanUsedCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
+      profilePriorMaintenanceCalories: recommendation
+          .estimatedMaintenanceCalories
+          .toDouble(),
+      priorMeanUsedCalories: recommendation.estimatedMaintenanceCalories
+          .toDouble(),
       priorStdDevUsedCalories:
           const BayesianEstimatorConfig().priorStdDevCalories,
       priorSource: BayesianPriorSource.profilePriorBootstrap,
@@ -644,14 +660,14 @@ class AdaptiveNutritionRecommendationService {
       dueWeekKey: dueWeekKey,
     );
     final state = BayesianEstimatorState(
-      posteriorMeanCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
+      posteriorMeanCalories: recommendation.estimatedMaintenanceCalories
+          .toDouble(),
       posteriorVarianceCalories2: math
           .pow(const BayesianEstimatorConfig().priorStdDevCalories, 2)
           .toDouble(),
       lastDueWeekKey: dueWeekKey,
-      lastPriorMeanCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
+      lastPriorMeanCalories: recommendation.estimatedMaintenanceCalories
+          .toDouble(),
       lastPriorVarianceCalories2: math
           .pow(const BayesianEstimatorConfig().priorStdDevCalories, 2)
           .toDouble(),
@@ -668,7 +684,8 @@ class AdaptiveNutritionRecommendationService {
     await _repository.saveDietPhaseTrackingState(
       state: AdaptiveDietPhaseTrackingState.bootstrap(
         phase: recommendation.goal.canonicalDietPhase,
-        asOfDay: DateTime.tryParse(dueWeekKey) ??
+        asOfDay:
+            DateTime.tryParse(dueWeekKey) ??
             RecommendationScheduler.dueWeekStart(
               recommendation.generatedAt,
               checkInWeekday: checkInWeekday,
@@ -690,7 +707,8 @@ class AdaptiveNutritionRecommendationService {
     }
 
     final settings = await _databaseHelper.getAppSettings();
-    final steps = settings?.targetSteps ??
+    final steps =
+        settings?.targetSteps ??
         await _databaseHelper.getCurrentTargetStepsOrDefault();
 
     int water = settings?.targetWater ?? 3000;
@@ -716,8 +734,9 @@ class AdaptiveNutritionRecommendationService {
 
     final activeGoal = await _goalRepository.getActiveNutritionGoal();
     if (activeGoal != null) {
-      final pendingReview =
-          await _goalRepository.getPendingReview(activeGoal.id);
+      final pendingReview = await _goalRepository.getPendingReview(
+        activeGoal.id,
+      );
       if (pendingReview != null) {
         await _goalRepository.updateReviewStatus(
           pendingReview.id,
@@ -736,7 +755,8 @@ class AdaptiveNutritionRecommendationService {
   }) async {
     final normalizedAnchorDay = RecommendationScheduler.normalizeDay(anchorDay);
     final observedPhase = goal.canonicalDietPhase;
-    final currentState = await _repository.getDietPhaseTrackingState() ??
+    final currentState =
+        await _repository.getDietPhaseTrackingState() ??
         AdaptiveDietPhaseTrackingState.bootstrap(
           phase: observedPhase,
           asOfDay: normalizedAnchorDay,
@@ -759,19 +779,21 @@ class AdaptiveNutritionRecommendationService {
     required DateTime now,
   }) async {
     final persistedProfile = await _databaseHelper.getUserProfile();
-    final persistedBodyFatPercent =
-        await _databaseHelper.getLatestBodyFatPercentageBefore(now);
+    final persistedBodyFatPercent = await _databaseHelper
+        .getLatestBodyFatPercentageBefore(now);
     final effectiveBodyFatPercent = bodyFatPercent ?? persistedBodyFatPercent;
-    final averageCompletedWorkoutsPerWeek =
-        await _databaseHelper.getAverageCompletedWorkoutsPerWeek(now: now);
-    final targetSteps = (await _databaseHelper.getAppSettings())?.targetSteps ??
+    final averageCompletedWorkoutsPerWeek = await _databaseHelper
+        .getAverageCompletedWorkoutsPerWeek(now: now);
+    final targetSteps =
+        (await _databaseHelper.getAppSettings())?.targetSteps ??
         await _databaseHelper.getCurrentTargetStepsOrDefault();
     final recentAverageActualSteps =
         await RecommendationInputAdapter.loadRecentAverageActualSteps(
-      databaseHelper: _databaseHelper,
-      endDay: RecommendationInputAdapter.normalizeDay(now),
-      lookbackDays: RecommendationInputAdapter.defaultPriorStepsLookbackDays,
-    );
+          databaseHelper: _databaseHelper,
+          endDay: RecommendationInputAdapter.normalizeDay(now),
+          lookbackDays:
+              RecommendationInputAdapter.defaultPriorStepsLookbackDays,
+        );
 
     final mergedProfile = _VirtualProfile(
       birthday: profile.birthday ?? persistedProfile?.birthday,
@@ -796,7 +818,8 @@ class AdaptiveNutritionRecommendationService {
 
     return RecommendationInputAdapter.estimatePriorMaintenanceCalories(
       profile: asDbProfile,
-      currentWeightKg: weightKg ??
+      currentWeightKg:
+          weightKg ??
           (throw StateError(
             'A positive measured weight is required for the profile prior.',
           )),
@@ -811,7 +834,8 @@ class AdaptiveNutritionRecommendationService {
   }
 
   void _trackRecommendationTelemetry(
-      BayesianNutritionRecommendationResult result) {
+    BayesianNutritionRecommendationResult result,
+  ) {
     try {
       final summary = result.recommendation.inputSummary;
       final confidence = result.recommendation.confidence;
@@ -833,28 +857,31 @@ class AdaptiveNutritionRecommendationService {
 
       final est = result.maintenanceEstimate;
       final effectiveSampleSize = est.effectiveSampleSize;
-      final hasSlope = summary.smoothedWeightSlopeKgPerWeek != null ||
+      final hasSlope =
+          summary.smoothedWeightSlopeKgPerWeek != null ||
           est.observedWeightSlopeKgPerWeek != null;
       final hasIntake =
           summary.avgLoggedCalories > 0 || est.observedIntakeCalories != null;
       final isPriorOnly =
           est.priorSource == BayesianPriorSource.profilePriorBootstrap ||
-              summary.qualityFlags.contains('onboarding_prior_only') ||
-              summary.qualityFlags.contains('bayesian_intake_unavailable');
+          summary.qualityFlags.contains('onboarding_prior_only') ||
+          summary.qualityFlags.contains('bayesian_intake_unavailable');
 
-      unawaited(TelemetryService.instance.trackRecommendationGenerated(
-        weightLogCount: summary.weightLogCount,
-        intakeLoggedDays: summary.intakeLoggedDays,
-        windowDays: summary.windowDays,
-        effectiveSampleSize: effectiveSampleSize,
-        hasSlope: hasSlope,
-        hasIntake: hasIntake,
-        confidence: result.recommendation.confidence.name,
-        confidenceScoreBucket: confidenceBucket,
-        warningLevel: result.recommendation.warningState.warningLevel.name,
-        qualityFlags: summary.qualityFlags,
-        isPriorOnly: isPriorOnly,
-      ));
+      unawaited(
+        TelemetryService.instance.trackRecommendationGenerated(
+          weightLogCount: summary.weightLogCount,
+          intakeLoggedDays: summary.intakeLoggedDays,
+          windowDays: summary.windowDays,
+          effectiveSampleSize: effectiveSampleSize,
+          hasSlope: hasSlope,
+          hasIntake: hasIntake,
+          confidence: result.recommendation.confidence.name,
+          confidenceScoreBucket: confidenceBucket,
+          warningLevel: result.recommendation.warningState.warningLevel.name,
+          qualityFlags: summary.qualityFlags,
+          isPriorOnly: isPriorOnly,
+        ),
+      );
     } catch (e) {
       debugPrint('Error tracking recommendation telemetry: $e');
     }

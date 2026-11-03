@@ -34,10 +34,10 @@ class SleepHubSummaryRepository {
   SleepHubSummaryRepository({
     AppDatabase? database,
     DatabaseHelper? databaseHelper,
-  })  : _databaseFuture = database != null
-            ? Future.value(database)
-            : (databaseHelper ?? DatabaseHelper.instance).database,
-        _ownsDatabase = database != null && databaseHelper == null;
+  }) : _databaseFuture = database != null
+           ? Future.value(database)
+           : (databaseHelper ?? DatabaseHelper.instance).database,
+       _ownsDatabase = database != null && databaseHelper == null;
 
   final Future<AppDatabase> _databaseFuture;
   final bool _ownsDatabase;
@@ -105,8 +105,9 @@ class SleepHubSummaryRepository {
       final segmentRows = await _segmentsDao!.findBySessionId(session.id);
       segmentRowCount += segmentRows.length;
       if (segmentRows.isEmpty) continue;
-      final segments =
-          segmentRows.map(_toDomainSegment).toList(growable: false);
+      final segments = segmentRows
+          .map(_toDomainSegment)
+          .toList(growable: false);
       final repaired = repairSleepTimeline(
         session: session,
         segments: segments,

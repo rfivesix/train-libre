@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../services/ai_service.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -15,13 +16,7 @@ import 'widgets/ai_neural_cloud_orb_widget.dart';
 /// Deliberately coarse: these are the moments where the wait actually changes
 /// character, not a progress bar. There is no way to know how far along a
 /// provider request is, and inventing a percentage would be a lie.
-enum MealAnalysisPhase {
-  preparing,
-  analyzing,
-  matching,
-  repairing,
-  failed,
-}
+enum MealAnalysisPhase { preparing, analyzing, matching, repairing, failed }
 
 /// Drives [MealAnalysisScreen] from the capture screen.
 class MealAnalysisController extends ValueNotifier<MealAnalysisPhase> {
@@ -96,13 +91,17 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
   bool _isTransitionComplete = false;
   Animation<double>? _routeAnimation;
+  Timer? _cloudMorphTimer;
   String? _activeModelName;
 
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.mealAnalysis));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.mealAnalysis,
+      ),
+    );
     widget.controller.addListener(_onPhaseChanged);
     _activeModelName = widget.activeModelName;
     if (_activeModelName == null) {
@@ -145,7 +144,8 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
     setState(() => _isTransitionComplete = true);
 
     // Pause in calm circle for 320ms, then warp to cloud!
-    Future.delayed(const Duration(milliseconds: 320), () {
+    _cloudMorphTimer?.cancel();
+    _cloudMorphTimer = Timer(const Duration(milliseconds: 320), () {
       if (mounted && !widget.controller.isFinished.value) {
         widget.controller.isCloudMorphed.value = true;
         HapticFeedbackService.instance.selectionFeedback();
@@ -155,6 +155,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
   @override
   void dispose() {
+    _cloudMorphTimer?.cancel();
     _routeAnimation?.removeStatusListener(_onRouteStatus);
     widget.controller.removeListener(_onPhaseChanged);
     super.dispose();
@@ -184,8 +185,9 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
     final orbSize = (screenWidth * 0.78).clamp(260.0, 360.0);
 
     final textColor = isDark ? Colors.white : const Color(0xFF09090B);
-    final cancelColor =
-        isDark ? const Color(0xFFFF453A) : const Color(0xFFDC2626);
+    final cancelColor = isDark
+        ? const Color(0xFFFF453A)
+        : const Color(0xFFDC2626);
 
     return PopScope(
       // Leaving is offered explicitly below rather than by a back swipe, so a
@@ -204,10 +206,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
               // 1. Atmosphere or Frosted Captured Backdrop
               if (widget.previewImage != null) ...[
                 Positioned.fill(
-                  child: Image.file(
-                    widget.previewImage!,
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.file(widget.previewImage!, fit: BoxFit.cover),
                 ),
                 Positioned.fill(
                   child: BackdropFilter(
@@ -326,13 +325,16 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                                     return FadeTransition(
                                       opacity: animation,
                                       child: SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0.0, 0.12),
-                                          end: Offset.zero,
-                                        ).animate(CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves.easeOutCubic,
-                                        )),
+                                        position:
+                                            Tween<Offset>(
+                                              begin: const Offset(0.0, 0.12),
+                                              end: Offset.zero,
+                                            ).animate(
+                                              CurvedAnimation(
+                                                parent: animation,
+                                                curve: Curves.easeOutCubic,
+                                              ),
+                                            ),
                                         child: child,
                                       ),
                                     );

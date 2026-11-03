@@ -35,12 +35,16 @@ void main() {
       return event;
     }
 
-    expect((await eventFor(saved: true, manual: true))['outcome'],
-        'saved_after_manual_edit');
+    expect(
+      (await eventFor(saved: true, manual: true))['outcome'],
+      'saved_after_manual_edit',
+    );
     final corrected = await eventFor(saved: true, correction: true);
     expect(corrected['outcome'], 'saved_after_ai_correction');
     expect(corrected['ai_correction_rounds_count'], 1);
-    expect((await eventFor(saved: false, correction: true))['outcome'],
-        'discarded');
+    expect(
+      (await eventFor(saved: false, correction: true))['outcome'],
+      'discarded',
+    );
   });
 }

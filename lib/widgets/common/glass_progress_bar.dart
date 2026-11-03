@@ -184,9 +184,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
           height: effectiveHeight,
           decoration: ShapeDecoration(
             color: isDark ? DesignConstants.summaryCardDarkMode : Colors.white,
-            shape: squircle.copyWith(
-              side: BorderSide.none,
-            ),
+            shape: squircle.copyWith(side: BorderSide.none),
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -195,8 +193,8 @@ class _GlassProgressBarPainter extends StatelessWidget {
                 final primaryColor = textColor;
                 final secondaryColor = isFilled
                     ? (isDark
-                        ? Colors.white.withValues(alpha: 0.9)
-                        : const Color(0xFF1C1C1E).withValues(alpha: 0.85))
+                          ? Colors.white.withValues(alpha: 0.9)
+                          : const Color(0xFF1C1C1E).withValues(alpha: 0.85))
                     : colorScheme.onSurface.withValues(alpha: 0.8);
 
                 // Subtle shadow only in dark mode on filled bar to enhance edge definition
@@ -255,9 +253,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   // Layer 1: Unfilled background text content
-                  Positioned.fill(
-                    child: buildTextContent(isFilled: false),
-                  ),
+                  Positioned.fill(child: buildTextContent(isFilled: false)),
 
                   // Layer 2: Clipped progress bar + filled text content
                   if (progress > 0)
@@ -268,9 +264,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
                           fit: StackFit.expand,
                           children: [
                             DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: color,
-                              ),
+                              decoration: BoxDecoration(color: color),
                             ),
                             if (isDark && value > 0)
                               Positioned.fill(

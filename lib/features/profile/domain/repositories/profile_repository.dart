@@ -1,5 +1,6 @@
 // lib/features/profile/domain/repositories/profile_repository.dart
 import 'package:flutter/material.dart';
+
 import '../../../../data/drift_database.dart' as db;
 import '../models/measurement_session.dart';
 import '../../../analytics/domain/models/chart_data_point.dart';
@@ -18,9 +19,13 @@ abstract class IProfileRepository {
   Future<void> deleteMeasurementSession(int sessionId);
   Future<void> insertMeasurementSession(MeasurementSession session);
   Future<List<ChartDataPoint>> getChartDataForTypeAndRange(
-      String type, DateTimeRange range);
+    String type,
+    DateTimeRange range,
+  );
   Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
-      String type, DateTimeRange range);
+    String type,
+    DateTimeRange range,
+  );
   Future<db.AppSetting?> getAppSettings();
   Future<int> getCurrentTargetStepsOrDefault();
   Future<void> saveUserGoals({

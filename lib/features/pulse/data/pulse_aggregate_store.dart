@@ -73,11 +73,13 @@ class PulseAggregateStore {
 
   Future<DateTime?> lastAggregatedSampleAt() async {
     await ensureSchema();
-    final row = await _db.customSelect(
-      'SELECT value FROM pulse_aggregate_metadata WHERE key = ?',
-      variables: [const Variable<String>(_lastAggregatedSampleAtKey)],
-      readsFrom: const {},
-    ).getSingleOrNull();
+    final row = await _db
+        .customSelect(
+          'SELECT value FROM pulse_aggregate_metadata WHERE key = ?',
+          variables: [const Variable<String>(_lastAggregatedSampleAtKey)],
+          readsFrom: const {},
+        )
+        .getSingleOrNull();
     final value = row?.read<String>('value');
     final millis = value == null ? null : int.tryParse(value);
     if (millis == null) return null;
@@ -88,20 +90,22 @@ class PulseAggregateStore {
     PulseAnalysisWindow window,
   ) async {
     await ensureSchema();
-    final rows = await _db.customSelect(
-      '''
+    final rows = await _db
+        .customSelect(
+          '''
       SELECT * FROM pulse_hourly_aggregates
       WHERE bucket_end_ms > ? AND bucket_start_ms < ?
         AND aggregation_version = ?
       ORDER BY bucket_start_ms
       ''',
-      variables: [
-        Variable<int>(window.startUtc.millisecondsSinceEpoch),
-        Variable<int>(window.endUtc.millisecondsSinceEpoch),
-        const Variable<int>(aggregationVersion),
-      ],
-      readsFrom: const {},
-    ).get();
+          variables: [
+            Variable<int>(window.startUtc.millisecondsSinceEpoch),
+            Variable<int>(window.endUtc.millisecondsSinceEpoch),
+            const Variable<int>(aggregationVersion),
+          ],
+          readsFrom: const {},
+        )
+        .get();
     final buckets = rows.map(_bucketFromRow).toList(growable: false);
     PerfDebugTimer.logDuration(
       area: 'statistics',
@@ -116,8 +120,9 @@ class PulseAggregateStore {
     PulseAnalysisWindow window,
   ) async {
     await ensureSchema();
-    final row = await _db.customSelect(
-      '''
+    final row = await _db
+        .customSelect(
+          '''
       SELECT
         COUNT(*) AS row_count,
         MIN(bucket_start_ms) AS earliest_bucket_start_ms,
@@ -126,13 +131,14 @@ class PulseAggregateStore {
       WHERE bucket_end_ms > ? AND bucket_start_ms < ?
         AND aggregation_version = ?
       ''',
-      variables: [
-        Variable<int>(window.startUtc.millisecondsSinceEpoch),
-        Variable<int>(window.endUtc.millisecondsSinceEpoch),
-        const Variable<int>(aggregationVersion),
-      ],
-      readsFrom: const {},
-    ).getSingle();
+          variables: [
+            Variable<int>(window.startUtc.millisecondsSinceEpoch),
+            Variable<int>(window.endUtc.millisecondsSinceEpoch),
+            const Variable<int>(aggregationVersion),
+          ],
+          readsFrom: const {},
+        )
+        .getSingle();
     final earliestMs = row.readNullable<int>('earliest_bucket_start_ms');
     final latestMs = row.readNullable<int>('latest_bucket_end_ms');
     return PulseAggregateCoverage(
@@ -157,8 +163,9 @@ class PulseAggregateStore {
     final bucketEnd = ceilToBucket(toUtc);
     final aggregates = _aggregate(samples);
     final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
-    final previousLastMs =
-        (await lastAggregatedSampleAt())?.toUtc().millisecondsSinceEpoch;
+    final previousLastMs = (await lastAggregatedSampleAt())
+        ?.toUtc()
+        .millisecondsSinceEpoch;
 
     await _db.transaction(() async {
       await _db.customStatement(
@@ -166,10 +173,7 @@ class PulseAggregateStore {
         DELETE FROM pulse_hourly_aggregates
         WHERE bucket_start_ms >= ? AND bucket_start_ms < ?
         ''',
-        [
-          bucketStart.millisecondsSinceEpoch,
-          bucketEnd.millisecondsSinceEpoch,
-        ],
+        [bucketStart.millisecondsSinceEpoch, bucketEnd.millisecondsSinceEpoch],
       );
 
       for (final bucket in aggregates) {
@@ -209,8 +213,8 @@ class PulseAggregateStore {
       final lastSampleMs = rawLastSampleMs == null
           ? null
           : previousLastMs == null
-              ? rawLastSampleMs
-              : math.max(previousLastMs, rawLastSampleMs);
+          ? rawLastSampleMs
+          : math.max(previousLastMs, rawLastSampleMs);
       if (lastSampleMs != null) {
         await _db.customStatement(
           '''
@@ -241,19 +245,21 @@ class PulseAggregateStore {
 
   Future<int> countBuckets(PulseAnalysisWindow window) async {
     await ensureSchema();
-    final row = await _db.customSelect(
-      '''
+    final row = await _db
+        .customSelect(
+          '''
       SELECT COUNT(*) AS row_count FROM pulse_hourly_aggregates
       WHERE bucket_end_ms > ? AND bucket_start_ms < ?
         AND aggregation_version = ?
       ''',
-      variables: [
-        Variable<int>(window.startUtc.millisecondsSinceEpoch),
-        Variable<int>(window.endUtc.millisecondsSinceEpoch),
-        const Variable<int>(aggregationVersion),
-      ],
-      readsFrom: const {},
-    ).getSingle();
+          variables: [
+            Variable<int>(window.startUtc.millisecondsSinceEpoch),
+            Variable<int>(window.endUtc.millisecondsSinceEpoch),
+            const Variable<int>(aggregationVersion),
+          ],
+          readsFrom: const {},
+        )
+        .getSingle();
     return row.read<int>('row_count');
   }
 
@@ -289,10 +295,8 @@ class PulseAggregateStore {
   }
 
   PulseAggregateBucket _bucketFromRow(QueryRow row) {
-    DateTime fromMs(String column) => DateTime.fromMillisecondsSinceEpoch(
-          row.read<int>(column),
-          isUtc: true,
-        );
+    DateTime fromMs(String column) =>
+        DateTime.fromMillisecondsSinceEpoch(row.read<int>(column), isUtc: true);
     return PulseAggregateBucket(
       bucketStartUtc: fromMs('bucket_start_ms'),
       bucketEndUtc: fromMs('bucket_end_ms'),

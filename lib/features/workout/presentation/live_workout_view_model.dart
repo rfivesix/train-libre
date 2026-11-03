@@ -1,10 +1,10 @@
 import "../../../services/unit_service.dart";
 
 import 'dart:async';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine_exercise.dart';
 import '../domain/classification/exercise_log_mask.dart';
@@ -18,9 +18,7 @@ import '../domain/progression/progression_models.dart';
 import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
-import '../data/live_activity/workout_live_activity_service.dart';
-import '../domain/live_activity/build_workout_live_activity_content.dart';
-import '../domain/live_activity/workout_live_activity_content.dart';
+import 'live_workout_live_activity_coordinator.dart';
 import '../domain/live_activity/workout_live_activity_strings.dart';
 import '../domain/workout_next_set.dart';
 import '../../../services/local_notification_service.dart';
@@ -31,17 +29,21 @@ import '../domain/services/workout_progression_service.dart';
 import '../../../util/time_util.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
-class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
+class LiveWorkoutViewModel extends ChangeNotifier
+    with WidgetsBindingObserver
+    implements LiveWorkoutLiveActivityHost {
   final IWorkoutRepository _repository;
   final DetectPersonalRecordUseCase _detectPRUseCase;
   final LogWorkoutSetUseCase _logSetUseCase;
   final WorkoutProgressionService _progressionService;
   final TrainingAutonomyService? _trainingAutonomyService;
   final bool _registerLifecycleObserver;
+  late final LiveWorkoutLiveActivityCoordinator _liveActivityCoordinator;
 
   // ignore: unused_field
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
+  @override
   final UnitService unitService;
 
   LiveWorkoutViewModel({
@@ -52,16 +54,21 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     WorkoutProgressionService? progressionService,
     TrainingAutonomyService? trainingAutonomyService,
     bool registerLifecycleObserver = true,
-  })  : _repository = repository,
-        _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
-        _logSetUseCase = logSetUseCase ?? LogWorkoutSetUseCase(),
-        _progressionService = progressionService ??
-            WorkoutProgressionService(
-              repository: repository,
-              unitService: unitService,
-            ),
-        _trainingAutonomyService = trainingAutonomyService,
-        _registerLifecycleObserver = registerLifecycleObserver {
+    LiveWorkoutLiveActivityCoordinator? liveActivityCoordinator,
+  }) : _repository = repository,
+       _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
+       _logSetUseCase = logSetUseCase ?? LogWorkoutSetUseCase(),
+       _progressionService =
+           progressionService ??
+           WorkoutProgressionService(
+             repository: repository,
+             unitService: unitService,
+           ),
+       _trainingAutonomyService = trainingAutonomyService,
+       _registerLifecycleObserver = registerLifecycleObserver {
+    _liveActivityCoordinator =
+        liveActivityCoordinator ??
+        LiveWorkoutLiveActivityCoordinator(host: this);
     if (_registerLifecycleObserver) {
       WidgetsBinding.instance.addObserver(this);
     }
@@ -74,18 +81,21 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     UnitService? unitService,
     WorkoutProgressionService? progressionService,
     TrainingAutonomyService? trainingAutonomyService,
+    LiveWorkoutLiveActivityCoordinator? liveActivityCoordinator,
   }) {
     final resolvedUnitService = unitService ?? UnitService();
     return LiveWorkoutViewModel(
       repository: workoutDb,
       unitService: resolvedUnitService,
-      progressionService: progressionService ??
+      progressionService:
+          progressionService ??
           WorkoutProgressionService(
             repository: workoutDb,
             unitService: resolvedUnitService,
           ),
       trainingAutonomyService: trainingAutonomyService,
       registerLifecycleObserver: false,
+      liveActivityCoordinator: liveActivityCoordinator,
     );
   }
 
@@ -96,6 +106,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   bool _isDisposed = false;
   Future<void>? _pendingProgressionUpdate;
 
+  @override
   @visibleForTesting
   Future<void>? get pendingProgressionUpdate => _pendingProgressionUpdate;
 
@@ -124,8 +135,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   String? getSuggestedFormattedWeight(int templateId) {
     final suggestion = _suggestions[templateId];
     if (suggestion == null || suggestion.targetWeight == null) return null;
-    return unitService.formatDisplayWeight(suggestion.targetWeight!,
-        fractionDigits: 2);
+    return unitService.formatDisplayWeight(
+      suggestion.targetWeight!,
+      fractionDigits: 2,
+    );
   }
 
   /// Changes whenever an engine value should perform its short AI-cloud
@@ -144,10 +157,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final Map<int, int> _routineExerciseNoteTargetsByBlock = {};
   WorkoutLog? get currentWorkout => _workoutLog;
 
-  String? workoutNoteFor(
-    RoutineExercise exercise, [
-    Map<int, String>? notes,
-  ]) {
+  String? workoutNoteFor(RoutineExercise exercise, [Map<int, String>? notes]) {
     final block = exerciseBlockFor(exercise);
     return block == null ? null : (notes ?? workoutExerciseNotes)[block];
   }
@@ -192,11 +202,16 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   double get totalVolume => _totalVolume;
   int get totalSets => _totalSets;
+  @override
   WorkoutLog? get workoutLog => _workoutLog;
+  @override
   List<RoutineExercise> get exercises => _exercises;
   int get remainingRestSeconds => _remainingRestSeconds;
+  @override
   int? get activeSetTimerId => _activeSetTimerId;
+  @override
   DateTime? get setTimerStartedAt => _setTimerStartedAt;
+  @override
   int get setTimerBaseSeconds => _setTimerBaseSeconds;
   int setTimerElapsedSeconds(int templateId) {
     if (_activeSetTimerId == templateId && _setTimerStartedAt != null) {
@@ -211,6 +226,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     return 0;
   }
 
+  @override
   void startSetTimer(
     int templateId, {
     DateTime? startedAt,
@@ -229,12 +245,15 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         ? elapsedSeconds
         : (_pausedSetTimerId == templateId ? _pausedSetTimerElapsedSeconds : 0);
     _setTimerBaseSeconds = baseSeconds;
-    _setTimerStartedAt =
-        (startedAt ?? DateTime.now()).subtract(Duration(seconds: baseSeconds));
+    _setTimerStartedAt = (startedAt ?? DateTime.now()).subtract(
+      Duration(seconds: baseSeconds),
+    );
     _pausedSetTimerId = null;
     _pausedSetTimerElapsedSeconds = 0;
-    _setTimerTicker =
-        Timer.periodic(const Duration(seconds: 1), (_) => notifyListeners());
+    _setTimerTicker = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => notifyListeners(),
+    );
     notifyListeners();
     unawaited(_syncLiveActivity());
   }
@@ -248,6 +267,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     return false;
   }
 
+  @override
   Future<void> completeTimedSet(int templateId, {int? elapsedSeconds}) async {
     if (_activeSetTimerId == templateId && _setTimerStartedAt != null) {
       final total = elapsedSeconds ?? setTimerElapsedSeconds(templateId);
@@ -269,6 +289,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await updateSet(templateId, isCompleted: true);
   }
 
+  @override
   Future<void> stopSetTimer(int templateId, {int? elapsedSeconds}) async {
     if (_activeSetTimerId != templateId || _setTimerStartedAt == null) return;
     final total = elapsedSeconds ?? setTimerElapsedSeconds(templateId);
@@ -283,12 +304,26 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   bool get showRestDone => _showRestDone;
   Duration get elapsedDuration => _elapsedDuration;
+  @override
   Map<int, SetLog> get setLogs => _setLogs;
+  @override
   bool get isActive => _workoutLog != null && _workoutLog!.endTime == null;
+  @override
+  DateTime? get targetRestEndTime => _targetRestEndTime;
+  @override
+  DateTime? get restStartedAt => _restStartedAt;
+  @override
+  int get pausedSetTimerElapsedSeconds => _pausedSetTimerElapsedSeconds;
   int get autoAdvanceRevision => _autoAdvanceRevision;
   int? get autoAdvanceExerciseIndex => _autoAdvanceExerciseIndex;
   int? get nextOpenExerciseIndex => _nextOpenSet()?.exerciseIndex;
   int? get nextOpenTemplateId => _nextOpenSet()?.templateId;
+
+  @override
+  NextOpenSet? nextOpenSet() => _nextOpenSet();
+
+  @override
+  bool isDurationSet(int templateId) => _isDurationSet(templateId);
 
   /// Whether a pause is currently counting down. Flips back to false the
   /// moment the countdown hits zero or is skipped, so the minimized bar can
@@ -331,240 +366,42 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   // workout itself never depends on it.
   // ---------------------------------------------------------------------------
 
-  static const String liveActivityDeepLink = 'trainlibre://workout/live';
+  static const String liveActivityDeepLink =
+      LiveWorkoutLiveActivityCoordinator.liveActivityDeepLink;
 
-  final WorkoutLiveActivityService _liveActivityService =
-      WorkoutLiveActivityService.instance;
+  @visibleForTesting
+  LiveWorkoutLiveActivityCoordinator get liveActivityCoordinator =>
+      _liveActivityCoordinator;
 
-  WorkoutLiveActivityStrings? _liveActivityStrings;
-  String _liveActivityLocale = 'en';
-  bool _liveActivityRunning = false;
-  Future<void> _liveActivitySyncChain = Future<void>.value();
+  bool get _liveActivityRunning => _liveActivityCoordinator.isRunning;
 
   /// Called by the live workout screen once localizations are available.
   void configureLiveActivity({
     required WorkoutLiveActivityStrings strings,
     required String localeName,
   }) {
-    final isFirstConfiguration = _liveActivityStrings == null;
-    _liveActivityStrings = strings;
-    _liveActivityLocale = localeName;
-    if (isFirstConfiguration && isActive) {
-      unawaited(_syncLiveActivity());
-    }
-  }
-
-  WorkoutLiveActivityContent? _buildLiveActivityContent() {
-    final strings = _liveActivityStrings;
-    if (strings == null) return null;
-    return buildWorkoutLiveActivityContent(
-      exercises: _exercises,
-      setLogs: _setLogs,
-      unitService: unitService,
+    _liveActivityCoordinator.configure(
       strings: strings,
-      localeName: _liveActivityLocale,
-      restEndsAt: _targetRestEndTime,
-      restStartedAt: _restStartedAt,
-      setTimerTemplateId: _activeSetTimerId,
-      setTimerStartedAt: _setTimerStartedAt,
-      setTimerElapsedSeconds: _activeSetTimerId == null
-          ? _pausedSetTimerElapsedSeconds
-          : _setTimerBaseSeconds,
-      labelStartTimer: strings.startTimer,
-      labelStopTimer: strings.stopTimer,
-      labelTimerRunning: strings.timerRunning,
+      localeName: localeName,
     );
   }
 
   /// Serializes refreshes so an older async payload cannot overwrite a newer
   /// one when several workout callbacks fire in the same frame.
-  Future<void> _syncLiveActivity() {
-    final next = _liveActivitySyncChain.then((_) => _syncLiveActivityNow());
-    _liveActivitySyncChain = next.catchError((_) {});
-    return next;
-  }
+  Future<void> _syncLiveActivity() =>
+      _liveActivityCoordinator.syncLiveActivity();
 
-  /// Starts the activity on first call and updates it afterwards. Suggestions
-  /// are awaited before building the payload, so pre-filled values are also
-  /// visible in the Live Activity.
-  Future<void> _syncLiveActivityNow() async {
-    if (!_liveActivityService.isPlatformSupported) return;
-    final log = _workoutLog;
-    final strings = _liveActivityStrings;
-    if (log == null || log.id == null || strings == null) return;
-    if (!isActive) return;
+  Future<void> _endLiveActivity() => _liveActivityCoordinator.endLiveActivity();
 
-    final pendingProgression = _pendingProgressionUpdate;
-    if (pendingProgression != null) {
-      await pendingProgression;
-    }
+  void _scheduleRestSound(DateTime endsAt) =>
+      _liveActivityCoordinator.scheduleRestSound(endsAt);
 
-    final content = _buildLiveActivityContent();
-    if (content == null) return;
-
-    if (_liveActivityRunning) {
-      await _liveActivityService.update(content);
-      return;
-    }
-
-    await _liveActivityService.start(
-      attributes: WorkoutLiveActivityAttributes(
-        workoutTitle: log.routineName ?? '',
-        workoutStartedAt: log.startTime,
-        deepLink: liveActivityDeepLink,
-        workoutLogId: log.id!,
-        labelAddExercise: strings.addExercise,
-        labelOpenApp: strings.openApp,
-        labelSkip: strings.skip,
-        labelOverdue: strings.overduePrefix,
-      ),
-      content: content,
-    );
-    _liveActivityRunning = true;
-  }
-
-  Future<void> _endLiveActivity() async {
-    if (!_liveActivityRunning) return;
-    _liveActivityRunning = false;
-    await _liveActivityService.end();
-  }
-
-  /// Whether the rest sound is handled natively instead of through
-  /// [LocalNotificationService].
-  ///
-  /// Only on iOS, and only while a Live Activity is up: its App Intents can
-  /// move the pause while the app is suspended, and only the native scheduler
-  /// can be moved with it.
-  ///
-  /// Android has a live update of its own now, but its buttons reach a
-  /// BroadcastReceiver in the app's own process rather than a separate
-  /// extension, so [LocalNotificationService] can still be rescheduled from
-  /// Dart — and keeping it means the app needs no exact-alarm permission.
-  bool get _usesNativeRestSound =>
-      _liveActivityRunning && !kIsWeb && Platform.isIOS;
-
-  void _scheduleRestSound(DateTime endsAt) {
-    final strings = _liveActivityStrings;
-    if (_usesNativeRestSound && strings != null) {
-      unawaited(_liveActivityService.scheduleRestSound(
-        endsAt: endsAt,
-        title: strings.restDoneTitle,
-        body: strings.restDoneBody,
-      ));
-      return;
-    }
-    LocalNotificationService.instance.scheduleRestTimerDoneNotification(
-      secondsFromNow: endsAt.difference(DateTime.now()).inSeconds,
-    );
-  }
-
-  void _cancelRestSound() {
-    LocalNotificationService.instance.cancelRestTimerNotification();
-    if (_usesNativeRestSound) {
-      unawaited(_liveActivityService.cancelRestSound());
-    }
-  }
+  void _cancelRestSound() => _liveActivityCoordinator.cancelRestSound();
 
   /// Applies the commands that Live Activity buttons produced while the app
   /// was suspended or gone. Safe to call repeatedly — the queue is consumed.
-  Future<void> applyPendingLiveActivityCommands() async {
-    if (!isActive) return;
-    final commands = await _liveActivityService.consumePendingCommands();
-    if (commands.isEmpty) return;
-
-    for (final command in commands) {
-      switch (command['kind']) {
-        case 'skipRest':
-          cancelRest();
-        case 'adjustRest':
-          final delta = command['deltaSeconds'];
-          if (delta is int) adjustRestTime(delta);
-        case 'completeSet':
-          final timerTemplateId = command['timerTemplateId'];
-          final elapsedSeconds = command['elapsedSeconds'];
-          if (timerTemplateId is int && elapsedSeconds is int) {
-            await completeTimedSet(
-              timerTemplateId,
-              elapsedSeconds: elapsedSeconds,
-            );
-          } else {
-            await _completeNextPlannedSet();
-          }
-        case 'startSetTimer':
-          final id = command['templateId'];
-          final startedAtMs = command['startedAtEpochMs'];
-          if (id is int) {
-            startSetTimer(
-              id,
-              startedAt: startedAtMs is int
-                  ? DateTime.fromMillisecondsSinceEpoch(startedAtMs)
-                  : null,
-              elapsedSeconds: command['elapsedSeconds'] is int
-                  ? command['elapsedSeconds'] as int
-                  : 0,
-            );
-          }
-        case 'stopSetTimer':
-          final id = command['templateId'];
-          final elapsed = command['elapsedSeconds'];
-          if (id is int) {
-            await stopSetTimer(id,
-                elapsedSeconds: elapsed is int ? elapsed : null);
-          }
-      }
-    }
-    await _syncLiveActivity();
-  }
-
-  /// Completes the next open set with its planned values — the checkmark in
-  /// the Live Activity carries no input of its own.
-  ///
-  /// Refuses when a required value is missing. The Live Activity already greys
-  /// the checkmark out in that case, but a command could still arrive from a
-  /// queue written before the values were cleared, and inventing a weight or a
-  /// rep count would silently corrupt the log.
-  Future<void> _completeNextPlannedSet() async {
-    final next = _nextOpenSet();
-    if (next != null && next.templateId >= 0) {
-      final exercise = _exercises[next.exerciseIndex];
-      final template = exercise.setTemplates[next.templateIndex];
-      final templateId = next.templateId;
-      final log = _setLogs[templateId];
-      if (log != null && log.isCompleted != true) {
-        if (_isDurationSet(templateId) && _activeSetTimerId == templateId) {
-          await completeTimedSet(templateId);
-          return;
-        }
-        // A set counts as filled in when the fields its mask actually shows
-        // have values. Asking a plank for reps would block the finish button
-        // on a number the row never offered.
-        final mask = ExerciseLogMask.forExercise(exercise.exercise);
-        if (mask.logsDistance &&
-            log.durationSeconds == null &&
-            log.distanceKm == null) {
-          return;
-        }
-        if (mask.logsDuration &&
-            !mask.logsDistance &&
-            log.durationSeconds == null) {
-          return;
-        }
-
-        // Only what the user actually entered is passed on; updateSet fills
-        // the rest from the template, the same way the in-app checkmark does.
-        // Resolving the targets here instead meant reimplementing that fill,
-        // and the copy could not read a rep range like "8-12".
-        await updateSet(
-          templateId,
-          weight: log.weightKg,
-          reps: log.reps,
-          rir: log.rir ?? template.targetRir,
-          isCompleted: true,
-        );
-        return;
-      }
-    }
-  }
+  Future<void> applyPendingLiveActivityCommands() =>
+      _liveActivityCoordinator.applyPendingLiveActivityCommands();
 
   bool get _isAppInForeground =>
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed ||
@@ -583,7 +420,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> startWorkout(
-      WorkoutLog log, List<RoutineExercise> routineExercises) async {
+    WorkoutLog log,
+    List<RoutineExercise> routineExercises,
+  ) async {
     // Reopening a session this view model no longer holds — the restore on
     // startup never ran, or it failed and was swallowed — must not lay a
     // second set of empty rows on top of the ones already stored. That left
@@ -649,7 +488,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     // Both the position and the exercise it belongs to are written with the
     // row. They used to be left at the column default of 0, which made the
     // rows indistinguishable and the restore's ordering arbitrary.
-    final isRoutineWorkout = _workoutLog?.routineId != null ||
+    final isRoutineWorkout =
+        _workoutLog?.routineId != null ||
         (_workoutLog?.routineName != null &&
             _workoutLog!.routineName!.isNotEmpty);
 
@@ -661,8 +501,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
         final repRange =
             template.targetRepMin != null && template.targetRepMax != null
-                ? (min: template.targetRepMin!, max: template.targetRepMax!)
-                : parseRepRange(template.targetReps);
+            ? (min: template.targetRepMin!, max: template.targetRepMax!)
+            : parseRepRange(template.targetReps);
 
         final newSetLog = SetLog(
           workoutLogId: _workoutLog!.id!,
@@ -677,10 +517,14 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           exerciseBlock: blockIndex,
           supersetGroup: re.supersetGroup,
           rir: null,
-          progressionData: re.progression.copyWith(
-              loadMode: re.progression.loadMode ??
-                  LoadMode.fromString(re.exercise.loadMode),
-              events: []).encode(),
+          progressionData: re.progression
+              .copyWith(
+                loadMode:
+                    re.progression.loadMode ??
+                    LoadMode.fromString(re.exercise.loadMode),
+                events: [],
+              )
+              .encode(),
           prescriptionOrigin: isRoutineWorkout
               ? PrescriptionOrigin.routine.name
               : PrescriptionOrigin.none.name,
@@ -704,9 +548,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final savedSets = await _repository.getSetLogsForWorkout(log.id!);
     final savedExerciseNotes =
         _repository is WorkoutExerciseBlockNotesRepository
-            ? await (_repository as WorkoutExerciseBlockNotesRepository)
-                .getWorkoutExerciseNotesByBlock(log.id!)
-            : const <int, String>{};
+        ? await (_repository as WorkoutExerciseBlockNotesRepository)
+              .getWorkoutExerciseNotesByBlock(log.id!)
+        : const <int, String>{};
     workoutExerciseNotes = Map<int, String>.from(savedExerciseNotes);
 
     _setLogs.clear();
@@ -771,7 +615,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final firstSet = block.first;
       final exName = firstSet.exerciseName;
-      final exercise = await _repository.resolveExerciseForSetLog(firstSet) ??
+      final exercise =
+          await _repository.resolveExerciseForSetLog(firstSet) ??
           Exercise(
             texts: {'en': ExerciseText(name: exName)},
             categoryName: 'Unknown',
@@ -779,15 +624,16 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             secondaryMuscles: const [],
           );
       final blockId = firstSet.exerciseBlock;
-      final routineSlot = blockId != null &&
+      final routineSlot =
+          blockId != null &&
               blockId >= 0 &&
               blockId < (persistedRoutine?.exercises.length ?? 0)
           ? persistedRoutine!.exercises[blockId]
           : null;
       final matchingRoutineSlot =
           routineSlot != null && routineSlot.exercise.uuid == exercise.uuid
-              ? routineSlot
-              : null;
+          ? routineSlot
+          : null;
       if (blockId != null && matchingRoutineSlot?.id != null) {
         _routineExerciseNoteTargetsByBlock[blockId] = matchingRoutineSlot!.id!;
       }
@@ -920,7 +766,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> loadInitialData(
-      WorkoutLog initialLog, List<RoutineExercise>? initialExercises) async {
+    WorkoutLog initialLog,
+    List<RoutineExercise>? initialExercises,
+  ) async {
     isLoading = true;
     notifyListeners();
 
@@ -977,17 +825,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           initText = setLog.distanceKm == null
               ? ''
               : setLog.distanceKm!
-                  .toStringAsFixed(3)
-                  .replaceAll(RegExp(r'0*$'), '')
-                  .replaceAll(RegExp(r'\.$'), '');
+                    .toStringAsFixed(3)
+                    .replaceAll(RegExp(r'0*$'), '')
+                    .replaceAll(RegExp(r'\.$'), '');
         } else {
           // Left blank when nothing was entered — including for an added-weight
           // column, where blank is a meaningful answer rather than a missing
           // one: it means the set was done with body weight alone.
           initText = setLog.weightKg == null
               ? ''
-              : unitService.formatDisplayWeight(setLog.weightKg!,
-                  fractionDigits: 2);
+              : unitService.formatDisplayWeight(
+                  setLog.weightKg!,
+                  fractionDigits: 2,
+                );
         }
         weightControllers[templateId] = TextEditingController(text: initText);
       }
@@ -1003,8 +853,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       if (rirControllers[templateId] == null) {
-        rirControllers[templateId] =
-            TextEditingController(text: setLog.rir?.toString() ?? '');
+        rirControllers[templateId] = TextEditingController(
+          text: setLog.rir?.toString() ?? '',
+        );
       }
     });
   }
@@ -1032,14 +883,17 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             .replaceAll(RegExp(r'\.$'), '');
       }
     } else if (setLog.weightKg != null) {
-      weightControllers[templateId]?.text =
-          unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+      weightControllers[templateId]?.text = unitService.formatDisplayWeight(
+        setLog.weightKg!,
+        fractionDigits: 2,
+      );
     }
 
     if (mask.logsDuration) {
       if (setLog.durationSeconds != null) {
-        repsControllers[templateId]?.text =
-            formatPauseDuration(setLog.durationSeconds);
+        repsControllers[templateId]?.text = formatPauseDuration(
+          setLog.durationSeconds,
+        );
       }
     } else if (setLog.reps != null) {
       repsControllers[templateId]?.text = setLog.reps!.toString();
@@ -1062,6 +916,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     rirControllers.clear();
   }
 
+  @override
   Future<void> updateSet(
     int templateId, {
     double? weight,
@@ -1127,8 +982,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       {
         final repRange =
             template?.targetRepMin != null && template?.targetRepMax != null
-                ? (min: template!.targetRepMin!, max: template.targetRepMax!)
-                : parseRepRange(template?.targetReps);
+            ? (min: template!.targetRepMin!, max: template.targetRepMax!)
+            : parseRepRange(template?.targetReps);
 
         finalSet = finalSet.copyWith(
           prescriptionOrigin: PrescriptionOrigin.engine.name,
@@ -1348,7 +1203,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
               ? null
               : unitService.formatDisplayWeight(
                   previousSuggestion!.targetWeight!,
-                  fractionDigits: 2);
+                  fractionDigits: 2,
+                );
           if (controller.text.isEmpty || controller.text == previousWeight) {
             controller.text = unitService.formatDisplayWeight(
               suggestion.targetWeight!,
@@ -1370,11 +1226,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         // no different from values the user can type over immediately.
         final currentLog = _setLogs[templateId];
         if (currentLog != null) {
-          final repRange = nextOpenTemplate.targetRepMin != null &&
+          final repRange =
+              nextOpenTemplate.targetRepMin != null &&
                   nextOpenTemplate.targetRepMax != null
               ? (
                   min: nextOpenTemplate.targetRepMin!,
-                  max: nextOpenTemplate.targetRepMax!
+                  max: nextOpenTemplate.targetRepMax!,
                 )
               : parseRepRange(nextOpenTemplate.targetReps);
 
@@ -1411,9 +1268,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     var exerciseIndex = -1;
     var templateIndex = -1;
     for (var index = 0; index < _exercises.length; index++) {
-      final found = _exercises[index]
-          .setTemplates
-          .indexWhere((template) => template.id == templateId);
+      final found = _exercises[index].setTemplates.indexWhere(
+        (template) => template.id == templateId,
+      );
       if (found != -1) {
         exerciseIndex = index;
         templateIndex = found;
@@ -1430,8 +1287,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     if (group != null) {
       var groupStart = exerciseIndex;
       var groupEnd = exerciseIndex;
-      while (
-          groupStart > 0 && _exercises[groupStart - 1].supersetGroup == group) {
+      while (groupStart > 0 &&
+          _exercises[groupStart - 1].supersetGroup == group) {
         groupStart--;
       }
       while (groupEnd + 1 < _exercises.length &&
@@ -1453,9 +1310,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         shouldRest = false;
         for (var member = groupStart; member <= groupEnd; member++) {
           final templates = _exercises[member].setTemplates;
-          for (var nextRound = templateIndex + 1;
-              nextRound < templates.length;
-              nextRound++) {
+          for (
+            var nextRound = templateIndex + 1;
+            nextRound < templates.length;
+            nextRound++
+          ) {
             final id = templates[nextRound].id;
             if (id != null && _setLogs[id]?.isCompleted != true) {
               shouldRest = true;
@@ -1483,8 +1342,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     if (_exerciseBests[exName] == null) {
       final exercise = await _repository.getExerciseByName(exName);
-      final altName =
-          exercise?.canonicalName != exName ? exercise?.canonicalName : null;
+      final altName = exercise?.canonicalName != exName
+          ? exercise?.canonicalName
+          : null;
       final exerciseUuid = exercise?.id != null
           ? await _repository.getExerciseUuidByLocalId(exercise!.id!)
           : null;
@@ -1553,18 +1413,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
 
-    final repProgressionSupported =
-        ExerciseLogMask.forExercise(re.exercise).supportsLoadRepProgression;
-    final parsedPrecedingRange =
-        parseRepRange(precedingWorkingTemplate?.targetReps);
+    final repProgressionSupported = ExerciseLogMask.forExercise(re.exercise)
+        .supportsLoadRepProgression;
+    final parsedPrecedingRange = parseRepRange(
+      precedingWorkingTemplate?.targetReps,
+    );
     final explicitPrecedingRange =
         precedingWorkingTemplate?.targetRepMin != null &&
-                precedingWorkingTemplate?.targetRepMax != null
-            ? (
-                min: precedingWorkingTemplate!.targetRepMin!,
-                max: precedingWorkingTemplate.targetRepMax!
-              )
-            : null;
+            precedingWorkingTemplate?.targetRepMax != null
+        ? (
+            min: precedingWorkingTemplate!.targetRepMin!,
+            max: precedingWorkingTemplate.targetRepMax!,
+          )
+        : null;
     // A single prescription such as `10` is a fixed target, not a range to
     // inherit. Only a genuine range is copied; otherwise eligible exercises
     // receive the neutral 8–12 fallback below.
@@ -1674,38 +1535,45 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final tempReId = _nextSyntheticId(_allRoutineExerciseIds());
     final isCardio = exercise.isCardio;
     final initialSetCount = isCardio ? 1 : 3;
-    final repProgressionSupported =
-        ExerciseLogMask.forExercise(exercise).supportsLoadRepProgression;
+    final repProgressionSupported = ExerciseLogMask.forExercise(exercise)
+        .supportsLoadRepProgression;
     final initialReps = repProgressionSupported ? '8-12' : '';
 
     final existingTemplateIds = _allTemplateIds()..addAll(_setLogs.keys);
     final templates = <SetTemplate>[];
     for (var index = 0; index < initialSetCount; index++) {
-      final templateId =
-          _nextSyntheticId(existingTemplateIds, seed: tempReId + index + 1);
+      final templateId = _nextSyntheticId(
+        existingTemplateIds,
+        seed: tempReId + index + 1,
+      );
       existingTemplateIds.add(templateId);
-      templates.add(SetTemplate(
+      templates.add(
+        SetTemplate(
           id: templateId,
           setType: 'normal',
           targetReps: initialReps,
           targetRepMin: repProgressionSupported ? 8 : null,
           targetRepMax: repProgressionSupported ? 12 : null,
-          targetWeight: null));
+          targetWeight: null,
+        ),
+      );
     }
 
     final re = RoutineExercise(
-        id: tempReId,
-        exercise: exercise,
-        setTemplates: templates,
-        pauseSeconds: 0);
+      id: tempReId,
+      exercise: exercise,
+      setTemplates: templates,
+      pauseSeconds: 0,
+    );
     final exerciseBlock = _nextWorkoutExerciseBlock();
 
     // Insert directly after the lowest exercise that has at least 1 completed set
     int lastCompletedIndex = -1;
     for (int i = _exercises.length - 1; i >= 0; i--) {
       final ex = _exercises[i];
-      final hasCompletedSet =
-          ex.setTemplates.any((t) => _setLogs[t.id]?.isCompleted == true);
+      final hasCompletedSet = ex.setTemplates.any(
+        (t) => _setLogs[t.id]?.isCompleted == true,
+      );
       if (hasCompletedSet) {
         lastCompletedIndex = i;
         break;
@@ -1892,8 +1760,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   int _nextWorkoutExerciseBlock() {
-    final blocks =
-        _setLogs.values.map((set) => set.exerciseBlock).whereType<int>();
+    final blocks = _setLogs.values
+        .map((set) => set.exerciseBlock)
+        .whereType<int>();
     return blocks.isEmpty ? 0 : blocks.reduce((a, b) => a > b ? a : b) + 1;
   }
 
@@ -1907,11 +1776,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     if (repository is WorkoutExerciseBlockNotesRepository) {
       await (repository as WorkoutExerciseBlockNotesRepository)
           .saveWorkoutExerciseNoteByBlock(
-        workoutLogId: workoutLogId,
-        exerciseBlock: exerciseBlock,
-        exerciseName: exerciseName,
-        notes: notes,
-      );
+            workoutLogId: workoutLogId,
+            exerciseBlock: exerciseBlock,
+            exerciseName: exerciseName,
+            notes: notes,
+          );
       return;
     }
     await _repository.saveWorkoutExerciseNote(
@@ -1922,7 +1791,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> updateWorkoutExerciseNote(
-      RoutineExercise exercise, String? notes) async {
+    RoutineExercise exercise,
+    String? notes,
+  ) async {
     final block = exerciseBlockFor(exercise);
     if (block == null || _workoutLog?.id == null) return;
     final normalized = notes?.trim();
@@ -1936,10 +1807,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       workoutExerciseNotes = Map<int, String>.from(workoutExerciseNotes)
         ..remove(block);
     } else {
-      workoutExerciseNotes = {
-        ...workoutExerciseNotes,
-        block: normalized,
-      };
+      workoutExerciseNotes = {...workoutExerciseNotes, block: normalized};
     }
     notifyListeners();
   }
@@ -1949,16 +1817,18 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   @Deprecated('Use updateWorkoutExerciseNote with a RoutineExercise instance')
   Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
     final exercise = _exercises.cast<RoutineExercise?>().firstWhere(
-          (entry) => entry?.exercise.canonicalName == exerciseName,
-          orElse: () => null,
-        );
+      (entry) => entry?.exercise.canonicalName == exerciseName,
+      orElse: () => null,
+    );
     if (exercise != null) {
       await updateWorkoutExerciseNote(exercise, notes);
     }
   }
 
   Future<void> updateRoutineExerciseNote(
-      RoutineExercise exercise, String? notes) async {
+    RoutineExercise exercise,
+    String? notes,
+  ) async {
     if (_workoutLog?.routineId == null) return;
     final block = exerciseBlockFor(exercise);
     final targetId = block == null
@@ -1985,7 +1855,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> updatePinnedExerciseNote(
-      RoutineExercise exercise, String? notes) async {
+    RoutineExercise exercise,
+    String? notes,
+  ) async {
     final uuid = exercise.exercise.uuid;
     if (uuid == null) return;
     final normalized = notes?.trim();
@@ -1993,9 +1865,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     if (pinnedNotesRepository is WorkoutPinnedExerciseNotesRepository) {
       await (pinnedNotesRepository as WorkoutPinnedExerciseNotesRepository)
           .savePinnedExerciseNote(
-        exerciseUuid: uuid,
-        notes: normalized == null || normalized.isEmpty ? null : normalized,
-      );
+            exerciseUuid: uuid,
+            notes: normalized == null || normalized.isEmpty ? null : normalized,
+          );
     }
     _exercises = _exercises.map((entry) {
       if (entry.exercise.uuid != uuid) return entry;
@@ -2022,8 +1894,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_targetRestEndTime != null) {
-        final remaining =
-            _targetRestEndTime!.difference(DateTime.now()).inSeconds;
+        final remaining = _targetRestEndTime!
+            .difference(DateTime.now())
+            .inSeconds;
         if (remaining > 0) {
           if (_remainingRestSeconds != remaining) {
             _remainingRestSeconds = remaining;
@@ -2042,8 +1915,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
               // the card already says the pause is over. Sound and haptics,
               // which are the actual point, still fire.
               if (!_liveActivityRunning) {
-                unawaited(LocalNotificationService.instance
-                    .showRestTimerDoneNotification(foreground: true));
+                unawaited(
+                  LocalNotificationService.instance
+                      .showRestTimerDoneNotification(foreground: true),
+                );
               }
             } catch (_) {}
           }
@@ -2065,6 +1940,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_syncLiveActivity());
   }
 
+  @override
   void cancelRest() {
     _restTimer?.cancel();
     _cancelRestSound();
@@ -2076,12 +1952,14 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_syncLiveActivity());
   }
 
+  @override
   void adjustRestTime(int deltaSeconds) {
     if (_remainingRestSeconds <= 0) return;
     _remainingRestSeconds += deltaSeconds;
     if (_targetRestEndTime != null) {
-      _targetRestEndTime =
-          _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
+      _targetRestEndTime = _targetRestEndTime!.add(
+        Duration(seconds: deltaSeconds),
+      );
     }
 
     _cancelRestSound();
@@ -2146,7 +2024,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       // disappearing when the user saves the workout.
       final discardSetIds = <int>[];
       for (final set in setsToPersist) {
-        final hasManualInput = set.weightKg != null ||
+        final hasManualInput =
+            set.weightKg != null ||
             set.reps != null ||
             set.distanceKm != null ||
             set.durationSeconds != null ||
@@ -2177,8 +2056,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       final duration = _elapsedDuration;
-      final workoutType =
-          (_workoutLog?.routineId != null) ? 'routine' : 'custom';
+      final workoutType = (_workoutLog?.routineId != null)
+          ? 'routine'
+          : 'custom';
       // BOLT OPTIMIZATION: Replaced multiple .where(), .any(), .map() passes with a single loop
       int totalSetCount = 0;
       int rirSetsCount = 0;
@@ -2222,23 +2102,25 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       _cancelRestSound();
       await _endLiveActivity();
 
-      unawaited(TelemetryService.instance.trackWorkoutCompleted(
-        workoutType: workoutType,
-        exerciseCount: _exercises.length,
-        setCount: totalSetCount,
-        durationMinutes: duration.inMinutes,
-        hasRestTimer: pauseTimes.isNotEmpty,
-        restTimerCount: pauseTimes.length,
-        hasRir: rirSetsCount > 0,
-        rirSetsCount: rirSetsCount,
-        hasSupersets: supersetIds.isNotEmpty,
-        supersetCount: supersetIds.length,
-        hasWarmupSets: hasWarmupSets,
-        hasDropSets: hasDropSets,
-        hasFailureSets: hasFailureSets,
-        hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
-        fromTrainingPlan: isFromTrainingPlan,
-      ));
+      unawaited(
+        TelemetryService.instance.trackWorkoutCompleted(
+          workoutType: workoutType,
+          exerciseCount: _exercises.length,
+          setCount: totalSetCount,
+          durationMinutes: duration.inMinutes,
+          hasRestTimer: pauseTimes.isNotEmpty,
+          restTimerCount: pauseTimes.length,
+          hasRir: rirSetsCount > 0,
+          rirSetsCount: rirSetsCount,
+          hasSupersets: supersetIds.isNotEmpty,
+          supersetCount: supersetIds.length,
+          hasWarmupSets: hasWarmupSets,
+          hasDropSets: hasDropSets,
+          hasFailureSets: hasFailureSets,
+          hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
+          fromTrainingPlan: isFromTrainingPlan,
+        ),
+      );
 
       _workoutLog = null;
       isFromTrainingPlan = false;

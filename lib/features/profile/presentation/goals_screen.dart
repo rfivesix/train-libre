@@ -35,11 +35,7 @@ class DailyTargetsScreen extends StatefulWidget {
 /// Compatibility name for existing routes while callers migrate to the more
 /// precise [DailyTargetsScreen] name.
 class GoalsScreen extends DailyTargetsScreen {
-  const GoalsScreen({
-    super.key,
-    super.recommendationService,
-    super.repository,
-  });
+  const GoalsScreen({super.key, super.recommendationService, super.repository});
 }
 
 class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
@@ -61,8 +57,11 @@ class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.goalEditor));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.goalEditor,
+      ),
+    );
     _loadSettings();
   }
 
@@ -101,8 +100,8 @@ class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
 
       if (!mounted) return;
       setState(() {
-        _caloriesController.text =
-            (settings?.targetCalories ?? 2500).toString();
+        _caloriesController.text = (settings?.targetCalories ?? 2500)
+            .toString();
         _proteinController.text = (settings?.targetProtein ?? 180).toString();
         _carbsController.text = (settings?.targetCarbs ?? 250).toString();
         _fatController.text = (settings?.targetFat ?? 80).toString();
@@ -162,7 +161,8 @@ class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: DesignConstants.cardPadding.copyWith(
-                top: DesignConstants.cardPadding.top +
+                top:
+                    DesignConstants.cardPadding.top +
                     MediaQuery.of(context).padding.top +
                     kToolbarHeight,
               ),
@@ -185,10 +185,8 @@ class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
                           technicalTitle: l10n.infoTdeeTechnicalTitle,
                           technicalExplanation:
                               l10n.infoTdeeTechnicalExplanation,
-                          markdownAssetPath:
-                              'documentation/features/bayesian_tdee_estimator.md',
-                          citationUrl:
-                              'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
+                          markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
+                          citationUrl: 'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
                         ),
                       ],
                     ),
@@ -210,12 +208,10 @@ class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
                       l10n.infoScientificDisclaimer,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                          ),
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.6),
+                      ),
                     ),
                   ],
                 ),

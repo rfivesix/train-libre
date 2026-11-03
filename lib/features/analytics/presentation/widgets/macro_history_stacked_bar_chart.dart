@@ -1,9 +1,11 @@
 // lib/features/analytics/presentation/widgets/macro_history_stacked_bar_chart.dart
 
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 
@@ -90,6 +92,7 @@ class _MacroHistoryStackedBarChartState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final macroColors = theme.extension<MacroColors>();
 
     final proteinColor = macroColors?.protein ?? Colors.red;
@@ -123,8 +126,9 @@ class _MacroHistoryStackedBarChartState
                 child: CustomPaint(
                   painter: _MacroGridPainter(
                     gridCeiling: gridCeiling,
-                    lineColor:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                    lineColor: theme.colorScheme.onSurface.withValues(
+                      alpha: 0.08,
+                    ),
                   ),
                 ),
               ),
@@ -172,103 +176,115 @@ class _MacroHistoryStackedBarChartState
                 child: widget.dailyIntakes.isEmpty
                     ? Center(
                         child: Text(
-                          'Keine Daten',
+                          l10n.noData,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.5),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                         ),
                       )
-                    : LayoutBuilder(builder: (context, constraints) {
-                        final barsWidth = constraints.maxWidth;
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          // Long-press starts the scrub
-                          onLongPressStart: (d) => _handleDragStart(
-                            DragStartDetails(
-                              globalPosition: d.globalPosition,
-                              localPosition: d.localPosition,
-                            ),
-                            barsWidth,
-                          ),
-                          onLongPressMoveUpdate: (d) {
-                            if (!_isPressing) return;
-                            _handleDragUpdate(
-                              DragUpdateDetails(
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          final barsWidth = constraints.maxWidth;
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            // Long-press starts the scrub
+                            onLongPressStart: (d) => _handleDragStart(
+                              DragStartDetails(
                                 globalPosition: d.globalPosition,
                                 localPosition: d.localPosition,
-                                delta: Offset.zero,
                               ),
                               barsWidth,
-                            );
-                          },
-                          onLongPressEnd: (_) => _handleDragEnd(),
-                          onLongPressCancel: _handleDragEnd,
-                          // Tap toggles a single day and stores touch X for the chip
-                          onTapUp: (d) {
-                            if (widget.onDaySelected == null) return;
-                            final idx =
-                                _indexFromX(d.localPosition.dx, barsWidth);
-                            if (idx < 0) return;
-                            final tapped = widget.dailyIntakes[idx];
-                            final isSame = widget.selectedDay != null &&
-                                widget.selectedDay!.date.day ==
-                                    tapped.date.day &&
-                                widget.selectedDay!.date.month ==
-                                    tapped.date.month;
-                            if (isSame) {
-                              // Deselect: clear position and notify null
-                              setState(() => _touchX = null);
-                              widget.onDaySelected?.call(null);
-                            } else {
-                              // Select: store X so chip appears at correct position
-                              setState(() => _touchX = d.localPosition.dx);
-                              widget.onDaySelected?.call(tapped);
-                            }
-                          },
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: List.generate(widget.dailyIntakes.length,
-                                (index) {
-                              final item = widget.dailyIntakes[index];
-                              final isSelected = widget.selectedDay != null &&
-                                  widget.selectedDay!.date.year ==
-                                      item.date.year &&
-                                  widget.selectedDay!.date.month ==
-                                      item.date.month &&
-                                  widget.selectedDay!.date.day == item.date.day;
-                              final isOtherSelected =
-                                  widget.selectedDay != null && !isSelected;
-
-                              return Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: showDetails
-                                        ? 3.0
-                                        : (widget.dailyIntakes.length <= 31
-                                            ? 1.5
-                                            : 0.5),
-                                  ),
-                                  child: AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 120),
-                                    opacity: isOtherSelected ? 0.35 : 1.0,
-                                    child: _buildStackedBar(
-                                      context,
-                                      item: item,
-                                      maxKcal: gridCeiling,
-                                      proteinColor: proteinColor,
-                                      carbsColor: carbsColor,
-                                      fatColor: fatColor,
-                                      showDetails: showDetails,
-                                      isSelected: isSelected,
-                                    ),
-                                  ),
+                            ),
+                            onLongPressMoveUpdate: (d) {
+                              if (!_isPressing) return;
+                              _handleDragUpdate(
+                                DragUpdateDetails(
+                                  globalPosition: d.globalPosition,
+                                  localPosition: d.localPosition,
+                                  delta: Offset.zero,
                                 ),
+                                barsWidth,
                               );
-                            }),
-                          ),
-                        );
-                      }),
+                            },
+                            onLongPressEnd: (_) => _handleDragEnd(),
+                            onLongPressCancel: _handleDragEnd,
+                            // Tap toggles a single day and stores touch X for the chip
+                            onTapUp: (d) {
+                              if (widget.onDaySelected == null) return;
+                              final idx = _indexFromX(
+                                d.localPosition.dx,
+                                barsWidth,
+                              );
+                              if (idx < 0) return;
+                              final tapped = widget.dailyIntakes[idx];
+                              final isSame =
+                                  widget.selectedDay != null &&
+                                  widget.selectedDay!.date.day ==
+                                      tapped.date.day &&
+                                  widget.selectedDay!.date.month ==
+                                      tapped.date.month;
+                              if (isSame) {
+                                // Deselect: clear position and notify null
+                                setState(() => _touchX = null);
+                                widget.onDaySelected?.call(null);
+                              } else {
+                                // Select: store X so chip appears at correct position
+                                setState(() => _touchX = d.localPosition.dx);
+                                widget.onDaySelected?.call(tapped);
+                              }
+                            },
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: List.generate(
+                                widget.dailyIntakes.length,
+                                (index) {
+                                  final item = widget.dailyIntakes[index];
+                                  final isSelected =
+                                      widget.selectedDay != null &&
+                                      widget.selectedDay!.date.year ==
+                                          item.date.year &&
+                                      widget.selectedDay!.date.month ==
+                                          item.date.month &&
+                                      widget.selectedDay!.date.day ==
+                                          item.date.day;
+                                  final isOtherSelected =
+                                      widget.selectedDay != null && !isSelected;
+
+                                  return Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: showDetails
+                                            ? 3.0
+                                            : (widget.dailyIntakes.length <= 31
+                                                  ? 1.5
+                                                  : 0.5),
+                                      ),
+                                      child: AnimatedOpacity(
+                                        duration: const Duration(
+                                          milliseconds: 120,
+                                        ),
+                                        opacity: isOtherSelected ? 0.35 : 1.0,
+                                        child: _buildStackedBar(
+                                          context,
+                                          item: item,
+                                          maxKcal: gridCeiling,
+                                          proteinColor: proteinColor,
+                                          carbsColor: carbsColor,
+                                          fatColor: fatColor,
+                                          showDetails: showDetails,
+                                          isSelected: isSelected,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
 
               // Floating date chip — shown whenever a day is selected (tap or press-hold)
@@ -424,8 +440,9 @@ class _MacroHistoryStackedBarChartState
                 height: barHeight,
                 decoration: isSelected
                     ? BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(showDetails ? 5 : 3),
+                        borderRadius: BorderRadius.circular(
+                          showDetails ? 5 : 3,
+                        ),
                         border: Border.all(
                           color: theme.colorScheme.primary,
                           width: 1.5,
@@ -528,8 +545,10 @@ class _MacroHistoryStackedBarChartState
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: widget.dailyIntakes.map((d) {
-          final raw =
-              DateFormat.E(locale).format(d.date).replaceAll('.', '').trim();
+          final raw = DateFormat.E(locale)
+              .format(d.date)
+              .replaceAll('.', '')
+              .trim();
           final label = raw.length > 2 ? raw.substring(0, 2) : raw;
           return Expanded(
             child: Text(
@@ -577,10 +596,7 @@ class _MacroGridPainter extends CustomPainter {
   final int gridCeiling;
   final Color lineColor;
 
-  _MacroGridPainter({
-    required this.gridCeiling,
-    required this.lineColor,
-  });
+  _MacroGridPainter({required this.gridCeiling, required this.lineColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -600,8 +616,11 @@ class _MacroGridPainter extends CustomPainter {
     canvas.drawLine(Offset(0, midY), Offset(size.width - 32, midY), paint);
 
     // Bottom line (0)
-    canvas.drawLine(Offset(0, availableHeight),
-        Offset(size.width - 32, availableHeight), paint);
+    canvas.drawLine(
+      Offset(0, availableHeight),
+      Offset(size.width - 32, availableHeight),
+      paint,
+    );
   }
 
   @override

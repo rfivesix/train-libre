@@ -2,10 +2,12 @@
 
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_capture_meta.dart';
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,17 +25,17 @@ import '../domain/meal_reschedule.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/meal_entry.dart';
+import '../domain/models/macro_entry.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../domain/repositories/diary_repository.dart';
-import '../../../services/ai_meal_validation.dart';
 import '../../../services/haptic_feedback_service.dart';
 import 'dialogs/delete_meal_entry_bottom_sheet.dart';
+import 'dialogs/macro_entry_form.dart';
+import 'widgets/macro_entry_tile.dart';
 import 'widgets/meal_photo_widget.dart';
-import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_ingredients_summary.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
-import 'util/meal_moment_format.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 
@@ -41,31 +43,101 @@ import '../../../services/base_food_language_service.dart';
 class MealEntryScreen extends StatefulWidget {
   final MealEntry mealEntry;
   final List<TrackedFoodItem> initialItems;
+  final List<MacroEntry> initialMacroEntries;
 
   const MealEntryScreen({
     super.key,
     required this.mealEntry,
     required this.initialItems,
+    this.initialMacroEntries = const [],
   });
 
   @override
   State<MealEntryScreen> createState() => _MealEntryScreenState();
 }
 
+class _PinnedMealSummaryDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  const _PinnedMealSummaryDelegate(this.child);
+
+  @override
+  double get minExtent => 52;
+
+  @override
+  double get maxExtent => 52;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => child;
+
+  @override
+  bool shouldRebuild(covariant _PinnedMealSummaryDelegate oldDelegate) =>
+      child != oldDelegate.child;
+}
+
 class _MealEntryScreenState extends State<MealEntryScreen> {
   late MealEntry _mealEntry;
   late List<TrackedFoodItem> _items;
+  late List<MacroEntry> _macroEntries;
   final List<int> _deletedItemIds = [];
+  final List<String> _deletedMacroEntryIds = [];
   bool _isSaving = false;
   bool _canPop = false;
   bool _isEditing = false;
   IDiaryRepository? _repo;
+  final ValueNotifier<double> _mealPhotoScrollOffset = ValueNotifier<double>(0);
+  final ScrollController _mealScrollController = ScrollController();
+  double? _resolvedMealPhotoHeight;
+  bool _initialSummaryPositionScheduled = false;
+  bool _userHasScrolledMeal = false;
+
+  void _scheduleInitialSummaryPosition() {
+    if (_initialSummaryPositionScheduled ||
+        _userHasScrolledMeal ||
+        _resolvedMealPhotoHeight == null ||
+        !_mealScrollController.hasClients) {
+      return;
+    }
+    _initialSummaryPositionScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initialSummaryPositionScheduled = false;
+      if (!mounted ||
+          _userHasScrolledMeal ||
+          !_mealScrollController.hasClients ||
+          _resolvedMealPhotoHeight == null) {
+        return;
+      }
+      final position = _mealScrollController.position;
+      final target =
+          (_resolvedMealPhotoHeight! +
+                  DesignConstants.spacingL +
+                  52 -
+                  position.viewportDimension)
+              .clamp(0.0, position.maxScrollExtent)
+              .toDouble();
+      if ((position.pixels - target).abs() > 1) {
+        _mealScrollController.jumpTo(target);
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _mealEntry = widget.mealEntry;
     _items = List.from(widget.initialItems);
+    _macroEntries = List.from(widget.initialMacroEntries);
+  }
+
+  @override
+  void dispose() {
+    _mealScrollController.dispose();
+    _mealPhotoScrollOffset.dispose();
+    super.dispose();
   }
 
   @override
@@ -80,6 +152,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       final factor = it.entry.quantityInGrams / 100.0;
       sum += (it.item.calories * factor).round();
     }
+    sum += _macroEntries.fold<int>(
+      0,
+      (total, entry) => total + entry.totalCalories.round(),
+    );
     return sum;
   }
 
@@ -89,6 +165,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       final factor = it.entry.quantityInGrams / 100.0;
       sum += it.item.protein * factor;
     }
+    sum += _macroEntries.fold<double>(
+      0,
+      (total, entry) => total + entry.totalProtein,
+    );
     return sum;
   }
 
@@ -98,6 +178,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       final factor = it.entry.quantityInGrams / 100.0;
       sum += it.item.carbs * factor;
     }
+    sum += _macroEntries.fold<double>(
+      0,
+      (total, entry) => total + entry.totalCarbs,
+    );
     return sum;
   }
 
@@ -107,6 +191,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       final factor = it.entry.quantityInGrams / 100.0;
       sum += it.item.fat * factor;
     }
+    sum += _macroEntries.fold<double>(
+      0,
+      (total, entry) => total + entry.totalFat,
+    );
     return sum;
   }
 
@@ -134,26 +222,13 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
   }
 
-  void _updateQuantity(TrackedFoodItem item, int delta) {
-    final index = _items.indexOf(item);
-    if (index < 0) return;
-    setState(() {
-      final current = _items[index];
-      final newQuantity =
-          (current.entry.quantityInGrams + delta).clamp(5, 5000);
-      _items[index] = TrackedFoodItem(
-        item: current.item,
-        entry: current.entry.copyWith(quantityInGrams: newQuantity),
-      );
-    });
-  }
-
   Future<void> _showDirectQuantityDialog(TrackedFoodItem item) async {
     final index = _items.indexOf(item);
     if (index < 0) return;
     final current = _items[index];
-    final controller =
-        TextEditingController(text: '${current.entry.quantityInGrams}');
+    final controller = TextEditingController(
+      text: '${current.entry.quantityInGrams}',
+    );
     final l10n = AppLocalizations.of(context)!;
     ThemeService? themeService;
     try {
@@ -183,8 +258,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 labelText: l10n.mealDetailAmountInGrams,
                 suffixText: 'g',
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
             ),
@@ -224,10 +300,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   Future<void> _openItemDetail(TrackedFoodItem tracked) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => FoodDetailScreen(
-          foodItem: tracked.item,
-          trackedItem: tracked,
-        ),
+        builder: (_) =>
+            FoodDetailScreen(foodItem: tracked.item, trackedItem: tracked),
       ),
     );
   }
@@ -239,6 +313,136 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       if (item.entry.id != null) {
         _deletedItemIds.add(item.entry.id!);
       }
+    });
+  }
+
+  Future<void> _editMacroEntry(MacroEntry entry) async {
+    final formKey = GlobalKey<MacroEntryFormState>();
+    final l10n = AppLocalizations.of(context)!;
+    final updated = await showGlassBottomMenu<MacroEntry>(
+      context: context,
+      title: l10n.macroEntryTitle,
+      contentBuilder: (sheetContext, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MacroEntryForm(
+            key: formKey,
+            initialDate: _mealEntry.consumedAt,
+            initialMealType: _mealEntry.mealType,
+            initialEntry: entry,
+            allowTimestampEditing: false,
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: close,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () {
+                    final value = formKey.currentState?.createEntry();
+                    if (value == null) return;
+                    Navigator.of(sheetContext).pop(
+                      value.copyWith(
+                        id: entry.id,
+                        mealEntryId: _mealEntry.id,
+                        timestamp: _mealEntry.consumedAt,
+                        mealType: _mealEntry.mealType,
+                      ),
+                    );
+                  },
+                  label: l10n.save,
+                  tooltip: l10n.save,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (updated == null || !mounted) return;
+    setState(() {
+      final index = _macroEntries.indexWhere((item) => item.id == entry.id);
+      if (index >= 0) _macroEntries[index] = updated;
+    });
+  }
+
+  Future<void> _openMacroEntryDetail(MacroEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => MacroEntryDetailScreen(
+          entry: entry,
+          onEdit: _editMacroEntry,
+          l10n: l10n,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addMacroEntry() async {
+    final formKey = GlobalKey<MacroEntryFormState>();
+    final l10n = AppLocalizations.of(context)!;
+    final created = await showGlassBottomMenu<MacroEntry>(
+      context: context,
+      title: l10n.macroEntryTitle,
+      contentBuilder: (sheetContext, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MacroEntryForm(
+            key: formKey,
+            initialDate: _mealEntry.consumedAt,
+            initialMealType: _mealEntry.mealType,
+            allowTimestampEditing: false,
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: close,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () {
+                    final value = formKey.currentState?.createEntry();
+                    if (value == null) return;
+                    Navigator.of(sheetContext).pop(
+                      value.copyWith(
+                        mealEntryId: _mealEntry.id,
+                        timestamp: _mealEntry.consumedAt,
+                        mealType: _mealEntry.mealType,
+                      ),
+                    );
+                  },
+                  label: l10n.save,
+                  tooltip: l10n.save,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (created == null || !mounted) return;
+    setState(() => _macroEntries.add(created));
+  }
+
+  Future<void> _deleteMacroEntry(MacroEntry entry) async {
+    if (!mounted) return;
+    setState(() {
+      _macroEntries.removeWhere((item) => item.id == entry.id);
+      _deletedMacroEntryIds.add(entry.id);
     });
   }
 
@@ -265,23 +469,23 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
   Future<void> _addNewIngredient() async {
     final selectedFood = await Navigator.of(context).push<FoodItem>(
-      MaterialPageRoute(
-        builder: (_) => const GeneralFoodSelectionScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const GeneralFoodSelectionScreen()),
     );
 
     if (selectedFood != null && mounted) {
       setState(() {
-        _items.add(TrackedFoodItem(
-          item: selectedFood,
-          entry: FoodEntry(
-            barcode: selectedFood.barcode,
-            timestamp: _mealEntry.consumedAt,
-            quantityInGrams: 100,
-            mealType: _mealEntry.mealType,
-            mealEntryId: _mealEntry.id,
+        _items.add(
+          TrackedFoodItem(
+            item: selectedFood,
+            entry: FoodEntry(
+              barcode: selectedFood.barcode,
+              timestamp: _mealEntry.consumedAt,
+              quantityInGrams: 100,
+              mealType: _mealEntry.mealType,
+              mealEntryId: _mealEntry.id,
+            ),
           ),
-        ));
+        );
       });
     }
   }
@@ -303,6 +507,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         await repo.deleteFoodEntry(id);
       }
       _deletedItemIds.clear();
+      for (final id in _deletedMacroEntryIds) {
+        await repo.deleteMacroEntry(id);
+      }
+      _deletedMacroEntryIds.clear();
 
       // 2. Update meal entry header
       await repo.updateMealEntry(_mealEntry);
@@ -320,6 +528,17 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
             item: item.item,
             entry: item.entry.copyWith(id: newId, mealEntryId: _mealEntry.id),
           );
+        }
+      }
+      for (final entry in _macroEntries) {
+        final linked = entry.copyWith(
+          mealEntryId: _mealEntry.id,
+          mealType: _mealEntry.mealType,
+        );
+        if (widget.initialMacroEntries.any((item) => item.id == entry.id)) {
+          await repo.updateMacroEntry(linked);
+        } else {
+          await repo.insertMacroEntry(linked);
         }
       }
     } catch (e) {
@@ -341,8 +560,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final l10n = AppLocalizations.of(context)!;
     final title =
         (_mealEntry.title != null && _mealEntry.title!.trim().isNotEmpty)
-            ? _mealEntry.title!.trim()
-            : _getLocalizedMealName(context, _mealEntry.mealType);
+        ? _mealEntry.title!.trim()
+        : _getLocalizedMealName(context, _mealEntry.mealType);
 
     final mealId = await DatabaseHelper.instance.insertMeal(
       name: title,
@@ -357,9 +576,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
     if (mounted) {
       HapticFeedbackService.instance.confirmationFeedback();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)));
     }
   }
 
@@ -383,8 +602,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 labelText: l10n.mealNameLabel,
                 hintText: l10n.mealEditorHintExample,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
               onSubmitted: (val) {
@@ -418,8 +638,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     if (result != null && mounted) {
       final trimmed = result.trim();
       setState(() {
-        _mealEntry =
-            _mealEntry.copyWith(title: trimmed.isEmpty ? null : trimmed);
+        _mealEntry = _mealEntry.copyWith(
+          title: trimmed.isEmpty ? null : trimmed,
+        );
       });
     }
   }
@@ -463,9 +684,16 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       items: _items,
       newConsumedAt: picked,
     );
+    final timestampDelta = picked.difference(_mealEntry.consumedAt);
     setState(() {
       _mealEntry = rescheduled.entry;
       _items = rescheduled.items;
+      _macroEntries = _macroEntries
+          .map(
+            (entry) =>
+                entry.copyWith(timestamp: entry.timestamp.add(timestampDelta)),
+          )
+          .toList(growable: false);
     });
 
     HapticFeedbackService.instance.confirmationFeedback();
@@ -499,13 +727,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
             _showRenameMealDialog();
           },
         ),
-        GlassMenuAction(
-          icon: LucideIcons.bookmark,
-          label: l10n.mealDetailSaveAsTemplate,
-          onTap: () async {
-            await _saveAsTemplate();
-          },
-        ),
+        if (_macroEntries.isEmpty)
+          GlassMenuAction(
+            icon: LucideIcons.bookmark,
+            label: l10n.mealDetailSaveAsTemplate,
+            onTap: () async {
+              await _saveAsTemplate();
+            },
+          ),
         GlassMenuAction(
           icon: LucideIcons.clock,
           label: l10n.mealDetailChangeMealType,
@@ -530,7 +759,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
             final choice = await DeleteMealEntryBottomSheet.show(
               context,
               mealTitle: _mealEntry.title ?? l10n.mealFallbackTitle,
-              itemCount: _items.length,
+              itemCount: _items.length + _macroEntries.length,
               totalKcal: _totalKcal,
             );
 
@@ -574,6 +803,11 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                   entry: _items[i].entry.copyWith(mealType: entry.$1),
                 );
               }
+              for (var i = 0; i < _macroEntries.length; i++) {
+                _macroEntries[i] = _macroEntries[i].copyWith(
+                  mealType: entry.$1,
+                );
+              }
             });
           },
         );
@@ -596,8 +830,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final bg = theme.scaffoldBackgroundColor;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
-    final subtitleColor =
-        isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
 
     final captureMeta = MealCaptureMeta.tryParse(_mealEntry.captureMeta);
     final photoFiles = <File>[];
@@ -613,18 +845,62 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         photoFiles.add(file);
         continue;
       }
-      final thumb = MealPhotoStore.instance
-          .resolveSync(MealPhotoStore.thumbPathFor(path));
+      final thumb = MealPhotoStore.instance.resolveSync(
+        MealPhotoStore.thumbPathFor(path),
+      );
       if (thumb != null && thumb.existsSync()) photoFiles.add(thumb);
     }
     final hasPhoto = photoFiles.isNotEmpty;
-    final timeStr = formatMealMoment(
-      _mealEntry.consumedAt,
-      locale: Localizations.localeOf(context).toString(),
+    final localizedMealType = _getLocalizedMealName(
+      context,
+      _mealEntry.mealType,
     );
-    final localizedMealType =
-        _getLocalizedMealName(context, _mealEntry.mealType);
-
+    final photoHeight = (MediaQuery.sizeOf(context).height * 0.58)
+        .clamp(300.0, 560.0)
+        .toDouble();
+    final pinnedSummary = Material(
+      color: bg,
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.16),
+      child: SizedBox(
+        height: 52,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                '$_totalKcal kcal',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  color: titleColor,
+                ),
+              ),
+              const Spacer(),
+              _buildMacroPill(
+                'P',
+                '${_totalProtein.round()}g',
+                const Color(0xFFFF453A),
+              ),
+              const SizedBox(width: 8),
+              _buildMacroPill(
+                'C',
+                '${_totalCarbs.round()}g',
+                const Color(0xFF30D158),
+              ),
+              const SizedBox(width: 8),
+              _buildMacroPill(
+                'F',
+                '${_totalFat.round()}g',
+                const Color(0xFFBF5AF2),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
     return PopScope(
       canPop: _canPop,
       onPopInvokedWithResult: (didPop, result) async {
@@ -659,208 +935,224 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  if (hasPhoto)
-                    MealPhotoWidget(
-                      photoFiles: photoFiles,
-                      height: 280,
-                      roundedTop: false,
-                      fadeBottom: true,
-                    )
-                  else
-                    const SizedBox(height: DesignConstants.spacingS),
-                  Transform.translate(
-                    offset: Offset(0, hasPhoto ? -32 : 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // The meal's name is already in the app bar; repeating it
-                        // here just pushed the numbers down a line. Energy leads,
-                        // macros sit right-aligned beside it.
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Where the user looks for the meal's time is
-                              // where they expect to be able to fix it, so the
-                              // subtitle itself is the control.
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: InkWell(
-                                  key: const ValueKey(
-                                      'meal_entry_timestamp_button'),
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: _isEditing ? _pickDateTime : null,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 2),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            '$localizedMealType · $timeStr',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 14,
-                                              color: subtitleColor,
-                                            ),
-                                          ),
-                                        ),
-                                        if (_isEditing) ...[
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            LucideIcons.pencil,
-                                            size: 12,
-                                            color: subtitleColor,
-                                            semanticLabel:
-                                                l10n.mealDetailChangeDateTime,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification.depth == 0 &&
+                notification.metrics.axis == Axis.vertical &&
+                notification is UserScrollNotification &&
+                notification.direction != ScrollDirection.idle) {
+              _userHasScrolledMeal = true;
+            }
+            if (notification.depth == 0 &&
+                notification.metrics.axis == Axis.vertical &&
+                (notification is ScrollUpdateNotification ||
+                    notification is ScrollMetricsNotification)) {
+              _mealPhotoScrollOffset.value = notification.metrics.pixels
+                  .clamp(0.0, double.infinity)
+                  .toDouble();
+              _scheduleInitialSummaryPosition();
+            }
+            return false;
+          },
+          child: CustomScrollView(
+            controller: _mealScrollController,
+            slivers: [
+              if (hasPhoto)
+                SliverToBoxAdapter(
+                  child: MealPhotoWidget(
+                    photoFiles: photoFiles,
+                    height: photoHeight,
+                    roundedTop: true,
+                    roundedAll: true,
+                    fadeBottom: true,
+                    imageFit: BoxFit.contain,
+                    scrollOffset: _mealPhotoScrollOffset,
+                    matchSmallestPhotoAspectRatio: true,
+                    onHeightChanged: (height) {
+                      _resolvedMealPhotoHeight = height;
+                      _scheduleInitialSummaryPosition();
+                    },
+                  ),
+                )
+              else
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: DesignConstants.spacingS),
+                ),
+              if (hasPhoto)
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: DesignConstants.spacingL),
+                ),
+              if (hasPhoto)
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _PinnedMealSummaryDelegate(pinnedSummary),
+                )
+              else
+                SliverToBoxAdapter(child: pinnedSummary),
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+
+                    // Keep the same readable ingredient cards in both
+                    // modes. Edit mode changes the actions and tap behavior,
+                    // not the visual layout of the meal contents.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          MealIngredientsSummary(
+                            ingredients: [
+                              ..._items.map(
+                                (item) => MealIngredientSummaryItem(
+                                  key:
+                                      'food-${item.entry.id ?? item.item.barcode}',
+                                  name: item.item.source == FoodItemSource.base
+                                      ? item.item.getLocalizedName(
+                                          context,
+                                          languageCode: baseFoodLang,
+                                        )
+                                      : item.item.getLocalizedName(context),
+                                  grams: item.entry.quantityInGrams,
+                                  kcal: item.calculatedCalories,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '$_totalKcal kcal',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 24,
-                                      color: titleColor,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  _buildMacroPill(
-                                      'P',
-                                      '${_totalProtein.round()}g',
-                                      const Color(0xFFFF453A)),
-                                  const SizedBox(width: 8),
-                                  _buildMacroPill(
-                                      'C',
-                                      '${_totalCarbs.round()}g',
-                                      const Color(0xFF30D158)),
-                                  const SizedBox(width: 8),
-                                  _buildMacroPill('F', '${_totalFat.round()}g',
-                                      const Color(0xFFBF5AF2)),
-                                ],
+                              ..._macroEntries.map(
+                                (entry) => MealIngredientSummaryItem(
+                                  key: 'macro-${entry.id}',
+                                  name: entry.name?.trim().isNotEmpty == true
+                                      ? entry.name!.trim()
+                                      : l10n.macroEntryDefaultName,
+                                  grams: entry.amount?.round(),
+                                  amountLabel: entry.amount == null
+                                      ? null
+                                      : '${entry.amount!.round()} ${entry.amountUnit ?? 'g'}',
+                                  kcal: entry.totalCalories.round(),
+                                ),
                               ),
                             ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // The saved entry opens as a simple receipt. All
-                        // quantities and per-food controls stay behind the
-                        // same explicit edit action as an AI review.
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: _isEditing
-                              ? Column(
-                                  children: [
-                                    // Same card the review screen uses, so a saved meal
-                                    // and a meal being reviewed are one screen with two
-                                    // states rather than two things that look alike.
-                                    ..._items.asMap().entries.map((entry) {
-                                      final idx = entry.key;
-                                      final tracked = entry.value;
-                                      final factor =
-                                          tracked.entry.quantityInGrams / 100.0;
-
-                                      return MealReviewComparisonCard(
-                                        dismissibleKey: ValueKey(
-                                            'meal_item_${tracked.entry.id ?? tracked.item.barcode}_$idx'),
-                                        name: tracked.item.source ==
-                                                FoodItemSource.base
-                                            ? tracked.item.getLocalizedName(
-                                                context,
-                                                languageCode: baseFoodLang,
-                                              )
-                                            : tracked.item
-                                                .getLocalizedName(context),
-                                        estimatedGrams:
-                                            tracked.entry.quantityInGrams,
-                                        // A saved entry carries no open uncertainty; the
-                                        // card hides the chip above 0.7 anyway.
-                                        confidence: 1.0,
-                                        matchedFood: tracked.item,
-                                        issues: const [],
-                                        nutrition: AiNutritionTotals(
-                                          kcal: tracked.item.calories * factor,
-                                          protein:
-                                              tracked.item.protein * factor,
-                                          carbs: tracked.item.carbs * factor,
-                                          fat: tracked.item.fat * factor,
-                                        ),
-                                        onDismissed: () => _deleteItem(tracked),
-                                        onTap: () => _openItemDetail(tracked),
-                                        onReplace: () =>
-                                            _replaceIngredient(tracked),
-                                        onEditQuantity: () =>
-                                            _showDirectQuantityDialog(tracked),
-                                        onQuickAdjustQuantity: (delta) =>
-                                            _updateQuantity(tracked, delta),
+                            onEdit: () =>
+                                setState(() => _isEditing = !_isEditing),
+                            showEditButton: !_isEditing,
+                            onIngredientTap: (index) {
+                              if (index < _items.length) {
+                                if (_isEditing) {
+                                  _showDirectQuantityDialog(_items[index]);
+                                } else {
+                                  _openItemDetail(_items[index]);
+                                }
+                              } else {
+                                final macro =
+                                    _macroEntries[index - _items.length];
+                                if (_isEditing) {
+                                  _editMacroEntry(macro);
+                                } else {
+                                  _openMacroEntryDetail(macro);
+                                }
+                              }
+                            },
+                            onIngredientLongPress: _isEditing
+                                ? (index) {
+                                    if (index < _items.length) {
+                                      _replaceIngredient(_items[index]);
+                                    } else {
+                                      _deleteMacroEntry(
+                                        _macroEntries[index - _items.length],
                                       );
-                                    }),
-
-                                    const SizedBox(height: 8),
-
-                                    // Add Ingredient Button
-                                    AppButton.secondary(
-                                      onPressed: _addNewIngredient,
-                                      label: l10n.mealDetailAddIngredient,
-                                      tooltip: l10n.mealDetailAddIngredient,
-                                      icon: LucideIcons.plus,
-                                    ),
-                                  ],
-                                )
-                              : MealIngredientsSummary(
-                                  ingredients: _items
-                                      .map(
-                                        (item) => MealIngredientSummaryItem(
-                                          name: item.item.source ==
-                                                  FoodItemSource.base
-                                              ? item.item.getLocalizedName(
-                                                  context,
-                                                  languageCode: baseFoodLang,
-                                                )
-                                              : item.item
-                                                  .getLocalizedName(context),
-                                          grams: item.entry.quantityInGrams,
-                                          kcal: item.calculatedCalories,
-                                        ),
-                                      )
-                                      .toList(growable: false),
-                                  onEdit: () =>
-                                      setState(() => _isEditing = true),
-                                  onIngredientTap: (index) =>
-                                      _openItemDetail(_items[index]),
-                                ),
-                        ),
-                      ],
+                                    }
+                                  }
+                                : null,
+                            onIngredientDismissed: _isEditing
+                                ? (index) {
+                                    if (index < _items.length) {
+                                      _deleteItem(_items[index]);
+                                    } else {
+                                      _deleteMacroEntry(
+                                        _macroEntries[index - _items.length],
+                                      );
+                                    }
+                                  }
+                                : null,
+                          ),
+                          if (_isEditing) ...[
+                            const SizedBox(height: DesignConstants.spacingS),
+                            _buildEditActionButtons(
+                              context,
+                              l10n.mealDetailAddIngredient,
+                              l10n.macroEntryTitle,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEditActionButtons(
+    BuildContext context,
+    String addIngredientLabel,
+    String addMacroLabel,
+  ) {
+    final theme = Theme.of(context);
+    final style = (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
+      fontWeight: FontWeight.bold,
+    );
+    final direction = Directionality.of(context);
+    double buttonWidth(String label) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: direction,
+        maxLines: 1,
+      )..layout();
+      // AppButton uses a 20px icon, 8px icon gap, and 16px side padding.
+      return painter.width + 20 + 8 + 32;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gap = DesignConstants.spacingS;
+        final fitsSideBySide =
+            constraints.maxWidth >=
+            buttonWidth(addIngredientLabel) + buttonWidth(addMacroLabel) + gap;
+        final addIngredient = AppButton.secondary(
+          onPressed: _addNewIngredient,
+          label: addIngredientLabel,
+          tooltip: addIngredientLabel,
+          icon: LucideIcons.plus,
+        );
+        final addMacro = AppButton.secondary(
+          onPressed: _addMacroEntry,
+          label: addMacroLabel,
+          tooltip: addMacroLabel,
+          icon: LucideIcons.chart_pie,
+        );
+        if (fitsSideBySide) {
+          return Row(
+            children: [
+              Expanded(child: addIngredient),
+              SizedBox(width: gap),
+              Expanded(child: addMacro),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            addIngredient,
+            SizedBox(height: gap),
+            addMacro,
+          ],
+        );
+      },
     );
   }
 

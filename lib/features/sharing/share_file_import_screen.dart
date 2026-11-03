@@ -25,10 +25,10 @@ class _ShareFileImportScreenState extends State<ShareFileImportScreen> {
     if (uri == null) throw const FormatException('Missing shared file');
     String content;
     if (uri.scheme == 'content') {
-      content = await _channel.invokeMethod<String>(
-            'readJson',
-            {'uri': uri.toString()},
-          ) ??
+      content =
+          await _channel.invokeMethod<String>('readJson', {
+            'uri': uri.toString(),
+          }) ??
           '';
     } else if (uri.scheme == 'file') {
       final file = File.fromUri(uri);

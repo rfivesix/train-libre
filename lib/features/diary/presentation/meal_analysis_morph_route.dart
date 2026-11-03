@@ -2,6 +2,7 @@
 
 import 'dart:math' as math;
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -24,10 +25,11 @@ class MealAnalysisMorphRoute<T> extends PageRoute<T> {
     this.sourceContext,
     super.settings,
     Duration? duration,
-  }) : _duration = duration ??
-            Duration(
-              milliseconds: (480 * kMealAnalysisMorphDebugSlowdown).round(),
-            );
+  }) : _duration =
+           duration ??
+           Duration(
+             milliseconds: (480 * kMealAnalysisMorphDebugSlowdown).round(),
+           );
 
   @override
   bool get opaque => true;
@@ -80,10 +82,7 @@ class MealAnalysisMorphRoute<T> extends PageRoute<T> {
   ) {
     if (animation.status == AnimationStatus.reverse) {
       return FadeTransition(
-        opacity: CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        ),
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
         child: child,
       );
     }
@@ -91,13 +90,9 @@ class MealAnalysisMorphRoute<T> extends PageRoute<T> {
     _cachedSourceRect ??= sourceRect ?? measureRect(sourceContext);
     final Size screen = MediaQuery.sizeOf(context);
 
-    final Rect startRect = _cachedSourceRect ??
-        Rect.fromLTWH(
-          16,
-          screen.height - 70,
-          screen.width - 32,
-          46,
-        );
+    final Rect startRect =
+        _cachedSourceRect ??
+        Rect.fromLTWH(16, screen.height - 70, screen.width - 32, 46);
 
     return _MealAnalysisMorphTransition(
       animation: animation,
@@ -168,11 +163,7 @@ class _MealAnalysisMorphTransition extends StatelessWidget {
         final double buttonContentOpacity = (1.0 - (t / 0.25)).clamp(0.0, 1.0);
 
         // Color transition from button accent to circle color
-        final Color currentColor = Color.lerp(
-          accentColor,
-          circleColor,
-          t,
-        )!;
+        final Color currentColor = Color.lerp(accentColor, circleColor, t)!;
 
         return Stack(
           fit: StackFit.expand,
@@ -181,8 +172,9 @@ class _MealAnalysisMorphTransition extends StatelessWidget {
             Opacity(
               opacity: t,
               child: ColoredBox(
-                color:
-                    isDark ? const Color(0xFF07090E) : const Color(0xFFF8FAFC),
+                color: isDark
+                    ? const Color(0xFF07090E)
+                    : const Color(0xFFF8FAFC),
               ),
             ),
 
@@ -223,8 +215,9 @@ class _MealAnalysisMorphTransition extends StatelessWidget {
                           Icon(
                             LucideIcons.sparkles,
                             size: 18,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF12120F)
+                                : Colors.white,
                           ),
                           const SizedBox(width: 8),
                           Text(

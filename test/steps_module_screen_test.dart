@@ -34,9 +34,11 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<String?> getExerciseUuidByLocalId(int localId) async => null;
   @override
-  Future<Map<String, double>> getExerciseBests(String exerciseName,
-          {String? altName, String? exerciseUuid}) async =>
-      {};
+  Future<Map<String, double>> getExerciseBests(
+    String exerciseName, {
+    String? altName,
+    String? exerciseUuid,
+  }) async => {};
   @override
   Future<void> updateSetLogs(List<SetLog> logs) async {}
   @override
@@ -47,7 +49,9 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
   @override
   Future<void> updateRoutineExerciseNotes(
-      int routineExerciseId, String? notes) async {}
+    int routineExerciseId,
+    String? notes,
+  ) async {}
   @override
   Future<void> saveWorkoutExerciseNote({
     required int workoutLogId,
@@ -61,12 +65,12 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<List<SetLog>> getLastSetsForExercise({
     required String? exerciseId,
     required String exerciseNameSnapshot,
-  }) async =>
-      [];
+  }) async => [];
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
-          DateTime start, DateTime end) async =>
-      [];
+    DateTime start,
+    DateTime end,
+  ) async => [];
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() => const Stream.empty();
   @override
@@ -80,8 +84,9 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) async {}
   @override
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
-          DateTime start, DateTime end) =>
-      Stream.value([]);
+    DateTime start,
+    DateTime end,
+  ) => Stream.value([]);
   @override
   Future<Routine?> getRoutineByUuid(String uuid) async => null;
   @override
@@ -94,8 +99,7 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) async =>
-      Routine(id: 1, name: name);
+  }) async => Routine(id: 1, name: name);
 
   @override
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {}
@@ -124,7 +128,9 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider<LiveWorkoutViewModel>.value(
         value: LiveWorkoutViewModel(
-            repository: FakeWorkoutRepository(), unitService: UnitService()),
+          repository: FakeWorkoutRepository(),
+          unitService: UnitService(),
+        ),
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

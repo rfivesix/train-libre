@@ -22,10 +22,7 @@ List<ExerciseMetric> exerciseMetricsFor(Exercise exercise) {
   if (mask.logsDistance) {
     return [
       ExerciseMetric.distance,
-      if (mask.logsDuration) ...[
-        ExerciseMetric.duration,
-        ExerciseMetric.pace,
-      ],
+      if (mask.logsDuration) ...[ExerciseMetric.duration, ExerciseMetric.pace],
     ];
   }
 

@@ -76,7 +76,7 @@ class SyntheticTruthScenario {
       0.05,
       -0.02,
       0.02,
-      -0.01
+      -0.01,
     ],
   });
 
@@ -134,8 +134,9 @@ class SyntheticWeekResult {
 Future<List<SyntheticWeekResult>> runSyntheticTruthScenario(
   SyntheticTruthScenario scenario,
 ) async {
-  final harness =
-      await AdaptiveScenarioHarness.create(profile: scenario.profile);
+  final harness = await AdaptiveScenarioHarness.create(
+    profile: scenario.profile,
+  );
   final truthByDay = <String, TruthTrajectoryPoint>{};
   final stepCompanions = <HealthStepSegmentsCompanion>[];
   final generatedWeeks = <WeekScenarioOutput>[];
@@ -172,7 +173,8 @@ Future<List<SyntheticWeekResult>> runSyntheticTruthScenario(
 
       final maintenanceOffset =
           scenario.maintenanceOffsetForDay?.call(provisionalContext) ?? 0;
-      final trueMaintenanceCalories = scenario.initialTrueMaintenanceCalories +
+      final trueMaintenanceCalories =
+          scenario.initialTrueMaintenanceCalories +
           driftComponent +
           maintenanceOffset;
 
@@ -194,22 +196,26 @@ Future<List<SyntheticWeekResult>> runSyntheticTruthScenario(
         day: day,
       );
 
-      final intakeNoise = scenario.intakeNoisePatternCalories[
-          dayIndex % scenario.intakeNoisePatternCalories.length];
-      final intakeBaseline = scenario.intakeForDay?.call(context) ??
+      final intakeNoise =
+          scenario.intakeNoisePatternCalories[dayIndex %
+              scenario.intakeNoisePatternCalories.length];
+      final intakeBaseline =
+          scenario.intakeForDay?.call(context) ??
           _defaultIntakeForGoal(
             trueMaintenanceCalories: trueMaintenanceCalories,
             targetRateKgPerWeek: activeGoal.targetRateKgPerWeek,
           );
-      final observedIntakeCalories =
-          (intakeBaseline + intakeNoise).round().clamp(800, 5000);
+      final observedIntakeCalories = (intakeBaseline + intakeNoise)
+          .round()
+          .clamp(800, 5000);
 
       final energyBalance = observedIntakeCalories - trueMaintenanceCalories;
       trueWeightKg += energyBalance / scenario.kcalPerKgBodyMassChange;
 
       final waterOffset = scenario.waterOffsetKgForDay?.call(context) ?? 0.0;
-      final weightNoise = scenario.weightNoisePatternKg[
-          dayIndex % scenario.weightNoisePatternKg.length];
+      final weightNoise =
+          scenario.weightNoisePatternKg[dayIndex %
+              scenario.weightNoisePatternKg.length];
       final observedWeightKg = trueWeightKg + waterOffset + weightNoise;
 
       final shouldLogIntake = scenario.shouldLogIntake?.call(context) ?? true;
@@ -228,15 +234,17 @@ Future<List<SyntheticWeekResult>> runSyntheticTruthScenario(
       final steps = scenario.stepsForDay?.call(context);
       if (steps != null && steps > 0) {
         final startAt = DateTime(day.year, day.month, day.day, 12).toUtc();
-        stepCompanions.add(HealthStepSegmentsCompanion.insert(
-          provider: 'apple_healthkit',
-          sourceId: const drift.Value('synthetic_steps'),
-          startAt: startAt,
-          endAt: startAt.add(const Duration(hours: 1)),
-          stepCount: steps,
-          externalKey: 'synthetic_steps_${day.toIso8601String()}_$dayIndex',
-          updatedAt: drift.Value(DateTime.now()),
-        ));
+        stepCompanions.add(
+          HealthStepSegmentsCompanion.insert(
+            provider: 'apple_healthkit',
+            sourceId: const drift.Value('synthetic_steps'),
+            startAt: startAt,
+            endAt: startAt.add(const Duration(hours: 1)),
+            stepCount: steps,
+            externalKey: 'synthetic_steps_${day.toIso8601String()}_$dayIndex',
+            updatedAt: drift.Value(DateTime.now()),
+          ),
+        );
       }
 
       truthByDay[day.toIso8601String()] = TruthTrajectoryPoint(
@@ -268,19 +276,16 @@ Future<List<SyntheticWeekResult>> runSyntheticTruthScenario(
       );
     }
 
-    return generatedWeeks.map((week) {
-      final anchorDay = RecommendationScheduler.stableWindowEndDayForDueWeek(
-        week.dueWeekStart,
-      );
-      final truth = _truthForDay(
-        truthByDay: truthByDay,
-        day: anchorDay,
-      );
-      return SyntheticWeekResult(
-        model: week,
-        truthAtStableAnchor: truth,
-      );
-    }).toList(growable: false);
+    return generatedWeeks
+        .map((week) {
+          final anchorDay =
+              RecommendationScheduler.stableWindowEndDayForDueWeek(
+                week.dueWeekStart,
+              );
+          final truth = _truthForDay(truthByDay: truthByDay, day: anchorDay);
+          return SyntheticWeekResult(model: week, truthAtStableAnchor: truth);
+        })
+        .toList(growable: false);
   } finally {
     await harness.dispose();
   }

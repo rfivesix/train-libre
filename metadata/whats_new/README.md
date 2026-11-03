@@ -21,6 +21,8 @@ One file per store locale:
 | `fr-FR.md` | `fr` |
 | `it.md` | `it` |
 | `ja.md` | `ja` |
+| `es-ES.md` | `es` |
+| `nl-NL.md` | `nl` |
 
 ## Format
 

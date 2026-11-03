@@ -188,8 +188,9 @@ class SimpleProgressionEngine {
     if ((previousReps != null && previousReps > 12) ||
         (effectiveReps != null && effectiveReps > 12)) {
       final shouldAdvance = previousReps != null && previousReps >= target.max;
-      final nextLoad =
-          shouldAdvance ? _step(testLoad, increment, mode) : testLoad;
+      final nextLoad = shouldAdvance
+          ? _step(testLoad, increment, mode)
+          : testLoad;
       return _suggest(
         load: nextLoad,
         reps: target.max,
@@ -208,8 +209,9 @@ class SimpleProgressionEngine {
     }
 
     final e1rm = estimatedOneRepMaxKg(
-      trackingType:
-          mode == LoadMode.external ? 'weight_reps' : 'bodyweight_reps',
+      trackingType: mode == LoadMode.external
+          ? 'weight_reps'
+          : 'bodyweight_reps',
       loadMode: mode.name,
       loggedWeightKg: previousLoggedLoadKg,
       reps: effectiveReps,
@@ -328,20 +330,19 @@ class SimpleProgressionEngine {
     required int reps,
     required String reason,
     bool raise = false,
-  }) =>
-      ProgressionSuggestion(
-        outcome: raise ? ProgressionOutcome.raise : ProgressionOutcome.hold,
-        targetWeight: load,
-        targetReps: reps,
-        reason: reason,
-        algorithmVersion: algorithmVersion,
-      );
+  }) => ProgressionSuggestion(
+    outcome: raise ? ProgressionOutcome.raise : ProgressionOutcome.hold,
+    targetWeight: load,
+    targetReps: reps,
+    reason: reason,
+    algorithmVersion: algorithmVersion,
+  );
 
   static ProgressionSuggestion _absent(String reason) => ProgressionSuggestion(
-        outcome: ProgressionOutcome.noSuggestion,
-        reason: reason,
-        algorithmVersion: algorithmVersion,
-      );
+    outcome: ProgressionOutcome.noSuggestion,
+    reason: reason,
+    algorithmVersion: algorithmVersion,
+  );
 
   static int _nextReps(int? previousReps, RepRange target) {
     if (previousReps == null || previousReps < target.min) return target.min;
@@ -357,8 +358,9 @@ class SimpleProgressionEngine {
     required double? bodyweightKg,
   }) {
     final e1rm = estimatedOneRepMaxKg(
-      trackingType:
-          mode == LoadMode.external ? 'weight_reps' : 'bodyweight_reps',
+      trackingType: mode == LoadMode.external
+          ? 'weight_reps'
+          : 'bodyweight_reps',
       loadMode: mode.name,
       loggedWeightKg: loggedLoadKg,
       reps: _repsToFailure(reps, rir),
@@ -420,8 +422,10 @@ class SimpleProgressionEngine {
     required LoadMode mode,
   }) {
     final capped = switch (mode) {
-      LoadMode.assisted =>
-        math.max(projectedLoadKg, previousLoadKg - increment.value),
+      LoadMode.assisted => math.max(
+        projectedLoadKg,
+        previousLoadKg - increment.value,
+      ),
       _ => math.min(projectedLoadKg, previousLoadKg + increment.value),
     };
     return _roundForMode(capped, increment, mode);
@@ -429,11 +433,14 @@ class SimpleProgressionEngine {
 
   static double _step(double load, LoadIncrement increment, LoadMode mode) =>
       mode == LoadMode.assisted
-          ? math.max(0, load - increment.value)
-          : load + increment.value;
+      ? math.max(0, load - increment.value)
+      : load + increment.value;
 
   static double _roundTestLoad(
-      double value, LoadIncrement increment, LoadMode mode) {
+    double value,
+    LoadIncrement increment,
+    LoadMode mode,
+  ) {
     final nonNegative = math.max(_minimumLoadFor(mode, increment), value);
     // A template ratio can create a value that does not exist on the machine.
     // The test load is descriptive rather than a safety back-off, so use the
@@ -443,7 +450,10 @@ class SimpleProgressionEngine {
   }
 
   static double _roundForMode(
-      double value, LoadIncrement increment, LoadMode mode) {
+    double value,
+    LoadIncrement increment,
+    LoadMode mode,
+  ) {
     final nonNegative = math.max(_minimumLoadFor(mode, increment), value);
     final units = nonNegative / increment.value;
     // More assistance is easier; external and added weight round down so the

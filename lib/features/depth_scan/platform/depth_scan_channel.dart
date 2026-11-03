@@ -2,8 +2,10 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import '../data/depth_scale_calculator.dart';
 import '../domain/models/depth_scale_facts.dart';
 
@@ -42,8 +44,10 @@ class DepthScanCapability {
     required this.cameraAvailable,
   });
 
-  static const none =
-      DepthScanCapability(depthSupported: false, cameraAvailable: false);
+  static const none = DepthScanCapability(
+    depthSupported: false,
+    cameraAvailable: false,
+  );
 }
 
 /// Interface for native depth scan capability and capture.
@@ -60,10 +64,15 @@ abstract class IDepthScanService {
 
 /// Production implementation communicating with native iOS AVFoundation LiDAR session.
 class DepthScanChannel implements IDepthScanService {
-  static const MethodChannel _channel =
-      MethodChannel('com.trainlibre.app/depth_scan');
-  static const EventChannel _barcodeChannel =
-      EventChannel('com.trainlibre.app/depth_scan/barcodes');
+  static const MethodChannel _channel = MethodChannel(
+    'com.trainlibre.app/depth_scan',
+  );
+  static const EventChannel _barcodeChannel = EventChannel(
+    'com.trainlibre.app/depth_scan/barcodes',
+  );
+  static const EventChannel _liveDistanceChannel = EventChannel(
+    'com.trainlibre.app/depth_scan/live_distance',
+  );
 
   /// Platform view id of the live preview. Registered natively alongside the
   /// method channel, so it is only available where [capability] reports a
@@ -75,6 +84,7 @@ class DepthScanChannel implements IDepthScanService {
 
   DepthScanCapability? _cachedCapability;
   Stream<String>? _barcodeStream;
+  Stream<double?>? _liveDistanceStream;
 
   @override
   Future<bool> isLiDARSupported() async => (await capability()).depthSupported;
@@ -117,6 +127,19 @@ class DepthScanChannel implements IDepthScanService {
     }
   }
 
+  /// Starts a lightweight camera session for attaching a regular photo in chat.
+  /// It omits LiDAR depth and barcode outputs, which the chat composer does not
+  /// use and which add noticeable startup latency on some iPhones.
+  Future<bool> startChatCameraSession() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('startChatCamera') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] chat camera start failed: $e');
+      return false;
+    }
+  }
+
   @override
   Future<void> stopSession() async {
     if (!Platform.isIOS) return;
@@ -149,6 +172,17 @@ class DepthScanChannel implements IDepthScanService {
     }
   }
 
+  /// Toggles between the rear and selfie cameras in the shared iOS session.
+  Future<bool> switchCamera() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('switchCamera') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] switch camera failed: $e');
+      return false;
+    }
+  }
+
   /// Barcodes seen by the running session. Emits the same code repeatedly while
   /// it stays in frame; de-duplication belongs to the caller, which knows
   /// whether the user already dismissed a suggestion.
@@ -162,12 +196,31 @@ class DepthScanChannel implements IDepthScanService {
     return _barcodeStream!;
   }
 
+  /// Current absolute LiDAR distance in centimetres. Devices without a live
+  /// absolute depth output produce no values.
+  Stream<double?> get liveDistanceCm {
+    if (!Platform.isIOS) return const Stream<double?>.empty();
+    _liveDistanceStream ??= _liveDistanceChannel
+        .receiveBroadcastStream()
+        .map((event) => event is num ? event.toDouble() * 100 : null);
+    return _liveDistanceStream!;
+  }
+
   @override
   Future<DepthCaptureResult?> capture() async {
+    return _capture(method: 'capture');
+  }
+
+  /// Captures a normal photo without generating or transferring a depth map.
+  Future<DepthCaptureResult?> capturePhoto() async {
+    return _capture(method: 'capturePhoto');
+  }
+
+  Future<DepthCaptureResult?> _capture({required String method}) async {
     if (!Platform.isIOS) return null;
 
     try {
-      final res = await _channel.invokeMapMethod<String, dynamic>('capture');
+      final res = await _channel.invokeMapMethod<String, dynamic>(method);
       if (res == null) return null;
 
       final imagePath = res['imagePath'] as String?;
@@ -197,8 +250,10 @@ class DepthScanChannel implements IDepthScanService {
         if (rawBytes != null && rawBytes.lengthInBytes >= 4) {
           final floatCount = rawBytes.lengthInBytes ~/ 4;
           if (rawBytes.offsetInBytes % 4 == 0) {
-            depthBuffer = rawBytes.buffer
-                .asFloat32List(rawBytes.offsetInBytes, floatCount);
+            depthBuffer = rawBytes.buffer.asFloat32List(
+              rawBytes.offsetInBytes,
+              floatCount,
+            );
           } else {
             // A misaligned view would throw; copying is cheap enough at this
             // size (a 256x192 map is under 200 KB) and always works.

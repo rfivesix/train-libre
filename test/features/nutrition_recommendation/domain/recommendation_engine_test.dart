@@ -20,15 +20,15 @@ void main() {
     test('uses active targets as warning baseline for large adjustments', () {
       final recommendation =
           AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
-        input: _input(activeTargetCalories: 2000),
-        goal: BodyweightGoal.maintainWeight,
-        targetRateKgPerWeek: 0,
-        generatedAt: DateTime(2026, 4, 5),
-        algorithmVersion: 'test',
-        estimatedMaintenanceCalories: 2550,
-        confidence: RecommendationConfidence.medium,
-        dueWeekKey: '2026-04-06',
-      );
+            input: _input(activeTargetCalories: 2000),
+            goal: BodyweightGoal.maintainWeight,
+            targetRateKgPerWeek: 0,
+            generatedAt: DateTime(2026, 4, 5),
+            algorithmVersion: 'test',
+            estimatedMaintenanceCalories: 2550,
+            confidence: RecommendationConfidence.medium,
+            dueWeekKey: '2026-04-06',
+          );
 
       expect(recommendation.recommendedCalories, 2550);
       expect(recommendation.baselineCalories, 2000);
@@ -40,9 +40,7 @@ void main() {
       expect(recommendation.dueWeekKey, '2026-04-06');
     });
 
-    test(
-        'falls back to previous recommendation baseline when active target is missing',
-        () {
+    test('falls back to previous recommendation baseline when active target is missing', () {
       final previous = NutritionRecommendation(
         recommendedCalories: 2350,
         recommendedProteinGrams: 170,
@@ -70,15 +68,15 @@ void main() {
 
       final recommendation =
           AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
-        input: _input(activeTargetCalories: null),
-        goal: BodyweightGoal.maintainWeight,
-        targetRateKgPerWeek: 0,
-        generatedAt: DateTime(2026, 4, 5),
-        algorithmVersion: 'test',
-        estimatedMaintenanceCalories: 2500,
-        confidence: RecommendationConfidence.medium,
-        previousRecommendation: previous,
-      );
+            input: _input(activeTargetCalories: null),
+            goal: BodyweightGoal.maintainWeight,
+            targetRateKgPerWeek: 0,
+            generatedAt: DateTime(2026, 4, 5),
+            algorithmVersion: 'test',
+            estimatedMaintenanceCalories: 2500,
+            confidence: RecommendationConfidence.medium,
+            previousRecommendation: previous,
+          );
 
       expect(recommendation.baselineCalories, 2350);
       expect(recommendation.warningState.hasLargeAdjustmentWarning, isFalse);
@@ -87,14 +85,14 @@ void main() {
     test('applies calorie floor and degrades confidence conservatively', () {
       final recommendation =
           AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
-        input: _input(currentWeightKg: 95),
-        goal: BodyweightGoal.loseWeight,
-        targetRateKgPerWeek: -1.0,
-        generatedAt: DateTime(2026, 4, 5),
-        algorithmVersion: 'test',
-        estimatedMaintenanceCalories: 1200,
-        confidence: RecommendationConfidence.high,
-      );
+            input: _input(currentWeightKg: 95),
+            goal: BodyweightGoal.loseWeight,
+            targetRateKgPerWeek: -1.0,
+            generatedAt: DateTime(2026, 4, 5),
+            algorithmVersion: 'test',
+            estimatedMaintenanceCalories: 1200,
+            confidence: RecommendationConfidence.high,
+          );
 
       expect(recommendation.recommendedCalories, 1200);
       expect(recommendation.confidence, RecommendationConfidence.low);
@@ -111,16 +109,14 @@ void main() {
     test('surfaces unresolved calorie inputs as warning reason', () {
       final recommendation =
           AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
-        input: _input(
-          qualityFlags: const ['unresolved_food_calories'],
-        ),
-        goal: BodyweightGoal.maintainWeight,
-        targetRateKgPerWeek: 0,
-        generatedAt: DateTime(2026, 4, 5),
-        algorithmVersion: 'test',
-        estimatedMaintenanceCalories: 2400,
-        confidence: RecommendationConfidence.medium,
-      );
+            input: _input(qualityFlags: const ['unresolved_food_calories']),
+            goal: BodyweightGoal.maintainWeight,
+            targetRateKgPerWeek: 0,
+            generatedAt: DateTime(2026, 4, 5),
+            algorithmVersion: 'test',
+            estimatedMaintenanceCalories: 2400,
+            confidence: RecommendationConfidence.medium,
+          );
 
       expect(
         recommendation.warningState.warningReasons,
@@ -135,17 +131,17 @@ void main() {
     test('appends additional warning reasons for estimator context', () {
       final recommendation =
           AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
-        input: _input(),
-        goal: BodyweightGoal.maintainWeight,
-        targetRateKgPerWeek: 0,
-        generatedAt: DateTime(2026, 4, 5),
-        algorithmVersion: 'test',
-        estimatedMaintenanceCalories: 2400,
-        confidence: RecommendationConfidence.medium,
-        additionalWarningReasons: const [
-          'bayesian_prediction_only_no_observation'
-        ],
-      );
+            input: _input(),
+            goal: BodyweightGoal.maintainWeight,
+            targetRateKgPerWeek: 0,
+            generatedAt: DateTime(2026, 4, 5),
+            algorithmVersion: 'test',
+            estimatedMaintenanceCalories: 2400,
+            confidence: RecommendationConfidence.medium,
+            additionalWarningReasons: const [
+              'bayesian_prediction_only_no_observation',
+            ],
+          );
 
       expect(
         recommendation.warningState.warningReasons,
@@ -165,8 +161,7 @@ void main() {
       int maintenanceCalories = 2600,
       double rateKgPerWeek = 0,
     }) {
-      return AdaptiveNutritionRecommendationEngine
-          .generateFromMaintenanceEstimate(
+      return AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
         input: _input(currentWeightKg: weightKg),
         goal: goal,
         targetRateKgPerWeek: rateKgPerWeek,
@@ -193,8 +188,10 @@ void main() {
         80,
       );
       expect(
-        generate(goal: BodyweightGoal.gainWeight, rateKgPerWeek: 0.25)
-            .recommendedFatGrams,
+        generate(
+          goal: BodyweightGoal.gainWeight,
+          rateKgPerWeek: 0.25,
+        ).recommendedFatGrams,
         80,
       );
     });
@@ -202,7 +199,8 @@ void main() {
     test('leaves the remaining calories to carbohydrates', () {
       final recommendation = generate(goal: BodyweightGoal.maintainWeight);
 
-      final macroCalories = recommendation.recommendedProteinGrams * 4 +
+      final macroCalories =
+          recommendation.recommendedProteinGrams * 4 +
           recommendation.recommendedCarbsGrams * 4 +
           recommendation.recommendedFatGrams * 9;
 
@@ -252,10 +250,7 @@ void main() {
 
     test('rejects recommendation generation without a measured weight', () {
       expect(
-        () => generate(
-          goal: BodyweightGoal.maintainWeight,
-          weightKg: 0,
-        ),
+        () => generate(goal: BodyweightGoal.maintainWeight, weightKg: 0),
         throwsArgumentError,
       );
     });

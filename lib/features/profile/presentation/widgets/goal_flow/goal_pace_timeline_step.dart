@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
@@ -121,7 +122,8 @@ class GoalPaceTimelineStep extends StatelessWidget {
                 onTap: () async {
                   final picked = await showAdaptiveDatePicker(
                     context: context,
-                    initialDate: state.targetDate ??
+                    initialDate:
+                        state.targetDate ??
                         state.startDate.add(const Duration(days: 84)),
                     firstDate: state.startDate.add(const Duration(days: 7)),
                     lastDate: state.startDate.add(const Duration(days: 730)),
@@ -150,8 +152,10 @@ class GoalPaceTimelineStep extends StatelessWidget {
     final isLosing = state.isLosing;
     final dailyCalorieImpact = (state.weeklyRateKg * 7700 / 7).round();
     final int weeks = state.targetDate != null
-        ? max(1,
-            (state.targetDate!.difference(state.startDate).inDays / 7).round())
+        ? max(
+            1,
+            (state.targetDate!.difference(state.startDate).inDays / 7).round(),
+          )
         : 12;
 
     return SingleChildScrollView(
@@ -215,8 +219,9 @@ class GoalPaceTimelineStep extends StatelessWidget {
                         child: Text(
                           l10n.goalEstimatedDailyDelta,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -241,14 +246,14 @@ class GoalPaceTimelineStep extends StatelessWidget {
                         state.weeklyRateKg > 1.0
                             ? LucideIcons.triangle_alert
                             : (state.weeklyRateKg < 0.3
-                                ? LucideIcons.info
-                                : LucideIcons.circle_check),
+                                  ? LucideIcons.info
+                                  : LucideIcons.circle_check),
                         size: 18,
                         color: state.weeklyRateKg > 1.0
                             ? Colors.orange
                             : (state.weeklyRateKg < 0.3
-                                ? Colors.blue
-                                : Colors.green),
+                                  ? Colors.blue
+                                  : Colors.green),
                       ),
                       const SizedBox(width: DesignConstants.spacingS),
                       Expanded(
@@ -256,11 +261,12 @@ class GoalPaceTimelineStep extends StatelessWidget {
                           state.weeklyRateKg > 1.0
                               ? l10n.goalPaceFeedbackAggressive
                               : (state.weeklyRateKg < 0.3
-                                  ? l10n.goalPaceFeedbackGentle
-                                  : l10n.goalPaceFeedbackSafe),
+                                    ? l10n.goalPaceFeedbackGentle
+                                    : l10n.goalPaceFeedbackSafe),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.85),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.85,
+                            ),
                           ),
                         ),
                       ),
@@ -320,17 +326,29 @@ class GoalPaceTimelineStep extends StatelessWidget {
             onChanged: (val) {
               if (val == null) return;
               if (val == 'gentle') {
-                state.onWeeklyRateChanged(0.25, unitService,
-                    ratePreset: 'gentle');
+                state.onWeeklyRateChanged(
+                  0.25,
+                  unitService,
+                  ratePreset: 'gentle',
+                );
               } else if (val == 'moderate') {
-                state.onWeeklyRateChanged(0.50, unitService,
-                    ratePreset: 'moderate');
+                state.onWeeklyRateChanged(
+                  0.50,
+                  unitService,
+                  ratePreset: 'moderate',
+                );
               } else if (val == 'athletic') {
-                state.onWeeklyRateChanged(0.75, unitService,
-                    ratePreset: 'athletic');
+                state.onWeeklyRateChanged(
+                  0.75,
+                  unitService,
+                  ratePreset: 'athletic',
+                );
               } else if (val == 'aggressive') {
-                state.onWeeklyRateChanged(1.00, unitService,
-                    ratePreset: 'aggressive');
+                state.onWeeklyRateChanged(
+                  1.00,
+                  unitService,
+                  ratePreset: 'aggressive',
+                );
               } else {
                 state.setRatePresetCustom();
               }
@@ -404,8 +422,11 @@ class GoalPaceTimelineStep extends StatelessWidget {
               } else {
                 final w = int.tryParse(val) ?? 12;
                 final newDate = state.startDate.add(Duration(days: w * 7));
-                state.onTargetDateChanged(newDate, unitService,
-                    durationPreset: val);
+                state.onTargetDateChanged(
+                  newDate,
+                  unitService,
+                  durationPreset: val,
+                );
               }
             },
           ),
@@ -425,7 +446,8 @@ class GoalPaceTimelineStep extends StatelessWidget {
                 onTap: () async {
                   final picked = await showAdaptiveDatePicker(
                     context: context,
-                    initialDate: state.targetDate ??
+                    initialDate:
+                        state.targetDate ??
                         state.startDate.add(const Duration(days: 84)),
                     firstDate: state.startDate.add(const Duration(days: 7)),
                     lastDate: state.startDate.add(const Duration(days: 730)),

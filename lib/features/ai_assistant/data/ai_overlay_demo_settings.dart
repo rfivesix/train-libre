@@ -23,19 +23,18 @@ class AiOverlayDemoConfiguration {
     bool? showResizeHandles,
     bool? openDirectlyFullscreen,
     bool? useLiveAi,
-  }) =>
-      AiOverlayDemoConfiguration(
-        enabled: enabled ?? this.enabled,
-        liveliness: liveliness ?? this.liveliness,
-        showResizeHandles: showResizeHandles ?? this.showResizeHandles,
-        openDirectlyFullscreen:
-            openDirectlyFullscreen ?? this.openDirectlyFullscreen,
-        useLiveAi: useLiveAi ?? this.useLiveAi,
-      );
+  }) => AiOverlayDemoConfiguration(
+    enabled: enabled ?? this.enabled,
+    liveliness: liveliness ?? this.liveliness,
+    showResizeHandles: showResizeHandles ?? this.showResizeHandles,
+    openDirectlyFullscreen:
+        openDirectlyFullscreen ?? this.openDirectlyFullscreen,
+    useLiveAi: useLiveAi ?? this.useLiveAi,
+  );
 }
 
-/// Local settings for showing and configuring the in-memory AI overlay demo.
-/// Only preferences are persisted; overlay conversations remain transient.
+/// Floating assistant preference and local developer preview controls.
+/// Conversation history is stored separately in the app database.
 class AiOverlayDemoSettings {
   AiOverlayDemoSettings._();
 
@@ -47,11 +46,13 @@ class AiOverlayDemoSettings {
 
   static final ValueNotifier<AiOverlayDemoConfiguration> configuration =
       ValueNotifier<AiOverlayDemoConfiguration>(
-    const AiOverlayDemoConfiguration(),
-  );
+        const AiOverlayDemoConfiguration(),
+      );
 
   static void initialize(SharedPreferences preferences) {
     configuration.value = AiOverlayDemoConfiguration(
+      // An explicit saved preference takes precedence; new installs keep the
+      // floating assistant hidden until the user enables it.
       enabled: preferences.getBool(_enabledKey) ?? false,
       liveliness: preferences.getDouble(_livelinessKey) ?? 0.10,
       showResizeHandles: preferences.getBool(_resizeHandlesKey) ?? false,

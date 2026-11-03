@@ -9,7 +9,9 @@ import '../../../widgets/common/value_summary_card.dart';
 import '../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../data/pulse_repository.dart';
 import '../domain/pulse_models.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 class PulseAnalysisScreen extends StatefulWidget {
@@ -39,8 +41,11 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.pulseOverview));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.pulseOverview,
+      ),
+    );
     _repository = widget._repository ?? HealthPulseAnalysisRepository();
     _scope = widget.initialScope;
     final seed = widget.initialDate ?? DateTime.now();
@@ -120,10 +125,7 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
             )
           : Stack(
               children: [
-                _PulseAnalysisContent(
-                  summary: _summary!,
-                  scope: _scope,
-                ),
+                _PulseAnalysisContent(summary: _summary!, scope: _scope),
                 if (_isLoading)
                   const Positioned(
                     top: DesignConstants.spacingM,
@@ -145,13 +147,16 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   }) {
     final localNow = DateTime.now();
     final localStart = switch (scope) {
-      SleepPeriodScope.day =>
-        DateTime(anchorDate.year, anchorDate.month, anchorDate.day),
+      SleepPeriodScope.day => DateTime(
+        anchorDate.year,
+        anchorDate.month,
+        anchorDate.day,
+      ),
       SleepPeriodScope.week => DateTime(
-          anchorDate.year,
-          anchorDate.month,
-          anchorDate.day,
-        ).subtract(Duration(days: anchorDate.weekday - DateTime.monday)),
+        anchorDate.year,
+        anchorDate.month,
+        anchorDate.day,
+      ).subtract(Duration(days: anchorDate.weekday - DateTime.monday)),
       SleepPeriodScope.month => DateTime(anchorDate.year, anchorDate.month, 1),
     };
     final fullLocalEndExclusive = switch (scope) {
@@ -159,15 +164,16 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       SleepPeriodScope.week => localStart.add(const Duration(days: 7)),
       SleepPeriodScope.month => DateTime(localStart.year, localStart.month + 1),
     };
-    final isCurrentLocalDay = scope == SleepPeriodScope.day &&
+    final isCurrentLocalDay =
+        scope == SleepPeriodScope.day &&
         anchorDate.year == localNow.year &&
         anchorDate.month == localNow.month &&
         anchorDate.day == localNow.day;
     final localEndExclusive = isCurrentLocalDay
         ? (localNow.isAfter(localStart)
-            ? localNow
-            // Guard against zero-length windows during local midnight rollover.
-            : localStart.add(_minimumCurrentDayWindow))
+              ? localNow
+              // Guard against zero-length windows during local midnight rollover.
+              : localStart.add(_minimumCurrentDayWindow))
         : fullLocalEndExclusive;
     return PulseAnalysisWindow(
       startUtc: localStart.toUtc(),
@@ -177,10 +183,7 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
 }
 
 class _PulseAnalysisContent extends StatelessWidget {
-  const _PulseAnalysisContent({
-    required this.summary,
-    required this.scope,
-  });
+  const _PulseAnalysisContent({required this.summary, required this.scope});
 
   final PulseAnalysisSummary summary;
   final SleepPeriodScope scope;
@@ -216,9 +219,8 @@ class _PulseAnalysisContent extends StatelessWidget {
                 scope == SleepPeriodScope.day
                     ? copy.chartTitle
                     : copy.restingLabel,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
@@ -231,8 +233,8 @@ class _PulseAnalysisContent extends StatelessWidget {
                 valueLabelBuilder: (value, unit) => '${value.round()} $unit',
                 selectedDateLabelBuilder: (value) =>
                     scope == SleepPeriodScope.day
-                        ? timeFormatter.format(value)
-                        : DateFormat.MMMd(locale).format(value),
+                    ? timeFormatter.format(value)
+                    : DateFormat.MMMd(locale).format(value),
                 axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
                     ? timeFormatter.format(value)
                     : DateFormat.MMMd(locale).format(value),
@@ -264,9 +266,8 @@ class _PulseAnalysisContent extends StatelessWidget {
               ),
               child: Text(
                 '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
             ),
           ],
@@ -278,9 +279,8 @@ class _PulseAnalysisContent extends StatelessWidget {
           ),
           child: Text(
             copy.methodNote,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.outline),
           ),
         ),
       ],
@@ -325,10 +325,12 @@ class _KpiCard extends StatelessWidget {
     final range = summary.minBpm == null || summary.maxBpm == null
         ? '--'
         : '${summary.minBpm!.round()}-${summary.maxBpm!.round()}';
-    final average =
-        summary.averageBpm == null ? '--' : '${summary.averageBpm!.round()}';
-    final resting =
-        summary.restingBpm == null ? '--' : '${summary.restingBpm!.round()}';
+    final average = summary.averageBpm == null
+        ? '--'
+        : '${summary.averageBpm!.round()}';
+    final resting = summary.restingBpm == null
+        ? '--'
+        : '${summary.restingBpm!.round()}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(

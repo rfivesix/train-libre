@@ -36,7 +36,9 @@ void main() {
   });
 
   Future<void> bodyweight(double kg) async {
-    await db.into(db.measurements).insert(
+    await db
+        .into(db.measurements)
+        .insert(
           MeasurementsCompanion.insert(
             type: 'weight',
             value: kg,
@@ -51,7 +53,9 @@ void main() {
     required String trackingType,
     String loadMode = 'external',
   }) async {
-    await db.into(db.exercises).insert(
+    await db
+        .into(db.exercises)
+        .insert(
           ExercisesCompanion.insert(
             id: Value(id),
             trackingType: Value(trackingType),
@@ -69,14 +73,18 @@ void main() {
     required int daysAgo,
   }) async {
     final logId = 'log-${logSeq++}';
-    await db.into(db.workoutLogs).insert(
+    await db
+        .into(db.workoutLogs)
+        .insert(
           WorkoutLogsCompanion.insert(
             id: Value(logId),
             startTime: DateTime.now().subtract(Duration(days: daysAgo)),
             status: const Value('completed'),
           ),
         );
-    await db.into(db.setLogs).insert(
+    await db
+        .into(db.setLogs)
+        .insert(
           SetLogsCompanion.insert(
             workoutLogId: logId,
             exerciseId: Value(exerciseId),
@@ -95,28 +103,42 @@ void main() {
   group('weekly consistency tonnage', () {
     test('counts a pull-up at body weight', () async {
       await bodyweight(80);
-      await exercise('Pull-Up',
-          trackingType: 'bodyweight_reps', loadMode: 'bodyweight');
+      await exercise(
+        'Pull-Up',
+        trackingType: 'bodyweight_reps',
+        loadMode: 'bodyweight',
+      );
       await logSet('Pull-Up', reps: 10, daysAgo: 3);
 
-      expect(totalTonnage(await source.getWeeklyConsistencyMetrics()), 800.0,
-          reason: 'a week of pull-ups still read as zero tonnage');
+      expect(
+        totalTonnage(await source.getWeeklyConsistencyMetrics()),
+        800.0,
+        reason: 'a week of pull-ups still read as zero tonnage',
+      );
     });
 
-    test('counts an assisted set as what was lifted, not as the assistance',
-        () async {
-      await bodyweight(80);
-      await exercise('Assisted Dip',
-          trackingType: 'bodyweight_reps', loadMode: 'assisted');
-      await logSet('Assisted Dip', weight: 30, reps: 10, daysAgo: 3);
+    test(
+      'counts an assisted set as what was lifted, not as the assistance',
+      () async {
+        await bodyweight(80);
+        await exercise(
+          'Assisted Dip',
+          trackingType: 'bodyweight_reps',
+          loadMode: 'assisted',
+        );
+        await logSet('Assisted Dip', weight: 30, reps: 10, daysAgo: 3);
 
-      expect(totalTonnage(await source.getWeeklyConsistencyMetrics()), 500.0);
-    });
+        expect(totalTonnage(await source.getWeeklyConsistencyMetrics()), 500.0);
+      },
+    );
 
     test('agrees with the volume chart about the same sets', () async {
       await bodyweight(80);
-      await exercise('Pull-Up',
-          trackingType: 'bodyweight_reps', loadMode: 'bodyweight');
+      await exercise(
+        'Pull-Up',
+        trackingType: 'bodyweight_reps',
+        loadMode: 'bodyweight',
+      );
       await exercise('Bench', trackingType: 'weight_reps');
       await logSet('Pull-Up', reps: 8, daysAgo: 5);
       await logSet('Bench', weight: 60, reps: 10, daysAgo: 5);
@@ -124,7 +146,9 @@ void main() {
       final weekly = totalTonnage(await source.getWeeklyConsistencyMetrics());
       final byExercise = await source.getTopExercisesByVolume(daysBack: 30);
       final fromChart = byExercise.fold<double>(
-          0.0, (sum, e) => sum + (e['tonnage'] as double));
+        0.0,
+        (sum, e) => sum + (e['tonnage'] as double),
+      );
 
       expect(weekly, fromChart);
       expect(weekly, 640.0 + 600.0);
@@ -151,14 +175,20 @@ void main() {
       await logSet('Curl', weight: 20, reps: 20, daysAgo: 45);
       await logSet('Curl', weight: 22, reps: 20, daysAgo: 5);
 
-      expect(await source.getNotablePrImprovements(), isEmpty,
-          reason: 'Brzycki declines past 12 reps; Epley extrapolated anyway');
+      expect(
+        await source.getNotablePrImprovements(),
+        isEmpty,
+        reason: 'Brzycki declines past 12 reps; Epley extrapolated anyway',
+      );
     });
 
     test('a pull-up can show an improvement', () async {
       await bodyweight(80);
-      await exercise('Pull-Up',
-          trackingType: 'bodyweight_reps', loadMode: 'bodyweight');
+      await exercise(
+        'Pull-Up',
+        trackingType: 'bodyweight_reps',
+        loadMode: 'bodyweight',
+      );
       await logSet('Pull-Up', reps: 5, daysAgo: 45);
       await logSet('Pull-Up', weight: 10, reps: 5, daysAgo: 5);
 

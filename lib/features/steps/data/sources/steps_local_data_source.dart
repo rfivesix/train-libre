@@ -1,6 +1,7 @@
 // lib/features/steps/data/sources/steps_local_data_source.dart
 
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../util/perf_debug_timer.dart';
@@ -38,10 +39,11 @@ class StepsLocalDataSource {
     required DateTime end,
   }) async {
     final dbInstance = await database;
-    await (dbInstance.delete(dbInstance.healthStepSegments)
-          ..where((tbl) =>
+    await (dbInstance.delete(dbInstance.healthStepSegments)..where(
+          (tbl) =>
               tbl.startAt.isBiggerOrEqualValue(start) &
-              tbl.endAt.isSmallerOrEqualValue(end)))
+              tbl.endAt.isSmallerOrEqualValue(end),
+        ))
         .go();
   }
 
@@ -112,12 +114,14 @@ class StepsLocalDataSource {
         ? vars
         : <int>[...vars, dayEndUtcMs, dayStartUtcMs];
 
-    final rows = await dbInstance.customSelect(
-      sql,
-      variables: [
-        for (final variable in allVars) drift.Variable.withInt(variable),
-      ],
-    ).get();
+    final rows = await dbInstance
+        .customSelect(
+          sql,
+          variables: [
+            for (final variable in allVars) drift.Variable.withInt(variable),
+          ],
+        )
+        .get();
     if (rows.isEmpty) return null;
     return rows.first.read<int?>('total_steps');
   }
@@ -190,12 +194,14 @@ class StepsLocalDataSource {
         ? vars
         : <int>[...vars, endUtc, startUtc];
 
-    final rows = await dbInstance.customSelect(
-      sql,
-      variables: [
-        for (final variable in allVars) drift.Variable.withInt(variable),
-      ],
-    ).get();
+    final rows = await dbInstance
+        .customSelect(
+          sql,
+          variables: [
+            for (final variable in allVars) drift.Variable.withInt(variable),
+          ],
+        )
+        .get();
     final result = rows
         .map(
           (row) => <String, dynamic>{
@@ -261,7 +267,8 @@ class StepsLocalDataSource {
         FROM health_step_segments
         WHERE start_at < ? AND end_at >= ?
     ''';
-    final endExclusiveUtc = normalizedEnd
+    final endExclusiveUtc =
+        normalizedEnd
             .add(const Duration(days: 1))
             .toUtc()
             .millisecondsSinceEpoch ~/
@@ -317,12 +324,14 @@ class StepsLocalDataSource {
       ORDER BY s.day_local ASC
     ''';
 
-    final rows = await dbInstance.customSelect(
-      sql,
-      variables: [
-        for (final variable in vars) drift.Variable.withInt(variable),
-      ],
-    ).get();
+    final rows = await dbInstance
+        .customSelect(
+          sql,
+          variables: [
+            for (final variable in vars) drift.Variable.withInt(variable),
+          ],
+        )
+        .get();
 
     final result = rows
         .map(
@@ -375,12 +384,14 @@ class StepsLocalDataSource {
       ORDER BY total_steps DESC, source_key ASC
     ''';
 
-    final rows = await dbInstance.customSelect(
-      sql,
-      variables: [
-        for (final variable in vars) drift.Variable.withInt(variable),
-      ],
-    ).get();
+    final rows = await dbInstance
+        .customSelect(
+          sql,
+          variables: [
+            for (final variable in vars) drift.Variable.withInt(variable),
+          ],
+        )
+        .get();
 
     return rows
         .map(
@@ -428,20 +439,22 @@ class StepsLocalDataSource {
     if (idempotencyKeys.isEmpty) return const <String>[];
     final dbInstance = await database;
     final placeholders = List.filled(idempotencyKeys.length, '?').join(',');
-    final rows = await dbInstance.customSelect(
-      '''
+    final rows = await dbInstance
+        .customSelect(
+          '''
       SELECT idempotency_key
       FROM health_export_records
       WHERE platform = ?
         AND domain = ?
         AND idempotency_key IN ($placeholders)
       ''',
-      variables: [
-        drift.Variable.withString(platform),
-        drift.Variable.withString(domain),
-        for (final key in idempotencyKeys) drift.Variable.withString(key),
-      ],
-    ).get();
+          variables: [
+            drift.Variable.withString(platform),
+            drift.Variable.withString(domain),
+            for (final key in idempotencyKeys) drift.Variable.withString(key),
+          ],
+        )
+        .get();
     return rows
         .map((row) => row.read<String>('idempotency_key'))
         .toList(growable: false);

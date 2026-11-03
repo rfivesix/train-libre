@@ -110,13 +110,13 @@ class ExerciseCatalogRefreshService {
     SupportDirectoryProvider? supportDirectoryProvider,
     TempDirectoryProvider? tempDirectoryProvider,
     PrefsProvider? prefsProvider,
-  })  : _httpClient = httpClient ?? http.Client(),
-        _config = config ?? AppDataSources.exerciseCatalog,
-        _nowProvider = nowProvider ?? DateTime.now,
-        _supportDirectoryProvider =
-            supportDirectoryProvider ?? getApplicationSupportDirectory,
-        _tempDirectoryProvider = tempDirectoryProvider ?? getTemporaryDirectory,
-        _prefsProvider = prefsProvider ?? SharedPreferences.getInstance;
+  }) : _httpClient = httpClient ?? http.Client(),
+       _config = config ?? AppDataSources.exerciseCatalog,
+       _nowProvider = nowProvider ?? DateTime.now,
+       _supportDirectoryProvider =
+           supportDirectoryProvider ?? getApplicationSupportDirectory,
+       _tempDirectoryProvider = tempDirectoryProvider ?? getTemporaryDirectory,
+       _prefsProvider = prefsProvider ?? SharedPreferences.getInstance;
 
   static final ExerciseCatalogRefreshService instance =
       ExerciseCatalogRefreshService._();
@@ -375,10 +375,7 @@ class ExerciseCatalogRefreshService {
       await prefs.setString(_keyCachedCatalogVersion, manifest.version);
       await prefs.remove(_keyLastError);
 
-      await _cacheManifestJson(
-        manifestUri: manifestUri,
-        manifest: manifest,
-      );
+      await _cacheManifestJson(manifestUri: manifestUri, manifest: manifest);
 
       onProgress?.call(
         'Übungen bereit',
@@ -514,16 +511,13 @@ class ExerciseCatalogRefreshService {
       'minimum_exercise_rows': manifest.minimumExerciseRows,
       'cached_at': _nowProvider().toIso8601String(),
     };
-    await manifestFile.writeAsString(
-      jsonEncode(map),
-      flush: true,
-    );
+    await manifestFile.writeAsString(jsonEncode(map), flush: true);
   }
 
   Future<ExerciseCatalogManifest?> _fetchManifest(Uri manifestUri) async {
-    final response = await _httpClient.get(manifestUri, headers: const {
-      'Accept': 'application/json'
-    }).timeout(_config.manifestTimeout);
+    final response = await _httpClient
+        .get(manifestUri, headers: const {'Accept': 'application/json'})
+        .timeout(_config.manifestTimeout);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return null;
@@ -555,8 +549,9 @@ class ExerciseCatalogRefreshService {
 
     final sourceId =
         _firstNonBlankString([json['source_id'], build['source_id']]) ??
-            config.sourceId;
-    final channel = _firstNonBlankString([json['channel'], build['channel']]) ??
+        config.sourceId;
+    final channel =
+        _firstNonBlankString([json['channel'], build['channel']]) ??
         config.channel;
     if (sourceId != config.sourceId || channel != config.channel) {
       return null;
@@ -578,7 +573,8 @@ class ExerciseCatalogRefreshService {
     // release this guard exists for slip through.
     final schemaVersion =
         _parseInt(json['schema_version']) ?? _parseInt(build['schema_version']);
-    final minAppSchemaVersion = _parseInt(json['min_app_schema_version']) ??
+    final minAppSchemaVersion =
+        _parseInt(json['min_app_schema_version']) ??
         _parseInt(build['min_app_schema_version']) ??
         schemaVersion ??
         1;
@@ -596,7 +592,8 @@ class ExerciseCatalogRefreshService {
     }
 
     final expectedRows = _parseInt(json['expected_exercise_count']);
-    final minimumRows = _parseInt(json['minimum_exercise_rows']) ??
+    final minimumRows =
+        _parseInt(json['minimum_exercise_rows']) ??
         _parseInt(json['min_exercise_count']) ??
         _parseInt(json['min_rows']);
     if (minimumRows != null && minimumRows <= 0) {
@@ -611,7 +608,8 @@ class ExerciseCatalogRefreshService {
       return null;
     }
 
-    final usesFileKeys = _firstNonBlankString([
+    final usesFileKeys =
+        _firstNonBlankString([
           json['db_file'],
           json['db_path'],
           json['database_path'],
@@ -620,7 +618,8 @@ class ExerciseCatalogRefreshService {
           json['report_path'],
         ]) !=
         null;
-    final effectiveBaseUrl = _firstNonBlankString([
+    final effectiveBaseUrl =
+        _firstNonBlankString([
           json['asset_base_url'],
           json['download_base_url'],
           json['base_url'],
@@ -632,10 +631,7 @@ class ExerciseCatalogRefreshService {
 
     final dbUri = _resolveFromManifest(
       baseUrl: effectiveBaseUrl,
-      urlValue: _firstNonBlankString([
-        json['db_url'],
-        json['database_url'],
-      ]),
+      urlValue: _firstNonBlankString([json['db_url'], json['database_url']]),
       pathValue: _firstNonBlankString([
         json['db_path'],
         json['database_path'],
@@ -667,10 +663,13 @@ class ExerciseCatalogRefreshService {
       return null;
     }
 
-    final generatedAtRaw =
-        _firstNonBlankString([json['generated_at'], build['generated_at']]);
-    final generatedAt =
-        generatedAtRaw != null ? DateTime.tryParse(generatedAtRaw) : null;
+    final generatedAtRaw = _firstNonBlankString([
+      json['generated_at'],
+      build['generated_at'],
+    ]);
+    final generatedAt = generatedAtRaw != null
+        ? DateTime.tryParse(generatedAtRaw)
+        : null;
 
     return ExerciseCatalogManifest(
       version: version,
@@ -799,11 +798,15 @@ class ExerciseCatalogRefreshService {
       if (!inlineTextColumns.every(columns.contains)) {
         final translationColumns = tables.contains('exercise_translations')
             ? (await db.rawQuery('PRAGMA table_info(exercise_translations)'))
-                .map((row) => row['name']?.toString())
-                .toSet()
+                  .map((row) => row['name']?.toString())
+                  .toSet()
             : <String?>{};
-        if (!{'exercise_id', 'language_code', 'name', 'description'}
-            .every(translationColumns.contains)) {
+        if (!{
+          'exercise_id',
+          'language_code',
+          'name',
+          'description',
+        }.every(translationColumns.contains)) {
           return const _CatalogDbValidationResult(
             isValid: false,
             error: 'Catalog DB missing required exercise translations.',
@@ -848,18 +851,20 @@ class ExerciseCatalogRefreshService {
       final dbSchemaVersion = _parseInt(schemaMeta['schema_version']);
       final dbMinAppSchemaVersion =
           _parseInt(schemaMeta['min_app_schema_version']) ??
-              dbSchemaVersion ??
-              1;
+          dbSchemaVersion ??
+          1;
       if (dbMinAppSchemaVersion > _config.supportedSchemaVersion) {
         return _CatalogDbValidationResult(
           isValid: false,
-          error: 'Catalog DB requires app schema $dbMinAppSchemaVersion, '
+          error:
+              'Catalog DB requires app schema $dbMinAppSchemaVersion, '
               'this build supports ${_config.supportedSchemaVersion}.',
         );
       }
 
-      final countRows =
-          await db.rawQuery('SELECT COUNT(*) as c FROM exercises');
+      final countRows = await db.rawQuery(
+        'SELECT COUNT(*) as c FROM exercises',
+      );
       final rowCount = sqflite.Sqflite.firstIntValue(countRows) ?? 0;
       if (rowCount < minimumRows) {
         return _CatalogDbValidationResult(

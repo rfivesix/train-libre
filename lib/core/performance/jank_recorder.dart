@@ -66,17 +66,17 @@ class ScreenPerfStats {
   }
 
   Map<String, Object?> toJson() => {
-        's': screen,
-        'f': frames,
-        'j': jankFrames,
-        'sv': severeFrames,
-        'rb': rasterBoundJank,
-        'bb': buildBoundJank,
-        'wf': worstFrameMs,
-        'wb': worstBuildMs,
-        'wr': worstRasterMs,
-        'sum': sumFrameMs,
-      };
+    's': screen,
+    'f': frames,
+    'j': jankFrames,
+    'sv': severeFrames,
+    'rb': rasterBoundJank,
+    'bb': buildBoundJank,
+    'wf': worstFrameMs,
+    'wb': worstBuildMs,
+    'wr': worstRasterMs,
+    'sum': sumFrameMs,
+  };
 
   static ScreenPerfStats? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -112,10 +112,10 @@ class StallEvent {
   });
 
   Map<String, Object?> toJson() => {
-        's': screen,
-        'at': at.toUtc().millisecondsSinceEpoch,
-        'd': durationMs,
-      };
+    's': screen,
+    'at': at.toUtc().millisecondsSinceEpoch,
+    'd': durationMs,
+  };
 
   static StallEvent? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -393,11 +393,9 @@ class JankRecorder with WidgetsBindingObserver {
   }
 
   void _recordStall(int durationMs) {
-    _stalls.add(StallEvent(
-      screen: _screen,
-      at: DateTime.now(),
-      durationMs: durationMs,
-    ));
+    _stalls.add(
+      StallEvent(screen: _screen, at: DateTime.now(), durationMs: durationMs),
+    );
     if (_stalls.length > _maxStalls) {
       _stalls.removeRange(0, _stalls.length - _maxStalls);
     }
@@ -480,8 +478,10 @@ class JankRecorder with WidgetsBindingObserver {
 
       final since = decoded['since'];
       if (since is int) {
-        _since =
-            DateTime.fromMillisecondsSinceEpoch(since, isUtc: true).toLocal();
+        _since = DateTime.fromMillisecondsSinceEpoch(
+          since,
+          isUtc: true,
+        ).toLocal();
       }
 
       final screens = decoded['screens'];

@@ -49,14 +49,20 @@ class EvaluateFoodSourceUseCase {
 
       // An exact alias can surface several BLS variants. This affects only
       // retrieval order; validation still treats unreviewed aliases as weak.
-      final aAlias = a.catalogMatchAlias != null &&
-          searchLowers.any((term) =>
-              FoodNameMatching.compact(a.catalogMatchAlias!) ==
-              FoodNameMatching.compact(term));
-      final bAlias = b.catalogMatchAlias != null &&
-          searchLowers.any((term) =>
-              FoodNameMatching.compact(b.catalogMatchAlias!) ==
-              FoodNameMatching.compact(term));
+      final aAlias =
+          a.catalogMatchAlias != null &&
+          searchLowers.any(
+            (term) =>
+                FoodNameMatching.compact(a.catalogMatchAlias!) ==
+                FoodNameMatching.compact(term),
+          );
+      final bAlias =
+          b.catalogMatchAlias != null &&
+          searchLowers.any(
+            (term) =>
+                FoodNameMatching.compact(b.catalogMatchAlias!) ==
+                FoodNameMatching.compact(term),
+          );
       if (sa == 1 && aAlias != bAlias) return aAlias ? -1 : 1;
 
       final lengthCompare = a.name.length.compareTo(b.name.length);
@@ -69,10 +75,15 @@ class EvaluateFoodSourceUseCase {
     // Each source keeps its own bounded shortlist until final validation.
     // OFF exact names can never consume the slots reserved for BLS foods.
     final counts = <FoodItemSource, int>{};
-    return items.where((item) {
-      final count =
-          counts.update(item.source, (value) => value + 1, ifAbsent: () => 1);
-      return count <= limit;
-    }).toList(growable: false);
+    return items
+        .where((item) {
+          final count = counts.update(
+            item.source,
+            (value) => value + 1,
+            ifAbsent: () => 1,
+          );
+          return count <= limit;
+        })
+        .toList(growable: false);
   }
 }

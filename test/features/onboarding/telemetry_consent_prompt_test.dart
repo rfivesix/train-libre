@@ -74,8 +74,11 @@ void main() {
       // The switch in Settings, or a restored backup that had it on.
       await prompt.registerLaunch(isOptedIn: true);
 
-      expect(await prompt.isFollowUpDue(isOptedIn: false), isFalse,
-          reason: 'the launch with telemetry on closed the subject for good');
+      expect(
+        await prompt.isFollowUpDue(isOptedIn: false),
+        isFalse,
+        reason: 'the launch with telemetry on closed the subject for good',
+      );
     });
 
     test('keeps waiting when the clock jumps backwards', () async {
@@ -86,15 +89,17 @@ void main() {
   });
 
   group('installations that predate the prompt', () {
-    test('are anchored on their first launch rather than asked at once',
-        () async {
-      // No onboarding answer on record: this user consented long ago.
-      await prompt.registerLaunch(isOptedIn: false);
-      expect(await due(), isFalse);
+    test(
+      'are anchored on their first launch rather than asked at once',
+      () async {
+        // No onboarding answer on record: this user consented long ago.
+        await prompt.registerLaunch(isOptedIn: false);
+        expect(await due(), isFalse);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString(TelemetryConsentPrompt.anchorKey), isNotNull);
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString(TelemetryConsentPrompt.anchorKey), isNotNull);
+      },
+    );
 
     test('serve the same waiting period as everyone else', () async {
       await prompt.registerLaunch(isOptedIn: false);

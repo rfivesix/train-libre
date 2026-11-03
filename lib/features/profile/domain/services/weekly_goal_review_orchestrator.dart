@@ -35,9 +35,7 @@ class WeeklyGoalReviewInput {
 }
 
 abstract interface class WeeklyGoalReviewInputSource {
-  Future<WeeklyGoalReviewInput> load({
-    required DateTime windowEnd,
-  });
+  Future<WeeklyGoalReviewInput> load({required DateTime windowEnd});
 }
 
 class DatabaseWeeklyGoalReviewInputSource
@@ -49,12 +47,13 @@ class DatabaseWeeklyGoalReviewInputSource
     DatabaseHelper? databaseHelper,
     RecommendationInputAdapter? inputAdapter,
     RecommendationRepository? recommendationRepository,
-  })  : _inputAdapter = inputAdapter ??
-            RecommendationInputAdapter(
-              databaseHelper: databaseHelper ?? DatabaseHelper.instance,
-            ),
-        _recommendationRepository =
-            recommendationRepository ?? RecommendationRepository();
+  }) : _inputAdapter =
+           inputAdapter ??
+           RecommendationInputAdapter(
+             databaseHelper: databaseHelper ?? DatabaseHelper.instance,
+           ),
+       _recommendationRepository =
+           recommendationRepository ?? RecommendationRepository();
 
   @override
   Future<WeeklyGoalReviewInput> load({required DateTime windowEnd}) async {
@@ -107,8 +106,8 @@ class WeeklyGoalReviewOrchestrator {
   WeeklyGoalReviewOrchestrator({
     required IGoalRepository goalRepository,
     WeeklyGoalReviewInputSource? inputSource,
-  })  : _goalRepository = goalRepository,
-        _inputSource = inputSource ?? DatabaseWeeklyGoalReviewInputSource();
+  }) : _goalRepository = goalRepository,
+       _inputSource = inputSource ?? DatabaseWeeklyGoalReviewInputSource();
 
   Future<WeeklyGoalReviewGenerationResult> generateIfDue({
     DateTime? now,
@@ -152,9 +151,10 @@ class WeeklyGoalReviewOrchestrator {
         .where((event) => event.eventType == 'resumed')
         .map((event) => event.occurredAt ?? event.createdAt)
         .fold<DateTime?>(
-            null,
-            (latest, value) =>
-                latest == null || value.isAfter(latest) ? value : latest);
+          null,
+          (latest, value) =>
+              latest == null || value.isAfter(latest) ? value : latest,
+        );
     if (lastResume != null && _day(lastResume).isAfter(windowStart)) {
       return WeeklyGoalReviewGenerationResult(
         goal: goal,
@@ -255,20 +255,25 @@ class WeeklyGoalReviewOrchestrator {
       observedRateKgPerWeek: input.observedRateKgPerWeek,
       confidenceLevel: recentEvaluation.confidenceLevel,
       tdeeEstimate: input.tdeeEstimate,
-      recommendedCalories:
-          canAdjustNutrition ? recentEvaluation.recommendedCalories : null,
-      recommendedProtein:
-          canAdjustNutrition ? recentEvaluation.recommendedProtein : null,
-      recommendedCarbs:
-          canAdjustNutrition ? recentEvaluation.recommendedCarbs : null,
-      recommendedFat:
-          canAdjustNutrition ? recentEvaluation.recommendedFat : null,
+      recommendedCalories: canAdjustNutrition
+          ? recentEvaluation.recommendedCalories
+          : null,
+      recommendedProtein: canAdjustNutrition
+          ? recentEvaluation.recommendedProtein
+          : null,
+      recommendedCarbs: canAdjustNutrition
+          ? recentEvaluation.recommendedCarbs
+          : null,
+      recommendedFat: canAdjustNutrition
+          ? recentEvaluation.recommendedFat
+          : null,
       algorithmVersion: algorithmVersion,
       assessment: assessment,
       createdAt: createdAt,
     );
     await _goalRepository.saveReview(review);
-    final persisted = await _goalRepository.getReviewForWindow(
+    final persisted =
+        await _goalRepository.getReviewForWindow(
           goal.id,
           windowStart,
           windowEnd,

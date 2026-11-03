@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import '../../core/infrastructure/basis_data_manager.dart';
@@ -47,11 +48,7 @@ class DatabasePlaceholderWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                icon,
-                size: 80,
-                color: theme.colorScheme.primary,
-              ),
+              Icon(icon, size: 80, color: theme.colorScheme.primary),
               const SizedBox(height: DesignConstants.spacingL),
               Text(
                 title,
@@ -71,7 +68,8 @@ class DatabasePlaceholderWidget extends StatelessWidget {
               ),
               const SizedBox(height: DesignConstants.spacingXL),
               AppButton.primary(
-                onPressed: onDownloadPressed ??
+                onPressed:
+                    onDownloadPressed ??
                     () async {
                       await BasisDataManager.instance
                           .promptOffDatabaseDownloadIfFirstTime(context);

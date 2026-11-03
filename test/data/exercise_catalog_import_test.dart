@@ -59,8 +59,9 @@ void main() {
     DatabaseHelper.setDriftDb(db);
     BasisDataManager.instance.invalidateCatalogPresenceCache();
 
-    await BasisDataManager.instance
-        .importExerciseCatalogFromFileForTesting(sourcePath);
+    await BasisDataManager.instance.importExerciseCatalogFromFileForTesting(
+      sourcePath,
+    );
   });
 
   tearDownAll(() async {
@@ -76,8 +77,9 @@ void main() {
   }
 
   Future<int> importedCount(String table) async {
-    final row =
-        await db.customSelect('SELECT COUNT(*) AS c FROM $table').getSingle();
+    final row = await db
+        .customSelect('SELECT COUNT(*) AS c FROM $table')
+        .getSingle();
     return row.read<int>('c');
   }
 
@@ -113,8 +115,11 @@ void main() {
         'exercise_tags',
         'exercise_aliases',
       ]) {
-        expect(await importedCount(table), await sourceCount(table),
-            reason: 'row count mismatch for $table');
+        expect(
+          await importedCount(table),
+          await sourceCount(table),
+          reason: 'row count mismatch for $table',
+        );
       }
 
       // `languages` is renamed on the way in, to keep it apart from the app's
@@ -140,7 +145,8 @@ void main() {
         final expected = await sourceCount('exercises', '$column IS NOT NULL');
         final actual = await db
             .customSelect(
-                'SELECT COUNT(*) AS c FROM exercises WHERE $column IS NOT NULL')
+              'SELECT COUNT(*) AS c FROM exercises WHERE $column IS NOT NULL',
+            )
             .getSingle();
         expect(actual.read<int>('c'), expected, reason: 'lost $column');
       }
@@ -160,7 +166,8 @@ void main() {
       expect(
         await db
             .customSelect(
-                "SELECT COUNT(*) AS c FROM exercises WHERE status = 'deprecated'")
+              "SELECT COUNT(*) AS c FROM exercises WHERE status = 'deprecated'",
+            )
             .getSingle()
             .then((r) => r.read<int>('c')),
         await sourceCount('exercises', "status = 'deprecated'"),
@@ -168,8 +175,10 @@ void main() {
     });
 
     test('supports_added_weight is a boolean, not a stray zero', () async {
-      final expected =
-          await sourceCount('exercises', 'supports_added_weight = 1');
+      final expected = await sourceCount(
+        'exercises',
+        'supports_added_weight = 1',
+      );
       final actual = await db
           .customSelect(
             'SELECT COUNT(*) AS c FROM exercises WHERE supports_added_weight = 1',
@@ -191,23 +200,29 @@ void main() {
   });
 
   group('v1 compatibility columns keep being written', () {
-    test('category and legacy muscles are still there after a v2 import',
-        () async {
-      final rows = await db
-          .customSelect(
-            "SELECT COUNT(*) AS c FROM exercises "
-            "WHERE status = 'active' AND category_name IS NOT NULL "
-            "AND category_name != ''",
-          )
-          .getSingle();
-      expect(rows.read<int>('c'),
-          await sourceCount('exercises', "status = 'active'"));
-    });
+    test(
+      'category and legacy muscles are still there after a v2 import',
+      () async {
+        final rows = await db
+            .customSelect(
+              "SELECT COUNT(*) AS c FROM exercises "
+              "WHERE status = 'active' AND category_name IS NOT NULL "
+              "AND category_name != ''",
+            )
+            .getSingle();
+        expect(
+          rows.read<int>('c'),
+          await sourceCount('exercises', "status = 'active'"),
+        );
+      },
+    );
   });
 
   group('the vocabulary is replaced, not merged', () {
     test('a retired muscle does not survive a second import', () async {
-      await db.into(db.muscles).insert(
+      await db
+          .into(db.muscles)
+          .insert(
             MusclesCompanion.insert(
               id: 'retired_muscle',
               level: 'muscle',
@@ -217,19 +232,22 @@ void main() {
       expect(
         await db
             .customSelect(
-                "SELECT COUNT(*) AS c FROM muscles WHERE id = 'retired_muscle'")
+              "SELECT COUNT(*) AS c FROM muscles WHERE id = 'retired_muscle'",
+            )
             .getSingle()
             .then((r) => r.read<int>('c')),
         1,
       );
 
-      await BasisDataManager.instance
-          .importExerciseCatalogFromFileForTesting(sourcePath);
+      await BasisDataManager.instance.importExerciseCatalogFromFileForTesting(
+        sourcePath,
+      );
 
       expect(
         await db
             .customSelect(
-                "SELECT COUNT(*) AS c FROM muscles WHERE id = 'retired_muscle'")
+              "SELECT COUNT(*) AS c FROM muscles WHERE id = 'retired_muscle'",
+            )
             .getSingle()
             .then((r) => r.read<int>('c')),
         0,
@@ -241,7 +259,9 @@ void main() {
     test('a user exercise survives the same import', () async {
       // The other half of the policy: nothing keyed by an exercise id is ever
       // removed, because those ids are a contract with the workout logs.
-      await db.into(db.exercises).insert(
+      await db
+          .into(db.exercises)
+          .insert(
             ExercisesCompanion.insert(
               id: const Value('user-made-up-id'),
               isCustom: const Value(true),
@@ -249,8 +269,9 @@ void main() {
             ),
           );
 
-      await BasisDataManager.instance
-          .importExerciseCatalogFromFileForTesting(sourcePath);
+      await BasisDataManager.instance.importExerciseCatalogFromFileForTesting(
+        sourcePath,
+      );
 
       final survivor = await db
           .customSelect(
@@ -277,24 +298,31 @@ void main() {
           table: await importedCount(table),
       };
 
-      await BasisDataManager.instance
-          .importExerciseCatalogFromFileForTesting(sourcePath);
+      await BasisDataManager.instance.importExerciseCatalogFromFileForTesting(
+        sourcePath,
+      );
 
       for (final entry in before.entries) {
-        expect(await importedCount(entry.key), entry.value,
-            reason: 'second import changed ${entry.key}');
+        expect(
+          await importedCount(entry.key),
+          entry.value,
+          reason: 'second import changed ${entry.key}',
+        );
       }
     });
   });
 
   group('scale', () {
-    test('a full build imports every one of its exercises', () async {
-      expect(await importedCount('exercises'), greaterThan(900));
-      expect(await importedCount('exercise_muscles'), greaterThan(3000));
-      expect(await importedCount('exercise_translations'), greaterThan(5000));
-    },
-        skip: usingFullCatalog
-            ? null
-            : 'set TRAIN_LIBRE_CATALOG_DB to import the whole catalog');
+    test(
+      'a full build imports every one of its exercises',
+      () async {
+        expect(await importedCount('exercises'), greaterThan(900));
+        expect(await importedCount('exercise_muscles'), greaterThan(3000));
+        expect(await importedCount('exercise_translations'), greaterThan(5000));
+      },
+      skip: usingFullCatalog
+          ? null
+          : 'set TRAIN_LIBRE_CATALOG_DB to import the whole catalog',
+    );
   });
 }

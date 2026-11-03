@@ -39,10 +39,12 @@ void main() {
         'goal-1',
         isDueToday: false,
       ),
-      isNot(LocalNotificationService.notificationIdForGoalTargetDate(
-        'goal-1',
-        isDueToday: true,
-      )),
+      isNot(
+        LocalNotificationService.notificationIdForGoalTargetDate(
+          'goal-1',
+          isDueToday: true,
+        ),
+      ),
     );
     expect(
       LocalNotificationService.notificationIdForWorkoutPlan(
@@ -59,10 +61,12 @@ void main() {
         'goal-1',
         isDueToday: false,
       ),
-      isNot(LocalNotificationService.notificationIdForGoalTargetDate(
-        'goal-2',
-        isDueToday: false,
-      )),
+      isNot(
+        LocalNotificationService.notificationIdForGoalTargetDate(
+          'goal-2',
+          isDueToday: false,
+        ),
+      ),
     );
   });
 
@@ -88,10 +92,12 @@ void main() {
     await repository.saveReview(review);
     final router = AppNotificationRouter(repository);
     expect(
-      await router.resolve(const AppNotificationPayload(
-        type: AppNotificationType.workoutPlan,
-        planId: 'plan-1',
-      )),
+      await router.resolve(
+        const AppNotificationPayload(
+          type: AppNotificationType.workoutPlan,
+          planId: 'plan-1',
+        ),
+      ),
       isA<WorkoutPlanNotificationDestination>(),
     );
     final payload = AppNotificationPayload(
@@ -100,16 +106,22 @@ void main() {
       reviewId: review.id,
     );
 
-    expect(await router.resolve(payload),
-        isA<WeeklyReviewNotificationDestination>());
-    await repository.updateReviewStatus(review.id, 'dismissed');
-    expect(await router.resolve(payload),
-        isA<GoalDetailNotificationDestination>());
     expect(
-      await router.resolve(const AppNotificationPayload(
-        type: AppNotificationType.goalTargetDate,
-        goalId: 'deleted',
-      )),
+      await router.resolve(payload),
+      isA<WeeklyReviewNotificationDestination>(),
+    );
+    await repository.updateReviewStatus(review.id, 'dismissed');
+    expect(
+      await router.resolve(payload),
+      isA<GoalDetailNotificationDestination>(),
+    );
+    expect(
+      await router.resolve(
+        const AppNotificationPayload(
+          type: AppNotificationType.goalTargetDate,
+          goalId: 'deleted',
+        ),
+      ),
       isA<NutritionHubNotificationDestination>(),
     );
   });

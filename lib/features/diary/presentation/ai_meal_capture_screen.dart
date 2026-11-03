@@ -2,11 +2,16 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/gestures.dart' show kTouchSlop;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -27,6 +32,7 @@ import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'ai_meal_review_reveal_route.dart';
 import 'ai_meal_review_screen.dart';
+import 'ai_meal_distance_guidance.dart';
 import 'meal_analysis_morph_route.dart';
 import 'meal_analysis_screen.dart';
 import 'meal_editor_screen.dart';
@@ -37,15 +43,21 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_item.dart';
 import 'dialogs/quantity_log_flow.dart';
-import 'dialogs/voice_dictation_sheet.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/telemetry/telemetry_buckets.dart';
 import '../../../services/voice/voice_dictation_service.dart';
+import '../../../services/voice/voice_dictation_settings.dart';
 import '../../../services/ai_meal_capture_tour_service.dart';
+import 'widgets/ai_barcode_banner.dart';
+import 'widgets/ai_camera_preview_fallbacks.dart';
 import 'widgets/ai_meal_capture_tour_overlay.dart';
 import '../../../util/permission_dialogs.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
+import '../../ai_assistant/presentation/widgets/cloud_overlay/header_glass_button.dart';
+import 'widgets/ai_neural_cloud_orb_widget.dart';
+import 'widgets/animated_transcript_text.dart';
 
 /// Screen for capturing meal input via live camera, photo(s), barcode or text (Screens A1–A6).
 class AiMealCaptureScreen extends StatefulWidget {
@@ -64,19 +76,27 @@ class AiMealCaptureScreen extends StatefulWidget {
 
 class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+  static const double _scannerControlSideInset = 24;
+  static const double _scannerPreviewTopInset = 12;
+  static const double _scannerPreviewBottomInset = 18;
+
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
   final _textController = TextEditingController();
+  final FocusNode _textFocusNode = FocusNode(debugLabel: 'ai-meal-text-input');
   final ImagePicker _picker = ImagePicker();
 
   // Navigation & Lifecycle state
   bool _isRouteObserverAttached = false;
   bool _isTopRoute = true;
   bool _isCameraSuspended = false;
+  bool _isCameraResuming = false;
 
   // Camera & Barcode state
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR_Capture');
   QRViewController? _qrController;
   PermissionStatus _cameraPermission = PermissionStatus.denied;
   bool _isFlashOn = false;
+  bool _isIosSimulator = false;
   String? _detectedBarcode;
   FoodItem? _detectedProduct;
   bool _isLoggingBarcode = false;
@@ -93,18 +113,41 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _useNativeSession = false;
   StreamSubscription<String>? _barcodeSubscription;
 
-  /// Set when the last capture measured a distance outside the range LiDAR can
-  /// be trusted at. Replaces the previous hard-coded distance pill.
+  final AiMealDistanceGuidance _distanceGuidance = AiMealDistanceGuidance();
+  StreamSubscription<double?>? _distanceSubscription;
   String? _distanceHint;
 
   // Voice dictation state
   bool _isDictating = false;
+  bool _isVoiceStarting = false;
+  bool _isVoiceStopping = false;
+  bool _isVoiceDemo = false;
+  bool _voiceHoldActivated = false;
+  bool _voiceReleasedBeforeStart = false;
+  bool _voicePermissionFlow = false;
+  int? _voiceHoldPointer;
+  Offset? _voiceHoldOrigin;
+  Timer? _voiceHoldTimer;
+  Timer? _voiceDemoTimer;
+  double _voiceLevel = 0;
+  String _voiceTranscript = '';
+  String _voiceBaseText = '';
+  bool _voiceTextWasVisible = false;
+  final Stopwatch _voiceRecordingStopwatch = Stopwatch();
   bool _textCameFromVoice = false;
 
   // Photo state
   final List<File> _images = [];
   final Map<String, DepthCaptureResult> _depthCaptures = {};
-  DepthCaptureResult? _lastDepthCapture;
+  // Only use depth belonging to a photo still included in the request.
+  DepthCaptureResult? get _lastDepthCapture {
+    for (final image in _images.reversed) {
+      final capture = _depthCaptures[image.path];
+      if (capture != null) return capture;
+    }
+    return null;
+  }
+
   static const int _maxImages = 4;
   final PhotoPreProcessor _preProcessor = PhotoPreProcessor();
 
@@ -140,10 +183,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (Platform.isAndroid) {
       _qrController?.pauseCamera();
     } else if (Platform.isIOS) {
-      if (_isTopRoute &&
-          !_isCameraSuspended &&
-          !_isAnalyzing &&
-          !_isDictating) {
+      if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing) {
         _qrController?.resumeCamera();
       }
     }
@@ -152,8 +192,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.aiMealCapture));
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.aiMealCapture,
+      ),
+    );
     WidgetsBinding.instance.addObserver(this);
     _checkDbStatus();
     unawaited(_prepareCamera());
@@ -166,8 +210,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final tourCompleted =
-          await AiMealCaptureTourService.instance.isTourCompleted();
+      final tourCompleted = await AiMealCaptureTourService.instance
+          .isTourCompleted();
       if (!tourCompleted && mounted) {
         _startTour();
       }
@@ -198,7 +242,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void didPopNext() {
     _isTopRoute = true;
-    if (!_isAnalyzing && !_isDictating) {
+    if (!_isAnalyzing) {
       unawaited(_resumeCamera());
     }
   }
@@ -211,12 +255,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   @override
   void dispose() {
+    _cloudVisibilityLease.dispose();
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
     WidgetsBinding.instance.removeObserver(this);
     _stopAiWaitingHaptics();
+    _voiceHoldTimer?.cancel();
+    _voiceDemoTimer?.cancel();
     _barcodeSubscription?.cancel();
+    _distanceSubscription?.cancel();
     _analysisController?.dispose();
     unawaited(VoiceDictationService.instance.cancel());
     if (_useNativeSession) {
@@ -226,6 +274,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // QRView is unmounted, and calling it again is deprecated.
     _preProcessor.dispose();
     _textController.dispose();
+    _textFocusNode.dispose();
     _analyzeButtonAnimationController.dispose();
     super.dispose();
   }
@@ -235,11 +284,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed) {
-      if (_isTopRoute &&
-          !_isCameraSuspended &&
-          !_isAnalyzing &&
-          !_isDictating) {
-        unawaited(_resumeCamera());
+      if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing) {
+        unawaited(_refreshPermissionAndResumeCamera());
       }
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
@@ -251,9 +297,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
   }
 
+  Future<void> _refreshPermissionAndResumeCamera() async {
+    final status = await Permission.camera.status;
+    if (!mounted) return;
+    if (!status.isGranted) {
+      _clearDistanceHint();
+      setState(() => _cameraPermission = status);
+      await DepthScanChannel.instance.stopSession();
+      return;
+    }
+    if (!_cameraPermission.isGranted) {
+      setState(() => _cameraPermission = status);
+      await _initCaptureSession();
+      return;
+    }
+    await _resumeCamera();
+  }
+
   /// Suspends active camera preview and depth/barcode hardware.
   Future<void> _suspendCamera() async {
     _isCameraSuspended = true;
+    _clearDistanceHint();
     if (_isFlashOn && mounted) {
       setState(() => _isFlashOn = false);
     }
@@ -265,7 +329,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _toggleFlash() async {
+    if (!_cameraPermission.isGranted || _isCameraSuspended || _isAnalyzing) {
+      return;
+    }
     HapticFeedbackService.instance.selectionFeedback();
+    if (_isIosSimulator && !_useNativeSession) {
+      setState(() => _isFlashOn = !_isFlashOn);
+      return;
+    }
     if (_useNativeSession) {
       final isOn = await DepthScanChannel.instance.toggleTorch();
       if (mounted) {
@@ -286,32 +357,52 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   /// Resumes active camera preview and depth/barcode hardware if the screen is currently active.
   Future<void> _resumeCamera() async {
+    if (_isCameraResuming) return;
     _isCameraSuspended = false;
     if (!mounted ||
         !_cameraPermission.isGranted ||
         !_isTopRoute ||
-        _isAnalyzing ||
-        _isDictating) {
+        _isAnalyzing) {
       return;
     }
-    if (_useNativeSession) {
-      await DepthScanChannel.instance.startSession();
-    } else {
-      await _qrController?.resumeCamera();
+    _isCameraResuming = true;
+    try {
+      if (_useNativeSession) {
+        await DepthScanChannel.instance.startSession();
+      } else {
+        await _qrController?.resumeCamera();
+      }
+    } finally {
+      _isCameraResuming = false;
     }
   }
 
   /// Permission first, session second — the native session cannot configure an
   /// input without camera access.
   Future<void> _prepareCamera() async {
+    await _detectIosSimulator();
     await _checkPermission();
     if (!mounted || !_cameraPermission.isGranted) return;
     await _initCaptureSession();
   }
 
+  Future<void> _detectIosSimulator() async {
+    if (!Platform.isIOS) return;
+
+    try {
+      final info = await DeviceInfoPlugin().iosInfo;
+      if (mounted) {
+        setState(() => _isIosSimulator = !info.isPhysicalDevice);
+      }
+    } catch (_) {
+      // If device detection fails, keep the real-camera path. The demo preview
+      // must only be shown when the platform confirms this is an iOS simulator.
+    }
+  }
+
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized = await BasisDataManager.instance
+        .isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -332,7 +423,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     });
 
     if (!capability.cameraAvailable) return;
-    if (_isCameraSuspended || !_isTopRoute || _isAnalyzing || _isDictating) {
+    if (_isCameraSuspended || !_isTopRoute || _isAnalyzing) {
       return;
     }
 
@@ -342,12 +433,19 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!started) {
       // Native session refused; the scanner camera path still works.
       setState(() => _useNativeSession = false);
+      _clearDistanceHint();
       return;
     }
 
     _barcodeSubscription?.cancel();
-    _barcodeSubscription =
-        DepthScanChannel.instance.barcodes.listen(_onBarcodeDetected);
+    _barcodeSubscription = DepthScanChannel.instance.barcodes.listen(
+      _onBarcodeDetected,
+    );
+    _distanceSubscription?.cancel();
+    _distanceSubscription = DepthScanChannel.instance.liveDistanceCm.listen(
+      _onLiveDistance,
+      onError: (_) => _clearDistanceHint(),
+    );
   }
 
   Future<void> _onBarcodeDetected(String code) async {
@@ -361,8 +459,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     });
 
     try {
-      final item =
-          await ProductLocalDataSource.instance.getProductByBarcode(code);
+      final item = await ProductLocalDataSource.instance.getProductByBarcode(
+        code,
+      );
       if (item != null && mounted && _detectedBarcode == code) {
         setState(() => _detectedProduct = item);
       }
@@ -381,7 +480,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (code == null || _isLoggingBarcode) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final product = _detectedProduct ??
+    final product =
+        _detectedProduct ??
         await ProductLocalDataSource.instance.getProductByBarcode(code);
     if (!mounted) return;
 
@@ -403,21 +503,25 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         context,
         product,
         initialDate: widget.initialDate,
-        initialMealType: widget.initialMealType ??
+        initialMealType:
+            widget.initialMealType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey,
         telemetrySource: 'ai_meal_capture_barcode',
       );
       if (!mounted) return;
       if (logged) {
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.barcodeScanned,
+          ),
+        );
         Navigator.of(context).pop(true);
         return;
       }
     } finally {
       if (mounted) {
         setState(() => _isLoggingBarcode = false);
-        if (_isTopRoute && !_isAnalyzing && !_isDictating) {
+        if (_isTopRoute && !_isAnalyzing) {
           unawaited(_resumeCamera());
         }
       }
@@ -428,11 +532,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final status = await Permission.camera.status;
     if (status.isGranted) {
       if (mounted) {
+        if (!_cameraPermission.isGranted) _clearDistanceHint();
         setState(() {
           _cameraPermission = status;
         });
       }
     } else {
+      _clearDistanceHint();
       final req = await Permission.camera.request();
       if (mounted) {
         setState(() {
@@ -444,11 +550,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     _qrController = controller;
-    controller.getFlashStatus().then((status) {
-      if (mounted && status != null) {
-        setState(() => _isFlashOn = status);
-      }
-    }).catchError((_) {});
+    controller
+        .getFlashStatus()
+        .then((status) {
+          if (mounted && status != null) {
+            setState(() => _isFlashOn = status);
+          }
+        })
+        .catchError((_) {});
     controller.scannedDataStream.listen((scanData) async {
       final code = scanData.code;
       if (!_barcodeDetectionEnabled || !mounted) return;
@@ -461,8 +570,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
         // Lookup product name asynchronously in background
         try {
-          final item =
-              await ProductLocalDataSource.instance.getProductByBarcode(code);
+          final item = await ProductLocalDataSource.instance
+              .getProductByBarcode(code);
           if (item != null && mounted && _detectedBarcode == code) {
             setState(() {
               _detectedProduct = item;
@@ -502,27 +611,33 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     return null;
   }
 
-  /// A short, non-alarming note when the measurement fell outside the range
-  /// LiDAR is dependable at. Null means everything was fine — the common case,
-  /// which deliberately shows nothing at all.
-  String? _distanceHintFor(AppLocalizations l10n, DepthCaptureResult result) {
-    final facts = result.scaleFacts;
-    if (facts == null) return null;
-    if (facts.isValid) return null;
-    if (facts.accuracy != 'absolute') return null;
+  void _onLiveDistance(double? distanceCm) {
+    if (!mounted ||
+        !_isTopRoute ||
+        _isCameraSuspended ||
+        !_cameraPermission.isGranted) {
+      return;
+    }
+    final next = _distanceGuidance.update(distanceCm);
+    final l10n = AppLocalizations.of(context)!;
+    final text = switch (next) {
+      AiMealDistanceHint.moveAway => l10n.aiCaptureMoveAway,
+      AiMealDistanceHint.moveCloser => l10n.aiCaptureMoveCloser,
+      null => null,
+    };
+    if (_distanceHint != text) setState(() => _distanceHint = text);
+  }
 
-    if (facts.subjectDistanceCm < 15) {
-      return l10n.aiCaptureMoveAway;
-    }
-    if (facts.subjectDistanceCm > 120) {
-      return l10n.aiCaptureMoveCloser;
-    }
-    return null;
+  void _clearDistanceHint() {
+    _distanceGuidance.update(null);
+    if (_distanceHint != null && mounted) setState(() => _distanceHint = null);
   }
 
   Future<void> _takeShutterPhoto() async {
     if (_images.length >= _maxImages) return;
 
+    // A still capture must not leave guidance based on an older preview frame.
+    _clearDistanceHint();
     HapticFeedbackService.instance.selectionFeedback();
 
     // The running session takes the photo — including on devices without
@@ -545,23 +660,25 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (res != null && mounted) {
         final capture = res;
         setState(() {
-          _lastDepthCapture = capture;
           _depthCaptures[capture.imageFile.path] = capture;
           _images.add(capture.imageFile);
-          _distanceHint =
-              _distanceHintFor(AppLocalizations.of(context)!, capture);
         });
         if (capture.scaleFacts?.isValid == true ||
             capture.depthBuffer != null) {
-          unawaited(TelemetryService.instance
-              .trackFeatureUsed(featureKey: FeatureKey.lidarDepthCaptured));
+          unawaited(
+            TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.lidarDepthCaptured,
+            ),
+          );
         }
         _preProcessor.processImages([capture.imageFile]);
         return;
       }
       if (!mounted) return;
-      debugPrint('[AiMealCapture] native capture unavailable, '
-          'falling back to the system camera without depth');
+      debugPrint(
+        '[AiMealCapture] native capture unavailable, '
+        'falling back to the system camera without depth',
+      );
     }
 
     // Fallback: Camera image picker
@@ -588,15 +705,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         maxWidth: 1440,
       );
       if (picked.isNotEmpty && mounted) {
-        final newFiles =
-            picked.take(remaining).map((x) => File(x.path)).toList();
+        final newFiles = picked
+            .take(remaining)
+            .map((x) => File(x.path))
+            .toList();
         setState(() {
           _images.addAll(newFiles);
         });
         _preProcessor.processImages(newFiles);
       }
     } finally {
-      if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+      if (mounted && _isTopRoute && !_isAnalyzing) {
         unawaited(_resumeCamera());
       }
     }
@@ -617,31 +736,48 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final route = _analysisRoute;
     _analysisRoute = null;
     if (route != null && route.isActive) {
-      route.navigator?.removeRoute(route);
+      if (route.isCurrent) {
+        route.navigator?.pop();
+      } else {
+        route.navigator?.removeRoute(route);
+      }
     }
+    _isTopRoute = true;
   }
 
   Future<void> _analyze() async {
     if (!_hasInput) return;
     // The text field can keep the system keyboard alive while the analysis
-    // route is shown. Clear focus before pushing it so it stays dismissed
+    // route is shown. Clear focus and hide keyboard before pushing it so it stays dismissed
     // when the scan screen closes.
+    _textFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
     FocusManager.instance.primaryFocus?.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+    if (_showTextInput) {
+      setState(() => _showTextInput = false);
+    }
     final stopwatch = Stopwatch()..start();
     final startedAt = DateTime.now();
     final requestId = const Uuid().v4();
     final scanLog = AiMealScanLogService.instance;
-    final usageCollector = AiUsageCollector(onRequestCompleted: (report) {
-      unawaited(scanLog.event(
-          requestId, AiMealScanLogStage.providerUsageReported,
-          elapsedMilliseconds: stopwatch.elapsedMilliseconds,
-          durationMilliseconds: report.durationMilliseconds,
-          callIndex: report.requestIndex,
-          inputTokens: report.usage?.inputTokens,
-          outputTokens: report.usage?.outputTokens,
-          totalTokens: report.usage?.totalTokens,
-          usageComplete: report.usage?.isComplete ?? false));
-    });
+    final usageCollector = AiUsageCollector(
+      onRequestCompleted: (report) {
+        unawaited(
+          scanLog.event(
+            requestId,
+            AiMealScanLogStage.providerUsageReported,
+            elapsedMilliseconds: stopwatch.elapsedMilliseconds,
+            durationMilliseconds: report.durationMilliseconds,
+            callIndex: report.requestIndex,
+            inputTokens: report.usage?.inputTokens,
+            outputTokens: report.usage?.outputTokens,
+            totalTokens: report.usage?.totalTokens,
+            usageComplete: report.usage?.isComplete ?? false,
+          ),
+        );
+      },
+    );
     var completionScheduled = false;
     var requestedSent = false;
     var provider = 'unknown';
@@ -666,27 +802,36 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final inputMode = hasImages && hasText
         ? 'multimodal'
         : (hasImages ? 'photo' : 'text_only');
-    unawaited(scanLog.start(
-      id: requestId,
-      provider: provider,
-      inputMode: inputMode,
-      photoCount: _images.length,
-      startedAt: startedAt,
-    ));
-    unawaited(scanLog.event(requestId, AiMealScanLogStage.requested,
-        elapsedMilliseconds: 0));
-    void sendRequested() {
-      if (requestedSent) return;
-      requestedSent = true;
-      unawaited(TelemetryService.instance.trackAiMealScanRequested(
-        requestId: requestId,
+    unawaited(
+      scanLog.start(
+        id: requestId,
         provider: provider,
         inputMode: inputMode,
         photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+        startedAt: startedAt,
+      ),
+    );
+    unawaited(
+      scanLog.event(
+        requestId,
+        AiMealScanLogStage.requested,
+        elapsedMilliseconds: 0,
+      ),
+    );
+    void sendRequested() {
+      if (requestedSent) return;
+      requestedSent = true;
+      unawaited(
+        TelemetryService.instance.trackAiMealScanRequested(
+          requestId: requestId,
+          provider: provider,
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
     }
 
     var usageScheduled = false;
@@ -695,22 +840,26 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       usageScheduled = true;
       unawaited(() async {
         await usageCollector.whenIdle;
-        await scanLog.usage(requestId,
-            calls: usageCollector.requestCount,
-            inputTokens: usageCollector.inputTokens,
-            outputTokens: usageCollector.outputTokens,
-            totalTokens: usageCollector.totalTokens,
-            complete: usageCollector.usageComplete);
-        await TelemetryService.instance
-            .track('ai_meal_scan_usage', properties: {
-          'request_id': requestId,
-          'provider': provider,
-          'input_tokens': usageCollector.inputTokens,
-          'output_tokens': usageCollector.outputTokens,
-          'total_tokens': usageCollector.totalTokens,
-          'usage_complete': usageCollector.usageComplete,
-          'provider_calls_count': usageCollector.requestCount,
-        });
+        await scanLog.usage(
+          requestId,
+          calls: usageCollector.requestCount,
+          inputTokens: usageCollector.inputTokens,
+          outputTokens: usageCollector.outputTokens,
+          totalTokens: usageCollector.totalTokens,
+          complete: usageCollector.usageComplete,
+        );
+        await TelemetryService.instance.track(
+          'ai_meal_scan_usage',
+          properties: {
+            'request_id': requestId,
+            'provider': provider,
+            'input_tokens': usageCollector.inputTokens,
+            'output_tokens': usageCollector.outputTokens,
+            'total_tokens': usageCollector.totalTokens,
+            'usage_complete': usageCollector.usageComplete,
+            'provider_calls_count': usageCollector.requestCount,
+          },
+        );
       }());
     }
 
@@ -724,8 +873,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final controller = MealAnalysisController();
     _analysisController?.dispose();
     _analysisController = controller;
-    final sourceRect =
-        MealAnalysisMorphRoute.measureRect(_keyAnalyze.currentContext);
+    final sourceRect = MealAnalysisMorphRoute.measureRect(
+      _keyAnalyze.currentContext,
+    );
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
       sourceContext: _keyAnalyze.currentContext,
@@ -736,32 +886,38 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         if (!completionScheduled) {
           completionScheduled = true;
           stopwatch.stop();
-          unawaited(scanLog.finish(requestId,
+          unawaited(
+            scanLog.finish(
+              requestId,
               result: AiMealScanLogResult.cancelled,
-              durationMilliseconds: stopwatch.elapsedMilliseconds));
+              durationMilliseconds: stopwatch.elapsedMilliseconds,
+            ),
+          );
           sendRequested();
           scheduleUsage();
-          unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-            requestId: requestId,
-            provider: provider,
-            durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-            success: false,
-            errorCode: 'cancelled',
-            inputMode: inputMode,
-            photoCount: _images.length,
-            hasLidar: hasLidar,
-            hasVoiceInput: hasVoice,
-            hasTextInput: hasText,
-          ));
+          unawaited(
+            TelemetryService.instance.trackAiMealScanCompleted(
+              requestId: requestId,
+              provider: provider,
+              durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+              success: false,
+              errorCode: 'cancelled',
+              inputMode: inputMode,
+              photoCount: _images.length,
+              hasLidar: hasLidar,
+              hasVoiceInput: hasVoice,
+              hasTextInput: hasText,
+            ),
+          );
         }
         _stopAiWaitingHaptics();
-        _dismissAnalysisScreen();
         if (mounted) {
           setState(() => _isAnalyzing = false);
-          if (_isTopRoute && !_isDictating) {
-            unawaited(_resumeCamera());
-          }
         }
+        // didPopNext owns camera restoration once the analysis route closes.
+        // Starting the native session here races with that route callback and
+        // with the scan's finally block, delaying the capture screen on iOS.
+        _dismissAnalysisScreen();
       },
     );
     _analysisCancelled = false;
@@ -773,8 +929,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       unawaited(scanLog.setProvider(requestId, provider));
       unawaited(() async {
         try {
-          final model =
-              await AiService.instance.getSelectedModel(selectedProvider);
+          final model = await AiService.instance.getSelectedModel(
+            selectedProvider,
+          );
           await scanLog.setModel(requestId, model);
         } catch (_) {
           // Diagnostic metadata must not affect the scan.
@@ -799,15 +956,25 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       // Switchable so the same meal can be shot with and without the hint;
       // otherwise there is no way to tell whether the measurement helps.
-      final scaleHintEnabled =
-          await DepthScanSettings.instance.isScaleHintEnabled();
-      final depthFacts =
-          scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
+      final scaleHintEnabled = await DepthScanSettings.instance
+          .isScaleHintEnabled();
+      final depthFacts = scaleHintEnabled
+          ? _lastDepthCapture?.scaleFacts
+          : null;
 
       // The relief of the meal, as a second image. Rendered here rather than kept
       // around: the band scale is fitted to the frame, so it only exists once the
       // capture it belongs to does.
       final depthMap = await depthReady;
+      final depthPhotoIndex = _lastDepthCapture == null
+          ? -1
+          : _images.indexWhere(
+              (image) => image.path == _lastDepthCapture!.imageFile.path,
+            );
+      final depthLegend = depthMap == null || depthPhotoIndex < 0
+          ? null
+          : 'This depth map corresponds to meal photo ${depthPhotoIndex + 1} '
+                '(counting meal photos in order). ${depthMap.describeForPrompt()}';
       if (!mounted || _analysisCancelled) return;
 
       if (_analysisCancelled) return;
@@ -815,17 +982,34 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       final preparationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
       final runBaseMilliseconds = stopwatch.elapsedMilliseconds;
-      unawaited(scanLog.event(requestId, AiMealScanLogStage.preparationFinished,
+      unawaited(
+        scanLog.event(
+          requestId,
+          AiMealScanLogStage.preparationFinished,
           elapsedMilliseconds: runBaseMilliseconds,
-          durationMilliseconds: runBaseMilliseconds));
+          durationMilliseconds: runBaseMilliseconds,
+        ),
+      );
       final fastMode = await AiService.instance.isFastModeEnabled();
+      final nutritionMode = await AiService.instance.getMealNutritionMode();
+      final useDirectNutrition =
+          nutritionMode == AiMealNutritionMode.directEstimate;
       final cloudProvider = provider != 'ollama' && provider != 'custom';
-      final engine = AiMealValidationEngine();
+      final engine = AiMealValidationEngine(
+        matchLoader: useDirectNutrition
+            ? (item) async =>
+                  item.selectedFood == null ? const [] : [item.selectedFood!]
+            : null,
+      );
       final validationCompleter = Completer<AiValidationResult>();
       pendingValidation = validationCompleter;
       // The route may not have built yet when a fast validation fails.
-      unawaited(validationCompleter.future
-          .then<void>((_) {}, onError: (Object _, StackTrace __) {}));
+      unawaited(
+        validationCompleter.future.then<void>(
+          (_) {},
+          onError: (Object _, StackTrace __) {},
+        ),
+      );
       final progressiveValidation = ValueNotifier<AiValidationResult?>(null);
       final savedCompleter = Completer<bool?>();
       int revealStartedMilliseconds = 0;
@@ -853,7 +1037,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         controller.isFinished.value = true;
 
         final detectedType = _detectMealTypeFromText(text);
-        final resolvedMealType = widget.initialMealType ??
+        final resolvedMealType =
+            widget.initialMealType ??
             detectedType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
@@ -865,18 +1050,21 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     name: item.name,
                     estimatedGrams: item.grams,
                     servedGrams: item.servedGrams,
+                    isFluid: item.isFluid,
                     confidence: item.confidence ?? 1.0,
                     matchedBarcode: item.matchedBarcode,
                     stateHint: item.stateHint,
                     catalogSearchTerm: item.catalogSearchTerm,
                     packagedProductEvidence: item.packagedProductEvidence,
                     searchTerms: item.searchTerms,
+                    nutritionPer100g: item.nutritionPer100g,
                   ),
                 )
                 .toList(growable: false),
             initialValidation: validation,
-            validationFuture:
-                validation == null ? validationCompleter.future : null,
+            validationFuture: validation == null
+                ? validationCompleter.future
+                : null,
             progressiveValidation: progressiveValidation,
             mealContext: mealContext,
             originalImages: _images,
@@ -888,6 +1076,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             voiceTranscript: text.isNotEmpty ? text : null,
             scanRequestId: requestId,
             usageCollector: usageCollector,
+            directNutritionMode: useDirectNutrition,
           ),
         );
 
@@ -895,13 +1084,22 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _analysisRoute = null;
         revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
         final navFuture = Navigator.of(context).push<bool>(reviewRoute);
-        navFuture.then((v) {
-          if (!savedCompleter.isCompleted) savedCompleter.complete(v);
-        }).catchError((e, s) {
-          if (!savedCompleter.isCompleted) {
-            savedCompleter.completeError(e, s);
+        // Navigator.push resolves when pop starts, but the transparent reveal
+        // route still occupies the top of the stack during its reverse fade.
+        // Wait for the transition to finish before letting this capture route
+        // pop too; otherwise the two routes can overlap their removals and
+        // leave the Diary visually exposed but unable to receive input.
+        unawaited(() async {
+          try {
+            final result = await navFuture;
+            await reviewRoute.completed;
+            if (!savedCompleter.isCompleted) savedCompleter.complete(result);
+          } catch (error, stackTrace) {
+            if (!savedCompleter.isCompleted) {
+              savedCompleter.completeError(error, stackTrace);
+            }
           }
-        });
+        }());
         if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
           Navigator.of(context).removeRoute(oldAnalysisRoute);
         }
@@ -914,19 +1112,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           if (!reviewVisibleCompleter.isCompleted) {
             reviewVisibleCompleter.complete();
           }
-          unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewVisible,
-              elapsedMilliseconds: durationMilliseconds));
+          unawaited(
+            scanLog.event(
+              requestId,
+              AiMealScanLogStage.reviewVisible,
+              elapsedMilliseconds: durationMilliseconds,
+            ),
+          );
         });
       }
 
       final runResult = await AiMealScanRunner(validationEngine: engine).run(
         fastMode: fastMode && cloudProvider,
+        automaticRepair: !useDirectNutrition,
         isCancelled: () => _analysisCancelled || !mounted,
         onCandidateReady: (candidate) {
-          unawaited(navigateToReview(
-            items: candidate.items,
-            mealContext: candidate.context,
-          ));
+          unawaited(
+            navigateToReview(
+              items: candidate.items,
+              mealContext: candidate.context,
+            ),
+          );
         },
         onValidationReady: (validation, _) {
           if (!reviewNavigated || !mounted) return;
@@ -936,9 +1142,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           progressiveValidation.value = validation;
           if (preliminaryNutritionMilliseconds == null) {
             preliminaryNutritionMilliseconds = stopwatch.elapsedMilliseconds;
-            unawaited(scanLog.event(
-                requestId, AiMealScanLogStage.preliminaryNutritionReady,
-                elapsedMilliseconds: preliminaryNutritionMilliseconds!));
+            unawaited(
+              scanLog.event(
+                requestId,
+                AiMealScanLogStage.preliminaryNutritionReady,
+                elapsedMilliseconds: preliminaryNutritionMilliseconds!,
+              ),
+            );
           }
         },
         onValidating: () {
@@ -948,30 +1158,58 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             controller.value = MealAnalysisPhase.matching;
           }
         },
-        onProgress: (stage, elapsedMilliseconds,
-            {durationMilliseconds,
-            result,
-            round,
-            candidate,
-            validationScore,
-            issueCategories}) {
-          unawaited(scanLog.event(requestId, stage,
-              elapsedMilliseconds: runBaseMilliseconds + elapsedMilliseconds,
-              durationMilliseconds: durationMilliseconds,
-              result: result,
-              round: round,
-              candidate: candidate,
-              validationScore: validationScore,
-              issueCategories: issueCategories));
-        },
-        analyze: () => _images.isNotEmpty
+        onProgress:
+            (
+              stage,
+              elapsedMilliseconds, {
+              durationMilliseconds,
+              result,
+              round,
+              candidate,
+              validationScore,
+              issueCategories,
+            }) {
+              unawaited(
+                scanLog.event(
+                  requestId,
+                  stage,
+                  elapsedMilliseconds:
+                      runBaseMilliseconds + elapsedMilliseconds,
+                  durationMilliseconds: durationMilliseconds,
+                  result: result,
+                  round: round,
+                  candidate: candidate,
+                  validationScore: validationScore,
+                  issueCategories: issueCategories,
+                ),
+              );
+            },
+        analyze: () => useDirectNutrition
+            ? (_images.isNotEmpty
+                  ? AiService.instance.analyzeDirectNutritionImages(
+                      _images,
+                      textHint: text.isNotEmpty ? text : null,
+                      languageCode: matchingContext.appLanguage,
+                      depthFacts: depthFacts,
+                      depthPhotoIndex: depthPhotoIndex,
+                      depthMap: depthMap?.file,
+                      depthMapLegend: depthLegend,
+                      usageCollector: usageCollector,
+                    )
+                  : AiService.instance.analyzeDirectNutritionText(
+                      text,
+                      languageCode: matchingContext.appLanguage,
+                      usageCollector: usageCollector,
+                    ))
+            : _images.isNotEmpty
             ? AiService.instance.analyzeImages(
                 _images,
                 textHint: text.isNotEmpty ? text : null,
                 matchingContext: matchingContext,
                 depthFacts: depthFacts,
+                depthPhotoIndex: depthPhotoIndex,
                 depthMap: depthMap?.file,
-                depthMapLegend: depthMap?.describeForPrompt(),
+                depthMapLegend: depthLegend,
                 usageCollector: usageCollector,
               )
             : AiService.instance.analyzeText(
@@ -981,14 +1219,22 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               ),
         repairer: (candidate, validation, attempt) {
           controller.value = MealAnalysisPhase.repairing;
-          return AiService.instance.repairMealCaptureCandidate(
-            candidate: candidate,
-            validation: validation,
-            images: _images.isNotEmpty ? _images : null,
-            matchingContext: matchingContext,
-            mealContext: candidate.context,
-            usageCollector: usageCollector,
-          );
+          return useDirectNutrition
+              ? AiService.instance.retryDirectNutrition(
+                  previousItems: candidate.items,
+                  feedback: validation.toRepairFeedback(),
+                  images: _images.isNotEmpty ? _images : null,
+                  languageCode: matchingContext.appLanguage,
+                  usageCollector: usageCollector,
+                )
+              : AiService.instance.repairMealCaptureCandidate(
+                  candidate: candidate,
+                  validation: validation,
+                  images: _images.isNotEmpty ? _images : null,
+                  matchingContext: matchingContext,
+                  mealContext: candidate.context,
+                  usageCollector: usageCollector,
+                );
         },
       );
       final validationOutcome = runResult.outcome;
@@ -996,8 +1242,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         validationCompleter.complete(validationOutcome.validation);
       }
       final readyMilliseconds = stopwatch.elapsedMilliseconds;
-      unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewReady,
-          elapsedMilliseconds: readyMilliseconds));
+      unawaited(
+        scanLog.event(
+          requestId,
+          AiMealScanLogStage.reviewReady,
+          elapsedMilliseconds: readyMilliseconds,
+        ),
+      );
       if (!reviewNavigated) {
         await navigateToReview(
           items: validationOutcome.validation.candidate.items,
@@ -1012,7 +1263,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (_analysisCancelled) return;
 
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
-          validationOutcome.validation.candidate.items.length);
+        validationOutcome.validation.candidate.items.length,
+      );
 
       final durationSeconds = (readyMilliseconds / 1000).round();
       final durationMilliseconds = readyMilliseconds;
@@ -1021,8 +1273,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           : (reviewVisibleMilliseconds! / 1000).round();
       final preliminaryNutritionSeconds =
           preliminaryNutritionMilliseconds == null
-              ? null
-              : (preliminaryNutritionMilliseconds! / 1000).round();
+          ? null
+          : (preliminaryNutritionMilliseconds! / 1000).round();
       final revealSeconds = revealDurationMilliseconds == null
           ? null
           : (revealDurationMilliseconds! / 1000).round();
@@ -1032,16 +1284,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         final validationRuns = await runResult.validationRunsTotalCount;
         final providerSeconds = await runResult.providerSeconds;
         final validationSeconds = await runResult.validationSeconds;
-        await scanLog.finish(requestId,
-            result: validationOutcome.validation.passed
-                ? AiMealScanLogResult.accepted
-                : AiMealScanLogResult.needsRepair,
-            durationMilliseconds: durationMilliseconds,
-            selectedValidationRounds: validationOutcome.validationRunsCount,
-            totalValidationRuns: validationRuns,
-            repairRounds: validationOutcome.repairPassesUsed,
-            primaryFirstPassAccepted: firstPass,
-            hedgeStarted: runResult.hedgeStarted);
+        await scanLog.finish(
+          requestId,
+          result: validationOutcome.validation.passed
+              ? AiMealScanLogResult.accepted
+              : AiMealScanLogResult.needsRepair,
+          durationMilliseconds: durationMilliseconds,
+          selectedValidationRounds: validationOutcome.validationRunsCount,
+          totalValidationRuns: validationRuns,
+          repairRounds: validationOutcome.repairPassesUsed,
+          primaryFirstPassAccepted: firstPass,
+          hedgeStarted: runResult.hedgeStarted,
+        );
         await TelemetryService.instance.trackAiMealScanCompleted(
           requestId: requestId,
           provider: provider,
@@ -1083,29 +1337,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
-      unawaited(scanLog.finish(requestId,
+      unawaited(
+        scanLog.finish(
+          requestId,
           result: AiMealScanLogResult.failed,
-          durationMilliseconds: stopwatch.elapsedMilliseconds));
+          durationMilliseconds: stopwatch.elapsedMilliseconds,
+        ),
+      );
       completionScheduled = true;
       sendRequested();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-        reviewVisibleSeconds: reviewVisibleMilliseconds == null
-            ? null
-            : (reviewVisibleMilliseconds! / 1000).round(),
-        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
-            ? null
-            : (preliminaryNutritionMilliseconds! / 1000).round(),
-        success: false,
-        errorCode: 'key_missing',
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+      unawaited(
+        TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          reviewVisibleSeconds: reviewVisibleMilliseconds == null
+              ? null
+              : (reviewVisibleMilliseconds! / 1000).round(),
+          preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round(),
+          success: false,
+          errorCode: 'key_missing',
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
       _dismissAnalysisScreen();
       if (!mounted) return;
       if (!reviewNavigated) _showKeyMissingDialog();
@@ -1113,29 +1373,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
-      unawaited(scanLog.finish(requestId,
+      unawaited(
+        scanLog.finish(
+          requestId,
           result: AiMealScanLogResult.failed,
-          durationMilliseconds: stopwatch.elapsedMilliseconds));
+          durationMilliseconds: stopwatch.elapsedMilliseconds,
+        ),
+      );
       completionScheduled = true;
       sendRequested();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-        reviewVisibleSeconds: reviewVisibleMilliseconds == null
-            ? null
-            : (reviewVisibleMilliseconds! / 1000).round(),
-        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
-            ? null
-            : (preliminaryNutritionMilliseconds! / 1000).round(),
-        success: false,
-        errorCode: aiServiceErrorCode(e),
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+      unawaited(
+        TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          reviewVisibleSeconds: reviewVisibleMilliseconds == null
+              ? null
+              : (reviewVisibleMilliseconds! / 1000).round(),
+          preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round(),
+          success: false,
+          errorCode: aiServiceErrorCode(e),
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
       _dismissAnalysisScreen();
       if (!mounted) return;
       if (!reviewNavigated) {
@@ -1148,32 +1414,40 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         );
       }
     } catch (e, stackTrace) {
+      debugPrint('[AiMealCapture] Unexpected scan failure: $e');
+      debugPrintStack(stackTrace: stackTrace);
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
-      unawaited(scanLog.finish(requestId,
+      unawaited(
+        scanLog.finish(
+          requestId,
           result: AiMealScanLogResult.failed,
-          durationMilliseconds: stopwatch.elapsedMilliseconds));
+          durationMilliseconds: stopwatch.elapsedMilliseconds,
+        ),
+      );
       completionScheduled = true;
       sendRequested();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-        reviewVisibleSeconds: reviewVisibleMilliseconds == null
-            ? null
-            : (reviewVisibleMilliseconds! / 1000).round(),
-        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
-            ? null
-            : (preliminaryNutritionMilliseconds! / 1000).round(),
-        success: false,
-        errorCode: 'unexpected',
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+      unawaited(
+        TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          reviewVisibleSeconds: reviewVisibleMilliseconds == null
+              ? null
+              : (reviewVisibleMilliseconds! / 1000).round(),
+          preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round(),
+          success: false,
+          errorCode: 'unexpected',
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
       _dismissAnalysisScreen();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
@@ -1190,20 +1464,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       sendRequested();
       scheduleUsage();
       if (!completionScheduled) {
-        unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-          requestId: requestId,
-          provider: provider,
-          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-          success: false,
-          errorCode: 'cancelled',
-          inputMode: inputMode,
-        ));
+        unawaited(
+          TelemetryService.instance.trackAiMealScanCompleted(
+            requestId: requestId,
+            provider: provider,
+            durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+            success: false,
+            errorCode: 'cancelled',
+            inputMode: inputMode,
+          ),
+        );
       }
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
       if (mounted) {
-        setState(() => _isAnalyzing = false);
-        if (_isTopRoute && !_isDictating) {
+        setState(() {
+          _isAnalyzing = false;
+          if (!reviewNavigated && _textController.text.isNotEmpty) {
+            _showTextInput = true;
+          }
+        });
+        if (_isTopRoute && !_analysisCancelled) {
           unawaited(_resumeCamera());
         }
       }
@@ -1220,10 +1501,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       contentBuilder: (ctx, close) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            l10n.aiErrorNoKey,
-            textAlign: TextAlign.center,
-          ),
+          Text(l10n.aiErrorNoKey, textAlign: TextAlign.center),
           const SizedBox(height: DesignConstants.spacingM),
           Row(
             children: [
@@ -1241,7 +1519,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => const AiSettingsScreen()),
+                        builder: (_) => const AiSettingsScreen(),
+                      ),
                     );
                   },
                   label: l10n.aiSettingsTitle,
@@ -1253,7 +1532,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ],
       ),
     );
-    if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+    if (mounted && _isTopRoute && !_isAnalyzing) {
       unawaited(_resumeCamera());
     }
   }
@@ -1261,11 +1540,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = Theme.of(context).scaffoldBackgroundColor;
-    final primaryAccent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = theme.scaffoldBackgroundColor;
+    final primaryAccent = theme.colorScheme.primary;
 
     if (!_isOffDbInitialized) {
       return Scaffold(
@@ -1287,16 +1565,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       appBar: GlobalAppBar(
         title: l10n.aiScannerTitle,
         actions: [
-          if (_cameraPermission.isGranted)
-            IconButton(
-              icon: Icon(
-                _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
-                size: 20,
-                color: _isFlashOn ? primaryAccent : null,
-              ),
-              tooltip: l10n.scannerToggleFlash,
-              onPressed: _toggleFlash,
-            ),
           IconButton(
             icon: const Icon(LucideIcons.info, size: 20),
             tooltip: l10n.aiCaptureTourReplayTooltip,
@@ -1307,8 +1575,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               child: Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.18)
@@ -1339,343 +1609,341 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         children: [
           SafeArea(
             top: false,
+            left: false,
+            right: false,
             child: Column(
               children: [
-                // 1. Live Camera Viewfinder (full width, maximum screen height with rounded corners)
+                // 1. The camera preview runs to the side edges; controls keep
+                // their own inset from the display.
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          if (!_cameraPermission.isGranted)
-                            _buildCameraFallback()
-                          else if (_useNativeSession)
-                            const UiKitView(
-                              viewType: DepthScanChannel.previewViewType,
-                              creationParamsCodec: StandardMessageCodec(),
-                            )
-                          else
-                            QRView(
-                              key: qrKey,
-                              onQRViewCreated: _onQRViewCreated,
-                              overlay: null,
-                            ),
-
-                          // Distance guidance overlay if needed
-                          if (_distanceHint != null)
-                            Positioned(
-                              top: 16,
-                              left: 0,
-                              right: 0,
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.65),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                        color: Colors.white24, width: 1),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: _scannerPreviewTopInset,
+                            bottom: _scannerPreviewBottomInset,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(48),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (!_cameraPermission.isGranted)
+                                  const AiCameraFallbackView()
+                                else if (_isIosSimulator && !_useNativeSession)
+                                  const AiSimulatorCameraDemo()
+                                else if (_useNativeSession)
+                                  const UiKitView(
+                                    viewType: DepthScanChannel.previewViewType,
+                                    creationParamsCodec: StandardMessageCodec(),
+                                  )
+                                else
+                                  QRView(
+                                    key: qrKey,
+                                    onQRViewCreated: _onQRViewCreated,
+                                    overlay: null,
                                   ),
-                                  child: Text(
-                                    _distanceHint!,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                      color: Colors.white,
+
+                                // Distance guidance overlay if needed
+                                if (_distanceHint != null)
+                                  Positioned(
+                                    top: 16,
+                                    left: 0,
+                                    right: 0,
+                                    child: Center(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.65,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white24,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _distanceHint!,
+                                          style: const TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
+                              ],
                             ),
-                        ],
+                          ),
+                        ),
                       ),
-                    ),
+                      if (!_isDictating) _buildScannerCameraActions(l10n),
+                    ],
                   ),
                 ),
 
                 // 2. Bottom Controls Area (compact, pinned to bottom)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Captured Photos Strip
-                      if (_images.isNotEmpty)
-                        Container(
-                          height: 48,
-                          margin: const EdgeInsets.only(bottom: 4),
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _images.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 8),
-                            itemBuilder: (context, idx) {
-                              return Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.file(
-                                      _images[idx],
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                    ),
+                  padding: const EdgeInsets.only(top: 2, bottom: 6),
+                  child: AnimatedSize(
+                    alignment: Alignment.bottomCenter,
+                    duration: const Duration(milliseconds: 360),
+                    curve: Curves.easeInOutCubic,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _scannerControlSideInset,
+                          ),
+                          child: _buildScannerBottomActions(l10n),
+                        ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Captured Photos Strip
+                              if (_images.isNotEmpty)
+                                Container(
+                                  height: 88,
+                                  margin: const EdgeInsets.only(bottom: 4),
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _images.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(width: 8),
+                                    itemBuilder: (context, idx) {
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 4,
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              child: SizedBox.square(
+                                                dimension: 80,
+                                                child: Image.file(
+                                                  _images[idx],
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 0,
+                                            right: -4,
+                                            child: Semantics(
+                                              button: true,
+                                              label: l10n.aiChatRemoveImage,
+                                              child: HeaderGlassButton(
+                                                key: ValueKey(
+                                                  'remove-meal-image-$idx',
+                                                ),
+                                                icon: LucideIcons.x,
+                                                iconSize: 12,
+                                                dimension: 26,
+                                                tooltip: l10n.aiChatRemoveImage,
+                                                isDarkSurface: true,
+                                                foregroundColor: Colors.white,
+                                                platformViewBackdrop: true,
+                                                onPressed: () =>
+                                                    _removeImage(idx),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
-                                  Positioned(
-                                    top: 2,
-                                    right: 2,
-                                    child: GestureDetector(
-                                      onTap: () => _removeImage(idx),
-                                      child: Container(
-                                        width: 18,
-                                        height: 18,
-                                        alignment: Alignment.center,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xCC000000),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(LucideIcons.x,
-                                            size: 11, color: Colors.white),
+                                ),
+
+                              // Expandable Text Input Row
+                              if (_showTextInput)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: DesignConstants.spacingS,
+                                  ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF1E1E1E)
+                                          : const Color(0xFFE8E8E0),
+                                      borderRadius: BorderRadius.circular(
+                                        DesignConstants.borderRadiusL,
+                                      ),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? Colors.white12
+                                            : Colors.black12,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-
-                      // Expandable Text Input Row
-                      if (_showTextInput)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              bottom: DesignConstants.spacingS),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E1E1E)
-                                  : const Color(0xFFE8E8E0),
-                              borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusL),
-                              border: Border.all(
-                                  color:
-                                      isDark ? Colors.white12 : Colors.black12),
-                            ),
-                            padding: const EdgeInsets.only(
-                                left: DesignConstants.spacingL),
-                            child: TextField(
-                              controller: _textController,
-                              onChanged: (_) => _textCameFromVoice = false,
-                              autofocus: true,
-                              minLines: 1,
-                              maxLines: 4,
-                              keyboardType: TextInputType.multiline,
-                              textInputAction: TextInputAction.newline,
-                              textCapitalization: TextCapitalization.sentences,
-                              style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF12120F)),
-                              decoration: InputDecoration(
-                                hintText: l10n.aiCaptureDescribeHint,
-                                hintStyle: TextStyle(
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.black45),
-                                filled: false,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: DesignConstants.spacingM),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                suffixIconConstraints: const BoxConstraints(
-                                    minWidth: 44, minHeight: 44),
-                                suffixIcon: Align(
-                                  alignment: Alignment.topCenter,
-                                  widthFactor: 1,
-                                  heightFactor: 1,
-                                  child: IconButton(
-                                    tooltip: l10n.doneButtonLabel,
-                                    icon: Icon(LucideIcons.check,
+                                    padding: const EdgeInsets.only(
+                                      left: DesignConstants.spacingL,
+                                    ),
+                                    child: TextField(
+                                      controller: _textController,
+                                      focusNode: _textFocusNode,
+                                      onChanged: (_) {
+                                        _textCameFromVoice = false;
+                                        setState(() {});
+                                      },
+                                      minLines: 1,
+                                      maxLines: 4,
+                                      keyboardType: TextInputType.multiline,
+                                      textInputAction: TextInputAction.newline,
+                                      textCapitalization:
+                                          TextCapitalization.sentences,
+                                      style: TextStyle(
                                         color: isDark
                                             ? Colors.white
-                                                .withValues(alpha: 0.8)
-                                            : Colors.black87,
-                                        size: 18),
-                                    onPressed: () =>
-                                        setState(() => _showTextInput = false),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      // Passive Barcode Detection Banner (if detected or during tour step 1)
-                      if (_isTourActive && _tourStep == 1)
-                        _buildDemoBarcodeBanner(l10n, primaryAccent)
-                      else if (_barcodeDetectionEnabled &&
-                          _detectedBarcode != null)
-                        _buildBarcodeBanner(l10n, primaryAccent),
-
-                      // Shutter & Primary Action Bar
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // Gallery Button
-                                _buildFrostedButton(
-                                  key: _keyGallery,
-                                  icon: LucideIcons.image,
-                                  onTap: _pickFromGallery,
-                                  tooltip: l10n.aiCaptureTourStepGalleryTitle,
-                                ),
-
-                                // Barcode detection toggle
-                                _buildFrostedButton(
-                                  key: _keyBarcode,
-                                  icon: LucideIcons.scan_barcode,
-                                  isActive: _barcodeDetectionEnabled,
-                                  tooltip: l10n.aiCaptureTourStepBarcodeTitle,
-                                  onTap: () {
-                                    setState(() {
-                                      _barcodeDetectionEnabled =
-                                          !_barcodeDetectionEnabled;
-                                      if (!_barcodeDetectionEnabled) {
-                                        _detectedBarcode = null;
-                                        _detectedProduct = null;
-                                      }
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Shutter Button (68px diameter)
-                          GestureDetector(
-                            key: _keyShutter,
-                            onTap: _takeShutterPhoto,
-                            child: Container(
-                              width: 68,
-                              height: 68,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.9)
-                                      : const Color(0xFF12120F)
-                                          .withValues(alpha: 0.8),
-                                  width: 3.5,
-                                ),
-                              ),
-                              padding: const EdgeInsets.all(4),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF12120F),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // Voice Dictation Button (Microphone)
-                                _buildFrostedButton(
-                                  key: _keyVoice,
-                                  icon: LucideIcons.mic,
-                                  isActive: _isDictating,
-                                  onTap: _openVoiceDictationModal,
-                                  tooltip: l10n.aiCaptureTourStepVoiceTitle,
-                                ),
-
-                                // Text Note Toggle Button
-                                _buildFrostedButton(
-                                  key: _keyText,
-                                  icon: LucideIcons.pencil,
-                                  isActive: _showTextInput ||
-                                      _textController.text.isNotEmpty,
-                                  tooltip: l10n.aiCaptureTabText,
-                                  onTap: () {
-                                    setState(() {
-                                      _showTextInput = !_showTextInput;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // "Analysieren" Button (Appears when input is ready or during tour step 5)
-                      if (_hasInput || (_isTourActive && _tourStep == 5)) ...[
-                        const SizedBox(height: 8),
-                        Opacity(
-                          opacity: _isAnalyzing ? 0.0 : 1.0,
-                          child: IgnorePointer(
-                            ignoring: _isAnalyzing,
-                            child: SizedBox(
-                              key: _keyAnalyze,
-                              width: double.infinity,
-                              height: 46,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryAccent,
-                                  foregroundColor: isDark
-                                      ? const Color(0xFF12120F)
-                                      : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                onPressed: _isAnalyzing ? null : _analyze,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(LucideIcons.sparkles,
-                                        size: 18,
-                                        color: isDark
-                                            ? const Color(0xFF12120F)
-                                            : Colors.white),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _images.isNotEmpty
-                                          ? l10n.aiCaptureAnalyzeMeal(
-                                              _images.length)
-                                          : l10n.aiCaptureAnalyzeText,
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 15,
-                                        color: isDark
-                                            ? const Color(0xFF12120F)
-                                            : Colors.white,
+                                            : const Color(0xFF12120F),
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: l10n.aiCaptureDescribeHint,
+                                        hintStyle: TextStyle(
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.black45,
+                                        ),
+                                        filled: false,
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical:
+                                                  DesignConstants.spacingM,
+                                            ),
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        suffixIconConstraints:
+                                            const BoxConstraints(
+                                              minWidth: 44,
+                                              minHeight: 44,
+                                            ),
+                                        suffixIcon: Align(
+                                          alignment: Alignment.topCenter,
+                                          widthFactor: 1,
+                                          heightFactor: 1,
+                                          child: IconButton(
+                                            tooltip: l10n.doneButtonLabel,
+                                            icon: Icon(
+                                              LucideIcons.check,
+                                              color: isDark
+                                                  ? Colors.white.withValues(
+                                                      alpha: 0.8,
+                                                    )
+                                                  : Colors.black87,
+                                              size: 18,
+                                            ),
+                                            onPressed: () {
+                                              _textFocusNode.unfocus();
+                                              FocusScope.of(context).unfocus();
+                                              unawaited(
+                                                SystemChannels.textInput
+                                                    .invokeMethod<void>(
+                                                      'TextInput.hide',
+                                                    ),
+                                              );
+                                              setState(
+                                                () => _showTextInput = false,
+                                              );
+                                            },
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
+
+                              // Passive Barcode Detection Banner (if detected or during tour step 1)
+                              if (_isTourActive && _tourStep == 1)
+                                _buildDemoBarcodeBanner(l10n, primaryAccent)
+                              else if (_barcodeDetectionEnabled &&
+                                  _detectedBarcode != null)
+                                _buildBarcodeBanner(l10n, primaryAccent),
+
+                              // "Analysieren" Button (Appears when input is ready or during tour step 5)
+                              if (_hasInput ||
+                                  (_isTourActive && _tourStep == 5)) ...[
+                                const SizedBox(height: 8),
+                                Opacity(
+                                  opacity: _isAnalyzing ? 0.0 : 1.0,
+                                  child: IgnorePointer(
+                                    ignoring: _isAnalyzing,
+                                    child: SizedBox(
+                                      key: _keyAnalyze,
+                                      width: double.infinity,
+                                      height: 46,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: primaryAccent,
+                                          foregroundColor: isDark
+                                              ? const Color(0xFF12120F)
+                                              : Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        onPressed: _isAnalyzing
+                                            ? null
+                                            : _analyze,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              LucideIcons.sparkles,
+                                              size: 18,
+                                              color: isDark
+                                                  ? const Color(0xFF12120F)
+                                                  : Colors.white,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              _images.isNotEmpty
+                                                  ? l10n.aiCaptureAnalyzeMeal(
+                                                      _images.length,
+                                                    )
+                                                  : l10n.aiCaptureAnalyzeText,
+                                              style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 15,
+                                                color: isDark
+                                                    ? const Color(0xFF12120F)
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -1769,8 +2037,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final overlayBox =
         _overlayKey.currentContext?.findRenderObject() as RenderBox?;
     if (overlayBox == null || !overlayBox.hasSize) return null;
-    final localTopLeft =
-        overlayBox.globalToLocal(renderBox.localToGlobal(Offset.zero));
+    final localTopLeft = overlayBox.globalToLocal(
+      renderBox.localToGlobal(Offset.zero),
+    );
     return localTopLeft & renderBox.size;
   }
 
@@ -1841,300 +2110,423 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildDemoBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
-      child: Material(
-        key: _keyBarcodeBanner,
-        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEFEFE8),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: primaryAccent.withValues(alpha: 0.9),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: primaryAccent.withValues(alpha: 0.25),
-                blurRadius: 10,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(LucideIcons.scan_barcode, color: primaryAccent, size: 26),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.aiCaptureTourBarcodeDemoHint,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                        letterSpacing: 0.4,
-                        color: primaryAccent,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.aiCaptureTourBarcodeDemoProduct,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: isDark ? Colors.white : const Color(0xFF12120F),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: primaryAccent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  l10n.aiCaptureLogBarcode,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: isDark ? const Color(0xFF12120F) : Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCameraFallback() {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      color: const Color(0xFF121212),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(LucideIcons.camera_off, size: 48, color: Colors.white54),
-            const SizedBox(height: 16),
-            const Text(
-              'Kamerazugriff erforderlich',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                'Bitte erlaube den Kamerazugriff in den Einstellungen, um Mahlzeiten direkt live zu erfassen.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: DesignConstants.brandAccentColor,
-                foregroundColor: const Color(0xFF12120F),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-              ),
-              onPressed: openAppSettings,
-              child: Text(l10n.aiCaptureOpenSettings,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-      ),
+    return AiDemoBarcodeBanner(
+      bannerKey: _keyBarcodeBanner,
+      primaryAccent: primaryAccent,
     );
   }
 
   Widget _buildBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final label = _detectedProduct?.name ??
-        l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
+    return AiBarcodeBanner(
+      detectedBarcode: _detectedBarcode,
+      detectedProduct: _detectedProduct,
+      isLoggingBarcode: _isLoggingBarcode,
+      onLogBarcode: _logDetectedBarcode,
+      primaryAccent: primaryAccent,
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
-      child: Material(
-        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEFEFE8),
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: _isLoggingBarcode ? null : _logDetectedBarcode,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: primaryAccent.withValues(alpha: 0.8), width: 2),
-            ),
-            child: Row(
-              children: [
-                Icon(LucideIcons.scan_barcode, color: primaryAccent, size: 26),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        l10n.aiCaptureBarcodeDetected,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          letterSpacing: 0.4,
-                          color: primaryAccent,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                          color:
-                              isDark ? Colors.white : const Color(0xFF12120F),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+  Widget _buildScannerBottomActions(AppLocalizations l10n) {
+    return Row(
+      children: [
+        Opacity(
+          opacity: _isDictating ? 0.42 : 1,
+          child: _buildFrostedButton(
+            key: _keyGallery,
+            icon: LucideIcons.image,
+            onTap: _isDictating ? null : _pickFromGallery,
+            tooltip: l10n.aiCaptureTourStepGalleryTitle,
+          ),
+        ),
+        Expanded(child: Center(child: _buildMealVoiceControl(l10n))),
+        Opacity(
+          opacity: _isDictating ? 0.42 : 1,
+          child: _buildFrostedButton(
+            key: _keyText,
+            icon: LucideIcons.pencil,
+            isActive: _showTextInput || _textController.text.isNotEmpty,
+            onTap: _isDictating ? null : _toggleTextInput,
+            tooltip: l10n.aiCaptureTabText,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMealVoiceControl(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final transcriptWidth = math
+        .max(
+          44.0,
+          MediaQuery.sizeOf(context).width - 2 * _scannerControlSideInset,
+        )
+        .toDouble();
+    final transcriptSideOffset = (transcriptWidth - 44) / 2;
+    final accent = theme.colorScheme.primary;
+
+    return Listener(
+      key: _keyVoice,
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: _handleVoicePointerDown,
+      onPointerMove: _handleVoicePointerMove,
+      onPointerUp: _handleVoicePointerUp,
+      onPointerCancel: _handleVoicePointerCancel,
+      child: Semantics(
+        button: true,
+        label: l10n.aiCaptureTourStepVoiceTitle,
+        hint: l10n.voiceHoldToTalk,
+        onTap: () => unawaited(
+          _isDictating ? _finishMealVoiceInput() : _startMealVoiceInput(),
+        ),
+        child: SizedBox.square(
+          dimension: 44,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              AnimatedOpacity(
+                opacity: _isDictating ? 0 : 1,
+                duration: const Duration(milliseconds: 220),
+                child: _buildFrostedButton(
+                  icon: LucideIcons.mic,
+                  isActive: _isDictating,
+                  onTap: null,
+                  tooltip: l10n.aiCaptureTourStepVoiceTitle,
+                ),
+              ),
+              IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: _isDictating ? 1 : 0,
+                  duration: const Duration(milliseconds: 260),
+                  child: SizedBox.square(
+                    dimension: 72,
+                    child: AiNeuralCloudOrbWidget(
+                      size: 72,
+                      morph: _isDictating ? 1 : 0,
+                      energy: _voiceLevel,
+                      accentColor: const Color(0xFFFF453A),
+                      showDetachedSatellite: false,
+                      tint: 0.24,
+                      tintEnergyGain: 0.2,
+                      flowSpeed: 0.55,
+                      animate: true,
+                      enableInteraction: false,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: primaryAccent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: _isLoggingBarcode
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+              ),
+              if (_isDictating)
+                Positioned(
+                  left: -transcriptSideOffset,
+                  width: transcriptWidth,
+                  bottom: 56,
+                  child: IgnorePointer(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.62),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: Colors.white30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.18),
+                                blurRadius: 18,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
                           ),
-                        )
-                      : Text(
-                          l10n.aiCaptureLogBarcode,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minHeight: 72,
+                                maxHeight: 112,
+                              ),
+                              child: SingleChildScrollView(
+                                child: AnimatedTranscriptText(
+                                  text: _voiceTranscript,
+                                  animateWords: false,
+                                  placeholder: _isVoiceStarting
+                                      ? l10n.voiceStarting
+                                      : (_images.isEmpty
+                                            ? l10n.voiceExampleStandalone
+                                            : l10n.voiceExampleWithPhoto),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'Inter',
+                                    fontSize: 18,
+                                    height: 1.35,
+                                  ),
+                                  placeholderStyle: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.72),
+                                    fontFamily: 'Inter',
+                                    fontSize: 16,
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              if (_isVoiceStopping)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.22),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildScannerCameraActions(AppLocalizations l10n) {
+    return Positioned.fill(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: _scannerControlSideInset,
+            right: _scannerControlSideInset,
+            bottom: 26,
+            child: Row(
+              children: [
+                HeaderGlassButton(
+                  key: _keyBarcode,
+                  icon: LucideIcons.scan_barcode,
+                  onPressed: () {
+                    setState(() {
+                      _barcodeDetectionEnabled = !_barcodeDetectionEnabled;
+                      if (!_barcodeDetectionEnabled) {
+                        _detectedBarcode = null;
+                        _detectedProduct = null;
+                      }
+                    });
+                  },
+                  tooltip: l10n.aiCaptureTourStepBarcodeTitle,
+                  isDarkSurface: true,
+                  platformViewBackdrop: true,
+                  foregroundColor: _barcodeDetectionEnabled
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Colors.white,
+                  backgroundColor: _barcodeDetectionEnabled
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                Expanded(
+                  child: Center(
+                    child: Semantics(
+                      button: true,
+                      label: l10n.aiCaptureTourStepShutterTitle,
+                      child: GestureDetector(
+                        key: _keyShutter,
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _takeShutterPhoto,
+                        child: SizedBox.square(
+                          dimension: 76,
+                          child: GlassAdaptiveScope(
+                            maxQuality: DesignConstants.defaultGlassQuality,
+                            minQuality: DesignConstants.minGlassQuality,
+                            child: AdaptiveGlass(
+                              settings: DesignConstants.liquidGlassSettings(
+                                true,
+                              ),
+                              quality: DesignConstants.defaultGlassQuality,
+                              platformViewBackdrop: true,
+                              useOwnLayer: true,
+                              allowElevation: false,
+                              shape: const LiquidRoundedSuperellipse(
+                                borderRadius: 40,
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 58,
+                                  height: 58,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.22,
+                                        ),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                HeaderGlassButton(
+                  icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
+                  tooltip: l10n.aiChatFlash,
+                  isDarkSurface: true,
+                  platformViewBackdrop: true,
+                  backgroundColor: _isFlashOn
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                  foregroundColor: _isFlashOn
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Colors.white,
+                  onPressed:
+                      _cameraPermission.isGranted &&
+                          !_isCameraSuspended &&
+                          !_isAnalyzing
+                      ? () => unawaited(_toggleFlash())
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleTextInput() {
+    final willShow = !_showTextInput;
+    setState(() => _showTextInput = willShow);
+    if (willShow) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_showTextInput) return;
+        _textFocusNode.requestFocus();
+        unawaited(
+          SystemChannels.textInput.invokeMethod<void>('TextInput.show'),
+        );
+      });
+      return;
+    }
+    _textFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
   }
 
   Widget _buildFrostedButton({
     Key? key,
     required IconData icon,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     bool isActive = false,
     String? tooltip,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryAccent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
-    return GestureDetector(
+    final theme = Theme.of(context);
+    final isDarkSurface = theme.brightness == Brightness.dark;
+    return HeaderGlassButton(
       key: key,
-      onTap: onTap,
-      child: Tooltip(
-        message: tooltip ?? '',
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? primaryAccent.withValues(alpha: isDark ? 0.3 : 0.15)
-                  : (isDark
-                      ? Colors.white.withValues(alpha: 0.14)
-                      : Colors.black.withValues(alpha: 0.08)),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isActive
-                    ? primaryAccent
-                    : (isDark ? Colors.white24 : Colors.black12),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              icon,
-              semanticLabel: tooltip,
-              color: isActive
-                  ? primaryAccent
-                  : (isDark ? Colors.white : const Color(0xFF12120F)),
-              size: 20,
-            ),
-          ),
-        ),
-      ),
+      icon: icon,
+      tooltip: tooltip ?? '',
+      isDarkSurface: isDarkSurface,
+      foregroundColor: isActive
+          ? theme.colorScheme.onPrimary
+          : isDarkSurface
+          ? Colors.white
+          : theme.colorScheme.onSurface,
+      backgroundColor: isActive ? theme.colorScheme.primary : null,
+      platformViewBackdrop: true,
+      dimension: 44,
+      onPressed: onTap,
     );
   }
 
-  /// Opens the dictation sheet and folds the result back into the note field.
-  ///
-  /// The transcript is always shown for editing before it is used: dictation
-  /// mishears numbers, and "150 g" turning into "115 g" would silently produce
-  /// a wrong meal.
-  Future<void> _openVoiceDictationModal() async {
-    // The camera stands down for the duration. An `AVAudioEngine` starting up
-    // against a live capture session is the one configuration where the
-    // recogniser reliably fell over, and the viewfinder is behind a full-height
-    // sheet anyway.
-    await _suspendCamera();
+  void _handleVoicePointerDown(PointerDownEvent event) {
+    if (_voiceHoldPointer != null || _isDictating) return;
+    _voiceHoldPointer = event.pointer;
+    _voiceHoldOrigin = event.position;
+    _voiceHoldActivated = false;
+    _voiceReleasedBeforeStart = false;
+    _voiceHoldTimer?.cancel();
+    _voiceHoldTimer = Timer(const Duration(milliseconds: 360), () {
+      if (!mounted || _voiceHoldPointer != event.pointer) return;
+      _voiceHoldActivated = true;
+      unawaited(_startMealVoiceInput());
+    });
+  }
 
-    // Explained before the system prompt appears, the same way every other
-    // permission in the app is. Apple rejects builds that fire the microphone
-    // and speech-recognition prompts with no context, and the user deserves to
-    // know what is being asked for before deciding.
-    if (!await VoiceDictationService.instance.hasPermissions()) {
-      if (!mounted) {
-        await _resumeCamera();
-        return;
-      }
+  void _handleVoicePointerMove(PointerMoveEvent event) {
+    if (event.pointer != _voiceHoldPointer || _voiceHoldActivated) return;
+    final origin = _voiceHoldOrigin;
+    if (origin != null && (event.position - origin).distance > kTouchSlop) {
+      _voiceHoldTimer?.cancel();
+      _voiceHoldPointer = null;
+      _voiceHoldOrigin = null;
+    }
+  }
+
+  void _handleVoicePointerUp(PointerUpEvent event) {
+    if (event.pointer != _voiceHoldPointer) return;
+    _voiceHoldTimer?.cancel();
+    _voiceHoldPointer = null;
+    _voiceHoldOrigin = null;
+    if (!_voiceHoldActivated) return;
+    if (_voicePermissionFlow || _isVoiceStarting || !_isDictating) {
+      _voiceReleasedBeforeStart = true;
+      return;
+    }
+    if (_isDictating) {
+      unawaited(_finishMealVoiceInput());
+    }
+  }
+
+  void _handleVoicePointerCancel(PointerCancelEvent event) {
+    if (event.pointer != _voiceHoldPointer) return;
+    _voiceHoldTimer?.cancel();
+    _voiceHoldPointer = null;
+    _voiceHoldOrigin = null;
+    if (!_voiceHoldActivated) return;
+    if (_voicePermissionFlow || _isVoiceStarting || !_isDictating) {
+      _voiceReleasedBeforeStart = true;
+    } else {
+      unawaited(_finishMealVoiceInput(cancel: true));
+    }
+  }
+
+  void _resetVoiceHoldState() {
+    _voiceHoldTimer?.cancel();
+    _voiceHoldTimer = null;
+    _voiceHoldPointer = null;
+    _voiceHoldOrigin = null;
+    _voiceHoldActivated = false;
+    _voiceReleasedBeforeStart = false;
+    _voicePermissionFlow = false;
+  }
+
+  Future<void> _startMealVoiceInput() async {
+    if (_isDictating || _isVoiceStarting || !mounted) return;
+
+    if (Platform.isIOS && !_isIosSimulator) {
+      await _detectIosSimulator();
+      if (!mounted) return;
+    }
+
+    _voiceTextWasVisible = _showTextInput;
+    _textFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+
+    final simulatorDemo = _isIosSimulator;
+    if (!simulatorDemo &&
+        !await VoiceDictationService.instance.hasPermissions()) {
+      if (!mounted) return;
+      _voicePermissionFlow = true;
       final l10n = AppLocalizations.of(context)!;
       final proceed = await showPrePermissionDialog(
         context: context,
@@ -2143,70 +2535,183 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         continueLabel: l10n.voicePermissionContinue,
         cancelLabel: l10n.cancel,
       );
-      if (!proceed) {
-        await _resumeCamera();
+      _voicePermissionFlow = false;
+      if (!mounted || !proceed) {
+        _resetVoiceHoldState();
         return;
       }
     }
-    if (!mounted) {
-      await _resumeCamera();
-      return;
-    }
 
-    final availability = await VoiceDictationService.instance.prepare();
-    if (!mounted) {
-      await _resumeCamera();
-      return;
-    }
-
-    if (!availability.available) {
-      await _resumeCamera();
+    if (!simulatorDemo) {
+      final availability = await VoiceDictationService.instance.prepare();
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      final message = switch (availability.reason) {
-        VoiceUnavailableReason.permissionDenied =>
-          l10n.voiceUnavailablePermission,
-        VoiceUnavailableReason.unsupported => l10n.voiceUnavailableUnsupported,
-        _ => l10n.voiceUnavailableFailed,
-      };
-      _showDictationFallback(message);
-      return;
-    }
-
-    final l10n = AppLocalizations.of(context)!;
-    setState(() => _isDictating = true);
-    final result = await showVoiceDictationSheet(
-      context: context,
-      initialText: _textController.text,
-      exampleHint: _images.isEmpty
-          ? l10n.voiceExampleStandalone
-          : l10n.voiceExampleWithPhoto,
-      // Same wording as the button on this screen, so the sheet's primary
-      // action reads as the same step rather than a different one.
-      analyzeLabel: _images.isNotEmpty
-          ? l10n.aiCaptureAnalyzeMeal(_images.length)
-          : l10n.aiCaptureAnalyzeText,
-    );
-
-    if (!mounted) {
-      await _resumeCamera();
-      return;
-    }
-
-    setState(() {
-      _isDictating = false;
-      if (result != null) {
-        _textController.text = result.text.trim();
-        _textCameFromVoice = _textController.text.isNotEmpty;
-        _showTextInput = _textController.text.isNotEmpty;
+      if (!availability.available) {
+        final l10n = AppLocalizations.of(context)!;
+        final message = switch (availability.reason) {
+          VoiceUnavailableReason.permissionDenied =>
+            l10n.voiceUnavailablePermission,
+          VoiceUnavailableReason.unsupported =>
+            l10n.voiceUnavailableUnsupported,
+          _ => l10n.voiceUnavailableFailed,
+        };
+        _resetVoiceHoldState();
+        _showDictationFallback(message);
+        return;
       }
+    }
+
+    _voiceBaseText = _textController.text.trim();
+    _voiceRecordingStopwatch
+      ..reset()
+      ..start();
+    setState(() {
+      _isDictating = true;
+      _isVoiceDemo = simulatorDemo;
+      _isVoiceStarting = !simulatorDemo;
+      _isVoiceStopping = false;
+      _voiceTranscript = '';
+      _voiceLevel = 0;
+      _showTextInput = false;
     });
 
-    if (result != null && result.analyzeNow && _hasInput) {
-      await _analyze();
-    } else {
-      await _resumeCamera();
+    if (simulatorDemo) {
+      _startSimulatorVoiceDemo();
+      return;
     }
+
+    final localeId = await VoiceDictationSettings.instance.localeId();
+    if (!mounted || !_isDictating) return;
+    final started = await VoiceDictationService.instance.start(
+      localeId: localeId,
+      onPartial: (text) {
+        if (!mounted || !_isDictating) return;
+        setState(() => _voiceTranscript = text);
+      },
+      onFinal: (text) {
+        if (!mounted || !_isDictating) return;
+        setState(() => _voiceTranscript = text);
+      },
+      onSoundLevel: (level) {
+        if (!mounted || !_isDictating) return;
+        setState(() => _voiceLevel = level);
+      },
+      onStopped: () {
+        if (mounted && _isDictating && !_isVoiceStopping) {
+          unawaited(_finishMealVoiceInput());
+        }
+      },
+    );
+
+    if (!mounted || !_isDictating) return;
+    if (!started) {
+      _voiceRecordingStopwatch.stop();
+      setState(() {
+        _isDictating = false;
+        _isVoiceStarting = false;
+        _voiceLevel = 0;
+      });
+      _resetVoiceHoldState();
+      _showDictationFallback(
+        AppLocalizations.of(context)!.voiceUnavailableFailed,
+      );
+      return;
+    }
+
+    setState(() => _isVoiceStarting = false);
+    if (_voiceReleasedBeforeStart) {
+      unawaited(_finishMealVoiceInput());
+    } else if (!VoiceDictationService.instance.isListening) {
+      unawaited(_finishMealVoiceInput());
+    }
+  }
+
+  void _startSimulatorVoiceDemo() {
+    const sample = 'Hähnchen-Dürüm mit Salat und Joghurtsauce.';
+    var elapsedMs = 0;
+    _voiceDemoTimer?.cancel();
+    _voiceDemoTimer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
+      if (!mounted || !_isDictating || !_isVoiceDemo) {
+        timer.cancel();
+        return;
+      }
+      elapsedMs += 80;
+      final characterCount = ((elapsedMs - 300) / 42).floor().clamp(
+        0,
+        sample.length,
+      );
+      final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
+      final variation = (math.sin(elapsedMs / 73) + 1) / 2;
+      setState(() {
+        _voiceTranscript = sample.substring(0, characterCount);
+        _voiceLevel = 0.12 + pulse * 0.58 + variation * 0.22;
+        _isVoiceStarting = false;
+      });
+    });
+  }
+
+  Future<void> _finishMealVoiceInput({bool cancel = false}) async {
+    if (!_isDictating || _isVoiceStopping) return;
+    setState(() => _isVoiceStopping = true);
+    _voiceRecordingStopwatch.stop();
+    _voiceDemoTimer?.cancel();
+    final durationBucket = TelemetryBuckets.getVoiceDurationBucket(
+      _voiceRecordingStopwatch.elapsed,
+    );
+
+    if (cancel) {
+      if (!_isVoiceDemo) await VoiceDictationService.instance.cancel();
+      if (!mounted) return;
+      setState(() {
+        _isDictating = false;
+        _isVoiceDemo = false;
+        _isVoiceStarting = false;
+        _isVoiceStopping = false;
+        _voiceLevel = 0;
+        _voiceTranscript = '';
+        _showTextInput = _voiceTextWasVisible;
+      });
+      _resetVoiceHoldState();
+      return;
+    }
+
+    if (!_isVoiceDemo) await VoiceDictationService.instance.stop();
+    await Future<void>.delayed(
+      Duration(milliseconds: _isVoiceDemo ? 180 : 350),
+    );
+    if (!mounted) return;
+
+    final spokenText = _voiceTranscript.trim();
+    final combinedText = [
+      if (_voiceBaseText.isNotEmpty) _voiceBaseText,
+      if (spokenText.isNotEmpty) spokenText,
+    ].join(' ');
+    _textController.text = combinedText;
+    _textCameFromVoice = _textCameFromVoice || spokenText.isNotEmpty;
+    if (!_isVoiceDemo) {
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.voiceDictationUsed,
+        ),
+      );
+      unawaited(
+        TelemetryService.instance.trackVoiceDictationCompleted(
+          durationBucket: durationBucket,
+          aiTidyUpEnabled: false,
+          surface: 'ai_meal_capture',
+          success: true,
+        ),
+      );
+    }
+    setState(() {
+      _isDictating = false;
+      _isVoiceDemo = false;
+      _isVoiceStarting = false;
+      _isVoiceStopping = false;
+      _voiceLevel = 0;
+      _showTextInput = combinedText.isNotEmpty;
+    });
+    _resetVoiceHoldState();
+    HapticFeedbackService.instance.confirmationFeedback();
   }
 
   /// Dictation is a convenience; when it is unavailable the typed path must

@@ -1,10 +1,6 @@
 import 'goal_models.dart';
 
-enum AdaptiveDietPhase {
-  cut,
-  maintain,
-  bulk,
-}
+enum AdaptiveDietPhase { cut, maintain, bulk }
 
 extension AdaptiveDietPhaseGoalMapping on BodyweightGoal {
   AdaptiveDietPhase get canonicalDietPhase {
@@ -70,10 +66,7 @@ class AdaptiveDietPhaseTrackingState {
     if (pendingPhase == null || start == null) {
       return null;
     }
-    return _inclusiveAgeDays(
-      startDay: start,
-      asOfDay: normalizeDay(asOfDay),
-    );
+    return _inclusiveAgeDays(startDay: start, asOfDay: normalizeDay(asOfDay));
   }
 
   AdaptiveDietPhaseTrackingState reconcile({
@@ -137,8 +130,8 @@ class AdaptiveDietPhaseTrackingState {
     return {
       'stateVersion': stateVersion,
       'confirmedPhase': confirmedPhase.name,
-      'confirmedPhaseStartDay':
-          normalizeDay(confirmedPhaseStartDay).toIso8601String(),
+      'confirmedPhaseStartDay': normalizeDay(confirmedPhaseStartDay)
+          .toIso8601String(),
       'pendingPhase': pendingPhase?.name,
       'pendingPhaseFirstSeenDay': pendingPhaseFirstSeenDay == null
           ? null

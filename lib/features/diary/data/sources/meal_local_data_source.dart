@@ -1,7 +1,9 @@
 // lib/features/diary/data/sources/meal_local_data_source.dart
 
 import 'package:drift/drift.dart' as drift;
+
 import 'dart:async';
+
 import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
@@ -26,10 +28,15 @@ class MealLocalDataSource {
     int? servingCount,
     int? cookedWeightInGrams,
   }) async {
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.recipeCreated));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.recipeCreated,
+      ),
+    );
     final dbInstance = await database;
-    final row = await dbInstance.into(dbInstance.meals).insertReturning(
+    final row = await dbInstance
+        .into(dbInstance.meals)
+        .insertReturning(
           db.MealsCompanion(
             name: drift.Value(name),
             notes: drift.Value(notes),
@@ -50,8 +57,7 @@ class MealLocalDataSource {
     final dbInstance = await database;
     await (dbInstance.update(
       dbInstance.meals,
-    )..where((t) => t.localId.equals(id)))
-        .write(
+    )..where((t) => t.localId.equals(id))).write(
       db.MealsCompanion(
         name: drift.Value(name),
         notes: drift.Value(notes),
@@ -65,18 +71,21 @@ class MealLocalDataSource {
     final dbInstance = await database;
     await (dbInstance.delete(
       dbInstance.meals,
-    )..where((t) => t.localId.equals(id)))
-        .go();
+    )..where((t) => t.localId.equals(id))).go();
   }
 
-  Future<int> duplicateMeal(int mealLocalId,
-      {required String copySuffix}) async {
+  Future<int> duplicateMeal(
+    int mealLocalId, {
+    required String copySuffix,
+  }) async {
     final database = await this.database;
     return database.transaction(() async {
-      final original = await (database.select(database.meals)
-            ..where((t) => t.localId.equals(mealLocalId)))
-          .getSingle();
-      final copied = await database.into(database.meals).insertReturning(
+      final original = await (database.select(
+        database.meals,
+      )..where((t) => t.localId.equals(mealLocalId))).getSingle();
+      final copied = await database
+          .into(database.meals)
+          .insertReturning(
             db.MealsCompanion(
               name: drift.Value('${original.name} $copySuffix'),
               notes: drift.Value(original.notes),
@@ -84,11 +93,13 @@ class MealLocalDataSource {
               cookedWeightInGrams: drift.Value(original.cookedWeightInGrams),
             ),
           );
-      final items = await (database.select(database.mealItems)
-            ..where((t) => t.mealId.equals(original.id)))
-          .get();
+      final items = await (database.select(
+        database.mealItems,
+      )..where((t) => t.mealId.equals(original.id))).get();
       for (final item in items) {
-        await database.into(database.mealItems).insert(
+        await database
+            .into(database.mealItems)
+            .insert(
               db.MealItemsCompanion(
                 mealId: drift.Value(copied.id),
                 productBarcode: drift.Value(item.productBarcode),
@@ -106,13 +117,15 @@ class MealLocalDataSource {
     final rows = await dbInstance.select(dbInstance.meals).get();
 
     return rows
-        .map((r) => {
-              'id': r.localId,
-              'name': r.name,
-              'notes': r.notes,
-              'serving_count': r.servingCount,
-              'cooked_weight_in_grams': r.cookedWeightInGrams,
-            })
+        .map(
+          (r) => {
+            'id': r.localId,
+            'name': r.name,
+            'notes': r.notes,
+            'serving_count': r.servingCount,
+            'cooked_weight_in_grams': r.cookedWeightInGrams,
+          },
+        )
         .toList();
   }
 
@@ -125,10 +138,11 @@ class MealLocalDataSource {
 
     final mealRow = await (dbInstance.select(
       dbInstance.meals,
-    )..where((t) => t.localId.equals(mealId)))
-        .getSingle();
+    )..where((t) => t.localId.equals(mealId))).getSingle();
 
-    final row = await dbInstance.into(dbInstance.mealItems).insertReturning(
+    final row = await dbInstance
+        .into(dbInstance.mealItems)
+        .insertReturning(
           db.MealItemsCompanion(
             mealId: drift.Value(mealRow.id),
             productBarcode: drift.Value(barcode),
@@ -143,8 +157,7 @@ class MealLocalDataSource {
 
     final mealRow = await (dbInstance.select(
       dbInstance.meals,
-    )..where((t) => t.localId.equals(mealLocalId)))
-        .getSingleOrNull();
+    )..where((t) => t.localId.equals(mealLocalId))).getSingleOrNull();
     if (mealRow == null) return [];
 
     final query = dbInstance.select(dbInstance.mealItems).join([
@@ -152,8 +165,7 @@ class MealLocalDataSource {
         dbInstance.products,
         dbInstance.products.id.equalsExp(dbInstance.mealItems.productId),
       ),
-    ])
-      ..where(dbInstance.mealItems.mealId.equals(mealRow.id));
+    ])..where(dbInstance.mealItems.mealId.equals(mealRow.id));
     final rows = await query.get();
 
     return rows
@@ -161,10 +173,12 @@ class MealLocalDataSource {
           (row) => {
             'id': row.readTable(dbInstance.mealItems).localId,
             'meal_id': mealLocalId,
-            'barcode': row.readTable(dbInstance.mealItems).productBarcode ??
+            'barcode':
+                row.readTable(dbInstance.mealItems).productBarcode ??
                 row.readTableOrNull(dbInstance.products)?.barcode,
-            'quantity_in_grams':
-                row.readTable(dbInstance.mealItems).quantityInGrams,
+            'quantity_in_grams': row
+                .readTable(dbInstance.mealItems)
+                .quantityInGrams,
           },
         )
         .toList();
@@ -172,21 +186,25 @@ class MealLocalDataSource {
 
   Future<List<Map<String, dynamic>>> getMealTemplatesForBackup() async {
     final dbInstance = await database;
-    final mealRows = await (dbInstance.select(dbInstance.meals)
-          ..orderBy([(t) => drift.OrderingTerm(expression: t.localId)]))
-        .get();
+    final mealRows = await (dbInstance.select(
+      dbInstance.meals,
+    )..orderBy([(t) => drift.OrderingTerm(expression: t.localId)])).get();
 
     final result = <Map<String, dynamic>>[];
     for (final meal in mealRows) {
-      final itemQuery = dbInstance.select(dbInstance.mealItems).join([
-        drift.leftOuterJoin(
-          dbInstance.products,
-          dbInstance.products.id.equalsExp(dbInstance.mealItems.productId),
-        ),
-      ])
-        ..where(dbInstance.mealItems.mealId.equals(meal.id))
-        ..orderBy(
-            [drift.OrderingTerm(expression: dbInstance.mealItems.localId)]);
+      final itemQuery =
+          dbInstance.select(dbInstance.mealItems).join([
+              drift.leftOuterJoin(
+                dbInstance.products,
+                dbInstance.products.id.equalsExp(
+                  dbInstance.mealItems.productId,
+                ),
+              ),
+            ])
+            ..where(dbInstance.mealItems.mealId.equals(meal.id))
+            ..orderBy([
+              drift.OrderingTerm(expression: dbInstance.mealItems.localId),
+            ]);
       final itemRows = await itemQuery.get();
 
       final items = itemRows
@@ -195,8 +213,8 @@ class MealLocalDataSource {
             final product = row.readTableOrNull(dbInstance.products);
             final barcode =
                 (item.productBarcode != null && item.productBarcode!.isNotEmpty)
-                    ? item.productBarcode!
-                    : product?.barcode;
+                ? item.productBarcode!
+                : product?.barcode;
             return <String, dynamic>{
               'barcode': barcode,
               'quantityInGrams': item.quantityInGrams,
@@ -228,7 +246,9 @@ class MealLocalDataSource {
         if (name == null || name.isEmpty) continue;
         final notes = template['notes'] as String?;
 
-        final mealRow = await dbInstance.into(dbInstance.meals).insertReturning(
+        final mealRow = await dbInstance
+            .into(dbInstance.meals)
+            .insertReturning(
               db.MealsCompanion(
                 name: drift.Value(name),
                 notes: drift.Value(notes),
@@ -256,7 +276,9 @@ class MealLocalDataSource {
             continue;
           }
 
-          await dbInstance.into(dbInstance.mealItems).insert(
+          await dbInstance
+              .into(dbInstance.mealItems)
+              .insert(
                 db.MealItemsCompanion(
                   mealId: drift.Value(mealRow.id),
                   productBarcode: drift.Value(barcode),
@@ -273,21 +295,18 @@ class MealLocalDataSource {
     final dbInstance = await database;
     await (dbInstance.delete(
       dbInstance.mealItems,
-    )..where((t) => t.localId.equals(itemLocalId)))
-        .go();
+    )..where((t) => t.localId.equals(itemLocalId))).go();
   }
 
   Future<void> clearMealItems(int mealLocalId) async {
     final dbInstance = await database;
     final mealRow = await (dbInstance.select(
       dbInstance.meals,
-    )..where((t) => t.localId.equals(mealLocalId)))
-        .getSingleOrNull();
+    )..where((t) => t.localId.equals(mealLocalId))).getSingleOrNull();
     if (mealRow != null) {
       await (dbInstance.delete(
         dbInstance.mealItems,
-      )..where((t) => t.mealId.equals(mealRow.id)))
-          .go();
+      )..where((t) => t.mealId.equals(mealRow.id))).go();
     }
   }
 }

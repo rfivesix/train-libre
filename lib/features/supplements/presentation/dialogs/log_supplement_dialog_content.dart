@@ -1,10 +1,13 @@
 // lib/features/supplements/presentation/dialogs/log_supplement_dialog_content.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/supplement.dart';
 import '../../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/common.dart';
 
 /// A dialog content widget for logging supplement intake.
@@ -41,7 +44,8 @@ class LogSupplementDialogContentState
   void initState() {
     super.initState();
     _doseController = TextEditingController(
-      text: widget.initialDose?.toStringAsFixed(1).replaceAll('.0', '') ??
+      text:
+          widget.initialDose?.toStringAsFixed(1).replaceAll('.0', '') ??
           widget.supplement.defaultDose.toStringAsFixed(1).replaceAll('.0', ''),
     );
     _selectedDateTime = widget.initialTimestamp ?? DateTime.now();

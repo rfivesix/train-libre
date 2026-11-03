@@ -54,7 +54,7 @@ Future<ShareLinkPayload?> showShareImportSheet({
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(_summary(payload, Localizations.localeOf(context).languageCode)),
+          Text(_summary(payload, AppLocalizations.of(context)!)),
           const SizedBox(height: DesignConstants.spacingM),
           Text(warning),
           const SizedBox(height: DesignConstants.spacingL),
@@ -83,26 +83,25 @@ Future<ShareLinkPayload?> showShareImportSheet({
 }
 
 void _showInvalid(BuildContext context) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    content: Text(AppLocalizations.of(context)!.shareImportInvalid),
-  ));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(AppLocalizations.of(context)!.shareImportInvalid)),
+  );
 }
 
-String _summary(ShareLinkPayload payload, String languageCode) {
-  final german = languageCode == 'de';
+String _summary(ShareLinkPayload payload, AppLocalizations l10n) {
   switch (payload.type) {
     case 'routine':
-      return '${german ? 'Routine' : 'Routine'} · '
-          '${(payload.data['exercises'] as List).length} '
-          '${german ? 'Übungen' : 'exercises'}';
+      return '${l10n.routineShareTitle} · '
+          '${(payload.data['exercises'] as List).length} ${l10n.shareExercisesLabel}';
     case 'plan':
       final days = payload.data['days'] as List;
-      return '${german ? 'Trainingsplan' : 'Training plan'} · '
-          '${days.length} ${german ? 'Tage' : 'days'}';
+      final planLabel = payload.data['kind'] == 'week'
+          ? l10n.sharePlanWeekly
+          : l10n.sharePlanSequence;
+      return '$planLabel · ${days.length} ${l10n.shareDays}';
     case 'recipe':
-      return '${german ? 'Rezept' : 'Recipe'} · '
-          '${(payload.data['items'] as List).length} '
-          '${german ? 'Zutaten' : 'ingredients'}';
+      return '${l10n.mealTypeLabel} · '
+          '${(payload.data['items'] as List).length} ${l10n.shareIngredients}';
     default:
       return payload.type;
   }
@@ -149,9 +148,9 @@ class _ShareJsonInputState extends State<_ShareJsonInput> {
       if (mounted) setState(() => _controller.text = text);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(widget.l10n.shareImportInvalid),
-        ));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(widget.l10n.shareImportInvalid)));
       }
     } finally {
       if (mounted) setState(() => _readingFile = false);

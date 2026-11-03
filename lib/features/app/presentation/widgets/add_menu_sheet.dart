@@ -1,8 +1,10 @@
 // lib/widgets/add_menu_sheet.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A bottom sheet menu providing quick access to common entry actions.
@@ -84,7 +86,8 @@ class AddMenuSheet extends StatelessWidget {
       ),
       tileColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+      ),
       onTap: onTap,
     );
   }

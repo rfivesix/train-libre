@@ -49,32 +49,36 @@ void main() {
       'installed_off_version_de': '202608010000',
     });
 
-    await db.into(db.products).insert(const ProductsCompanion(
-          barcode: drift.Value('off-1'),
-          name: drift.Value('OFF product'),
-          calories: drift.Value(100),
-          protein: drift.Value(1),
-          carbs: drift.Value(2),
-          fat: drift.Value(3),
-          source: drift.Value('off'),
-        ));
+    await db
+        .into(db.products)
+        .insert(
+          const ProductsCompanion(
+            barcode: drift.Value('off-1'),
+            name: drift.Value('OFF product'),
+            calories: drift.Value(100),
+            protein: drift.Value(1),
+            carbs: drift.Value(2),
+            fat: drift.Value(3),
+            source: drift.Value('off'),
+          ),
+        );
 
     // Mock QR view channel
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('net.touchcapture.qr.flutterqr/qrview_0'),
-      (call) async {
-        return null;
-      },
-    );
+          const MethodChannel('net.touchcapture.qr.flutterqr/qrview_0'),
+          (call) async {
+            return null;
+          },
+        );
   });
 
   tearDown(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('net.touchcapture.qr.flutterqr/qrview_0'),
-      null,
-    );
+          const MethodChannel('net.touchcapture.qr.flutterqr/qrview_0'),
+          null,
+        );
     await db.close();
   });
 
@@ -89,24 +93,27 @@ void main() {
   }
 
   group('AiMealCaptureTourService', () {
-    test('isTourCompleted defaults to false and can be marked or reset',
-        () async {
-      SharedPreferences.setMockInitialValues({});
-      final service = AiMealCaptureTourService.instance;
+    test(
+      'isTourCompleted defaults to false and can be marked or reset',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final service = AiMealCaptureTourService.instance;
 
-      expect(await service.isTourCompleted(), isFalse);
+        expect(await service.isTourCompleted(), isFalse);
 
-      await service.markTourCompleted();
-      expect(await service.isTourCompleted(), isTrue);
+        await service.markTourCompleted();
+        expect(await service.isTourCompleted(), isTrue);
 
-      await service.resetTour();
-      expect(await service.isTourCompleted(), isFalse);
-    });
+        await service.resetTour();
+        expect(await service.isTourCompleted(), isFalse);
+      },
+    );
   });
 
   group('AiMealCaptureTourOverlay', () {
-    testWidgets('renders title, description, progress, next and skip labels',
-        (tester) async {
+    testWidgets('renders title, description, progress, next and skip labels', (
+      tester,
+    ) async {
       var nextClicked = false;
       var skipClicked = false;
 
@@ -143,101 +150,110 @@ void main() {
 
   group('AiMealCaptureScreen Interactive Tour', () {
     testWidgets(
-        'automatically starts tour on first launch and steps through all 6 steps',
-        (tester) async {
-      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
-      tester.view.devicePixelRatio = 3.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+      'automatically starts tour on first launch and steps through all 6 steps',
+      (tester) async {
+        tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
-      SharedPreferences.setMockInitialValues({
-        'installed_off_version_de': '202608010000',
-        'ai_meal_capture_tour_completed': false,
-      });
+        SharedPreferences.setMockInitialValues({
+          'installed_off_version_de': '202608010000',
+          'ai_meal_capture_tour_completed': false,
+        });
 
-      await tester.pumpWidget(buildCaptureScreen());
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
+        await tester.pumpWidget(buildCaptureScreen());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
 
-      // Step 1: Shutter
-      expect(find.byType(AiMealCaptureTourOverlay), findsOneWidget);
-      expect(find.text('1/6'), findsOneWidget);
+        // Step 1: Shutter
+        expect(find.byType(AiMealCaptureTourOverlay), findsOneWidget);
+        expect(find.text('1/6'), findsOneWidget);
 
-      // Advance to Step 2: Barcode
-      await tester.tap(find.text('Weiter'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(find.text('2/6'), findsOneWidget);
-      // Dummy barcode banner should be visible
-      expect(find.text('Bio-Haferflocken 500g'), findsOneWidget);
+        // Advance to Step 2: Barcode
+        await tester.tap(find.text('Weiter'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(find.text('2/6'), findsOneWidget);
+        // Dummy barcode banner should be visible
+        expect(find.text('Bio-Haferflocken 500g'), findsOneWidget);
 
-      // Advance to Step 3: Gallery
-      await tester.tap(find.text('Weiter'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(find.text('3/6'), findsOneWidget);
+        // Advance to Step 3: Gallery
+        await tester.tap(find.text('Weiter'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(find.text('3/6'), findsOneWidget);
 
-      // Advance to Step 4: Voice
-      await tester.tap(find.text('Weiter'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(find.text('4/6'), findsOneWidget);
+        // Advance to Step 4: Voice
+        await tester.tap(find.text('Weiter'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(find.text('4/6'), findsOneWidget);
 
-      // Advance to Step 5: Text
-      await tester.tap(find.text('Weiter'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(find.text('5/6'), findsOneWidget);
+        // Advance to Step 5: Text
+        await tester.tap(find.text('Weiter'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(find.text('5/6'), findsOneWidget);
 
-      // Advance to Step 6: AI Analysis
-      await tester.tap(find.text('Weiter'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(find.text('6/6'), findsOneWidget);
-      expect(find.text('Fertig'), findsOneWidget);
+        // Advance to Step 6: AI Analysis
+        await tester.tap(find.text('Weiter'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(find.text('6/6'), findsOneWidget);
+        expect(find.text('Fertig'), findsOneWidget);
 
-      // Complete tour
-      await tester.tap(find.text('Fertig'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
+        // Complete tour
+        await tester.tap(find.text('Fertig'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
 
-      expect(find.byType(AiMealCaptureTourOverlay), findsNothing);
-      expect(await AiMealCaptureTourService.instance.isTourCompleted(), isTrue);
-    });
+        expect(find.byType(AiMealCaptureTourOverlay), findsNothing);
+        expect(
+          await AiMealCaptureTourService.instance.isTourCompleted(),
+          isTrue,
+        );
+      },
+    );
 
     testWidgets(
-        'skipping tour immediately dismisses overlay and marks tour completed',
-        (tester) async {
-      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
-      tester.view.devicePixelRatio = 3.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+      'skipping tour immediately dismisses overlay and marks tour completed',
+      (tester) async {
+        tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
-      SharedPreferences.setMockInitialValues({
-        'installed_off_version_de': '202608010000',
-        'ai_meal_capture_tour_completed': false,
-      });
+        SharedPreferences.setMockInitialValues({
+          'installed_off_version_de': '202608010000',
+          'ai_meal_capture_tour_completed': false,
+        });
 
-      await tester.pumpWidget(buildCaptureScreen());
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
+        await tester.pumpWidget(buildCaptureScreen());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
 
-      expect(find.byType(AiMealCaptureTourOverlay), findsOneWidget);
+        expect(find.byType(AiMealCaptureTourOverlay), findsOneWidget);
 
-      await tester.tap(find.text('Überspringen'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
+        await tester.tap(find.text('Überspringen'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
 
-      expect(find.byType(AiMealCaptureTourOverlay), findsNothing);
-      expect(await AiMealCaptureTourService.instance.isTourCompleted(), isTrue);
-    });
+        expect(find.byType(AiMealCaptureTourOverlay), findsNothing);
+        expect(
+          await AiMealCaptureTourService.instance.isTourCompleted(),
+          isTrue,
+        );
+      },
+    );
 
-    testWidgets('info button in app bar can restart the tour at any time',
-        (tester) async {
+    testWidgets('info button in app bar can restart the tour at any time', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(() {

@@ -15,9 +15,9 @@ class ExerciseBlockKey {
   });
 
   factory ExerciseBlockKey.fromSet(SetLog set) => ExerciseBlockKey(
-        exerciseBlock: set.exerciseBlock,
-        exerciseName: set.exerciseName,
-      );
+    exerciseBlock: set.exerciseBlock,
+    exerciseName: set.exerciseName,
+  );
 
   Object get anchorId =>
       exerciseBlock == null ? 'legacy:$exerciseName' : 'block:$exerciseBlock';

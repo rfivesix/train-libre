@@ -1279,6 +1279,168 @@ h1 {
   }
 }
 
+/* App feature comparison */
+.comparison-section {
+  width: min(var(--max), calc(100% - 32px));
+  margin: clamp(42px, 8vw, 100px) auto;
+  padding: clamp(42px, 7vw, 72px) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.comparison-header { margin-bottom: 26px; }
+.comparison-header .section-heading { max-width: 900px; }
+.comparison-header .section-copy { max-width: 900px; }
+.comparison-scroll-hint, .comparison-review-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.comparison-table-scroll {
+  width: 100%;
+  max-height: min(78vh, 920px);
+  overflow: auto;
+  margin: 20px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-text) var(--bg-soft);
+}
+
+.comparison-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  background: var(--bg);
+}
+
+.comparison-table th, .comparison-table td {
+  padding: 10px 12px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.comparison-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  min-width: 126px;
+  max-width: 160px;
+  background: var(--panel);
+  color: var(--fg);
+  vertical-align: top;
+}
+
+.comparison-table .comparison-feature-column {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 230px;
+  min-width: 230px;
+  max-width: 230px;
+  background: var(--panel-2);
+  color: var(--fg);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.12);
+}
+
+.comparison-table thead .comparison-feature-column {
+  z-index: 6;
+  background: var(--panel);
+}
+
+.comparison-table .comparison-category-row th {
+  background: var(--panel-2);
+  color: var(--accent-text);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.comparison-app-column > a {
+  display: block;
+  min-height: 2.4em;
+  color: var(--fg);
+  font-weight: 750;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.comparison-app-platforms, .comparison-value-pair {
+  display: grid;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.comparison-table .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.comparison-platform-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.comparison-value-cell { min-width: 126px; }
+.comparison-value-pair .comparison-platform-status { min-width: 95px; }
+.comparison-platform-name { color: var(--muted); font-weight: 500; }
+.status-yes { color: #78c878 !important; }
+.status-partial { color: #e4b44c !important; }
+.status-unknown, .status-na { color: var(--muted) !important; }
+.status-no { color: #ef8585 !important; }
+.comparison-price-cell { font-size: 0.76rem; line-height: 1.35; white-space: normal; }
+
+.comparison-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.comparison-legend b { margin-right: 4px; font-size: 1rem; }
+.comparison-doc-link { margin-top: 18px; font-weight: 650; }
+.comparison-doc-link a { color: var(--accent-text); text-underline-offset: 4px; }
+.comparison-source-list { columns: 2; column-gap: 36px; }
+.comparison-source-list li { break-inside: avoid; }
+
+@media (max-width: 680px) {
+  .comparison-section { width: calc(100% - 24px); padding: 38px 0; }
+  .comparison-table-scroll { max-height: 72vh; margin-inline: 0; }
+  .comparison-table { font-size: 0.74rem; }
+  .comparison-table th, .comparison-table td { padding: 8px 9px; }
+  .comparison-table .comparison-feature-column {
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
+  }
+  .comparison-table thead th { min-width: 116px; }
+  .comparison-value-cell { min-width: 116px; }
+  .comparison-value-pair .comparison-platform-status { min-width: 90px; }
+  .comparison-source-list { columns: 1; }
+}
+
 /* Open Section */
 .open-section {
   position: relative;

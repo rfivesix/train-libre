@@ -202,9 +202,7 @@ void main() {
     await db.close();
   });
 
-  test(
-      'importRecent correctly updates sleep session duration and avoids duplicates/ghosts on corrected sync',
-      () async {
+  test('importRecent correctly updates sleep session duration and avoids duplicates/ghosts on corrected sync', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
@@ -232,13 +230,16 @@ void main() {
     expect(firstResult.success, isTrue);
 
     // Verify initial values
-    var sessions =
-        await db.customSelect('SELECT * FROM sleep_canonical_sessions').get();
+    var sessions = await db
+        .customSelect('SELECT * FROM sleep_canonical_sessions')
+        .get();
     expect(sessions.length, 1);
     expect(sessions.first.read<String>('id'), 's1');
     expect(
-      DateTime.fromMillisecondsSinceEpoch(sessions.first.read<int>('ended_at'),
-          isUtc: true),
+      DateTime.fromMillisecondsSinceEpoch(
+        sessions.first.read<int>('ended_at'),
+        isUtc: true,
+      ),
       DateTime.utc(2026, 3, 30, 6),
     );
 
@@ -253,14 +254,16 @@ void main() {
 
     // Verify that session s1 has been updated with the corrected end time,
     // and there is still exactly one session record (no duplicate row)
-    var updatedSessions =
-        await db.customSelect('SELECT * FROM sleep_canonical_sessions').get();
+    var updatedSessions = await db
+        .customSelect('SELECT * FROM sleep_canonical_sessions')
+        .get();
     expect(updatedSessions.length, 1);
     expect(updatedSessions.first.read<String>('id'), 's1');
     expect(
       DateTime.fromMillisecondsSinceEpoch(
-          updatedSessions.first.read<int>('ended_at'),
-          isUtc: true),
+        updatedSessions.first.read<int>('ended_at'),
+        isUtc: true,
+      ),
       DateTime.utc(2026, 3, 30, 7), // 1 hour later
     );
 
@@ -282,93 +285,93 @@ void main() {
   });
 
   test(
-      'importRecent clears out overlapping ghost-sessions inside the time window',
-      () async {
-    final db = AppDatabase(
-      NativeDatabase.memory(
-        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
-      ),
-    );
-
-    // Create a database state with a ghost session
-    final kitSource = _HealthKitSource(_batch());
-    final connectSource = _HealthConnectSource(_batch());
-
-    final service = SleepSyncService.withOverrides(
-      iosPermissionsService: const _PermissionService(
-        SleepPermissionOutcome.ready(),
-      ),
-      androidPermissionsService: const _PermissionService(
-        SleepPermissionOutcome.ready(),
-      ),
-      iosDataSource: kitSource,
-      androidDataSource: connectSource,
-      database: db,
-    );
-    await service.setTrackingEnabled(true);
-
-    // Import the first session 's1' (22:00 to 06:00)
-    await service.importRecent();
-
-    // Now simulate an overlapping but distinct consolidated session 's2' (from 23:00 to 05:00)
-    // which should replace the old one due to temporal overlap
-    final overlappingBatch = SleepRawIngestionBatch(
-      sessions: [
-        SleepIngestionSession(
-          recordId: 's2',
-          startAtUtc: DateTime.utc(2026, 3, 29, 21),
-          endAtUtc: DateTime.utc(2026, 3, 30, 7),
-          platformSessionType: 'sleep',
-          sourcePlatform: 'apple_healthkit',
+    'importRecent clears out overlapping ghost-sessions inside the time window',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
         ),
-      ],
-      stageSegments: [
-        SleepIngestionStageSegment(
-          recordId: 'seg2',
-          sessionRecordId: 's2',
-          startAtUtc: DateTime.utc(2026, 3, 29, 23),
-          endAtUtc: DateTime.utc(2026, 3, 30, 1),
-          platformStage: 'core',
-          sourcePlatform: 'apple_healthkit',
+      );
+
+      // Create a database state with a ghost session
+      final kitSource = _HealthKitSource(_batch());
+      final connectSource = _HealthConnectSource(_batch());
+
+      final service = SleepSyncService.withOverrides(
+        iosPermissionsService: const _PermissionService(
+          SleepPermissionOutcome.ready(),
         ),
-      ],
-      heartRateSamples: [
-        SleepIngestionHeartRateSample(
-          recordId: 'hr2',
-          sessionRecordId: 's2',
-          sampledAtUtc: DateTime.utc(2026, 3, 30, 0),
-          bpm: 60,
-          sourcePlatform: 'apple_healthkit',
+        androidPermissionsService: const _PermissionService(
+          SleepPermissionOutcome.ready(),
         ),
-      ],
-    );
+        iosDataSource: kitSource,
+        androidDataSource: connectSource,
+        database: db,
+      );
+      await service.setTrackingEnabled(true);
 
-    kitSource.batch = overlappingBatch;
-    connectSource.batch = overlappingBatch;
+      // Import the first session 's1' (22:00 to 06:00)
+      await service.importRecent();
 
-    // Run sync again
-    final result = await service.importRecent();
-    expect(result.success, isTrue);
+      // Now simulate an overlapping but distinct consolidated session 's2' (from 23:00 to 05:00)
+      // which should replace the old one due to temporal overlap
+      final overlappingBatch = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 's2',
+            startAtUtc: DateTime.utc(2026, 3, 29, 21),
+            endAtUtc: DateTime.utc(2026, 3, 30, 7),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'apple_healthkit',
+          ),
+        ],
+        stageSegments: [
+          SleepIngestionStageSegment(
+            recordId: 'seg2',
+            sessionRecordId: 's2',
+            startAtUtc: DateTime.utc(2026, 3, 29, 23),
+            endAtUtc: DateTime.utc(2026, 3, 30, 1),
+            platformStage: 'core',
+            sourcePlatform: 'apple_healthkit',
+          ),
+        ],
+        heartRateSamples: [
+          SleepIngestionHeartRateSample(
+            recordId: 'hr2',
+            sessionRecordId: 's2',
+            sampledAtUtc: DateTime.utc(2026, 3, 30, 0),
+            bpm: 60,
+            sourcePlatform: 'apple_healthkit',
+          ),
+        ],
+      );
 
-    // Verify s1 is completely deleted due to temporal overlap and replaced by s2
-    final sessions =
-        await db.customSelect('SELECT * FROM sleep_canonical_sessions').get();
-    expect(sessions.length, 1);
-    expect(sessions.first.read<String>('id'), 's2');
+      kitSource.batch = overlappingBatch;
+      connectSource.batch = overlappingBatch;
 
-    // Segments and HR should also be replaced
-    final segments = await db
-        .customSelect('SELECT * FROM sleep_canonical_stage_segments')
-        .get();
-    expect(segments.length, 1);
-    expect(segments.first.read<String>('id'), 'seg2');
+      // Run sync again
+      final result = await service.importRecent();
+      expect(result.success, isTrue);
 
-    await db.close();
-  });
+      // Verify s1 is completely deleted due to temporal overlap and replaced by s2
+      final sessions = await db
+          .customSelect('SELECT * FROM sleep_canonical_sessions')
+          .get();
+      expect(sessions.length, 1);
+      expect(sessions.first.read<String>('id'), 's2');
 
-  test(
-      'importRecent respects large lookbackDays even if data exists (bypasses 72h delta cap)',
-      () async {
+      // Segments and HR should also be replaced
+      final segments = await db
+          .customSelect('SELECT * FROM sleep_canonical_stage_segments')
+          .get();
+      expect(segments.length, 1);
+      expect(segments.first.read<String>('id'), 'seg2');
+
+      await db.close();
+    },
+  );
+
+  test('importRecent respects large lookbackDays even if data exists (bypasses 72h delta cap)', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
@@ -413,9 +416,7 @@ void main() {
     await db.close();
   });
 
-  test(
-      'importRecent strictly uses 72h window for standard updates when data exists',
-      () async {
+  test('importRecent strictly uses 72h window for standard updates when data exists', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),

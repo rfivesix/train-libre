@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
@@ -60,11 +61,15 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.weeklyGoalReview));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.weeklyGoalReview,
+      ),
+    );
     if (!widget.previewOnly) {
       _goalRepository = widget.repository ?? GoalRepositoryImpl();
-      _recommendationService = widget.recommendationService ??
+      _recommendationService =
+          widget.recommendationService ??
           AdaptiveNutritionRecommendationService();
     }
     _review = widget.review;
@@ -88,7 +93,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     }
 
     final progress = await _goalRepository!.getGoalProgress(widget.goal);
-    _currentWeightKg = progress?.currentValue ??
+    _currentWeightKg =
+        progress?.currentValue ??
         progress?.baselineValue ??
         widget.review?.assessment?.currentSmoothedValue ??
         widget.goal.baselineValueKg;
@@ -105,19 +111,23 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         final start = rev.windowStart;
         final end = rev.windowEnd;
 
-        final weights = await (db.select(db.measurements)
-              ..where((t) => t.type.equals('weight')))
-            .get();
+        final weights = await (db.select(
+          db.measurements,
+        )..where((t) => t.type.equals('weight'))).get();
         _weightObservationCount = weights
             .where((m) => !m.date.isBefore(start) && !m.date.isAfter(end))
             .length;
 
         final logs = await db.select(db.nutritionLogs).get();
         final days = logs
-            .where((l) =>
-                !l.consumedAt.isBefore(start) && !l.consumedAt.isAfter(end))
-            .map((l) =>
-                '${l.consumedAt.year}-${l.consumedAt.month}-${l.consumedAt.day}')
+            .where(
+              (l) =>
+                  !l.consumedAt.isBefore(start) && !l.consumedAt.isAfter(end),
+            )
+            .map(
+              (l) =>
+                  '${l.consumedAt.year}-${l.consumedAt.month}-${l.consumedAt.day}',
+            )
             .toSet();
         _loggedIntakeDaysCount = days.length;
       } catch (_) {}
@@ -139,8 +149,9 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   void _showPreviewFeedback() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content:
-            Text(AppLocalizations.of(context)!.weeklyReviewPreviewNoChanges),
+        content: Text(
+          AppLocalizations.of(context)!.weeklyReviewPreviewNoChanges,
+        ),
       ),
     );
   }
@@ -206,17 +217,20 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     bool hasMacroAdjustments = false,
   }) {
     final rev = _review;
-    unawaited(TelemetryService.instance.trackWeeklyGoalReviewCompleted(
-      trajectoryStatus: rev?.trajectoryStatus ?? 'calibrating',
-      confidenceLevel: rev?.confidenceLevel ?? 'uncalibrated',
-      decision: decision,
-      weightObservationCountBucket:
-          TelemetryBuckets.getObservationCountBucket(_weightObservationCount),
-      loggedIntakeDaysBucket:
-          TelemetryBuckets.getObservationCountBucket(_loggedIntakeDaysCount),
-      calorieAdjustmentDirection: calorieDirection,
-      hasMacroAdjustments: hasMacroAdjustments,
-    ));
+    unawaited(
+      TelemetryService.instance.trackWeeklyGoalReviewCompleted(
+        trajectoryStatus: rev?.trajectoryStatus ?? 'calibrating',
+        confidenceLevel: rev?.confidenceLevel ?? 'uncalibrated',
+        decision: decision,
+        weightObservationCountBucket:
+            TelemetryBuckets.getObservationCountBucket(_weightObservationCount),
+        loggedIntakeDaysBucket: TelemetryBuckets.getObservationCountBucket(
+          _loggedIntakeDaysCount,
+        ),
+        calorieAdjustmentDirection: calorieDirection,
+        hasMacroAdjustments: hasMacroAdjustments,
+      ),
+    );
   }
 
   Future<void> _applyRecommendation() async {
@@ -301,8 +315,9 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           anchorValue: currentWeight,
           reason: 'Weekly review: auto-adjusted pace and target date',
         );
-        final notifications =
-            GoalNotificationOrchestrator(goalRepository: _goalRepository!);
+        final notifications = GoalNotificationOrchestrator(
+          goalRepository: _goalRepository!,
+        );
         await notifications.synchronize();
       }
 
@@ -330,8 +345,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             shouldReviseGoal
                 ? l10n.weeklyReviewPlanUpdatedSnack
                 : (rec != null
-                    ? l10n.adaptiveRecommendationAppliedToGoalsSnack
-                    : l10n.adaptiveRecommendationNotAvailableSnack),
+                      ? l10n.adaptiveRecommendationAppliedToGoalsSnack
+                      : l10n.adaptiveRecommendationNotAvailableSnack),
           ),
         ),
       );
@@ -375,9 +390,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         _trackReviewCompleted('dismissed');
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.reviewDismissedSnack)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.reviewDismissedSnack)));
       Navigator.of(context).pop(false);
     } catch (e) {
       if (mounted) {
@@ -513,10 +527,12 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         : assessment?.overallStatus ?? review?.trajectoryStatus;
     final statusColor = _statusColor(primaryStatus, theme);
     final statusLabel = _statusLabel(context, primaryStatus);
-    final canAdjustGoal = _currentWeightKg != null &&
+    final canAdjustGoal =
+        _currentWeightKg != null &&
         widget.goal.targetValue != null &&
         (widget.previewOnly || _goalRepository != null);
-    final canAdjustRate = canAdjustGoal &&
+    final canAdjustRate =
+        canAdjustGoal &&
         widget.goal.preset != GoalPreset.maintainWeight &&
         widget.goal.preset != GoalPreset.recomposition;
     final canAdjustDate =
@@ -582,8 +598,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     final currentCalories = assessment?.currentCalories;
     final recommendedCalories =
         assessment?.nutritionAction == 'insufficient_data'
-            ? null
-            : (review.recommendedCalories ?? currentCalories);
+        ? null
+        : (review.recommendedCalories ?? currentCalories);
     final currentTrend = assessment?.currentSmoothedValue ?? _currentWeightKg;
     final expectedTrend = assessment?.expectedValue;
     final unitService = context.read<UnitService>();
@@ -591,13 +607,16 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         ? (review.explanation ?? l10n.weeklyReviewPendingDefaultExplanation)
         : _nutritionExplanation(context, assessment.nutritionAction);
     final theme = Theme.of(context);
-    final isCalorieChanged = currentCalories != null &&
+    final isCalorieChanged =
+        currentCalories != null &&
         recommendedCalories != null &&
         recommendedCalories != currentCalories;
-    final signedDelta =
-        isCalorieChanged ? recommendedCalories - currentCalories : null;
+    final signedDelta = isCalorieChanged
+        ? recommendedCalories - currentCalories
+        : null;
 
-    final isNonMaintenance = widget.goal.preset != GoalPreset.maintainWeight &&
+    final isNonMaintenance =
+        widget.goal.preset != GoalPreset.maintainWeight &&
         widget.goal.preset != GoalPreset.recomposition;
     final currentRate = widget.goal.desiredWeeklyRateKg;
     final currentDate = widget.goal.targetDate;
@@ -614,12 +633,14 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       );
     }
 
-    final isRateChanged = currentRate != null &&
+    final isRateChanged =
+        currentRate != null &&
         candidateRate != null &&
         (currentRate - candidateRate).abs() >= 0.001;
     final effectiveRecRate = isRateChanged ? candidateRate : currentRate;
-    final currentRateText =
-        currentRate != null ? _formatRate(currentRate, unitService, l10n) : '—';
+    final currentRateText = currentRate != null
+        ? _formatRate(currentRate, unitService, l10n)
+        : '—';
     final recommendedRateText = effectiveRecRate != null
         ? _formatRate(effectiveRecRate, unitService, l10n)
         : '—';
@@ -628,14 +649,17 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         : null;
 
     final dateFormat = DateFormat.yMMMd(locale);
-    final isDateChanged = currentDate != null &&
+    final isDateChanged =
+        currentDate != null &&
         candidateDate != null &&
         !DateUtils.isSameDay(currentDate, candidateDate);
     final effectiveRecDate = isDateChanged ? candidateDate : currentDate;
-    final currentDateText =
-        currentDate != null ? dateFormat.format(currentDate) : '—';
-    final recommendedDateText =
-        effectiveRecDate != null ? dateFormat.format(effectiveRecDate) : '—';
+    final currentDateText = currentDate != null
+        ? dateFormat.format(currentDate)
+        : '—';
+    final recommendedDateText = effectiveRecDate != null
+        ? dateFormat.format(effectiveRecDate)
+        : '—';
     final dateDeltaSubtitle = isDateChanged
         ? l10n.weeklyReviewDateDaysChange(
             '${candidateDate.difference(currentDate).inDays > 0 ? '+' : ''}${candidateDate.difference(currentDate).inDays}',
@@ -655,8 +679,9 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             ),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.14),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusS),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusS,
+              ),
             ),
             child: Text(
               statusLabel,
@@ -720,12 +745,14 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                           '${signedDelta! > 0 ? '+' : ''}${numberFormat.format(signedDelta)}',
                         )
                       : (recommendedCalories != null
-                          ? l10n.weeklyReviewRateNoChange
-                          : null),
-                  valueColor:
-                      isCalorieChanged ? theme.colorScheme.primary : null,
-                  borderColor:
-                      isCalorieChanged ? theme.colorScheme.primary : null,
+                            ? l10n.weeklyReviewRateNoChange
+                            : null),
+                  valueColor: isCalorieChanged
+                      ? theme.colorScheme.primary
+                      : null,
+                  borderColor: isCalorieChanged
+                      ? theme.colorScheme.primary
+                      : null,
                   mainAxisAlignment: MainAxisAlignment.start,
                 ),
               ),
@@ -762,10 +789,12 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                     subtitle: isRateChanged
                         ? rateDeltaSubtitle
                         : l10n.weeklyReviewRateNoChange,
-                    valueColor:
-                        isRateChanged ? theme.colorScheme.primary : null,
-                    borderColor:
-                        isRateChanged ? theme.colorScheme.primary : null,
+                    valueColor: isRateChanged
+                        ? theme.colorScheme.primary
+                        : null,
+                    borderColor: isRateChanged
+                        ? theme.colorScheme.primary
+                        : null,
                     mainAxisAlignment: MainAxisAlignment.start,
                   ),
                 ),
@@ -794,10 +823,12 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                       subtitle: isDateChanged
                           ? dateDeltaSubtitle
                           : l10n.weeklyReviewDateOnTrack,
-                      valueColor:
-                          isDateChanged ? theme.colorScheme.primary : null,
-                      borderColor:
-                          isDateChanged ? theme.colorScheme.primary : null,
+                      valueColor: isDateChanged
+                          ? theme.colorScheme.primary
+                          : null,
+                      borderColor: isDateChanged
+                          ? theme.colorScheme.primary
+                          : null,
                       mainAxisAlignment: MainAxisAlignment.start,
                     ),
                   ),
@@ -921,7 +952,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                   onTap: _isApplying
                       ? null
                       : () =>
-                          _openGoalAdjustment(GoalTrackingMode.targetWeight),
+                            _openGoalAdjustment(GoalTrackingMode.targetWeight),
                 ),
             ],
           ),
@@ -1142,9 +1173,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Flexible(
-          child: Text(label, style: theme.textTheme.bodyMedium),
-        ),
+        Flexible(child: Text(label, style: theme.textTheme.bodyMedium)),
         const SizedBox(width: DesignConstants.spacingM),
         Text(
           value,
@@ -1167,11 +1196,10 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       UnitDimension.weight,
     );
     final prefix = signed && converted > 0 ? '+' : '';
-    final number = NumberFormat.decimalPattern(
-      Localizations.localeOf(context).toString(),
-    )
-      ..minimumFractionDigits = 1
-      ..maximumFractionDigits = 1;
+    final number =
+        NumberFormat.decimalPattern(Localizations.localeOf(context).toString())
+          ..minimumFractionDigits = 1
+          ..maximumFractionDigits = 1;
     return '$prefix${number.format(converted)} ${unitService.unitString(UnitDimension.weight)}';
   }
 
@@ -1185,11 +1213,10 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       value,
       UnitDimension.weight,
     );
-    final number = NumberFormat.decimalPattern(
-      Localizations.localeOf(context).toString(),
-    )
-      ..minimumFractionDigits = 2
-      ..maximumFractionDigits = 2;
+    final number =
+        NumberFormat.decimalPattern(Localizations.localeOf(context).toString())
+          ..minimumFractionDigits = 2
+          ..maximumFractionDigits = 2;
     return '${converted >= 0 ? "+" : ""}${number.format(converted)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}';
   }
 

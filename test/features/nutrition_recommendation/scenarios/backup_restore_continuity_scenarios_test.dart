@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/bayesian_tdee_estimator.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/goal_models.dart';
 
@@ -8,6 +11,30 @@ import 'scenario_test_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp(
+      'backup_restore_continuity_test',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => tempDir.path,
+        );
+    AppMediaStore.instance.resetForTesting();
+  });
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+    AppMediaStore.instance.resetForTesting();
+    if (await tempDir.exists()) await tempDir.delete(recursive: true);
+  });
 
   group('Adaptive nutrition backup/restore continuity scenarios', () {
     test('mid-history backup/restore preserves adaptive continuity', () async {
@@ -63,40 +90,43 @@ void main() {
         weekCount: splitWeeks,
       );
 
-      final beforeSnapshot =
-          await restoreHarness.repository.getLatestRecommendationSnapshot();
-      final beforeState =
-          await restoreHarness.repository.getLatestEstimatorState();
-      final beforePhase =
-          await restoreHarness.repository.getDietPhaseTrackingState();
+      final beforeSnapshot = await restoreHarness.repository
+          .getLatestRecommendationSnapshot();
+      final beforeState = await restoreHarness.repository
+          .getLatestEstimatorState();
+      final beforePhase = await restoreHarness.repository
+          .getDietPhaseTrackingState();
 
       expect(beforeSnapshot, isNotNull);
       expect(beforeState, isNotNull);
       expect(beforePhase, isNotNull);
 
       final payload = await restoreHarness.createBackupPayload();
-      final userPrefs =
-          (payload['userPreferences'] as Map).cast<String, dynamic>();
-      expect(userPrefs['adaptive_nutrition_recommendation.latest_snapshot'],
-          isNotNull);
+      final userPrefs = (payload['userPreferences'] as Map)
+          .cast<String, dynamic>();
       expect(
-          userPrefs['adaptive_nutrition_recommendation.latest_recursive_state'],
-          isNotNull);
+        userPrefs['adaptive_nutrition_recommendation.latest_snapshot'],
+        isNotNull,
+      );
       expect(
-          userPrefs[
-              'adaptive_nutrition_recommendation.diet_phase_tracking_state'],
-          isNotNull);
+        userPrefs['adaptive_nutrition_recommendation.latest_recursive_state'],
+        isNotNull,
+      );
+      expect(
+        userPrefs['adaptive_nutrition_recommendation.diet_phase_tracking_state'],
+        isNotNull,
+      );
 
       final imported = await restoreHarness.restoreFromBackupPayload(payload);
       expect(imported, isTrue);
       await restoreHarness.restartAdaptiveLayer();
 
-      final restoredSnapshot =
-          await restoreHarness.repository.getLatestRecommendationSnapshot();
-      final restoredState =
-          await restoreHarness.repository.getLatestEstimatorState();
-      final restoredPhase =
-          await restoreHarness.repository.getDietPhaseTrackingState();
+      final restoredSnapshot = await restoreHarness.repository
+          .getLatestRecommendationSnapshot();
+      final restoredState = await restoreHarness.repository
+          .getLatestEstimatorState();
+      final restoredPhase = await restoreHarness.repository
+          .getDietPhaseTrackingState();
 
       expect(restoredSnapshot, isNotNull);
       expect(restoredState, isNotNull);
@@ -114,8 +144,9 @@ void main() {
         _stableJson(beforePhase!.toJson()),
       );
 
-      final continuationStart =
-          historyStart.add(Duration(days: preRestoreHistoryDays));
+      final continuationStart = historyStart.add(
+        Duration(days: preRestoreHistoryDays),
+      );
       final continuationDays = totalHistoryDays - preRestoreHistoryDays;
       await restoreHarness.seedDailyHistory(
         startDay: continuationStart,
@@ -125,8 +156,9 @@ void main() {
         averageIntakeCalories: 2340,
       );
 
-      final continuationFirstDueWeek =
-          firstDueWeek.add(const Duration(days: splitWeeks * 7));
+      final continuationFirstDueWeek = firstDueWeek.add(
+        const Duration(days: splitWeeks * 7),
+      );
       final afterRestoreWeeks = await restoreHarness.runDueWeekSeries(
         firstDueWeekStart: continuationFirstDueWeek,
         weekCount: totalWeeks - splitWeeks,
@@ -180,7 +212,9 @@ void main() {
         firstWeekAfterRestore.maintenanceEstimate.priorMeanUsedCalories,
         closeTo(
           beforeRestoreWeeks
-              .last.maintenanceEstimate.posteriorMaintenanceCalories,
+              .last
+              .maintenanceEstimate
+              .posteriorMaintenanceCalories,
           0.001,
         ),
       );

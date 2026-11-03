@@ -18,7 +18,13 @@ class ShareLinkPayload {
 
   static ShareLinkPayload fromJson(Map<String, dynamic> json) {
     if (json['v'] != 1 ||
-        !const {'routine', 'plan', 'recipe', 'workout'}.contains(json['t']) ||
+        !const {
+          'routine',
+          'plan',
+          'recipe',
+          'workout',
+          'meal_entry',
+        }.contains(json['t']) ||
         json['n'] is! String ||
         (json['n'] as String).trim().isEmpty ||
         (json['n'] as String).length > 200 ||
@@ -45,12 +51,14 @@ class ShareLinkPayload {
               (raw['category'] != null && raw['category'] is! String) ||
               (raw['muscles'] != null &&
                   (raw['muscles'] is! List ||
-                      !(raw['muscles'] as List)
-                          .every((value) => value is String))) ||
+                      !(raw['muscles'] as List).every(
+                        (value) => value is String,
+                      ))) ||
               (raw['secondaryMuscles'] != null &&
                   (raw['secondaryMuscles'] is! List ||
-                      !(raw['secondaryMuscles'] as List)
-                          .every((value) => value is String))) ||
+                      !(raw['secondaryMuscles'] as List).every(
+                        (value) => value is String,
+                      ))) ||
               (raw['tracking'] != null && raw['tracking'] is! String) ||
               (raw['loadMode'] != null && raw['loadMode'] is! String) ||
               (raw['equipment'] != null && raw['equipment'] is! String) ||
@@ -98,11 +106,13 @@ class ShareLinkPayload {
           if (day is! Map) {
             throw const FormatException('Invalid plan day');
           }
-          final routine =
-              ShareLinkPayload.fromJson(Map<String, dynamic>.from(day));
+          final routine = ShareLinkPayload.fromJson(
+            Map<String, dynamic>.from(day),
+          );
           if (routine.type != 'routine' ||
-              !(routine.data['exercises'] as List)
-                  .any((exercise) => (exercise['sets'] as List).isNotEmpty)) {
+              !(routine.data['exercises'] as List).any(
+                (exercise) => (exercise['sets'] as List).isNotEmpty,
+              )) {
             throw const FormatException('Invalid plan day');
           }
         }
@@ -135,6 +145,62 @@ class ShareLinkPayload {
             throw const FormatException('Invalid ingredient');
           }
         }
+      case 'meal_entry':
+        final consumedAt = data['consumedAt'];
+        if (consumedAt is! String ||
+            consumedAt.length > 64 ||
+            DateTime.tryParse(consumedAt) == null ||
+            !const {
+              'mealtypeBreakfast',
+              'mealtypeLunch',
+              'mealtypeDinner',
+              'mealtypeSnack',
+            }.contains(data['mealType']) ||
+            rows.isEmpty ||
+            (data['notes'] != null &&
+                (data['notes'] is! String ||
+                    (data['notes'] as String).length > 500))) {
+          throw const FormatException('Invalid meal entry');
+        }
+        for (final raw in rows) {
+          if (raw is! Map ||
+              raw['name'] is! String ||
+              (raw['name'] as String).trim().isEmpty ||
+              (raw['name'] as String).length > 120 ||
+              raw['grams'] is! num ||
+              !(raw['grams'] as num).isFinite ||
+              (raw['grams'] as num) <= 0 ||
+              (raw['grams'] as num) > 50000 ||
+              !const ['protein', 'carbs', 'fat'].every(
+                (key) =>
+                    raw[key] is num &&
+                    (raw[key] as num).isFinite &&
+                    (raw[key] as num) >= 0 &&
+                    (raw[key] as num) <= 100,
+              ) ||
+              !const ['sugar', 'fiber', 'salt'].every(
+                (key) =>
+                    raw[key] == null ||
+                    (raw[key] is num &&
+                        (raw[key] as num).isFinite &&
+                        (raw[key] as num) >= 0 &&
+                        (raw[key] as num) <= 100),
+              ) ||
+              (raw['caffeine'] != null &&
+                  (raw['caffeine'] is! num ||
+                      !(raw['caffeine'] as num).isFinite ||
+                      (raw['caffeine'] as num) < 0 ||
+                      (raw['caffeine'] as num) > 100000))) {
+            throw const FormatException('Invalid meal macro item');
+          }
+          final macroTotal = const ['protein', 'carbs', 'fat'].fold<double>(
+            0,
+            (total, key) => total + (raw[key] as num).toDouble(),
+          );
+          if (macroTotal > 100) {
+            throw const FormatException('Meal macros exceed 100 g per 100 g');
+          }
+        }
       case 'workout':
         final start = data['start'];
         final end = data['end'];
@@ -149,21 +215,21 @@ class ShareLinkPayload {
             (data['exercise_notes_by_block'] != null &&
                 (data['exercise_notes_by_block'] is! Map ||
                     (data['exercise_notes_by_block'] as Map).entries.any(
-                          (entry) =>
-                              int.tryParse(entry.key.toString()) == null ||
-                              entry.value is! String ||
-                              (entry.value as String).length > 10000,
-                        ))) ||
+                      (entry) =>
+                          int.tryParse(entry.key.toString()) == null ||
+                          entry.value is! String ||
+                          (entry.value as String).length > 10000,
+                    ))) ||
             (data['pause_seconds_by_block'] != null &&
                 (data['pause_seconds_by_block'] is! Map ||
                     (data['pause_seconds_by_block'] as Map).entries.any(
-                          (entry) =>
-                              int.tryParse(entry.key.toString()) == null ||
-                              entry.value is! List ||
-                              (entry.value as List).any(
-                                (seconds) => seconds is! int || seconds < 0,
-                              ),
-                        ))) ||
+                      (entry) =>
+                          int.tryParse(entry.key.toString()) == null ||
+                          entry.value is! List ||
+                          (entry.value as List).any(
+                            (seconds) => seconds is! int || seconds < 0,
+                          ),
+                    ))) ||
             (data['startZoneOffsetMinutes'] != null &&
                 data['startZoneOffsetMinutes'] is! int) ||
             (data['endZoneOffsetMinutes'] != null &&
@@ -190,8 +256,11 @@ class ShareLinkPayload {
               (raw['is_completed'] != null &&
                   raw['is_completed'] != 0 &&
                   raw['is_completed'] != 1) ||
-              !const ['weight_kg', 'distance_km', 'prescribed_weight']
-                  .every((key) => raw[key] == null || raw[key] is num) ||
+              !const [
+                'weight_kg',
+                'distance_km',
+                'prescribed_weight',
+              ].every((key) => raw[key] == null || raw[key] is num) ||
               !const [
                 'reps',
                 'rir',
@@ -223,8 +292,10 @@ class ShareLinkCodec {
   const ShareLinkCodec._();
 
   static String encode(ShareLinkPayload payload) {
-    if (payload.type == 'workout') {
-      throw const FormatException('Workouts require a JSON export');
+    if (payload.type == 'workout' || payload.type == 'meal_entry') {
+      throw FormatException(
+        payload.type == 'workout' ? 'Workouts require a JSON export' : 'Meal entries are local diary records and cannot be shared as links',
+      );
     }
     final json = utf8.encode(jsonEncode(payload.toJson()));
     if (json.length > maxDecodedBytes) {
@@ -252,14 +323,15 @@ class ShareLinkCodec {
     final value = jsonDecode(utf8.decode(decoded));
     if (value is! Map) throw const FormatException('Invalid shared content');
     final payload = ShareLinkPayload.fromJson(Map<String, dynamic>.from(value));
-    if (payload.type == 'workout') {
+    if (payload.type == 'workout' || payload.type == 'meal_entry') {
       throw const FormatException('Unsupported share link');
     }
     return payload;
   }
 
   static ShareLinkPayload? fromUri(Uri uri) {
-    final isWeb = uri.scheme == 'https' &&
+    final isWeb =
+        uri.scheme == 'https' &&
         uri.host == 'trainlibre.com' &&
         (uri.path == '/share' || uri.path == '/share/');
     final isApp = uri.scheme == 'trainlibre' && uri.host == 'share';
@@ -272,81 +344,79 @@ class ShareLinkCodec {
     return decode(code);
   }
 
-  static ShareLinkPayload forRoutine(Routine routine) => ShareLinkPayload(
-        'routine',
-        routine.name,
-        {
-          'exercises': routine.exercises
-              .map((entry) => {
-                    'uuid': entry.exercise.uuid,
-                    'name': entry.exercise.canonicalName,
-                    'category': entry.exercise.categoryName,
-                    'muscles': entry.exercise.primaryMuscles,
-                    'secondaryMuscles': entry.exercise.secondaryMuscles,
-                    'tracking': entry.exercise.trackingType,
-                    'loadMode': entry.exercise.loadMode,
-                    'equipment': entry.exercise.primaryEquipment,
-                    'pause': entry.pauseSeconds,
-                    'superset': entry.supersetGroup,
-                    'notes': entry.notes,
-                    'progression': entry.progressionData,
-                    'sets': entry.setTemplates
-                        .map((set) => {
-                              'type': set.setType,
-                              'reps': set.targetReps,
-                              'weight': set.targetWeight,
-                              'rir': set.targetRir,
-                              'repMin': set.targetRepMin,
-                              'repMax': set.targetRepMax,
-                            })
-                        .toList(),
-                  })
-              .toList(),
-        },
-      );
+  static ShareLinkPayload forRoutine(Routine routine) =>
+      ShareLinkPayload('routine', routine.name, {
+        'exercises': routine.exercises
+            .map(
+              (entry) => {
+                'uuid': entry.exercise.uuid,
+                'name': entry.exercise.canonicalName,
+                'category': entry.exercise.categoryName,
+                'muscles': entry.exercise.primaryMuscles,
+                'secondaryMuscles': entry.exercise.secondaryMuscles,
+                'tracking': entry.exercise.trackingType,
+                'loadMode': entry.exercise.loadMode,
+                'equipment': entry.exercise.primaryEquipment,
+                'pause': entry.pauseSeconds,
+                'superset': entry.supersetGroup,
+                'notes': entry.notes,
+                'progression': entry.progressionData,
+                'sets': entry.setTemplates
+                    .map(
+                      (set) => {
+                        'type': set.setType,
+                        'reps': set.targetReps,
+                        'weight': set.targetWeight,
+                        'rir': set.targetRir,
+                        'repMin': set.targetRepMin,
+                        'repMax': set.targetRepMax,
+                      },
+                    )
+                    .toList(),
+              },
+            )
+            .toList(),
+      });
 
-  static ShareLinkPayload forPlan(ManualTrainingPlan plan) => ShareLinkPayload(
-        'plan',
-        plan.name,
-        {
-          'kind': plan.kind.name,
-          'lengthDays': plan.days.length,
-          'revisionNumber': plan.revisionNumber,
-          'activeAtExport': plan.active,
-          'startedOn': plan.startedOn?.toIso8601String(),
-          'days': plan.days.map((day) {
-            final routine = day.routine;
-            return routine == null ? null : forRoutine(routine).toJson();
-          }).toList(),
-        },
-      );
+  static ShareLinkPayload forPlan(ManualTrainingPlan plan) =>
+      ShareLinkPayload('plan', plan.name, {
+        'kind': plan.kind.name,
+        'lengthDays': plan.days.length,
+        'revisionNumber': plan.revisionNumber,
+        'activeAtExport': plan.active,
+        'startedOn': plan.startedOn?.toIso8601String(),
+        'days': plan.days.map((day) {
+          final routine = day.routine;
+          return routine == null ? null : forRoutine(routine).toJson();
+        }).toList(),
+      });
 
   static ShareLinkPayload forWorkout(WorkoutLog workout) => ShareLinkPayload(
-        'workout',
-        workout.routineName?.trim().isNotEmpty == true
-            ? workout.routineName!.trim()
-            : 'Workout',
-        {
-          'start': workout.startTime.toIso8601String(),
-          'end': workout.endTime?.toIso8601String(),
-          'notes': workout.notes,
-          'exercise_notes_by_block': {
-            for (final entry in workout.exerciseNotesByBlock.entries)
-              entry.key.toString(): entry.value,
-          },
-          'startZoneOffsetMinutes': workout.startZoneOffsetMinutes,
-          'endZoneOffsetMinutes': workout.endZoneOffsetMinutes,
-          'pause_seconds_by_block': _pauseSecondsByBlock(workout),
-          'sets': workout.sets.map((set) {
-            final row = set.toMap();
-            row.remove('id');
-            row.remove('workout_log_id');
-            row['workout_exercise_note'] =
-                workout.exerciseNotesByBlock[set.exerciseBlock];
-            return row;
-          }).toList(),
-        },
-      );
+    'workout',
+    workout.routineName?.trim().isNotEmpty == true
+        ? workout.routineName!.trim()
+        : 'Workout',
+    {
+      'start': workout.startTime.toIso8601String(),
+      'end': workout.endTime?.toIso8601String(),
+      'notes': workout.notes,
+      'exercise_notes_by_block': {
+        for (final entry in workout.exerciseNotesByBlock.entries)
+          entry.key.toString(): entry.value,
+      },
+      'startZoneOffsetMinutes': workout.startZoneOffsetMinutes,
+      'endZoneOffsetMinutes': workout.endZoneOffsetMinutes,
+      'pause_seconds_by_block': _pauseSecondsByBlock(workout),
+      'sets': workout.sets.map((set) {
+        final row = set.toMap();
+        row.remove('id');
+        row.remove('workout_log_id');
+        row['workout_exercise_note'] =
+            workout.exerciseNotesByBlock[set.exerciseBlock];
+        return row;
+      }).toList(),
+    },
+  );
 
   static Map<String, List<int>> _pauseSecondsByBlock(WorkoutLog workout) {
     final values = <String, Set<int>>{};

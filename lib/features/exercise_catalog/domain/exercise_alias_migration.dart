@@ -33,7 +33,8 @@ class ExerciseAliasMigrationResult {
       duplicateSlotsRemoved > 0;
 
   @override
-  String toString() => 'aliases=$aliasesApplied '
+  String toString() =>
+      'aliases=$aliasesApplied '
       'routineExercises=$routineExercisesRewritten '
       'setLogs=$setLogsRewritten overrides=$overridesRewritten '
       'duplicatesRemoved=$duplicateSlotsRemoved '
@@ -78,10 +79,11 @@ class ExerciseAliasMigration {
       final newId = alias.newId;
       if (oldId == newId || oldId.isEmpty || newId.isEmpty) continue;
 
-      final target = await (db.select(db.exercises)
-            ..where((tbl) => tbl.id.equals(newId))
-            ..limit(1))
-          .getSingleOrNull();
+      final target =
+          await (db.select(db.exercises)
+                ..where((tbl) => tbl.id.equals(newId))
+                ..limit(1))
+              .getSingleOrNull();
       if (target == null) {
         skipped++;
         debugPrint(
@@ -113,39 +115,45 @@ class ExerciseAliasMigration {
         updates: {db.exercises},
       );
 
-      final oldPinnedNote = await (db.select(db.pinnedExerciseNotes)
-            ..where((tbl) => tbl.exerciseId.equals(oldId))
-            ..limit(1))
-          .getSingleOrNull();
+      final oldPinnedNote =
+          await (db.select(db.pinnedExerciseNotes)
+                ..where((tbl) => tbl.exerciseId.equals(oldId))
+                ..limit(1))
+              .getSingleOrNull();
       if (oldPinnedNote != null) {
-        final targetPinnedNote = await (db.select(db.pinnedExerciseNotes)
-              ..where((tbl) => tbl.exerciseId.equals(newId))
-              ..limit(1))
-            .getSingleOrNull();
+        final targetPinnedNote =
+            await (db.select(db.pinnedExerciseNotes)
+                  ..where((tbl) => tbl.exerciseId.equals(newId))
+                  ..limit(1))
+                .getSingleOrNull();
         if (targetPinnedNote == null) {
-          await (db.update(db.pinnedExerciseNotes)
-                ..where((tbl) => tbl.localId.equals(oldPinnedNote.localId)))
-              .write(PinnedExerciseNotesCompanion(
-            exerciseId: Value(newId),
-            updatedAt: Value(DateTime.now()),
-          ));
+          await (db.update(
+            db.pinnedExerciseNotes,
+          )..where((tbl) => tbl.localId.equals(oldPinnedNote.localId))).write(
+            PinnedExerciseNotesCompanion(
+              exerciseId: Value(newId),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
         } else {
           final oldText = oldPinnedNote.notes.trim();
           final targetText = targetPinnedNote.notes.trim();
           final merged = oldText.isEmpty || targetText == oldText
               ? targetPinnedNote.notes
               : targetText.isEmpty
-                  ? oldPinnedNote.notes
-                  : '$targetText\n\n$oldText';
+              ? oldPinnedNote.notes
+              : '$targetText\n\n$oldText';
           await (db.update(db.pinnedExerciseNotes)
                 ..where((tbl) => tbl.localId.equals(targetPinnedNote.localId)))
-              .write(PinnedExerciseNotesCompanion(
-            notes: Value(merged),
-            updatedAt: Value(DateTime.now()),
-          ));
-          await (db.delete(db.pinnedExerciseNotes)
-                ..where((tbl) => tbl.localId.equals(oldPinnedNote.localId)))
-              .go();
+              .write(
+                PinnedExerciseNotesCompanion(
+                  notes: Value(merged),
+                  updatedAt: Value(DateTime.now()),
+                ),
+              );
+          await (db.delete(
+            db.pinnedExerciseNotes,
+          )..where((tbl) => tbl.localId.equals(oldPinnedNote.localId))).go();
         }
       }
     }
@@ -184,15 +192,17 @@ class ExerciseAliasMigration {
   Future<({int removed, int kept})> _collapseEmptyDuplicateSlots(
     AppDatabase db,
   ) async {
-    final duplicateGroups = await db.customSelect(
-      '''
+    final duplicateGroups = await db
+        .customSelect(
+          '''
       SELECT routine_id, exercise_id
       FROM routine_exercises
       GROUP BY routine_id, exercise_id
       HAVING COUNT(*) > 1
       ''',
-      readsFrom: {db.routineExercises},
-    ).get();
+          readsFrom: {db.routineExercises},
+        )
+        .get();
     if (duplicateGroups.isEmpty) return (removed: 0, kept: 0);
 
     var removed = 0;
@@ -202,8 +212,9 @@ class ExerciseAliasMigration {
       final routineId = group.read<String>('routine_id');
       final exerciseId = group.read<String>('exercise_id');
 
-      final slots = await db.customSelect(
-        '''
+      final slots = await db
+          .customSelect(
+            '''
         SELECT re.id AS uuid, re.local_id AS local_id, re.notes AS notes,
                (SELECT COUNT(*) FROM routine_set_templates t
                  WHERE t.routine_exercise_id = re.id) AS template_count
@@ -211,25 +222,27 @@ class ExerciseAliasMigration {
         WHERE re.routine_id = ? AND re.exercise_id = ?
         ORDER BY re.order_index ASC, re.local_id ASC
         ''',
-        variables: [
-          Variable.withString(routineId),
-          Variable.withString(exerciseId),
-        ],
-        readsFrom: {db.routineExercises, db.routineSetTemplates},
-      ).get();
+            variables: [
+              Variable.withString(routineId),
+              Variable.withString(exerciseId),
+            ],
+            readsFrom: {db.routineExercises, db.routineSetTemplates},
+          )
+          .get();
 
       // The first one in routine order is the survivor, whatever it holds.
       for (final slot in slots.skip(1)) {
         final notes = slot.read<String?>('notes');
-        final hasContent = slot.read<int>('template_count') > 0 ||
+        final hasContent =
+            slot.read<int>('template_count') > 0 ||
             (notes != null && notes.trim().isNotEmpty);
         if (hasContent) {
           kept++;
           continue;
         }
-        await (db.delete(db.routineExercises)
-              ..where((tbl) => tbl.localId.equals(slot.read<int>('local_id'))))
-            .go();
+        await (db.delete(
+          db.routineExercises,
+        )..where((tbl) => tbl.localId.equals(slot.read<int>('local_id')))).go();
         removed++;
       }
     }

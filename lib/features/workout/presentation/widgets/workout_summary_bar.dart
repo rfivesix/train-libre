@@ -1,9 +1,11 @@
 // lib/widgets/workout_summary_bar.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/time_util.dart'; // This helper file is created separately.
@@ -59,11 +61,13 @@ class WorkoutSummaryBar extends StatelessWidget {
             // Header without gray box
             Container(
               margin: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS,
-                  vertical: DesignConstants.spacingXS),
+                horizontal: DesignConstants.spacingS,
+                vertical: DesignConstants.spacingXS,
+              ),
               padding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingM,
-                  horizontal: DesignConstants.spacingL),
+                vertical: DesignConstants.spacingM,
+                horizontal: DesignConstants.spacingL,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

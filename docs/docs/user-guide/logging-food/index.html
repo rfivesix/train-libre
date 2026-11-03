@@ -105,6 +105,7 @@
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
 <li><a href="../../features/overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../../features/app-comparison/index.html" class="sidebar-link">Fitness App Feature Comparison</a></li>
 <li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../../features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
 <li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
@@ -116,6 +117,8 @@
 <li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
 <li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../../features/ai-assistant-data-access/index.html" class="sidebar-link">AI Assistant Data Access &amp; Change Proposals</a></li>
+<li><a href="../../features/ai-assistant-meal-logging/index.html" class="sidebar-link">AI Assistant Meal Logging</a></li>
 <li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
 <li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
 <li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
@@ -127,6 +130,7 @@
 <li><a href="../tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
 <li><a href="../supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
 <li><a href="../workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../ai-chat/index.html" class="sidebar-link">Use the AI assistant</a></li>
 <li><a href="../ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
 <li><a href="../exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
 <li><a href="../workout-history/index.html" class="sidebar-link">Review workout history</a></li>
@@ -135,6 +139,7 @@
 <li><a href="../food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
 <li><a href="../saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
 <li><a href="../ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../ai-chat-food-logging/index.html" class="sidebar-link">Log food with the AI chat</a></li>
 <li><a href="../water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
 <li><a href="../daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
 <li><a href="../weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
@@ -174,16 +179,23 @@
 <p>Add foods to your Diary, choose the amount and meal, and check how the logged calories and macros compare with your daily targets.</p>
 <h2 id="add-a-food" class="doc-h2">Add a food<a href="#add-a-food" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ol class="doc-list">
-<li>In <strong>Diary</strong>, tap <strong>+</strong> and choose <strong>add Food</strong>, or tap the food action beside a meal. This opens <strong>Nutrition Explorer</strong>. If you are adding food within a meal section, that meal is preselected.</li>
-<li>In <strong>Nutrition Explorer</strong>, choose <strong>Catalog</strong> and search for the food. You can also choose <strong>Recent</strong> or <strong>Favorites</strong> to reuse an item. For packaged food, use <strong>Scan barcode</strong> when it is shown. The Catalog depends on the food database being available; if it has not been installed, follow the download prompt on the screen.</li>
+<li>In <strong>Diary</strong>, tap the floating <strong>+</strong> button and choose <strong>Food</strong> (or tap <strong>+</strong> inside any meal card). This opens the food search screen (<code>AddFoodScreen</code>). If you are adding food within a meal section, that meal is preselected.</li>
+<li>In the food search screen, use <strong>Catalog Search</strong> (or the <strong>Favorites</strong> and <strong>Custom Foods</strong> tabs) to find or enter the item. For packaged foods, tap the barcode scanner icon in the search bar. The Catalog depends on the food database being available; if it has not been installed, follow the download prompt on the screen.</li>
 <li>Select the food. In the quantity sheet, enter the amount in grams, choose <strong>Breakfast</strong>, <strong>Lunch</strong>, <strong>Dinner</strong>, or <strong>Snack</strong>, and check the date and time. The amount starts with the product’s portion when available, otherwise 100 g.</li>
 <li>Tap <strong>Add</strong>. The food appears in the selected meal in <strong>Diary</strong>, and its nutrients contribute to that day’s totals.</li>
 </ol>
 <p>The app calculates logged nutrition from the selected food’s database values and the quantity you enter. Catalog values are commonly given per 100 g, so check the food and portion before saving. For a liquid, the amount is in milliliters; the <strong>Add to water intake</strong> option can also record its volume, with sugar and caffeine fields when applicable.</p>
+<h2 id="log-macros-without-a-catalog-food" class="doc-h2">Log macros without a catalog food<a href="#log-macros-without-a-catalog-food" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ol class="doc-list">
+<li>Open food search and tap <strong>Macros</strong>. Enter a name if useful.</li>
+<li>Enter exactly three of calories, protein, carbohydrates, and fat; the app calculates the fourth using 4/4/9 kcal per gram. Check that the result is valid.</li>
+<li>Leave <strong>Amount</strong> blank to enter values for the whole item. If you enter an amount, enter nutrients per 100 g, or per 100 ml for a drink. Optionally add sugar, fiber, salt, or caffeine. To also count the item as a drink, select <strong>Also log as a drink</strong> and enter an amount in ml.</li>
+<li>Check the date and meal and save. The entry contributes to Diary totals without creating a catalog food or favorite. Open it in the Diary to review or edit it; a linked drink and macro entry are connected when deleted.</li>
+</ol>
 <h2 id="create-a-custom-food" class="doc-h2">Create a custom food<a href="#create-a-custom-food" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>If you cannot find an item, use the <strong>Custom Food</strong> action in <strong>Nutrition Explorer</strong>. Enter its name and nutrient values, then save it. Nutrient fields are recorded per 100 g; use the package label to enter comparable values. You can also use the calorie calculation control to derive calories from protein, carbohydrates, and fat. Custom food values affect new logs; editing the custom food does not change historical logs.</p>
+<p>If you cannot find an item, switch to the <strong>Custom Foods</strong> tab and tap <strong>Create Food</strong>. Enter its name and nutrient values, then save it. Nutrient fields are recorded per 100 g; use the package label to enter comparable values. You can also use the calorie calculation control to derive calories from protein, carbohydrates, and fat. Custom food values affect new logs; editing the custom food does not change historical logs.</p>
 <h2 id="read-your-daily-totals" class="doc-h2">Read your daily totals<a href="#read-your-daily-totals" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The <strong>AT A GLANCE</strong> section in <strong>Diary</strong> shows progress bars for <strong>Calories</strong>, <strong>Protein</strong>, <strong>Carbs</strong>, and <strong>Fat</strong> against the current daily targets. It also shows water and one extra nutrient: fiber, sugar, or salt, depending on your setting. These totals summarize the selected day. Calories and macros are calculated from foods logged for that day; a missing item or incorrect quantity changes the totals.</p>
+<p>The <strong>At a Glance</strong> summary cards in <strong>Diary</strong> (labeled <strong>AUF EINEN BLICK</strong> in the German UI) show progress bars for <strong>Calories</strong>, <strong>Protein</strong>, <strong>Carbs</strong>, and <strong>Fat</strong> against your daily targets. It also shows water and an optional extra nutrient (fiber, sugar, or salt, configurable in Settings). These totals summarize the selected day. Calories and macros are calculated from foods logged for that day; a missing item or incorrect quantity changes the totals.</p>
 <p>Targets are managed separately from food entries. To understand how Train Libre derives calorie and macro recommendations, see <a href="../../features/bayesian-tdee-estimator/index.html">Bayesian TDEE Estimator</a> and <a href="../../features/macro-distribution/index.html">Macronutrient Distribution</a>. Recommendations do not automatically replace your active targets. For capture options such as meal photos, voice, and barcode behavior, see <a href="../../features/meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
         </article>
 
@@ -196,6 +208,7 @@
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
 <li class="toc-item toc-item-l2"><a href="#add-a-food">Add a food</a></li>
+<li class="toc-item toc-item-l2"><a href="#log-macros-without-a-catalog-food">Log macros without a catalog food</a></li>
 <li class="toc-item toc-item-l2"><a href="#create-a-custom-food">Create a custom food</a></li>
 <li class="toc-item toc-item-l2"><a href="#read-your-daily-totals">Read your daily totals</a></li>
 </ul></div></aside>

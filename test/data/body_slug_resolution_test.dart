@@ -145,8 +145,12 @@ void main() {
       }
     }
 
-    expect(onlyUnpaintable, isEmpty,
-        reason: 'these muscles resolve only to slugs with no path data: '
-            '$onlyUnpaintable');
+    expect(
+      onlyUnpaintable,
+      isEmpty,
+      reason:
+          'these muscles resolve only to slugs with no path data: '
+          '$onlyUnpaintable',
+    );
   });
 }

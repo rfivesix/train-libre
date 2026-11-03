@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/repositories/supplement_repository.dart';
 import '../../workout/domain/repositories/workout_repository.dart';
@@ -9,6 +11,7 @@ import '../domain/models/daily_goal.dart';
 import '../domain/models/daily_nutrition.dart';
 import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
+import '../domain/models/macro_entry.dart';
 import '../domain/models/meal_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/tracked_food_item.dart';
@@ -105,6 +108,7 @@ class DiaryViewModel extends ChangeNotifier {
 
   StreamSubscription<DailyGoal?>? _goalsSubscription;
   StreamSubscription<List<FoodEntry>>? _entriesSubscription;
+  StreamSubscription<List<MacroEntry>>? _macroEntriesSubscription;
   StreamSubscription<List<MealEntry>>? _mealEntriesSubscription;
   StreamSubscription<List<FluidEntry>>? _fluidsSubscription;
   StreamSubscription<List<Supplement>>? _supplementsSubscription;
@@ -118,6 +122,7 @@ class DiaryViewModel extends ChangeNotifier {
 
   DailyGoal? _activeGoals;
   List<FoodEntry> _activeEntries = [];
+  List<MacroEntry> _activeMacroEntries = [];
   List<MealEntry> _activeMealEntries = [];
   List<FluidEntry> _activeFluids = [];
   List<Supplement> _activeSupplements = [];
@@ -127,9 +132,11 @@ class DiaryViewModel extends ChangeNotifier {
   bool isLoading = true;
   DailyNutrition? dailyNutrition;
   Map<String, List<TrackedFoodItem>> entriesByMeal = {};
+  Map<String, List<MacroEntry>> macroEntriesByMeal = {};
   List<MealEntry> mealEntries = [];
-  Map<String, MealEntry> get mealEntriesById =>
-      {for (final m in mealEntries) m.id: m};
+  Map<String, MealEntry> get mealEntriesById => {
+    for (final m in mealEntries) m.id: m,
+  };
   List<FluidEntry> fluidEntries = [];
   List<TrackedSupplement> trackedSupplements = [];
   Map<String, dynamic>? workoutSummary;
@@ -142,6 +149,7 @@ class DiaryViewModel extends ChangeNotifier {
   bool get hasDataForSelectedDate =>
       fluidEntries.isNotEmpty ||
       entriesByMeal.values.any((m) => m.isNotEmpty) ||
+      macroEntriesByMeal.values.any((m) => m.isNotEmpty) ||
       _activeSupplementLogs.isNotEmpty ||
       _activeWorkouts.isNotEmpty ||
       (stepsForSelectedDay != null && stepsForSelectedDay! > 0) ||
@@ -176,22 +184,23 @@ class DiaryViewModel extends ChangeNotifier {
     required IWorkoutRepository workoutRepo,
     DateTime? initialDate,
     bool deferInitialHealthSync = false,
-  })  : _nutritionRepo = nutritionRepo,
-        _supplementRepo = supplementRepo,
-        _workoutRepo = workoutRepo,
-        _skipNextAutomaticHealthSync = deferInitialHealthSync,
-        selectedDateNotifier = ValueNotifier(
-          resolveDiaryInitialDate(initialDate: initialDate),
-        ) {
+  }) : _nutritionRepo = nutritionRepo,
+       _supplementRepo = supplementRepo,
+       _workoutRepo = workoutRepo,
+       _skipNextAutomaticHealthSync = deferInitialHealthSync,
+       selectedDateNotifier = ValueNotifier(
+         resolveDiaryInitialDate(initialDate: initialDate),
+       ) {
     healthSyncCoordinator.addListener(notifyListeners);
-    _extraNutrientSubscription =
-        _prefsRepo.watchOverviewExtraNutrient().listen((nutrient) {
-      if (overviewExtraNutrient != nutrient) {
-        overviewExtraNutrient = nutrient;
-        showSugarInOverview = nutrient == 'sugar';
-        _updateCalculatedState();
-      }
-    });
+    _extraNutrientSubscription = _prefsRepo.watchOverviewExtraNutrient().listen(
+      (nutrient) {
+        if (overviewExtraNutrient != nutrient) {
+          overviewExtraNutrient = nutrient;
+          showSugarInOverview = nutrient == 'sugar';
+          _updateCalculatedState();
+        }
+      },
+    );
     setSelectedDate(selectedDate);
   }
 
@@ -201,6 +210,7 @@ class DiaryViewModel extends ChangeNotifier {
     _updateDebounceTimer?.cancel();
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
+    _macroEntriesSubscription?.cancel();
     _mealEntriesSubscription?.cancel();
     _fluidsSubscription?.cancel();
     _supplementsSubscription?.cancel();
@@ -219,6 +229,7 @@ class DiaryViewModel extends ChangeNotifier {
     // Cancel existing subscriptions
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
+    _macroEntriesSubscription?.cancel();
     _mealEntriesSubscription?.cancel();
     _fluidsSubscription?.cancel();
     _supplementsSubscription?.cancel();
@@ -240,38 +251,47 @@ class DiaryViewModel extends ChangeNotifier {
       },
     );
 
-    _mealEntriesSubscription =
-        _nutritionRepo.watchMealEntriesForDate(diaryDate).listen(
-      (meals) {
-        _activeMealEntries = meals;
-        _updateCalculatedState();
-      },
-    );
+    _macroEntriesSubscription = _nutritionRepo
+        .watchMacroEntriesForDate(diaryDate)
+        .listen((entries) {
+          _activeMacroEntries = entries;
+          _updateCalculatedState();
+        });
 
-    _fluidsSubscription =
-        _nutritionRepo.watchFluidEntriesForDate(diaryDate).listen((fluids) {
-      _activeFluids = fluids;
-      _updateCalculatedState();
-    });
+    _mealEntriesSubscription = _nutritionRepo
+        .watchMealEntriesForDate(diaryDate)
+        .listen((meals) {
+          _activeMealEntries = meals;
+          _updateCalculatedState();
+        });
 
-    _supplementsSubscription =
-        _supplementRepo.watchSupplementsForDate(diaryDate).listen((supps) {
-      _activeSupplements = supps;
-      _updateCalculatedState();
-    });
+    _fluidsSubscription = _nutritionRepo
+        .watchFluidEntriesForDate(diaryDate)
+        .listen((fluids) {
+          _activeFluids = fluids;
+          _updateCalculatedState();
+        });
 
-    _supplementLogsSubscription =
-        _supplementRepo.watchSupplementLogsForDate(diaryDate).listen((logs) {
-      _activeSupplementLogs = logs;
-      _updateCalculatedState();
-    });
+    _supplementsSubscription = _supplementRepo
+        .watchSupplementsForDate(diaryDate)
+        .listen((supps) {
+          _activeSupplements = supps;
+          _updateCalculatedState();
+        });
+
+    _supplementLogsSubscription = _supplementRepo
+        .watchSupplementLogsForDate(diaryDate)
+        .listen((logs) {
+          _activeSupplementLogs = logs;
+          _updateCalculatedState();
+        });
 
     _workoutsSubscription = _workoutRepo
         .watchWorkoutLogsForDateRange(diaryDate, diaryDate)
         .listen((workouts) {
-      _activeWorkouts = workouts;
-      _updateCalculatedState();
-    });
+          _activeWorkouts = workouts;
+          _updateCalculatedState();
+        });
 
     // Delegate all health data loading and background sync
     if (_skipNextAutomaticHealthSync) {
@@ -372,6 +392,7 @@ class DiaryViewModel extends ChangeNotifier {
         targetSalt: targetSalt,
         targetCaffeine: targetCaffeine,
         foodEntries: _activeEntries,
+        macroEntries: _activeMacroEntries,
         fluidEntries: _activeFluids,
         foodProductsByBarcode: legacyProductsMap,
         foodProductsByArchiveLocalId: archiveProductsMap,
@@ -383,6 +404,7 @@ class DiaryViewModel extends ChangeNotifier {
 
       dailyNutrition = state.summary;
       entriesByMeal = state.entriesByMeal;
+      macroEntriesByMeal = state.macroEntriesByMeal;
       mealEntries = List.from(_activeMealEntries);
       fluidEntries = _activeFluids;
       trackedSupplements = state.trackedSupplements;
@@ -391,8 +413,8 @@ class DiaryViewModel extends ChangeNotifier {
           _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
 
       hasEverLoggedData = await _nutritionRepo.hasAnyDiaryEntries();
-      hasWeightMeasurementForSelectedDate =
-          await _nutritionRepo.hasWeightMeasurementForDate(selectedDate);
+      hasWeightMeasurementForSelectedDate = await _nutritionRepo
+          .hasWeightMeasurementForDate(selectedDate);
 
       isLoading = false;
       notifyListeners();
@@ -411,8 +433,22 @@ class DiaryViewModel extends ChangeNotifier {
     await _nutritionRepo.deleteFoodEntry(id);
   }
 
-  Future<void> deleteMealEntry(String id,
-      {required bool deleteFoodLogs}) async {
+  Future<void> deleteMacroEntry(String id) async {
+    await _nutritionRepo.deleteMacroEntry(id);
+  }
+
+  Future<void> updateMacroEntry(MacroEntry entry) async {
+    await _nutritionRepo.updateMacroEntry(entry);
+  }
+
+  Future<void> insertMacroEntry(MacroEntry entry) async {
+    await _nutritionRepo.insertMacroEntry(entry);
+  }
+
+  Future<void> deleteMealEntry(
+    String id, {
+    required bool deleteFoodLogs,
+  }) async {
     await _nutritionRepo.deleteMealEntry(id, deleteFoodLogs: deleteFoodLogs);
   }
 
@@ -444,8 +480,10 @@ class DiaryViewModel extends ChangeNotifier {
     FoodEntry entry, {
     String telemetrySource = FoodLogSource.manualSearch,
   }) async {
-    return await _nutritionRepo.insertFoodEntry(entry,
-        telemetrySource: telemetrySource);
+    return await _nutritionRepo.insertFoodEntry(
+      entry,
+      telemetrySource: telemetrySource,
+    );
   }
 
   Future<void> logCaffeineDose(

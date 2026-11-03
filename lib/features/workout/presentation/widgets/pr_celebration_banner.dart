@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:flutter/material.dart';
@@ -55,15 +56,13 @@ class PrCelebrationBanner extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingL,
-                      vertical: DesignConstants.spacingM),
+                    horizontal: DesignConstants.spacingL,
+                    vertical: DesignConstants.spacingM,
+                  ),
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: borderColor,
-                      width: 1.5,
-                    ),
+                    border: Border.all(color: borderColor, width: 1.5),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -106,8 +105,9 @@ class PrCelebrationBanner extends StatelessWidget {
                                     TextSpan(
                                       text: diffText,
                                       style: TextStyle(
-                                        color:
-                                            Colors.amber.withValues(alpha: 0.8),
+                                        color: Colors.amber.withValues(
+                                          alpha: 0.8,
+                                        ),
                                         fontSize: 14,
                                       ),
                                     ),

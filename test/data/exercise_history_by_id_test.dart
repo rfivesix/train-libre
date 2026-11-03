@@ -33,17 +33,20 @@ void main() {
     required String logId,
     required DateTime startTime,
     required List<
-            ({
-              String? exerciseId,
-              String name,
-              double? weight,
-              int? reps,
-              int logOrder
-            })>
-        sets,
+      ({
+        String? exerciseId,
+        String name,
+        double? weight,
+        int? reps,
+        int logOrder,
+      })
+    >
+    sets,
     String status = 'completed',
   }) async {
-    await db.into(db.workoutLogs).insert(
+    await db
+        .into(db.workoutLogs)
+        .insert(
           WorkoutLogsCompanion.insert(
             id: Value(logId),
             startTime: startTime,
@@ -52,13 +55,15 @@ void main() {
         );
 
     for (final exerciseId in sets.map((set) => set.exerciseId).nonNulls) {
-      await db.into(db.exercises).insertOnConflictUpdate(
-            ExercisesCompanion(id: Value(exerciseId)),
-          );
+      await db
+          .into(db.exercises)
+          .insertOnConflictUpdate(ExercisesCompanion(id: Value(exerciseId)));
     }
 
     for (final s in sets) {
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion.insert(
               workoutLogId: logId,
               exerciseId: Value(s.exerciseId),
@@ -74,49 +79,49 @@ void main() {
   }
 
   group('SetLog domain model exerciseId', () {
-    test('SetLog carries exerciseId, supports fromMap, toMap, and copyWith',
-        () {
-      final log = SetLog(
-        workoutLogId: 1,
-        exerciseId: 'ex-123',
-        exerciseName: 'Bench Press',
-        setType: 'normal',
-        weightKg: 100,
-        reps: 5,
-      );
-      expect(log.exerciseId, 'ex-123');
+    test(
+      'SetLog carries exerciseId, supports fromMap, toMap, and copyWith',
+      () {
+        final log = SetLog(
+          workoutLogId: 1,
+          exerciseId: 'ex-123',
+          exerciseName: 'Bench Press',
+          setType: 'normal',
+          weightKg: 100,
+          reps: 5,
+        );
+        expect(log.exerciseId, 'ex-123');
 
-      final map = log.toMap();
-      expect(map['exercise_id'], 'ex-123');
+        final map = log.toMap();
+        expect(map['exercise_id'], 'ex-123');
 
-      final fromDbMap = SetLog.fromMap({
-        'workout_log_id': 1,
-        'exercise_id': 'ex-456',
-        'exercise_name': 'Incline Bench Press',
-        'set_type': 'normal',
-      });
-      expect(fromDbMap.exerciseId, 'ex-456');
+        final fromDbMap = SetLog.fromMap({
+          'workout_log_id': 1,
+          'exercise_id': 'ex-456',
+          'exercise_name': 'Incline Bench Press',
+          'set_type': 'normal',
+        });
+        expect(fromDbMap.exerciseId, 'ex-456');
 
-      final fromCamelMap = SetLog.fromMap({
-        'workout_log_id': 1,
-        'exerciseId': 'ex-789',
-        'exercise_name': 'Dumbbell Bench Press',
-        'set_type': 'normal',
-      });
-      expect(fromCamelMap.exerciseId, 'ex-789');
+        final fromCamelMap = SetLog.fromMap({
+          'workout_log_id': 1,
+          'exerciseId': 'ex-789',
+          'exercise_name': 'Dumbbell Bench Press',
+          'set_type': 'normal',
+        });
+        expect(fromCamelMap.exerciseId, 'ex-789');
 
-      final copied = log.copyWith(exerciseId: 'ex-updated');
-      expect(copied.exerciseId, 'ex-updated');
+        final copied = log.copyWith(exerciseId: 'ex-updated');
+        expect(copied.exerciseId, 'ex-updated');
 
-      final cleared = log.copyWith(clearExerciseId: true);
-      expect(cleared.exerciseId, isNull);
-    });
+        final cleared = log.copyWith(clearExerciseId: true);
+        expect(cleared.exerciseId, isNull);
+      },
+    );
   });
 
   group('Exercise history by UUID (getLastSetsForExercise)', () {
-    test(
-        'Historie wird gefunden, wenn nur exercise_id passt (z.B. nach Umbenennung)',
-        () async {
+    test('Historie wird gefunden, wenn nur exercise_id passt (z.B. nach Umbenennung)', () async {
       // Row logged with exercise_id = 'uuid-bench', snapshot name = 'Bankdruecken' (old name)
       await logWorkoutWithSets(
         logId: 'log-1',
@@ -127,7 +132,7 @@ void main() {
             name: 'Bankdruecken',
             weight: 80.0,
             reps: 10,
-            logOrder: 0
+            logOrder: 0,
           ),
         ],
       );
@@ -144,9 +149,7 @@ void main() {
       expect(result.first.reps, 10);
     });
 
-    test(
-        'Historie wird gefunden, wenn exercise_id NULL ist und nur der Name passt (Altdaten)',
-        () async {
+    test('Historie wird gefunden, wenn exercise_id NULL ist und nur der Name passt (Altdaten)', () async {
       // Legacy row: exercise_id is NULL, only exercise_name_snapshot is populated
       await logWorkoutWithSets(
         logId: 'log-legacy',
@@ -157,7 +160,7 @@ void main() {
             name: 'Squat',
             weight: 120.0,
             reps: 5,
-            logOrder: 0
+            logOrder: 0,
           ),
         ],
       );
@@ -181,9 +184,7 @@ void main() {
       expect(resultWithoutId.first.weightKg, 120.0);
     });
 
-    test(
-        'Historie wird NICHT gefunden, wenn eine andere Uebung denselben Namen traegt, aber eine andere exercise_id hat',
-        () async {
+    test('Historie wird NICHT gefunden, wenn eine andere Uebung denselben Namen traegt, aber eine andere exercise_id hat', () async {
       // Row logged for a different exercise that happened to share the same name, but with another ID
       await logWorkoutWithSets(
         logId: 'log-collision',
@@ -194,7 +195,7 @@ void main() {
             name: 'Shoulder Press',
             weight: 50.0,
             reps: 8,
-            logOrder: 0
+            logOrder: 0,
           ),
         ],
       );
@@ -209,9 +210,7 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test(
-        'Gemischter Fall: alte namensbasierte und neue id-basierte Zeilen derselben Uebung liefern zusammen das erwartete Ergebnis',
-        () async {
+    test('Gemischter Fall: alte namensbasierte und neue id-basierte Zeilen derselben Uebung liefern zusammen das erwartete Ergebnis', () async {
       // In a workout session, a legacy set (no exercise_id) and a new set (with exercise_id) exist for the same exercise
       await logWorkoutWithSets(
         logId: 'log-mixed',
@@ -222,14 +221,14 @@ void main() {
             name: 'Deadlift',
             weight: 140.0,
             reps: 5,
-            logOrder: 0
+            logOrder: 0,
           ),
           (
             exerciseId: 'uuid-deadlift',
             name: 'Deadlift',
             weight: 150.0,
             reps: 5,
-            logOrder: 1
+            logOrder: 1,
           ),
         ],
       );
@@ -246,9 +245,7 @@ void main() {
       expect(result[1].weightKg, 150.0);
     });
 
-    test(
-        'Gemischter Fall ueber mehrere Workouts: neues Workout mit ID ueberschreibt aelteres Workout ohne ID',
-        () async {
+    test('Gemischter Fall ueber mehrere Workouts: neues Workout mit ID ueberschreibt aelteres Workout ohne ID', () async {
       // Older workout has legacy rows (exercise_id is null)
       await logWorkoutWithSets(
         logId: 'log-old',
@@ -259,7 +256,7 @@ void main() {
             name: 'Bench Press',
             weight: 70.0,
             reps: 10,
-            logOrder: 0
+            logOrder: 0,
           ),
         ],
       );
@@ -274,7 +271,7 @@ void main() {
             name: 'Bench Press',
             weight: 75.0,
             reps: 8,
-            logOrder: 0
+            logOrder: 0,
           ),
         ],
       );

@@ -9,15 +9,17 @@ void main() {
     );
   });
 
-  test('regularityToSleepWindowMinutes keeps evening bedtimes on prior day',
-      () {
-    final window = regularityToSleepWindowMinutes(
-      bedtimeMinutes: 23 * 60 + 30,
-      wakeMinutes: 6 * 60 + 15,
-    );
-    expect(window.startMinutes, 23 * 60 + 30);
-    expect(window.endMinutes, 24 * 60 + 6 * 60 + 15);
-  });
+  test(
+    'regularityToSleepWindowMinutes keeps evening bedtimes on prior day',
+    () {
+      final window = regularityToSleepWindowMinutes(
+        bedtimeMinutes: 23 * 60 + 30,
+        wakeMinutes: 6 * 60 + 15,
+      );
+      expect(window.startMinutes, 23 * 60 + 30);
+      expect(window.endMinutes, 24 * 60 + 6 * 60 + 15);
+    },
+  );
 
   test('regularityToSleepWindowMinutes shifts after-midnight bedtimes', () {
     final window = regularityToSleepWindowMinutes(

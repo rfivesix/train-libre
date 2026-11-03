@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -43,9 +44,9 @@ class PerformanceSectionCard extends StatelessWidget {
         : notableImprovements.reduce(
             (strongest, candidate) =>
                 ((candidate['improvementPct'] as num?)?.toDouble() ?? 0) >
-                        ((strongest['improvementPct'] as num?)?.toDouble() ?? 0)
-                    ? candidate
-                    : strongest,
+                    ((strongest['improvementPct'] as num?)?.toDouble() ?? 0)
+                ? candidate
+                : strongest,
           );
     final momentumValue = strongestImprovement == null
         ? '-'
@@ -53,7 +54,7 @@ class PerformanceSectionCard extends StatelessWidget {
     final topExerciseName = strongestImprovement == null
         ? l10n.metricsMostImproved
         : (strongestImprovement['exerciseName'] as String? ??
-            l10n.metricsMostImproved);
+              l10n.metricsMostImproved);
     final momentumColor = strongestImprovement == null
         ? Theme.of(context).colorScheme.outline
         : Theme.of(context).colorScheme.primary;
@@ -78,17 +79,16 @@ class PerformanceSectionCard extends StatelessWidget {
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 '${notableImprovements.length} ${l10n.analyticsInTimeframe.toLowerCase()}',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               Text(
                 '${l10n.analyticsTop}: $topExerciseName · $momentumValue',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: momentumColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: momentumColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),

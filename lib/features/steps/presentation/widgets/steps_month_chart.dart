@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -23,14 +24,15 @@ class StepsMonthChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(
-      context,
-    ).languageCode.toLowerCase();
+    final localeCode = Localizations.localeOf(context).languageCode
+        .toLowerCase();
     final numberFormat = NumberFormat.decimalPattern(localeCode);
-    final safeGoal =
-        dailyGoal > 0 ? dailyGoal : StepsSyncService.defaultStepsGoal;
+    final safeGoal = dailyGoal > 0
+        ? dailyGoal
+        : StepsSyncService.defaultStepsGoal;
 
-    final resolvedMonthStart = monthStart ??
+    final resolvedMonthStart =
+        monthStart ??
         (buckets.isNotEmpty
             ? DateTime(buckets.first.start.year, buckets.first.start.month, 1)
             : DateTime(DateTime.now().year, DateTime.now().month, 1));
@@ -99,9 +101,8 @@ class StepsMonthChart extends StatelessWidget {
               child: Center(
                 child: Text(
                   dayLabel,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
                 ),
               ),
             );
@@ -126,7 +127,8 @@ class StepsMonthChart extends StatelessWidget {
             final day = index - leadingEmpty + 1;
             final steps = byDay[day] ?? 0;
             final ratio = (steps / maxValue).clamp(0.0, 1.0);
-            final isToday = today.year == resolvedMonthStart.year &&
+            final isToday =
+                today.year == resolvedMonthStart.year &&
                 today.month == resolvedMonthStart.month &&
                 today.day == day;
             final background = Color.lerp(
@@ -138,10 +140,8 @@ class StepsMonthChart extends StatelessWidget {
             return Container(
               decoration: BoxDecoration(
                 color: steps == 0
-                    ? Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.6)
+                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.6)
                     : background,
                 borderRadius: BorderRadius.circular(6),
                 border: isToday
@@ -155,11 +155,11 @@ class StepsMonthChart extends StatelessWidget {
                 child: Text(
                   '$day',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: steps == 0
-                            ? Theme.of(context).colorScheme.outline
-                            : Theme.of(context).colorScheme.onPrimary,
-                      ),
+                    fontWeight: FontWeight.w600,
+                    color: steps == 0
+                        ? Theme.of(context).colorScheme.outline
+                        : Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               ),
             );

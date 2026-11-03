@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
 import '../../../statistics/domain/analytics_state.dart';
 import '../../../../generated/app_localizations.dart';
 
@@ -13,15 +14,12 @@ class AnalyticsChartDefaults {
   /// scaffold's outline colour at low opacity, so they look clean against
   /// the bare scaffold background in both dark and light modes.
   static FlGridData themeAwareCompactGrid(BuildContext context) {
-    final lineColor =
-        Theme.of(context).colorScheme.outline.withValues(alpha: 0.15);
+    final lineColor = Theme.of(context).colorScheme.outline
+        .withValues(alpha: 0.15);
     return FlGridData(
       show: true,
       drawVerticalLine: false,
-      getDrawingHorizontalLine: (_) => FlLine(
-        color: lineColor,
-        strokeWidth: 1,
-      ),
+      getDrawingHorizontalLine: (_) => FlLine(color: lineColor, strokeWidth: 1),
     );
   }
 

@@ -42,9 +42,7 @@ void main() {
       expect(logs, isEmpty);
     });
 
-    test(
-        'deleting a fluid entry deletes its associated caffeine logs by timestamp',
-        () async {
+    test('deleting a fluid entry deletes its associated caffeine logs by timestamp', () async {
       final timestamp = DateTime(2026, 3, 30, 10, 0);
       final fluidId = await dbHelper.insertFluidEntry(
         FluidEntry(
@@ -80,56 +78,58 @@ void main() {
       expect(logs, isEmpty);
     });
 
-    test('updating a fluid entry deletes old caffeine logs by timestamp',
-        () async {
-      final oldTimestamp = DateTime(2026, 3, 30, 10, 0);
-      final newTimestamp = DateTime(2026, 3, 30, 11, 0);
-      final fluidId = await dbHelper.insertFluidEntry(
-        FluidEntry(
-          timestamp: oldTimestamp,
-          quantityInMl: 250,
-          name: 'Energy Drink',
-          kcal: null,
-          sugarPer100ml: null,
-          carbsPer100ml: null,
-          caffeinePer100ml: 32,
-        ),
-      );
-
-      // Simulate UI creating the caffeine log
-      final supplements = await dbHelper.getAllSupplements();
-      final caffeine = supplements.firstWhere((s) => s.code == 'caffeine');
-      await dbHelper.insertSupplementLog(
-        SupplementLog(
-          supplementId: caffeine.id!,
-          dose: 80,
-          unit: 'mg',
-          timestamp: oldTimestamp,
-        ),
-      );
-
-      final db = await dbHelper.database;
-      var logs = await db.select(db.supplementLogs).get();
-      expect(logs.length, 1);
-
-      await dbHelper.updateFluidEntry(FluidEntry(
-        id: fluidId,
-        timestamp: newTimestamp,
-        quantityInMl: 500,
-        name: 'Energy Drink',
-        kcal: null,
-        sugarPer100ml: null,
-        carbsPer100ml: null,
-        caffeinePer100ml: 32,
-      ));
-
-      logs = await db.select(db.supplementLogs).get();
-      expect(logs, isEmpty); // Old caffeine log is deleted
-    });
-
     test(
-        'insertSupplementLog resolves sourceNutritionLogId for food entry and deletes on food entry delete',
-        () async {
+      'updating a fluid entry deletes old caffeine logs by timestamp',
+      () async {
+        final oldTimestamp = DateTime(2026, 3, 30, 10, 0);
+        final newTimestamp = DateTime(2026, 3, 30, 11, 0);
+        final fluidId = await dbHelper.insertFluidEntry(
+          FluidEntry(
+            timestamp: oldTimestamp,
+            quantityInMl: 250,
+            name: 'Energy Drink',
+            kcal: null,
+            sugarPer100ml: null,
+            carbsPer100ml: null,
+            caffeinePer100ml: 32,
+          ),
+        );
+
+        // Simulate UI creating the caffeine log
+        final supplements = await dbHelper.getAllSupplements();
+        final caffeine = supplements.firstWhere((s) => s.code == 'caffeine');
+        await dbHelper.insertSupplementLog(
+          SupplementLog(
+            supplementId: caffeine.id!,
+            dose: 80,
+            unit: 'mg',
+            timestamp: oldTimestamp,
+          ),
+        );
+
+        final db = await dbHelper.database;
+        var logs = await db.select(db.supplementLogs).get();
+        expect(logs.length, 1);
+
+        await dbHelper.updateFluidEntry(
+          FluidEntry(
+            id: fluidId,
+            timestamp: newTimestamp,
+            quantityInMl: 500,
+            name: 'Energy Drink',
+            kcal: null,
+            sugarPer100ml: null,
+            carbsPer100ml: null,
+            caffeinePer100ml: 32,
+          ),
+        );
+
+        logs = await db.select(db.supplementLogs).get();
+        expect(logs, isEmpty); // Old caffeine log is deleted
+      },
+    );
+
+    test('insertSupplementLog resolves sourceNutritionLogId for food entry and deletes on food entry delete', () async {
       final timestamp = DateTime(2026, 3, 30, 10, 0);
       final foodId = await dbHelper.insertFoodEntry(
         FoodEntry(
@@ -154,9 +154,9 @@ void main() {
       );
 
       final db = await dbHelper.database;
-      final nutritionRow = await (db.select(db.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(foodId)))
-          .getSingle();
+      final nutritionRow = await (db.select(
+        db.nutritionLogs,
+      )..where((tbl) => tbl.localId.equals(foodId))).getSingle();
 
       var logs = await db.select(db.supplementLogs).get();
       expect(logs.length, 1);
@@ -168,9 +168,7 @@ void main() {
       expect(logs, isEmpty);
     });
 
-    test(
-        'insertSupplementLog resolves sourceNutritionLogId for linked fluid entry and deletes by fluid ID',
-        () async {
+    test('insertSupplementLog resolves sourceNutritionLogId for linked fluid entry and deletes by fluid ID', () async {
       final timestamp = DateTime(2026, 3, 30, 10, 0);
 
       final foodId = await dbHelper.insertFoodEntry(
@@ -183,9 +181,9 @@ void main() {
       );
 
       final db = await dbHelper.database;
-      final nutritionRow = await (db.select(db.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(foodId)))
-          .getSingle();
+      final nutritionRow = await (db.select(
+        db.nutritionLogs,
+      )..where((tbl) => tbl.localId.equals(foodId))).getSingle();
 
       final fluidId = await dbHelper.insertFluidEntry(
         FluidEntry(
@@ -218,8 +216,9 @@ void main() {
       expect(logs.first.sourceNutritionLogId, nutritionRow.id);
 
       // Verify deletion of fluid deletes the caffeine log via repository/datasource method
-      await dbHelper.supplementLocalDataSource
-          .deleteCaffeineLogByFluidEntryId(fluidId);
+      await dbHelper.supplementLocalDataSource.deleteCaffeineLogByFluidEntryId(
+        fluidId,
+      );
       logs = await db.select(db.supplementLogs).get();
       expect(logs, isEmpty);
     });

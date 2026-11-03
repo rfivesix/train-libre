@@ -2,15 +2,19 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:dynamic_color/dynamic_color.dart';
+
 import 'util/design_constants.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'features/ai_assistant/data/ai_overlay_demo_settings.dart';
+import 'features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
@@ -29,16 +33,22 @@ import 'features/workout/domain/services/workout_progression_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
 import 'features/workout/presentation/live_workout_screen.dart';
 import 'features/workout/presentation/workout_morph_route.dart';
+
 import 'package:provider/provider.dart';
+
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
+import 'theme/app_color_choice.dart';
+
 import 'package:intl/date_symbol_data_local.dart'; // FIX: Initialize intl formatting
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'features/onboarding/presentation/initial_consent_screen.dart';
 import 'features/onboarding/presentation/legal_update_consent_screen.dart';
 import 'features/whats_new/data/whats_new_service.dart';
+import 'features/whats_new/data/ai_assistant_update_intro_service.dart';
 import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
@@ -73,7 +83,9 @@ import 'features/steps/presentation/steps_module_screen.dart';
 import 'features/profile/presentation/measurements_screen.dart';
 import 'features/workout/presentation/workout_log_detail_screen.dart';
 import 'features/app/presentation/main_screen.dart';
+
 import 'package:workmanager/workmanager.dart';
+
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/ai_service.dart';
 import 'services/local_notification_service.dart';
@@ -136,9 +148,8 @@ void main() async {
   );
   // The send is a no-op while the user is opted out — `track` drops everything
   // before it reaches PostHog — so no consent check is needed here.
-  JankRecorder.instance.onStall = (stall) => unawaited(
-        stallReporter.report(stall),
-      );
+  JankRecorder.instance.onStall = (stall) =>
+      unawaited(stallReporter.report(stall));
   unawaited(JankRecorder.instance.start());
 
   // Initialize Liquid Glass shaders and pipeline
@@ -188,6 +199,7 @@ void main() async {
   // nothing to compare against. Mark them as seen up front.
   if (isFreshInstall) {
     await WhatsNewService.instance.seedForFreshInstall();
+    await AiAssistantUpdateIntroService.instance.seedForFreshInstall();
   }
 
   // Load previously settled glass quality to avoid warmup jank on cold starts
@@ -213,18 +225,21 @@ void main() async {
   }());
   final diaryLocalDataSource = DiaryLocalDataSource(database);
   final workoutLocalDataSource = WorkoutLocalDataSource(database);
-  final exerciseCatalogLocalDataSource =
-      ExerciseCatalogLocalDataSource(database);
+  final exerciseCatalogLocalDataSource = ExerciseCatalogLocalDataSource(
+    database,
+  );
   final profileLocalDataSource = ProfileLocalDataSource(database);
-  final profileRepository =
-      ProfileRepository(localDataSource: profileLocalDataSource);
+  final profileRepository = ProfileRepository(
+    localDataSource: profileLocalDataSource,
+  );
   final profileService = ProfileService();
   await profileService.initialize(profileRepository);
 
   final supplementLocalDataSource = SupplementLocalDataSource(database);
 
-  final workoutRepository =
-      WorkoutRepository(localDataSource: workoutLocalDataSource);
+  final workoutRepository = WorkoutRepository(
+    localDataSource: workoutLocalDataSource,
+  );
 
   final themeService = ThemeService(); // Create an instance
   final unitService = UnitService();
@@ -261,9 +276,8 @@ void main() async {
       child: MultiProvider(
         providers: [
           Provider<IDiaryRepository>(
-            create: (_) => NutritionRepository(
-              localDataSource: diaryLocalDataSource,
-            ),
+            create: (_) =>
+                NutritionRepository(localDataSource: diaryLocalDataSource),
           ),
           Provider<IWorkoutRepository>.value(value: workoutRepository),
           Provider<SupplementRepository>(
@@ -276,12 +290,8 @@ void main() async {
               localDataSource: exerciseCatalogLocalDataSource,
             ),
           ),
-          Provider<IProfileRepository>.value(
-            value: profileRepository,
-          ),
-          Provider<IGoalRepository>(
-            create: (_) => GoalRepositoryImpl(),
-          ),
+          Provider<IProfileRepository>.value(value: profileRepository),
+          Provider<IGoalRepository>(create: (_) => GoalRepositoryImpl()),
           ChangeNotifierProvider.value(value: workoutSessionManager),
           ChangeNotifierProvider.value(value: trainingAutonomyService),
           Provider<WorkoutProgressionService>.value(
@@ -306,20 +316,20 @@ void main() async {
           healthExportCoordinator: healthExportCoordinator,
           home: isFreshInstall
               ? const InitialConsentScreen(
-                  nextScreen: AppInitializerScreen(skipOffDatabase: true))
+                  nextScreen: AppInitializerScreen(skipOffDatabase: true),
+                )
               : (isLegalOutdated
-                  ? const LegalUpdateConsentScreen(
-                      nextScreen: AppInitializerScreen(skipOffDatabase: true))
-                  : const AppInitializerScreen(skipOffDatabase: true)),
+                    ? const LegalUpdateConsentScreen(
+                        nextScreen: AppInitializerScreen(skipOffDatabase: true),
+                      )
+                    : const AppInitializerScreen(skipOffDatabase: true)),
         ),
       ),
     ),
   );
 
   // Background update checks are handled by AppInitializerScreen.
-  Workmanager().initialize(
-    callbackDispatcher,
-  );
+  Workmanager().initialize(callbackDispatcher);
 
   Workmanager().registerPeriodicTask(
     "1",
@@ -357,10 +367,7 @@ class _RestartWidgetState extends State<RestartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyedSubtree(
-      key: key,
-      child: widget.child,
-    );
+    return KeyedSubtree(key: key, child: widget.child);
   }
 }
 
@@ -369,11 +376,7 @@ class MyApp extends StatefulWidget {
   final HealthExportCoordinator? healthExportCoordinator;
 
   /// Creates the root widget for the application.
-  const MyApp({
-    super.key,
-    required this.home,
-    this.healthExportCoordinator,
-  });
+  const MyApp({super.key, required this.home, this.healthExportCoordinator});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -437,9 +440,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       final fileUri = Uri.tryParse(uri?.queryParameters['uri'] ?? '');
       final navigator = _navigatorKey.currentState;
       if (navigator == null) return false;
-      navigator.push(MaterialPageRoute<void>(
-        builder: (_) => ShareFileImportScreen(uri: fileUri),
-      ));
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => ShareFileImportScreen(uri: fileUri),
+        ),
+      );
       return true;
     }
     if (uri == null ||
@@ -457,9 +462,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
     final navigator = _navigatorKey.currentState;
     if (navigator == null) return false;
-    navigator.push(MaterialPageRoute<void>(
-      builder: (_) => ShareLinkPreviewScreen(payload: payload, error: error),
-    ));
+    navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => ShareLinkPreviewScreen(payload: payload, error: error),
+      ),
+    );
     return true;
   }
 
@@ -574,37 +581,46 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final themeService = context.watch<ThemeService>();
         final isAndroid =
             !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-        final useDynamicMaterialColors =
-            isAndroid && themeService.materialColorsEnabled;
-
-        // Use brand accent by default; optional Android toggle enables dynamic Material colors.
-        final Color lightSeed = useDynamicMaterialColors
-            ? (lightDynamic?.primary ??
-                DesignConstants.brandAccentColorLightMode)
-            : DesignConstants.brandAccentColorLightMode;
-        final Color darkSeed = useDynamicMaterialColors
-            ? (darkDynamic?.primary ?? DesignConstants.brandAccentColor)
-            : DesignConstants.brandAccentColor;
+        final colorChoice = themeService.appColorChoice;
+        final useSystemColors =
+            isAndroid && colorChoice == AppColorChoice.system;
+        final Color lightPrimary = colorChoice.primary(
+          brightness: Brightness.light,
+          customColor: themeService.customAppColor,
+          systemColor: useSystemColors ? lightDynamic?.primary : null,
+        );
+        final Color darkPrimary = colorChoice.primary(
+          brightness: Brightness.dark,
+          customColor: themeService.customAppColor,
+          systemColor: useSystemColors ? darkDynamic?.primary : null,
+        );
 
         // --- Light scheme from seed, but without Material You UI ---
-        final lightScheme = ColorScheme.fromSeed(
-          seedColor: lightSeed,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: lightSeed,
-          onPrimary: Colors.black,
-          surface: Colors.white,
-          error: DesignConstants.brandRedColor,
-        );
+        final lightScheme =
+            ColorScheme.fromSeed(
+              seedColor: lightPrimary,
+              brightness: Brightness.light,
+            ).copyWith(
+              primary: lightPrimary,
+              onPrimary: colorChoice.onPrimary(
+                brightness: Brightness.light,
+                primary: lightPrimary,
+              ),
+              surface: Colors.white,
+              error: DesignConstants.brandRedColor,
+            );
 
         // --- Dark scheme from seed + OLED black ---
         final seededDark = ColorScheme.fromSeed(
-          seedColor: darkSeed,
+          seedColor: darkPrimary,
           brightness: Brightness.dark,
         );
         final darkScheme = seededDark.copyWith(
-          primary: darkSeed,
-          onPrimary: Colors.black,
+          primary: darkPrimary,
+          onPrimary: colorChoice.onPrimary(
+            brightness: Brightness.dark,
+            primary: darkPrimary,
+          ),
           surface: Colors.black,
           surfaceDim: Colors.black,
           surfaceBright: Colors.black,
@@ -658,18 +674,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide(color: lightScheme.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
@@ -694,8 +713,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
             ),
           ),
 
@@ -783,8 +803,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               backgroundColor: lightScheme.primary,
               foregroundColor: lightScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
             ),
           ),
@@ -819,8 +840,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               }
               return lightScheme.surfaceContainerHighest;
             }),
-            trackOutlineColor:
-                WidgetStateProperty.resolveWith<Color?>((states) {
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((
+              states,
+            ) {
               if (states.contains(WidgetState.selected)) {
                 return Colors.transparent;
               }
@@ -877,18 +899,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             filled: true,
             fillColor: const Color(0xFF2C2C2E),
             border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide(color: darkScheme.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
@@ -913,8 +938,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
             ),
           ),
 
@@ -1001,8 +1027,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               backgroundColor: darkScheme.primary,
               foregroundColor: darkScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
             ),
           ),
@@ -1037,8 +1064,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               }
               return darkScheme.surfaceContainerHighest;
             }),
-            trackOutlineColor:
-                WidgetStateProperty.resolveWith<Color?>((states) {
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((
+              states,
+            ) {
               if (states.contains(WidgetState.selected)) {
                 return Colors.transparent;
               }
@@ -1088,10 +1116,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               }
               return MaterialPageRoute<void>(
                 settings: settings,
-                builder: (_) => ShareLinkPreviewScreen(
-                  payload: payload,
-                  error: error,
-                ),
+                builder: (_) =>
+                    ShareLinkPreviewScreen(payload: payload, error: error),
               );
             }
             final sleepRoute = SleepNavigation.onGenerateRoute(settings);
@@ -1106,8 +1132,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 animateEntrance: false,
                 settings: settings,
                 builder: (context) {
-                  final wsm =
-                      Provider.of<LiveWorkoutViewModel>(context, listen: false);
+                  final wsm = Provider.of<LiveWorkoutViewModel>(
+                    context,
+                    listen: false,
+                  );
                   if (wsm.isActive && wsm.workoutLog != null) {
                     return LiveWorkoutScreen(
                       workoutLog: wsm.workoutLog!,
@@ -1128,8 +1156,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               animateEntrance: false,
               settings: settings,
               builder: (context) {
-                final wsm =
-                    Provider.of<LiveWorkoutViewModel>(context, listen: false);
+                final wsm = Provider.of<LiveWorkoutViewModel>(
+                  context,
+                  listen: false,
+                );
                 if (wsm.isActive && wsm.workoutLog != null) {
                   return LiveWorkoutScreen(
                     workoutLog: wsm.workoutLog!,
@@ -1160,29 +1190,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                         if (child != null) child,
                         ValueListenableBuilder<AiOverlayDemoConfiguration>(
                           valueListenable: AiOverlayDemoSettings.configuration,
-                          builder: (context, settings, _) => settings.enabled
-                              ? Positioned.fill(
-                                  child: Material(
-                                    type: MaterialType.transparency,
-                                    child: DraggableAiCloud(
-                                      semanticLabel:
-                                          AppLocalizations.of(context)!
-                                              .developerAiOverlayDemoTitle,
-                                      semanticHint:
-                                          AppLocalizations.of(context)!
-                                              .aiOverlayDemoCloudHint,
-                                      liveliness: settings.liveliness,
-                                      showResizeHandles:
-                                          settings.showResizeHandles,
-                                      openDirectlyFullscreen:
-                                          settings.openDirectlyFullscreen,
-                                      // Chat state remains in memory only and is
-                                      // never persisted between app launches.
-                                      useLiveAi: settings.useLiveAi,
+                          builder: (context, settings, _) =>
+                              ValueListenableBuilder<int>(
+                                valueListenable:
+                                    AiGlobalCloudVisibility.suppressionCount,
+                                builder: (context, suppressionCount, _) =>
+                                    _GlobalAiCloudHost(
+                                      settings: settings,
+                                      aiEnabled: themeService.isAiEnabled,
+                                      suppressionCount: suppressionCount,
+                                      navigatorKey: _navigatorKey,
                                     ),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
+                              ),
                         ),
                       ],
                     ),
@@ -1194,6 +1213,68 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           home: widget.home,
         );
       },
+    );
+  }
+}
+
+/// Keeps an active assistant session mounted when its launcher is disabled.
+/// The cloud is created after AI features are first enabled, then stays
+/// offscreen when appropriate so in-flight prompts can finish and be restored.
+class _GlobalAiCloudHost extends StatefulWidget {
+  const _GlobalAiCloudHost({
+    required this.settings,
+    required this.aiEnabled,
+    required this.suppressionCount,
+    required this.navigatorKey,
+  });
+
+  final AiOverlayDemoConfiguration settings;
+  final bool aiEnabled;
+  final int suppressionCount;
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
+  State<_GlobalAiCloudHost> createState() => _GlobalAiCloudHostState();
+}
+
+class _GlobalAiCloudHostState extends State<_GlobalAiCloudHost> {
+  late bool _hasBeenEnabled = widget.aiEnabled;
+
+  @override
+  void didUpdateWidget(covariant _GlobalAiCloudHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.aiEnabled) _hasBeenEnabled = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_hasBeenEnabled) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context)!;
+    return Positioned.fill(
+      child: Material(
+        type: MaterialType.transparency,
+        child: DraggableAiCloud(
+          navigatorKey: widget.navigatorKey,
+          onFullscreenChanged: (isOpen) {
+            if (isOpen) {
+              unawaited(
+                TelemetryService.instance.trackScreenView(
+                  screenName: ScreenName.aiAssistantChat,
+                ),
+              );
+            }
+          },
+          semanticLabel: l10n.developerAiOverlayDemoTitle,
+          semanticHint: l10n.aiOverlayDemoCloudHint,
+          liveliness: widget.settings.liveliness,
+          showResizeHandles: widget.settings.showResizeHandles,
+          openDirectlyFullscreen: widget.settings.openDirectlyFullscreen,
+          useLiveAi: true,
+          isLauncherEnabled: widget.settings.enabled,
+          isGloballyVisible: widget.aiEnabled && widget.suppressionCount == 0,
+        ),
+      ),
     );
   }
 }
@@ -1221,8 +1302,6 @@ class NoGlowScrollBehavior extends ScrollBehavior {
     // default wraps, and it is not optional: without it a list jumps when
     // something above the viewport changes size — a chart finishing its load,
     // an expanding card — instead of holding the reader's place.
-    return const BouncingScrollPhysics(
-      parent: RangeMaintainingScrollPhysics(),
-    );
+    return const BouncingScrollPhysics(parent: RangeMaintainingScrollPhysics());
   }
 }

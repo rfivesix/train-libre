@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart' as db;
 import 'package:train_libre/features/diary/data/sources/diary_local_data_source.dart';
@@ -19,8 +23,18 @@ void main() {
     late db.AppDatabase database;
     late DiaryLocalDataSource diaryDb;
     late ProductLocalDataSource productDb;
+    late Directory tempDir;
 
-    setUp(() {
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp(
+        'offline_food_archive_test',
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async => tempDir.path,
+          );
+      AppMediaStore.instance.resetForTesting();
       database = db.AppDatabase(NativeDatabase.memory());
       diaryDb = DiaryLocalDataSource(database);
       productDb = ProductLocalDataSource.forTesting(database);
@@ -28,15 +42,22 @@ void main() {
     });
 
     tearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
+      AppMediaStore.instance.resetForTesting();
+      if (await tempDir.exists()) await tempDir.delete(recursive: true);
       await database.close();
     });
 
-    test(
-        'Auto-creates archive snapshots upon diary log insertions and reuse existing snaps',
-        () async {
+    test('Auto-creates archive snapshots upon diary log insertions and reuse existing snaps', () async {
       final barcode = '4008400401821';
       // 1. Insert product into catalog
-      await database.into(database.products).insert(
+      await database
+          .into(database.products)
+          .insert(
             db.ProductsCompanion.insert(
               barcode: barcode,
               name: 'Nutella',
@@ -58,16 +79,18 @@ void main() {
       );
 
       final logId1 = await diaryDb.insertFoodEntry(entry1);
-      final insertedLog1 = await (database.select(database.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(logId1)))
-          .getSingle();
+      final insertedLog1 = await (database.select(
+        database.nutritionLogs,
+      )..where((tbl) => tbl.localId.equals(logId1))).getSingle();
 
       expect(insertedLog1.archiveLocalId, isNotNull);
 
       // Verify archived snapshot content
-      final archiveRow1 = await (database.select(database.offProductsArchive)
-            ..where((tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!)))
-          .getSingle();
+      final archiveRow1 =
+          await (database.select(database.offProductsArchive)..where(
+                (tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!),
+              ))
+              .getSingle();
 
       expect(archiveRow1.barcode, barcode);
       expect(archiveRow1.productName, 'Nutella');
@@ -83,24 +106,25 @@ void main() {
       );
 
       final logId2 = await diaryDb.insertFoodEntry(entry2);
-      final insertedLog2 = await (database.select(database.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(logId2)))
-          .getSingle();
+      final insertedLog2 = await (database.select(
+        database.nutritionLogs,
+      )..where((tbl) => tbl.localId.equals(logId2))).getSingle();
 
       expect(insertedLog2.archiveLocalId, equals(insertedLog1.archiveLocalId));
 
       // Assert archive row count is 1
-      final allArchiveRows =
-          await database.select(database.offProductsArchive).get();
+      final allArchiveRows = await database
+          .select(database.offProductsArchive)
+          .get();
       expect(allArchiveRows.length, 1);
     });
 
-    test(
-        'Bakes custom overrides into the snapshot and keeps historical records immune from edits',
-        () async {
+    test('Bakes custom overrides into the snapshot and keeps historical records immune from edits', () async {
       final barcode = '4001234567890';
       // 1. Insert product
-      await database.into(database.products).insert(
+      await database
+          .into(database.products)
+          .insert(
             db.ProductsCompanion.insert(
               barcode: barcode,
               name: 'Peanut Butter',
@@ -133,13 +157,15 @@ void main() {
         mealType: 'mealtypeBreakfast',
       );
       final logId1 = await diaryDb.insertFoodEntry(entry1);
-      final insertedLog1 = await (database.select(database.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(logId1)))
-          .getSingle();
+      final insertedLog1 = await (database.select(
+        database.nutritionLogs,
+      )..where((tbl) => tbl.localId.equals(logId1))).getSingle();
 
-      final archiveRow1 = await (database.select(database.offProductsArchive)
-            ..where((tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!)))
-          .getSingle();
+      final archiveRow1 =
+          await (database.select(database.offProductsArchive)..where(
+                (tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!),
+              ))
+              .getSingle();
 
       expect(archiveRow1.productName, 'Organic Peanut Butter');
       expect(archiveRow1.calories, 620);
@@ -167,126 +193,137 @@ void main() {
         mealType: 'mealtypeSnack',
       );
       final logId2 = await diaryDb.insertFoodEntry(entry2);
-      final insertedLog2 = await (database.select(database.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(logId2)))
-          .getSingle();
+      final insertedLog2 = await (database.select(
+        database.nutritionLogs,
+      )..where((tbl) => tbl.localId.equals(logId2))).getSingle();
 
       expect(insertedLog2.archiveLocalId, isNot(insertedLog1.archiveLocalId));
 
-      final archiveRow2 = await (database.select(database.offProductsArchive)
-            ..where((tbl) => tbl.localId.equals(insertedLog2.archiveLocalId!)))
-          .getSingle();
+      final archiveRow2 =
+          await (database.select(database.offProductsArchive)..where(
+                (tbl) => tbl.localId.equals(insertedLog2.archiveLocalId!),
+              ))
+              .getSingle();
 
       expect(archiveRow2.productName, 'Extra Crunchy Peanut Butter');
       expect(archiveRow2.calories, 650);
 
       // Verify historical first log is immune (keeps pointing to version 1)
-      final archiveRow1Verify = await (database
-              .select(database.offProductsArchive)
-            ..where((tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!)))
-          .getSingle();
+      final archiveRow1Verify =
+          await (database.select(database.offProductsArchive)..where(
+                (tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!),
+              ))
+              .getSingle();
       expect(archiveRow1Verify.productName, 'Organic Peanut Butter');
       expect(archiveRow1Verify.calories, 620);
     });
 
-    test('3-Tier lookup resolution chain calculates correct nutrition values',
-        () async {
-      final barcode1 = 'EAN1';
-      final barcode2 = 'EAN2';
-
-      // 1. Create a product in offProductsArchive (mocking archived product)
-      final archiveLocalId =
-          await database.into(database.offProductsArchive).insert(
-                db.OffProductsArchiveCompanion.insert(
-                  id: const drift.Value('uuid-archive-1'),
-                  barcode: barcode1,
-                  productName: 'Archived Granola',
-                  calories: 400,
-                  protein: 10.0,
-                  carbs: 60.0,
-                  fat: 15.0,
-                  contentHash: 'hash1',
-                  source: 'off',
-                ),
-              );
-
-      // 2. Create a product in Products (catalog product)
-      await database.into(database.products).insert(
-            db.ProductsCompanion.insert(
-              barcode: barcode2,
-              name: 'Catalog Granola Bar',
-              calories: 380,
-              protein: 8.0,
-              carbs: 50.0,
-              fat: 12.0,
-              source: const drift.Value('off'),
-            ),
-          );
-
-      // Create FoodEntry objects representing logged items
-      final foodEntries = [
-        FoodEntry(
-          id: 101,
-          barcode: barcode1,
-          timestamp: DateTime.now(),
-          quantityInGrams: 100, // 400 kcal
-          mealType: 'mealtypeBreakfast',
-          archiveLocalId: archiveLocalId,
-        ),
-        FoodEntry(
-          id: 102,
-          barcode: barcode2,
-          timestamp: DateTime.now(),
-          quantityInGrams: 50, // 380 * 0.5 = 190 kcal
-          mealType: 'mealtypeLunch',
-        ),
-      ];
-
-      // Perform resolution using IDiaryRepository lookups in ViewModel
-      final archiveProductsMap = <int, FoodItem>{};
-      final legacyProductsMap = <String, FoodItem>{};
-
-      // Query archived products
-      final archivedProducts =
-          await productDb.getProductsByArchiveIds([archiveLocalId]);
-      archiveProductsMap.addAll(archivedProducts);
-
-      // Query legacy products
-      final legacyProducts = await productDb.getProductsByBarcodes([barcode2]);
-      for (final p in legacyProducts) {
-        legacyProductsMap[p.barcode] = p;
-      }
-
-      // Execute Daily Nutrition calculations UseCase
-      final useCase = CalculateDailyNutritionUseCase();
-      final state = useCase.execute(
-        goals: null,
-        targetSugar: 50,
-        targetFiber: 30,
-        targetSalt: 6,
-        targetCaffeine: 400,
-        foodEntries: foodEntries,
-        fluidEntries: [],
-        foodProductsByBarcode: legacyProductsMap,
-        foodProductsByArchiveLocalId: archiveProductsMap,
-        workoutLogs: [],
-        supplementsForDate: [],
-        allSupplements: [],
-        todaysSupplementLogs: [],
-      );
-
-      expect(state.summary.calories, 590); // 400 + 190
-      expect(state.summary.protein, 14); // 10 + 4
-      expect(state.summary.carbs, 85); // 60 + 25
-      expect(state.summary.fat, 21); // 15 + 6
-    });
-
     test(
-        'Backup and restore preserves archive references and snapshots round-trip (Backup format v5)',
-        () async {
+      '3-Tier lookup resolution chain calculates correct nutrition values',
+      () async {
+        final barcode1 = 'EAN1';
+        final barcode2 = 'EAN2';
+
+        // 1. Create a product in offProductsArchive (mocking archived product)
+        final archiveLocalId = await database
+            .into(database.offProductsArchive)
+            .insert(
+              db.OffProductsArchiveCompanion.insert(
+                id: const drift.Value('uuid-archive-1'),
+                barcode: barcode1,
+                productName: 'Archived Granola',
+                calories: 400,
+                protein: 10.0,
+                carbs: 60.0,
+                fat: 15.0,
+                contentHash: 'hash1',
+                source: 'off',
+              ),
+            );
+
+        // 2. Create a product in Products (catalog product)
+        await database
+            .into(database.products)
+            .insert(
+              db.ProductsCompanion.insert(
+                barcode: barcode2,
+                name: 'Catalog Granola Bar',
+                calories: 380,
+                protein: 8.0,
+                carbs: 50.0,
+                fat: 12.0,
+                source: const drift.Value('off'),
+              ),
+            );
+
+        // Create FoodEntry objects representing logged items
+        final foodEntries = [
+          FoodEntry(
+            id: 101,
+            barcode: barcode1,
+            timestamp: DateTime.now(),
+            quantityInGrams: 100, // 400 kcal
+            mealType: 'mealtypeBreakfast',
+            archiveLocalId: archiveLocalId,
+          ),
+          FoodEntry(
+            id: 102,
+            barcode: barcode2,
+            timestamp: DateTime.now(),
+            quantityInGrams: 50, // 380 * 0.5 = 190 kcal
+            mealType: 'mealtypeLunch',
+          ),
+        ];
+
+        // Perform resolution using IDiaryRepository lookups in ViewModel
+        final archiveProductsMap = <int, FoodItem>{};
+        final legacyProductsMap = <String, FoodItem>{};
+
+        // Query archived products
+        final archivedProducts = await productDb.getProductsByArchiveIds([
+          archiveLocalId,
+        ]);
+        archiveProductsMap.addAll(archivedProducts);
+
+        // Query legacy products
+        final legacyProducts = await productDb.getProductsByBarcodes([
+          barcode2,
+        ]);
+        for (final p in legacyProducts) {
+          legacyProductsMap[p.barcode] = p;
+        }
+
+        // Execute Daily Nutrition calculations UseCase
+        final useCase = CalculateDailyNutritionUseCase();
+        final state = useCase.execute(
+          goals: null,
+          targetSugar: 50,
+          targetFiber: 30,
+          targetSalt: 6,
+          targetCaffeine: 400,
+          foodEntries: foodEntries,
+          fluidEntries: [],
+          foodProductsByBarcode: legacyProductsMap,
+          foodProductsByArchiveLocalId: archiveProductsMap,
+          workoutLogs: [],
+          supplementsForDate: [],
+          allSupplements: [],
+          todaysSupplementLogs: [],
+        );
+
+        expect(state.summary.calories, 590); // 400 + 190
+        expect(state.summary.protein, 14); // 10 + 4
+        expect(state.summary.carbs, 85); // 60 + 25
+        expect(state.summary.fat, 21); // 15 + 6
+      },
+    );
+
+    test('Backup and restore preserves archive references and snapshots round-trip (Backup format v5)', () async {
       final barcode = '4008400401821';
       // 1. Setup DB state with an archived log
-      await database.into(database.products).insert(
+      await database
+          .into(database.products)
+          .insert(
             db.ProductsCompanion.insert(
               barcode: barcode,
               name: 'Nutella',
@@ -311,15 +348,16 @@ void main() {
       final manager = BackupManager(dbHelper: DatabaseHelper.instance);
       final payload = await manager.generateBackupPayload();
 
-      // Ensure offProductsArchive is in the JSON payload and database backup format version is 5
-      expect(payload['schemaVersion'], 5);
+      // Ensure offProductsArchive is in the JSON payload and database backup format version is current
+      expect(payload['schemaVersion'], BackupManager.currentSchemaVersion);
       expect(payload['offProductsArchive'], isNotEmpty);
       expect(payload['offProductsArchive'].first['product_name'], 'Nutella');
 
       // Clear all data
       await DatabaseHelper.instance.clearAllUserData();
-      final afterClearArchive =
-          await database.select(database.offProductsArchive).get();
+      final afterClearArchive = await database
+          .select(database.offProductsArchive)
+          .get();
       expect(afterClearArchive, isEmpty);
 
       // Restore backup payload
@@ -327,14 +365,17 @@ void main() {
       expect(success, isTrue);
 
       // Verify restoration of archive snapshots and FK linkages
-      final restoredArchive =
-          await database.select(database.offProductsArchive).get();
+      final restoredArchive = await database
+          .select(database.offProductsArchive)
+          .get();
       expect(restoredArchive, isNotEmpty);
       expect(restoredArchive.first.productName, 'Nutella');
 
       final restoredLogs = await database.select(database.nutritionLogs).get();
-      expect(restoredLogs.first.archiveLocalId,
-          equals(restoredArchive.first.localId));
+      expect(
+        restoredLogs.first.archiveLocalId,
+        equals(restoredArchive.first.localId),
+      );
     });
   });
 }

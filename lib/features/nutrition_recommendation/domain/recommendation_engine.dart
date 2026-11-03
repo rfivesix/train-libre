@@ -26,7 +26,8 @@ class AdaptiveNutritionRecommendationEngine {
   }) {
     var effectiveConfidence = confidence;
     final calorieAdjustment = rateAdjustmentKcalPerDay(targetRateKgPerWeek);
-    var recommendedCalories = estimatedMaintenanceCalories +
+    var recommendedCalories =
+        estimatedMaintenanceCalories +
         calorieAdjustment +
         trajectoryCorrectionCalories;
     final safetyWarningReasons = <String>[];
@@ -46,7 +47,8 @@ class AdaptiveNutritionRecommendationEngine {
       recommendedCalories: recommendedCalories,
     );
 
-    final baselineCalories = input.activeTargetCalories ??
+    final baselineCalories =
+        input.activeTargetCalories ??
         previousRecommendation?.recommendedCalories;
     final warningReasons = <String>{
       ...macroResult.warningReasons,
@@ -115,8 +117,10 @@ class AdaptiveNutritionRecommendationEngine {
     // floor when the calorie budget cannot carry the target. Carbohydrates
     // take whatever is left.
     final fatFloor = (currentWeightKg * _kFatFloorPerKg).round().clamp(35, 130);
-    var fatGrams =
-        (currentWeightKg * _fatPerKg(goal)).round().clamp(fatFloor, 250);
+    var fatGrams = (currentWeightKg * _fatPerKg(goal)).round().clamp(
+      fatFloor,
+      250,
+    );
 
     var carbsGrams =
         ((recommendedCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4)
@@ -127,8 +131,8 @@ class AdaptiveNutritionRecommendationEngine {
     // Not enough calories left for any carbohydrates: give the target back
     // down towards the floor before touching protein.
     if (carbsGrams < 0 && fatGrams > fatFloor) {
-      final affordableFat =
-          ((recommendedCalories - (proteinGrams * 4)) / 9).floor();
+      final affordableFat = ((recommendedCalories - (proteinGrams * 4)) / 9)
+          .floor();
       fatGrams = affordableFat.clamp(fatFloor, fatGrams);
       carbsGrams =
           ((recommendedCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4)

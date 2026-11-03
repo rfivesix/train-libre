@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/dialogs/delete_meal_entry_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -22,8 +23,9 @@ class DeleteMealEntryBottomSheet {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF222220) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
-    final subtitleColor =
-        isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
+    final subtitleColor = isDark
+        ? const Color(0xFF8A8A82)
+        : const Color(0xFF5C5C55);
     final destructiveColor = const Color(0xFFB32219);
     final l10n = AppLocalizations.of(context)!;
 
@@ -51,16 +53,18 @@ class DeleteMealEntryBottomSheet {
 
             // Option 1: Dissolve group only
             InkWell(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusL,
+              ),
               onTap: () =>
                   Navigator.of(ctx).pop(DeleteMealChoice.dissolveGroupOnly),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusL),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusL,
+                  ),
                   border: Border.all(
                     color: isDark
                         ? Colors.white10
@@ -98,15 +102,17 @@ class DeleteMealEntryBottomSheet {
 
             // Option 2: Delete meal and all items
             InkWell(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusL,
+              ),
               onTap: () => Navigator.of(ctx).pop(DeleteMealChoice.deleteAll),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusL),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusL,
+                  ),
                   border: Border.all(
                     color: destructiveColor.withValues(alpha: 0.4),
                     width: 1.5,

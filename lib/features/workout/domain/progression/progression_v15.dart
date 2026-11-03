@@ -1,9 +1,12 @@
 import 'dart:math' as math;
+
 import 'progression_models.dart';
 export 'progression_models.dart';
 
 ProgressionPolicy selectProgressionPolicy(
-    List<double?> loads, List<RepRange?> ranges) {
+  List<double?> loads,
+  List<RepRange?> ranges,
+) {
   if (loads.isEmpty ||
       loads.length != ranges.length ||
       loads.first == null ||
@@ -27,68 +30,75 @@ ProgressionPolicy selectProgressionPolicy(
 extension BridgeReview on ProgressionReview {
   ProgressionReview? declineBridge(RepRange range) =>
       kind != ReviewKind.largeStepTrial
-          ? null
-          : ProgressionReview(
-              kind: ReviewKind.overRepBridge,
-              position: position,
-              policy: policy,
-              ladderSource: ladderSource,
-              reason: 'temporary_over_rep_bridge',
-              currentLoad: currentLoad,
-              targetLoad: currentLoad,
-              targetReps: range.max + 2);
+      ? null
+      : ProgressionReview(
+          kind: ReviewKind.overRepBridge,
+          position: position,
+          policy: policy,
+          ladderSource: ladderSource,
+          reason: 'temporary_over_rep_bridge',
+          currentLoad: currentLoad,
+          targetLoad: currentLoad,
+          targetReps: range.max + 2,
+        );
 }
 
 class ProgressionResult {
   final ProgressionPolicy policy;
   final List<ProgressionSuggestion> suggestions;
   final List<ProgressionReview> reviews;
-  const ProgressionResult(
-      {required this.policy, required this.suggestions, required this.reviews});
+  const ProgressionResult({
+    required this.policy,
+    required this.suggestions,
+    required this.reviews,
+  });
 }
 
 /// No I/O, hidden prescription changes or e1RM extrapolation. Sessions retain
 /// incomplete/interrupted rows so excluding evidence never shifts a position.
 class ProgressionV15 {
   static const algorithmVersion = 'progression_v1.5';
-  static ProgressionResult evaluate(
-      {required ExerciseProgressionHistory history,
-      required List<WorkingSetPosition> positions,
-      required LoadIncrement increment,
-      required LoadMode loadMode,
-      ProgressionPolicy policy = ProgressionPolicy.linkedWorkingSets,
-      LoadLadder? ladder,
-      LoadLadder? equipmentLadder,
-      String? equipmentIdentity,
-      DateTime? now}) {
+  static ProgressionResult evaluate({
+    required ExerciseProgressionHistory history,
+    required List<WorkingSetPosition> positions,
+    required LoadIncrement increment,
+    required LoadMode loadMode,
+    ProgressionPolicy policy = ProgressionPolicy.linkedWorkingSets,
+    LoadLadder? ladder,
+    LoadLadder? equipmentLadder,
+    String? equipmentIdentity,
+    DateTime? now,
+  }) {
     final resolved = ladder ?? equipmentLadder;
     final source = resolved?.source ?? LoadLadderSource.incrementFallback;
     final reviews = <ProgressionReview>[];
-    ProgressionSuggestion suggestion(
-            {double? load,
-            int? reps,
-            required String reason,
-            bool raise = false,
-            List<ProgressionReview> localReviews = const [],
-            int? bridgeTarget}) =>
-        ProgressionSuggestion(
-            outcome: load == null
-                ? ProgressionOutcome.noSuggestion
-                : raise
-                    ? ProgressionOutcome.raise
-                    : ProgressionOutcome.hold,
-            targetWeight: load,
-            targetReps: reps,
-            reason: reason,
-            algorithmVersion: algorithmVersion,
-            policy: policy,
-            ladderSource: source,
-            reviews: localReviews,
-            bridgeTarget: bridgeTarget);
+    ProgressionSuggestion suggestion({
+      double? load,
+      int? reps,
+      required String reason,
+      bool raise = false,
+      List<ProgressionReview> localReviews = const [],
+      int? bridgeTarget,
+    }) => ProgressionSuggestion(
+      outcome: load == null
+          ? ProgressionOutcome.noSuggestion
+          : raise
+          ? ProgressionOutcome.raise
+          : ProgressionOutcome.hold,
+      targetWeight: load,
+      targetReps: reps,
+      reason: reason,
+      algorithmVersion: algorithmVersion,
+      policy: policy,
+      ladderSource: source,
+      reviews: localReviews,
+      bridgeTarget: bridgeTarget,
+    );
     ProgressionResult absent(String reason) => ProgressionResult(
-        policy: policy,
-        reviews: const [],
-        suggestions: positions.map((_) => suggestion(reason: reason)).toList());
+      policy: policy,
+      reviews: const [],
+      suggestions: positions.map((_) => suggestion(reason: reason)).toList(),
+    );
     final sessions = <String, List<ProgressionSetEntry>>{};
     for (final e in history.sets) {
       if (e.isWarmup ||
@@ -96,7 +106,8 @@ class ProgressionV15 {
           !['normal', 'failure'].contains(e.setType.toLowerCase())) {
         continue;
       }
-      final key = e.sessionId ??
+      final key =
+          e.sessionId ??
           '${e.performedAt.year}-${e.performedAt.month}-${e.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(e);
     }
@@ -186,8 +197,9 @@ class ProgressionV15 {
       final e = ownSession[i];
       if ((now ?? DateTime.now()).difference(e.performedAt) >
           const Duration(days: 21)) {
-        results
-            .add(suggestion(reason: ProgressionReason.breakExceededThreeWeeks));
+        results.add(
+          suggestion(reason: ProgressionReason.breakExceededThreeWeeks),
+        );
         continue;
       }
       final range = positions[i].range;
@@ -206,23 +218,29 @@ class ProgressionV15 {
       double? nextRung() => resolved != null
           ? resolved.next(w, assisted: loadMode == LoadMode.assisted)
           : increment.value <= 0
-              ? null
-              : loadMode == LoadMode.assisted
-                  ? math.max(0.0, w - increment.value)
-                  : w + increment.value;
-      void review(ReviewKind kind,
-          {double? target, int? reps, double? jump, LoadMode? mode}) {
+          ? null
+          : loadMode == LoadMode.assisted
+          ? math.max(0.0, w - increment.value)
+          : w + increment.value;
+      void review(
+        ReviewKind kind, {
+        double? target,
+        int? reps,
+        double? jump,
+        LoadMode? mode,
+      }) {
         final r = ProgressionReview(
-            kind: kind,
-            position: positions[i].id,
-            policy: policy,
-            ladderSource: source,
-            reason: kind.name,
-            currentLoad: w,
-            targetLoad: target,
-            targetReps: reps,
-            relativeJump: jump,
-            targetMode: mode);
+          kind: kind,
+          position: positions[i].id,
+          policy: policy,
+          ladderSource: source,
+          reason: kind.name,
+          currentLoad: w,
+          targetLoad: target,
+          targetReps: reps,
+          relativeJump: jump,
+          targetMode: mode,
+        );
         local.add(r);
         reviews.add(r);
       }
@@ -232,10 +250,10 @@ class ProgressionV15 {
       var reason = range == null
           ? ProgressionReason.noRepRange
           : e.valuesAutoFilled
-              ? ProgressionReason.autoFilledSets
-              : (e.reps ?? 0) < range.min
-                  ? ProgressionReason.repsBelowRangeMin
-                  : ProgressionReason.repsInRangeNotToppedOut;
+          ? ProgressionReason.autoFilledSets
+          : (e.reps ?? 0) < range.min
+          ? ProgressionReason.repsBelowRangeMin
+          : ProgressionReason.repsInRangeNotToppedOut;
       if (range != null &&
           evidence(e, i) &&
           e.reps! >= range.max + 3 &&
@@ -252,10 +270,14 @@ class ProgressionV15 {
         reason = 'modeBoundary';
       } else if (loadMode == LoadMode.bodyweight) {
         if (bodyReady && i == 0) {
-          final first = resolved?.values.where((v) => v > 0).firstOrNull ??
+          final first =
+              resolved?.values.where((v) => v > 0).firstOrNull ??
               (resolved == null ? increment.value : null);
-          review(ReviewKind.modeBoundary,
-              target: first, mode: LoadMode.weightedBodyweight);
+          review(
+            ReviewKind.modeBoundary,
+            target: first,
+            mode: LoadMode.weightedBodyweight,
+          );
         }
         reason = 'bodyweight_ceiling';
       } else if (policy == ProgressionPolicy.linkedWorkingSets
@@ -268,10 +290,12 @@ class ProgressionV15 {
         } else {
           final q = w > 0 ? (candidate - w).abs() / w : double.infinity;
           if (q > 0.10 + 1e-9) {
-            review(ReviewKind.largeStepTrial,
-                target: candidate,
-                reps: range?.min,
-                jump: q.isFinite ? q : null);
+            review(
+              ReviewKind.largeStepTrial,
+              target: candidate,
+              reps: range?.min,
+              jump: q.isFinite ? q : null,
+            );
             reason = 'largeStepTrial';
           } else {
             load = candidate;
@@ -300,26 +324,37 @@ class ProgressionV15 {
           final lower = resolved != null
               ? resolved.next(w, assisted: loadMode != LoadMode.assisted)
               : loadMode == LoadMode.assisted
-                  ? w + increment.value
-                  : math.max(0.0, w - increment.value);
-          review(ReviewKind.stallCandidate,
-              target: lower,
-              reps: range.min,
-              jump: w > 0 && lower != null ? (lower - w).abs() / w : null);
+              ? w + increment.value
+              : math.max(0.0, w - increment.value);
+          review(
+            ReviewKind.stallCandidate,
+            target: lower,
+            reps: range.min,
+            jump: w > 0 && lower != null ? (lower - w).abs() / w : null,
+          );
         }
       }
-      results.add(suggestion(
+      results.add(
+        suggestion(
           load: load,
           bridgeTarget: e.bridgeTarget,
           reps: reason == 'overRepBridge'
               ? math.min(e.reps! + 1, e.bridgeTarget!)
               : nextSuggestedReps(
-                  previousReps: e.reps, range: range, loadRaised: raise),
+                  previousReps: e.reps,
+                  range: range,
+                  loadRaised: raise,
+                ),
           reason: reason,
           raise: raise,
-          localReviews: local));
+          localReviews: local,
+        ),
+      );
     }
     return ProgressionResult(
-        policy: policy, suggestions: results, reviews: reviews);
+      policy: policy,
+      suggestions: results,
+      reviews: reviews,
+    );
   }
 }

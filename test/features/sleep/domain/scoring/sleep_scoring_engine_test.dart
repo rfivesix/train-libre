@@ -9,11 +9,17 @@ void main() {
       expect(scoreDurationV3(540), 1.0); // 9.0h
 
       expect(
-          scoreDurationV3(360), closeTo(0.6, 0.01)); // 6h -> exp(-1/2) = 0.606
-      expect(scoreDurationV3(240),
-          closeTo(0.011, 0.001)); // 4h -> exp(-9/2) = 0.011
-      expect(scoreDurationV3(120),
-          closeTo(0.0000037, 0.0000001)); // 2h -> exp(-25/2) = 3.72665e-6
+        scoreDurationV3(360),
+        closeTo(0.6, 0.01),
+      ); // 6h -> exp(-1/2) = 0.606
+      expect(
+        scoreDurationV3(240),
+        closeTo(0.011, 0.001),
+      ); // 4h -> exp(-9/2) = 0.011
+      expect(
+        scoreDurationV3(120),
+        closeTo(0.0000037, 0.0000001),
+      ); // 2h -> exp(-25/2) = 3.72665e-6
     });
 
     test('sleep efficiency (C_SE)', () {
@@ -57,11 +63,15 @@ void main() {
 
     test('timing (T_circ)', () {
       expect(scoreTimingV3(3.5, 0), 1.0); // Mid-sleep 3.5
-      expect(scoreTimingV3(23.5, 480),
-          1.0); // Onset 23.5 -> MS = 23.5 + 4 = 27.5 -> 3.5. Score = 1.0
+      expect(
+        scoreTimingV3(23.5, 480),
+        1.0,
+      ); // Onset 23.5 -> MS = 23.5 + 4 = 27.5 -> 3.5. Score = 1.0
 
-      final late = scoreTimingV3(3.0,
-          480); // Onset 03:00 -> MS 07:00 (7.0). MS > 5.5, triggers penalty.
+      final late = scoreTimingV3(
+        3.0,
+        480,
+      ); // Onset 03:00 -> MS 07:00 (7.0). MS > 5.5, triggers penalty.
       expect(late, lessThan(0.5));
     });
 
@@ -74,11 +84,13 @@ void main() {
 
   group('SHS v3 Soft Caps', () {
     test('TST 4h (Pathological short sleep degradation)', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 240, // 4h
-        sleepEfficiencyPct: 95,
-        wasoMinutes: 10,
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 240, // 4h
+          sleepEfficiencyPct: 95,
+          wasoMinutes: 10,
+        ),
+      );
       // Base score topLevel ~ 38.81. dynamicMultiplier = 0.50. Score = 19.4.
       expect(res.score, closeTo(19.4, 1.0));
       expect(res.stageScoreCap, closeTo(19.4, 1.0));
@@ -87,14 +99,16 @@ void main() {
     });
 
     test('TST 5.5h (Suboptimal duration degradation)', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 330, // 5.5h (< 6.5h)
-        sleepEfficiencyPct: 95,
-        wasoMinutes: 10,
-        deepSleepPct: 25,
-        remSleepPct: 25,
-        sleepOnsetHourLocal: 23.0,
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 330, // 5.5h (< 6.5h)
+          sleepEfficiencyPct: 95,
+          wasoMinutes: 10,
+          deepSleepPct: 25,
+          remSleepPct: 25,
+          sleepOnsetHourLocal: 23.0,
+        ),
+      );
       // Base score topLevel ~ 59.21. dynamicMultiplier = 0.6667. Score = 39.47.
       expect(res.score, closeTo(39.47, 1.0));
       expect(res.stageScoreCap, closeTo(39.47, 1.0));
@@ -103,14 +117,16 @@ void main() {
     });
 
     test('Late timing MS = 7.0 (Circadian phase delay degradation)', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 480, // 8h
-        sleepEfficiencyPct: 95,
-        wasoMinutes: 10,
-        deepSleepPct: 25,
-        remSleepPct: 25,
-        sleepOnsetHourLocal: 3.0, // MS = 7.0 > 5.5
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 480, // 8h
+          sleepEfficiencyPct: 95,
+          wasoMinutes: 10,
+          deepSleepPct: 25,
+          remSleepPct: 25,
+          sleepOnsetHourLocal: 3.0, // MS = 7.0 > 5.5
+        ),
+      );
       // Base score topLevel ~ 77.96. dynamicMultiplier = 0.6625. Score = 51.65.
       expect(res.score, closeTo(51.65, 1.0));
       expect(res.stageScoreCap, closeTo(51.65, 1.0));
@@ -119,15 +135,17 @@ void main() {
     });
 
     test('Excellent sleep (no caps)', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 450, // 7.5h
-        sleepEfficiencyPct: 95,
-        wasoMinutes: 10,
-        deepSleepPct: 20,
-        remSleepPct: 25,
-        lightSleepPct: 5,
-        sleepOnsetHourLocal: 23.5, // MS = 3.25
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 450, // 7.5h
+          sleepEfficiencyPct: 95,
+          wasoMinutes: 10,
+          deepSleepPct: 20,
+          remSleepPct: 25,
+          lightSleepPct: 5,
+          sleepOnsetHourLocal: 23.5, // MS = 3.25
+        ),
+      );
       expect(res.stageScoreCap, isNull);
       expect(res.score, greaterThan(80.0));
       expect(res.state, SleepScoreState.good);
@@ -136,60 +154,70 @@ void main() {
     });
 
     test('REM sleep penalty bottleneck', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 480, // 8h
-        sleepEfficiencyPct: 95,
-        wasoMinutes: 10,
-        deepSleepPct: 25,
-        remSleepPct: 5, // REM = 24 minutes (< 40 min -> max penalty 0.65)
-        sleepOnsetHourLocal: 23.0,
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 480, // 8h
+          sleepEfficiencyPct: 95,
+          wasoMinutes: 10,
+          deepSleepPct: 25,
+          remSleepPct: 5, // REM = 24 minutes (< 40 min -> max penalty 0.65)
+          sleepOnsetHourLocal: 23.0,
+        ),
+      );
       expect(res.dynamicMultiplier, closeTo(0.65, 0.01));
       expect(res.multiplierBottleneck, 'rem');
     });
 
     test('N3 sleep penalty bottleneck', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 480, // 8h
-        sleepEfficiencyPct: 95,
-        wasoMinutes: 10,
-        deepSleepPct: 5, // N3 = 24 minutes (< 40 min -> max penalty 0.60)
-        remSleepPct: 25,
-        sleepOnsetHourLocal: 23.0,
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 480, // 8h
+          sleepEfficiencyPct: 95,
+          wasoMinutes: 10,
+          deepSleepPct: 5, // N3 = 24 minutes (< 40 min -> max penalty 0.60)
+          remSleepPct: 25,
+          sleepOnsetHourLocal: 23.0,
+        ),
+      );
       expect(res.dynamicMultiplier, closeTo(0.60, 0.01));
       expect(res.multiplierBottleneck, 'n3');
     });
 
     test('Missing SE/WASO data fallback continuity score', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes:
-            480, // 8h -> durationScore = 1.0 -> durationPenalty = 1.0
-        lightSleepPct: 70, // p_light = 0.7748 -> lightSleepPenalty = 0.2252
-        // sleepEfficiencyPct and wasoMinutes are null
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes:
+              480, // 8h -> durationScore = 1.0 -> durationPenalty = 1.0
+          lightSleepPct: 70, // p_light = 0.7748 -> lightSleepPenalty = 0.2252
+          // sleepEfficiencyPct and wasoMinutes are null
+        ),
+      );
       // S_C_fallback = 0.9 * (1.0 - 0.2252) + 0.1 * 1.0 = 0.7973
       // continuityScore = 0.7973 * 100 = 79.73
       expect(res.continuityScore, closeTo(79.73, 0.01));
     });
 
     test('Fallback continuity with high p_light and good duration', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 480, // 8h -> durationScore = 1.0
-        lightSleepPct: 75, // p_light = 0.3604 -> lightSleepPenalty = 0.6396
-        // sleepEfficiencyPct and wasoMinutes are null
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 480, // 8h -> durationScore = 1.0
+          lightSleepPct: 75, // p_light = 0.3604 -> lightSleepPenalty = 0.6396
+          // sleepEfficiencyPct and wasoMinutes are null
+        ),
+      );
       // S_C_fallback = 0.9 * 0.3604 + 0.1 * 1.0 = 0.4244
       // continuityScore = 42.44
       expect(res.continuityScore, closeTo(42.44, 0.01));
     });
 
     test('Fallback continuity with normal p_light and short duration', () {
-      final res = calculateSleepScore(const SleepScoringInput(
-        durationMinutes: 330, // 5.5h -> durationScore = 0.32465
-        lightSleepPct: 55, // p_light = 1.0 -> lightSleepPenalty = 0.0
-        // sleepEfficiencyPct and wasoMinutes are null
-      ));
+      final res = calculateSleepScore(
+        const SleepScoringInput(
+          durationMinutes: 330, // 5.5h -> durationScore = 0.32465
+          lightSleepPct: 55, // p_light = 1.0 -> lightSleepPenalty = 0.0
+          // sleepEfficiencyPct and wasoMinutes are null
+        ),
+      );
       // S_C_fallback = 0.9 * 1.0 + 0.1 * 0.32465 = 0.9325
       // continuityScore = 93.25
       expect(res.continuityScore, closeTo(93.25, 0.01));

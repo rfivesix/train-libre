@@ -20,9 +20,9 @@ class TrainingPlanDay {
   String? get routineName => routineSnapshot?['name'] as String?;
 
   Map<String, dynamic> toJson() => {
-        'routineUuid': routineUuid,
-        'routineSnapshot': routineSnapshot,
-      };
+    'routineUuid': routineUuid,
+    'routineSnapshot': routineSnapshot,
+  };
 
   factory TrainingPlanDay.fromJson(Map<String, dynamic> json) =>
       TrainingPlanDay(
@@ -43,10 +43,13 @@ class TrainingPlanDay {
         return RoutineExercise(
           id: (row['id'] as num?)?.toInt(),
           exercise: Exercise.fromMap(
-              Map<String, dynamic>.from(row['exercise'] as Map)),
+            Map<String, dynamic>.from(row['exercise'] as Map),
+          ),
           setTemplates: (row['setTemplates'] as List<dynamic>? ?? [])
-              .map((set) =>
-                  SetTemplate.fromMap(Map<String, dynamic>.from(set as Map)))
+              .map(
+                (set) =>
+                    SetTemplate.fromMap(Map<String, dynamic>.from(set as Map)),
+              )
               .toList(),
           pauseSeconds: (row['pause_seconds'] as num?)?.toInt(),
           supersetGroup: (row['superset_group'] as num?)?.toInt(),
@@ -62,8 +65,10 @@ class TrainingPlanDay {
 
   static List<TrainingPlanDay> decodeDays(String value) =>
       (jsonDecode(value) as List<dynamic>)
-          .map((day) =>
-              TrainingPlanDay.fromJson(Map<String, dynamic>.from(day as Map)))
+          .map(
+            (day) =>
+                TrainingPlanDay.fromJson(Map<String, dynamic>.from(day as Map)),
+          )
           .toList();
 }
 

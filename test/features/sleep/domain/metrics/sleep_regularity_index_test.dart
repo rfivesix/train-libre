@@ -11,8 +11,9 @@ void main() {
   }) {
     final vector = Uint8List(sleepRegularityMinutesPerDay);
     final start = sleepStartMinute.clamp(0, sleepRegularityMinutesPerDay - 1);
-    final end =
-        sleepEndMinuteExclusive.clamp(0, sleepRegularityMinutesPerDay).toInt();
+    final end = sleepEndMinuteExclusive
+        .clamp(0, sleepRegularityMinutesPerDay)
+        .toInt();
     for (var minute = start; minute < end; minute++) {
       vector[minute] = 1;
     }

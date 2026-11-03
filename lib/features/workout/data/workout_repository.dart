@@ -23,7 +23,7 @@ class WorkoutRepository
   final WorkoutLocalDataSource _localDataSource;
 
   WorkoutRepository({required WorkoutLocalDataSource localDataSource})
-      : _localDataSource = localDataSource;
+    : _localDataSource = localDataSource;
 
   @override
   Future<WorkoutLog?> getOngoingWorkout() =>
@@ -61,12 +61,11 @@ class WorkoutRepository
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
-  }) =>
-      _localDataSource.getExerciseBests(
-        exerciseName,
-        altName: altName,
-        exerciseUuid: exerciseUuid,
-      );
+  }) => _localDataSource.getExerciseBests(
+    exerciseName,
+    altName: altName,
+    exerciseUuid: exerciseUuid,
+  );
 
   @override
   Future<void> updateSetLogs(List<SetLog> logs) =>
@@ -87,14 +86,13 @@ class WorkoutRepository
     required List<int> discardSetIds,
     String? title,
     String? notes,
-  }) =>
-      _localDataSource.finalizeWorkout(
-        workoutLogId: workoutLogId,
-        sets: sets,
-        discardSetIds: discardSetIds,
-        title: title,
-        notes: notes,
-      );
+  }) => _localDataSource.finalizeWorkout(
+    workoutLogId: workoutLogId,
+    sets: sets,
+    discardSetIds: discardSetIds,
+    title: title,
+    notes: notes,
+  );
 
   @override
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) =>
@@ -102,20 +100,20 @@ class WorkoutRepository
 
   @override
   Future<void> updateRoutineExerciseNotes(
-          int routineExerciseId, String? notes) =>
-      _localDataSource.updateRoutineExerciseNotes(routineExerciseId, notes);
+    int routineExerciseId,
+    String? notes,
+  ) => _localDataSource.updateRoutineExerciseNotes(routineExerciseId, notes);
 
   @override
   Future<void> saveWorkoutExerciseNote({
     required int workoutLogId,
     required String exerciseName,
     required String? notes,
-  }) =>
-      _localDataSource.saveWorkoutExerciseNote(
-        workoutLogId: workoutLogId,
-        exerciseName: exerciseName,
-        notes: notes,
-      );
+  }) => _localDataSource.saveWorkoutExerciseNote(
+    workoutLogId: workoutLogId,
+    exerciseName: exerciseName,
+    notes: notes,
+  );
 
   @override
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) =>
@@ -131,59 +129,62 @@ class WorkoutRepository
     required int exerciseBlock,
     required String exerciseName,
     required String? notes,
-  }) =>
-      _localDataSource.saveWorkoutExerciseNote(
-        workoutLogId: workoutLogId,
-        exerciseBlock: exerciseBlock,
-        exerciseName: exerciseName,
-        notes: notes,
-      );
+  }) => _localDataSource.saveWorkoutExerciseNote(
+    workoutLogId: workoutLogId,
+    exerciseBlock: exerciseBlock,
+    exerciseName: exerciseName,
+    notes: notes,
+  );
 
   @override
   Future<void> savePinnedExerciseNote({
     required String exerciseUuid,
     required String? notes,
-  }) =>
-      _localDataSource.savePinnedExerciseNote(
-        exerciseUuid: exerciseUuid,
-        notes: notes,
-      );
+  }) => _localDataSource.savePinnedExerciseNote(
+    exerciseUuid: exerciseUuid,
+    notes: notes,
+  );
 
   @override
-  Future<void> saveProgressionConfig(String prescriptionKey, String data,
-          {bool equipmentOnly = false}) =>
-      _localDataSource.saveProgressionConfig(prescriptionKey, data,
-          equipmentOnly: equipmentOnly);
+  Future<void> saveProgressionConfig(
+    String prescriptionKey,
+    String data, {
+    bool equipmentOnly = false,
+  }) => _localDataSource.saveProgressionConfig(
+    prescriptionKey,
+    data,
+    equipmentOnly: equipmentOnly,
+  );
 
   @override
   Future<void> initializeProgressionConfig(
-          int routineExerciseId, String data) =>
-      _localDataSource.initializeProgressionConfig(routineExerciseId, data);
+    int routineExerciseId,
+    String data,
+  ) => _localDataSource.initializeProgressionConfig(routineExerciseId, data);
 
   @override
   Future<List<SetLog>> getProgressionHistory({
     required String exerciseId,
     required String exerciseNameSnapshot,
-  }) =>
-      _localDataSource.getProgressionHistory(
-        exerciseId: exerciseId,
-        exerciseNameSnapshot: exerciseNameSnapshot,
-      );
+  }) => _localDataSource.getProgressionHistory(
+    exerciseId: exerciseId,
+    exerciseNameSnapshot: exerciseNameSnapshot,
+  );
 
   @override
   Future<List<SetLog>> getLastSetsForExercise({
     required String? exerciseId,
     required String exerciseNameSnapshot,
-  }) =>
-      _localDataSource.getLastSetsForExercise(
-        exerciseId: exerciseId,
-        exerciseNameSnapshot: exerciseNameSnapshot,
-      );
+  }) => _localDataSource.getLastSetsForExercise(
+    exerciseId: exerciseId,
+    exerciseNameSnapshot: exerciseNameSnapshot,
+  );
 
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
-          DateTime start, DateTime end) =>
-      _localDataSource.getWorkoutLogsForDateRange(start, end);
+    DateTime start,
+    DateTime end,
+  ) => _localDataSource.getWorkoutLogsForDateRange(start, end);
 
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() =>
@@ -203,8 +204,9 @@ class WorkoutRepository
 
   @override
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
-          DateTime start, DateTime end) =>
-      _localDataSource.watchWorkoutLogsForDateRange(start, end);
+    DateTime start,
+    DateTime end,
+  ) => _localDataSource.watchWorkoutLogsForDateRange(start, end);
 
   @override
   Future<Routine?> getRoutineByUuid(String uuid) =>
@@ -214,21 +216,19 @@ class WorkoutRepository
   Future<void> syncRoutineWithWorkout({
     required String routineUuid,
     required int workoutLogId,
-  }) =>
-      _localDataSource.syncRoutineWithWorkout(
-        routineUuid: routineUuid,
-        workoutLogId: workoutLogId,
-      );
+  }) => _localDataSource.syncRoutineWithWorkout(
+    routineUuid: routineUuid,
+    workoutLogId: workoutLogId,
+  );
 
   @override
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) =>
-      _localDataSource.createRoutineFromWorkout(
-        workoutLogId: workoutLogId,
-        name: name,
-      );
+  }) => _localDataSource.createRoutineFromWorkout(
+    workoutLogId: workoutLogId,
+    name: name,
+  );
 
   @override
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) =>

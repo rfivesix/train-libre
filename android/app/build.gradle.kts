@@ -21,7 +21,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-android {
+extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = "com.rfivesix.trainlibre"
     compileSdk = 37
     ndkVersion = "28.2.13676358"
@@ -65,11 +65,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
-    kotlinOptions { jvmTarget = JavaVersion.VERSION_17.toString() }
 
     // Only the widget configuration Activities are Compose; the app itself
     // stays Flutter.
     buildFeatures { compose = true }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 flutter { source = "../.." }
@@ -77,7 +82,7 @@ flutter { source = "../.." }
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.health.connect:connect-client:1.2.0-alpha06")
-    implementation("androidx.documentfile:documentfile:1.0.1")
+    implementation("androidx.documentfile:documentfile:1.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // --- Home screen widgets ---

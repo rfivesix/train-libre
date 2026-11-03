@@ -10,6 +10,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class HealthExportSettingsScreen extends StatefulWidget {
@@ -63,8 +64,9 @@ class _HealthExportSettingsScreenState
     required bool enabled,
   }) async {
     if (enabled) {
-      final permission =
-          await _healthExportService.requestPermissions(platform);
+      final permission = await _healthExportService.requestPermissions(
+        platform,
+      );
       if (!permission.success) {
         if (!mounted) return;
         final l10n = AppLocalizations.of(context)!;
@@ -239,12 +241,14 @@ class _HealthExportSettingsScreenState
                 AppSettingsRow(
                   title: l10n.healthExportAppleHealthStatusTitle,
                   leading: const Icon(LucideIcons.shield_check),
-                  subtitle: HealthExportDomain.values.map((domain) {
-                    final status =
-                        _exportStatuses[HealthExportPlatform.appleHealth]
-                            ?.statusFor(domain);
-                    return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
-                  }).join(' · '),
+                  subtitle: HealthExportDomain.values
+                      .map((domain) {
+                        final status =
+                            _exportStatuses[HealthExportPlatform.appleHealth]
+                                ?.statusFor(domain);
+                        return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
+                      })
+                      .join(' · '),
                   trailing: _isAppleExporting
                       ? const SizedBox(
                           width: 18,
@@ -289,12 +293,14 @@ class _HealthExportSettingsScreenState
                 AppSettingsRow(
                   title: l10n.healthExportHealthConnectStatusTitle,
                   leading: const Icon(LucideIcons.shield_check),
-                  subtitle: HealthExportDomain.values.map((domain) {
-                    final status =
-                        _exportStatuses[HealthExportPlatform.healthConnect]
-                            ?.statusFor(domain);
-                    return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
-                  }).join(' · '),
+                  subtitle: HealthExportDomain.values
+                      .map((domain) {
+                        final status =
+                            _exportStatuses[HealthExportPlatform.healthConnect]
+                                ?.statusFor(domain);
+                        return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
+                      })
+                      .join(' · '),
                   trailing: _isHealthConnectExporting
                       ? const SizedBox(
                           width: 18,

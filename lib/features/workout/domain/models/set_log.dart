@@ -1,4 +1,5 @@
 import '../progression/progression_contract.dart';
+
 // lib/models/set_log.dart
 // Complete code
 
@@ -198,7 +199,8 @@ class SetLog {
       exerciseId: map['exercise_id'] as String? ?? map['exerciseId'] as String?,
       exerciseName: map['exercise_name'] ?? map['exerciseName'] ?? '',
       setType: map['set_type'] ?? map['setType'] ?? 'normal',
-      weightKg: (map['weight_kg'] as num?)?.toDouble() ??
+      weightKg:
+          (map['weight_kg'] as num?)?.toDouble() ??
           (map['weightKg'] as num?)?.toDouble(),
       reps: map['reps'],
       restTimeSeconds: map['rest_time_seconds'] ?? map['restTimeSeconds'],
@@ -208,40 +210,46 @@ class SetLog {
       exerciseBlock: map['exercise_block'] ?? map['exerciseBlock'],
       supersetGroup: map['superset_group'] ?? map['supersetGroup'],
       notes: map['notes'],
-      distanceKm: (map['distance_km'] as num?)?.toDouble() ??
+      distanceKm:
+          (map['distance_km'] as num?)?.toDouble() ??
           (map['distanceKm'] as num?)?.toDouble(),
       durationSeconds: map['duration_seconds'] ?? map['durationSeconds'],
       rpe: map['rpe'],
       rir: map['rir'],
       supersetId: map['superset_id'] ?? map['supersetId'],
-      prescriptionOrigin: map['prescription_origin'] as String? ??
+      prescriptionOrigin:
+          map['prescription_origin'] as String? ??
           map['prescriptionOrigin'] as String? ??
           'none',
       prescribedRepMin: map['prescribed_rep_min'] ?? map['prescribedRepMin'],
       prescribedRepMax: map['prescribed_rep_max'] ?? map['prescribedRepMax'],
-      prescribedWeight: (map['prescribed_weight'] as num?)?.toDouble() ??
+      prescribedWeight:
+          (map['prescribed_weight'] as num?)?.toDouble() ??
           (map['prescribedWeight'] as num?)?.toDouble(),
       prescribedRir: map['prescribed_rir'] ?? map['prescribedRir'],
-      prescriptionOverridden: map['prescription_overridden'] == 1 ||
+      prescriptionOverridden:
+          map['prescription_overridden'] == 1 ||
           map['prescriptionOverridden'] == true,
       valuesAutoFilled:
           map['values_auto_filled'] == 1 || map['valuesAutoFilled'] == true,
-      substitutedForExerciseId: map['substituted_for_exercise_id'] as String? ??
+      substitutedForExerciseId:
+          map['substituted_for_exercise_id'] as String? ??
           map['substitutedForExerciseId'] as String?,
-      progressionReason: map['progression_reason'] as String? ??
+      progressionReason:
+          map['progression_reason'] as String? ??
           map['progressionReason'] as String?,
       progressionAlgorithmVersion:
           map['progression_algorithm_version'] as String? ??
-              map['progressionAlgorithmVersion'] as String?,
+          map['progressionAlgorithmVersion'] as String?,
       performedAt: map['performed_at'] != null
           ? (map['performed_at'] is DateTime
-              ? map['performed_at'] as DateTime
-              : DateTime.tryParse(map['performed_at'].toString()))
+                ? map['performed_at'] as DateTime
+                : DateTime.tryParse(map['performed_at'].toString()))
           : (map['performedAt'] is DateTime
-              ? map['performedAt'] as DateTime
-              : (map['performedAt'] != null
-                  ? DateTime.tryParse(map['performedAt'].toString())
-                  : null)),
+                ? map['performedAt'] as DateTime
+                : (map['performedAt'] != null
+                      ? DateTime.tryParse(map['performedAt'].toString())
+                      : null)),
       // Note: PR flags are not stored in the database.
     );
   }
@@ -359,12 +367,14 @@ class SetLog {
       isCompleted: isCompleted ?? this.isCompleted,
       logOrder: logOrder ?? this.logOrder,
       exerciseBlock: exerciseBlock ?? this.exerciseBlock,
-      supersetGroup:
-          clearSupersetGroup ? null : (supersetGroup ?? this.supersetGroup),
+      supersetGroup: clearSupersetGroup
+          ? null
+          : (supersetGroup ?? this.supersetGroup),
       notes: notes ?? this.notes,
       distanceKm: clearDistance ? null : (distanceKm ?? this.distanceKm),
-      durationSeconds:
-          clearDuration ? null : (durationSeconds ?? this.durationSeconds),
+      durationSeconds: clearDuration
+          ? null
+          : (durationSeconds ?? this.durationSeconds),
       rpe: rpe ?? this.rpe,
       rir: clearRir ? null : (rir ?? this.rir),
       supersetId: supersetId ?? this.supersetId,
@@ -390,8 +400,9 @@ class SetLog {
       prescribedWeight: clearPrescribedWeight
           ? null
           : (prescribedWeight ?? this.prescribedWeight),
-      prescribedRir:
-          clearPrescribedRir ? null : (prescribedRir ?? this.prescribedRir),
+      prescribedRir: clearPrescribedRir
+          ? null
+          : (prescribedRir ?? this.prescribedRir),
       prescriptionOverridden:
           prescriptionOverridden ?? this.prescriptionOverridden,
       valuesAutoFilled: valuesAutoFilled ?? this.valuesAutoFilled,

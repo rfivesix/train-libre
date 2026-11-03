@@ -14,7 +14,10 @@ class _FakeHeartRateDataSource implements HealthHeartRateDataSource {
   final List<HealthHeartRateSampleDto> samples;
   final Object? error;
   final List<HealthHeartRateSampleDto> Function(
-      DateTime fromUtc, DateTime toUtc)? onRead;
+    DateTime fromUtc,
+    DateTime toUtc,
+  )?
+  onRead;
 
   @override
   Future<List<HealthHeartRateSampleDto>> readHeartRateSamples({
@@ -29,10 +32,7 @@ class _FakeHeartRateDataSource implements HealthHeartRateDataSource {
 }
 
 class _ReadRequest {
-  const _ReadRequest({
-    required this.fromUtc,
-    required this.toUtc,
-  });
+  const _ReadRequest({required this.fromUtc, required this.toUtc});
 
   final DateTime fromUtc;
   final DateTime toUtc;
@@ -85,78 +85,90 @@ void main() {
       expect(summary.hasSummaryMetrics, isFalse);
     });
 
-    test('uses workout time-window matching and sorts chronologically',
-        () async {
-      final start = DateTime.utc(2026, 3, 1, 12, 0);
-      final end = DateTime.utc(2026, 3, 1, 12, 40);
-      final service = WorkoutHeartRateService(
-        dataSource: _FakeHeartRateDataSource(
-          samples: [
-            HealthHeartRateSampleDto(
-              sampledAtUtc: start.subtract(const Duration(minutes: 5)),
-              bpm: 105,
-            ),
-            HealthHeartRateSampleDto(
-              sampledAtUtc: start.add(const Duration(minutes: 20)),
-              bpm: 130,
-            ),
-            HealthHeartRateSampleDto(
-              sampledAtUtc: start.add(const Duration(minutes: 10)),
-              bpm: 125,
-            ),
-            HealthHeartRateSampleDto(
-              sampledAtUtc: end.add(const Duration(minutes: 3)),
-              bpm: 99,
-            ),
-            HealthHeartRateSampleDto(
-              sampledAtUtc: start.add(const Duration(minutes: 10)),
-              bpm: 127,
-            ),
-          ],
-        ),
-      );
+    test(
+      'uses workout time-window matching and sorts chronologically',
+      () async {
+        final start = DateTime.utc(2026, 3, 1, 12, 0);
+        final end = DateTime.utc(2026, 3, 1, 12, 40);
+        final service = WorkoutHeartRateService(
+          dataSource: _FakeHeartRateDataSource(
+            samples: [
+              HealthHeartRateSampleDto(
+                sampledAtUtc: start.subtract(const Duration(minutes: 5)),
+                bpm: 105,
+              ),
+              HealthHeartRateSampleDto(
+                sampledAtUtc: start.add(const Duration(minutes: 20)),
+                bpm: 130,
+              ),
+              HealthHeartRateSampleDto(
+                sampledAtUtc: start.add(const Duration(minutes: 10)),
+                bpm: 125,
+              ),
+              HealthHeartRateSampleDto(
+                sampledAtUtc: end.add(const Duration(minutes: 3)),
+                bpm: 99,
+              ),
+              HealthHeartRateSampleDto(
+                sampledAtUtc: start.add(const Duration(minutes: 10)),
+                bpm: 127,
+              ),
+            ],
+          ),
+        );
 
-      final summary = await service.loadForWorkoutWindow(
-        startTime: start,
-        endTime: end,
-      );
+        final summary = await service.loadForWorkoutWindow(
+          startTime: start,
+          endTime: end,
+        );
 
-      expect(summary.sampleCount, 2);
-      expect(summary.samples.first.sampledAtUtc,
-          start.add(const Duration(minutes: 10)));
-      expect(summary.samples.last.sampledAtUtc,
-          start.add(const Duration(minutes: 20)));
-      expect(summary.samples.first.bpm, closeTo(126, 0.001));
-      expect(summary.quality, WorkoutHeartRateDataQuality.insufficient);
-    });
+        expect(summary.sampleCount, 2);
+        expect(
+          summary.samples.first.sampledAtUtc,
+          start.add(const Duration(minutes: 10)),
+        );
+        expect(
+          summary.samples.last.sampledAtUtc,
+          start.add(const Duration(minutes: 20)),
+        );
+        expect(summary.samples.first.bpm, closeTo(126, 0.001));
+        expect(summary.quality, WorkoutHeartRateDataQuality.insufficient);
+      },
+    );
 
-    test('downsamples long sessions while keeping chronological endpoints',
-        () async {
-      final start = DateTime.utc(2026, 4, 1, 6, 0);
-      final end = start.add(const Duration(hours: 8));
-      final samples = List.generate(
-        480,
-        (i) => HealthHeartRateSampleDto(
-          sampledAtUtc: start.add(Duration(minutes: i)),
-          bpm: 100 + (i % 40).toDouble(),
-        ),
-      );
-      final service = WorkoutHeartRateService(
-        dataSource: _FakeHeartRateDataSource(samples: samples),
-        maxChartPoints: 80,
-      );
+    test(
+      'downsamples long sessions while keeping chronological endpoints',
+      () async {
+        final start = DateTime.utc(2026, 4, 1, 6, 0);
+        final end = start.add(const Duration(hours: 8));
+        final samples = List.generate(
+          480,
+          (i) => HealthHeartRateSampleDto(
+            sampledAtUtc: start.add(Duration(minutes: i)),
+            bpm: 100 + (i % 40).toDouble(),
+          ),
+        );
+        final service = WorkoutHeartRateService(
+          dataSource: _FakeHeartRateDataSource(samples: samples),
+          maxChartPoints: 80,
+        );
 
-      final summary = await service.loadForWorkoutWindow(
-        startTime: start,
-        endTime: end,
-      );
+        final summary = await service.loadForWorkoutWindow(
+          startTime: start,
+          endTime: end,
+        );
 
-      expect(summary.chartSamples.length, lessThanOrEqualTo(81));
-      expect(summary.chartSamples.first.sampledAtUtc,
-          summary.samples.first.sampledAtUtc);
-      expect(summary.chartSamples.last.sampledAtUtc,
-          summary.samples.last.sampledAtUtc);
-    });
+        expect(summary.chartSamples.length, lessThanOrEqualTo(81));
+        expect(
+          summary.chartSamples.first.sampledAtUtc,
+          summary.samples.first.sampledAtUtc,
+        );
+        expect(
+          summary.chartSamples.last.sampledAtUtc,
+          summary.samples.last.sampledAtUtc,
+        );
+      },
+    );
 
     test('maps permission errors to noData permissionDenied state', () async {
       final start = DateTime.utc(2026, 5, 1, 10, 0);
@@ -182,52 +194,43 @@ void main() {
       );
     });
 
-    test(
-      'retries HR read with a wider window when direct query returns no records',
-      () async {
-        final start = DateTime.utc(2026, 5, 12, 18, 0);
-        final end = DateTime.utc(2026, 5, 12, 19, 0);
-        final requests = <_ReadRequest>[];
-        final insideWindow = HealthHeartRateSampleDto(
-          sampledAtUtc: start.add(const Duration(minutes: 10)),
-          bpm: 132,
-        );
-        final outsideWindow = HealthHeartRateSampleDto(
-          sampledAtUtc: start.subtract(const Duration(hours: 1)),
-          bpm: 80,
-        );
-        final service = WorkoutHeartRateService(
-          dataSource: _FakeHeartRateDataSource(
-            onRead: (fromUtc, toUtc) {
-              requests.add(_ReadRequest(fromUtc: fromUtc, toUtc: toUtc));
-              if (requests.length == 1) {
-                return const <HealthHeartRateSampleDto>[];
-              }
-              return <HealthHeartRateSampleDto>[outsideWindow, insideWindow];
-            },
-          ),
-        );
+    test('retries HR read with a wider window when direct query returns no records', () async {
+      final start = DateTime.utc(2026, 5, 12, 18, 0);
+      final end = DateTime.utc(2026, 5, 12, 19, 0);
+      final requests = <_ReadRequest>[];
+      final insideWindow = HealthHeartRateSampleDto(
+        sampledAtUtc: start.add(const Duration(minutes: 10)),
+        bpm: 132,
+      );
+      final outsideWindow = HealthHeartRateSampleDto(
+        sampledAtUtc: start.subtract(const Duration(hours: 1)),
+        bpm: 80,
+      );
+      final service = WorkoutHeartRateService(
+        dataSource: _FakeHeartRateDataSource(
+          onRead: (fromUtc, toUtc) {
+            requests.add(_ReadRequest(fromUtc: fromUtc, toUtc: toUtc));
+            if (requests.length == 1) {
+              return const <HealthHeartRateSampleDto>[];
+            }
+            return <HealthHeartRateSampleDto>[outsideWindow, insideWindow];
+          },
+        ),
+      );
 
-        final summary = await service.loadForWorkoutWindow(
-          startTime: start,
-          endTime: end,
-        );
+      final summary = await service.loadForWorkoutWindow(
+        startTime: start,
+        endTime: end,
+      );
 
-        expect(requests.length, 2);
-        expect(requests.first.fromUtc, start);
-        expect(requests.first.toUtc, end);
-        expect(
-          requests.last.fromUtc,
-          start.subtract(const Duration(hours: 24)),
-        );
-        expect(
-          requests.last.toUtc,
-          end.add(const Duration(hours: 24)),
-        );
-        expect(summary.sampleCount, 1);
-        expect(summary.samples.single.sampledAtUtc, insideWindow.sampledAtUtc);
-      },
-    );
+      expect(requests.length, 2);
+      expect(requests.first.fromUtc, start);
+      expect(requests.first.toUtc, end);
+      expect(requests.last.fromUtc, start.subtract(const Duration(hours: 24)));
+      expect(requests.last.toUtc, end.add(const Duration(hours: 24)));
+      expect(summary.sampleCount, 1);
+      expect(summary.samples.single.sampledAtUtc, insideWindow.sampledAtUtc);
+    });
 
     test('returns noData for unfinished workouts', () async {
       final start = DateTime.utc(2026, 6, 1, 7, 0);

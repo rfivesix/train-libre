@@ -25,10 +25,10 @@ NightlySleepAnalysis _analysis({
     sleepQuality: score == null
         ? SleepQualityBucket.unavailable
         : score >= 80
-            ? SleepQualityBucket.good
-            : score >= 60
-                ? SleepQualityBucket.average
-                : SleepQualityBucket.poor,
+        ? SleepQualityBucket.good
+        : score >= 60
+        ? SleepQualityBucket.average
+        : SleepQualityBucket.poor,
   );
 }
 
@@ -104,10 +104,12 @@ void main() {
         targetDate.month,
         targetDate.day,
       );
-      final expectedStartMinutes = expectedStartLocal.hour * 60 +
+      final expectedStartMinutes =
+          expectedStartLocal.hour * 60 +
           expectedStartLocal.minute +
           (expectedStartDate.isBefore(targetDateOnly) ? 0 : 1440);
-      final expectedEndMinutes = expectedEndLocal.hour * 60 +
+      final expectedEndMinutes =
+          expectedEndLocal.hour * 60 +
           expectedEndLocal.minute +
           (expectedEndDate.isBefore(targetDateOnly) ? 0 : 1440);
       expect(window.hasData, isTrue);
@@ -151,9 +153,7 @@ void main() {
       final engine = const SleepPeriodAggregationEngine();
       final result = engine.aggregateWeek(
         weekStart: weekStart,
-        analyses: [
-          _analysis(date: targetDate, totalSleepMinutes: 420),
-        ],
+        analyses: [_analysis(date: targetDate, totalSleepMinutes: 420)],
       );
 
       final window = result.sleepWindows.firstWhere(
@@ -171,9 +171,7 @@ void main() {
       final engine = const SleepPeriodAggregationEngine();
       final result = engine.aggregateWeek(
         weekStart: weekStart,
-        analyses: [
-          _analysis(date: targetDate),
-        ],
+        analyses: [_analysis(date: targetDate)],
       );
 
       final window = result.sleepWindows.firstWhere(

@@ -14,10 +14,7 @@ import 'package:train_libre/services/unit_service.dart';
 /// gained. An assisted pull-up does fill it, with a number that means its
 /// opposite: the easiest set of the session read as a weight record, which is
 /// exactly what the screenshot showed.
-Exercise _exercise({
-  required String trackingType,
-  required String loadMode,
-}) =>
+Exercise _exercise({required String trackingType, required String loadMode}) =>
     Exercise(
       texts: const {'en': ExerciseText(name: 'Test')},
       categoryName: 'Back',
@@ -28,21 +25,25 @@ Exercise _exercise({
     );
 
 final _barbell = _exercise(trackingType: 'weight_reps', loadMode: 'external');
-final _pullUp =
-    _exercise(trackingType: 'bodyweight_reps', loadMode: 'bodyweight');
-final _assisted =
-    _exercise(trackingType: 'bodyweight_reps', loadMode: 'assisted');
+final _pullUp = _exercise(
+  trackingType: 'bodyweight_reps',
+  loadMode: 'bodyweight',
+);
+final _assisted = _exercise(
+  trackingType: 'bodyweight_reps',
+  loadMode: 'assisted',
+);
 
 SetLog _set({double? weightKg, int? reps}) => SetLog(
-      id: 1,
-      workoutLogId: 1,
-      exerciseName: 'Test',
-      setType: 'normal',
-      weightKg: weightKg,
-      reps: reps,
-      isCompleted: true,
-      logOrder: 0,
-    );
+  id: 1,
+  workoutLogId: 1,
+  exerciseName: 'Test',
+  setType: 'normal',
+  weightKg: weightKg,
+  reps: reps,
+  isCompleted: true,
+  logOrder: 0,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -61,14 +62,13 @@ void main() {
     required int reps,
     required Map<String, double> bests,
     double? bodyweightKg = 90,
-  }) =>
-      DetectPersonalRecordUseCase().execute(
-        currentSet: _set(weightKg: weightKg, reps: reps),
-        historicalBests: bests,
-        unitService: unitService,
-        mask: ExerciseLogMask.forExercise(exercise),
-        bodyweightKg: bodyweightKg,
-      );
+  }) => DetectPersonalRecordUseCase().execute(
+    currentSet: _set(weightKg: weightKg, reps: reps),
+    historicalBests: bests,
+    unitService: unitService,
+    mask: ExerciseLogMask.forExercise(exercise),
+    bodyweightKg: bodyweightKg,
+  );
 
   group('body weight is a load', () {
     test('a pull-up with an empty weight column can set records', () {
@@ -81,8 +81,11 @@ void main() {
         bests: {'maxWeight': 0, 'maxVolume': 720, 'maxEst1rm': 110},
       );
 
-      expect(result.updatedSetLog.isMaxVolumePR, isTrue,
-          reason: '900 kg of volume did not beat 720');
+      expect(
+        result.updatedSetLog.isMaxVolumePR,
+        isTrue,
+        reason: '900 kg of volume did not beat 720',
+      );
       expect(result.updatedSetLog.isMaxEst1RMPR, isTrue);
       expect(
         result.alerts.map((a) => a.recordType),

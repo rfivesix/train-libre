@@ -8,6 +8,7 @@ on:
       - 'documentation/**'
       - 'assets/screenshots/**'
       - 'tool/build_docs.py'
+      - 'tool/build_comparison.py'
       - 'tool/sync_website_screenshots.py'
       - 'tool/verify_website.py'
       - '.github/workflows/deploy-docs.yml'
@@ -39,6 +40,9 @@ jobs:
 
       - name: Sync landing-page screenshots
         run: python3 tool/sync_website_screenshots.py
+
+      - name: Render app comparison
+        run: python3 tool/build_comparison.py
 
       - name: Generate docs from markdown
         run: python3 tool/build_docs.py

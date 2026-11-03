@@ -1,17 +1,22 @@
 // lib/screens/onboarding_screen.dart
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../../util/design_constants.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
 import '../../app/presentation/main_screen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../profile/data/legacy_goal_migration.dart';
 import '../../nutrition_recommendation/presentation/body_fat_guidance_sheet.dart';
@@ -33,6 +38,9 @@ import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/region_selection_slide.dart';
 import 'widgets/onboarding_info_box.dart';
+import 'widgets/onboarding_activity_step.dart';
+import 'widgets/onboarding_goal_decision_step.dart';
+import 'widgets/onboarding_ai_health_step.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/models/goal_model.dart';
 import '../../profile/domain/repositories/goal_repository.dart';
@@ -41,14 +49,14 @@ import '../../profile/presentation/widgets/goal_flow/goal_motivation_step.dart';
 import '../../profile/presentation/widgets/goal_flow/goal_pace_timeline_step.dart';
 import '../../profile/presentation/widgets/goal_flow/goal_preset_step.dart';
 import '../../profile/presentation/widgets/goal_flow/goal_target_step.dart';
-import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
-import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../services/off_catalog_country_service.dart';
 import '../../../config/app_data_sources.dart';
 import '../../../core/infrastructure/icloud_sync_service.dart';
+
 import 'dart:io';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../widgets/common/summary_card.dart';
+
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../../widgets/common/long_running_operation_overlay.dart';
 import '../../../util/permission_dialogs.dart';
@@ -62,7 +70,9 @@ import '../../health_export/export_service.dart';
 import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
 import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
 import '../../health_export/models/export_models.dart';
+
 import 'package:uuid/uuid.dart';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/experience_level_service.dart';
 import 'widgets/experience_level_slide.dart';
@@ -207,20 +217,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    assert(_stepNames.length == _totalPageCount,
-        'Every onboarding page must have exactly one telemetry step name.');
+    assert(
+      _stepNames.length == _totalPageCount,
+      'Every onboarding page must have exactly one telemetry step name.',
+    );
     _isImportedMode = widget.forceImportMode;
     _databaseHelper = widget.databaseHelper ?? DatabaseHelper.instance;
-    _goalRepository = widget.goalRepository ??
+    _goalRepository =
+        widget.goalRepository ??
         GoalRepositoryImpl(database: _databaseHelper.dbInstance);
-    _recommendationService = widget.recommendationService ??
+    _recommendationService =
+        widget.recommendationService ??
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
 
     _goalFlowState.onBaselineChanged = (weightKg) {
-      final disp =
-          _unitService.convertDisplayValue(weightKg, UnitDimension.weight);
+      final disp = _unitService.convertDisplayValue(
+        weightKg,
+        UnitDimension.weight,
+      );
       _weightController.text = disp.toStringAsFixed(1);
     };
     _goalFlowState.addListener(() {
@@ -373,10 +389,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _loadAdaptiveGoalSettings() async {
     final goal = await _recommendationService.getGoal();
     final rate = await _recommendationService.getTargetRateKgPerWeek();
-    final priorActivityLevel =
-        await _recommendationService.getPriorActivityLevel();
-    final extraCardioHoursOption =
-        await _recommendationService.getExtraCardioHoursOption();
+    final priorActivityLevel = await _recommendationService
+        .getPriorActivityLevel();
+    final extraCardioHoursOption = await _recommendationService
+        .getExtraCardioHoursOption();
     if (!mounted) return;
     setState(() {
       _selectedPriorActivityLevel = priorActivityLevel;
@@ -424,29 +440,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final height = heightInput == null
         ? null
         : unitService
-            .convertToMetric(heightInput, UnitDimension.height)
-            .round();
-    final bodyFatPercent =
-        double.tryParse(_bodyFatPercentController.text.replaceAll(',', '.'));
+              .convertToMetric(heightInput, UnitDimension.height)
+              .round();
+    final bodyFatPercent = double.tryParse(
+      _bodyFatPercentController.text.replaceAll(',', '.'),
+    );
 
     final effectiveGoal = _resolveEffectiveGoal();
     final effectiveTargetRate = _resolveEffectiveTargetRate();
 
     try {
-      final preview =
-          await _recommendationService.generateOnboardingRecommendationPreview(
-        goal: effectiveGoal,
-        targetRateKgPerWeek: effectiveTargetRate,
-        weightKg: weight,
-        heightCm: height,
-        birthday: _selectedDate,
-        gender: _selectedGender,
-        bodyFatPercent: bodyFatPercent,
-        declaredActivityLevel: _selectedPriorActivityLevel,
-        extraCardioHoursOption: _selectedExtraCardioHoursOption,
-        persistGenerated: false,
-        markAsApplied: false,
-      );
+      final preview = await _recommendationService
+          .generateOnboardingRecommendationPreview(
+            goal: effectiveGoal,
+            targetRateKgPerWeek: effectiveTargetRate,
+            weightKg: weight,
+            heightCm: height,
+            birthday: _selectedDate,
+            gender: _selectedGender,
+            bodyFatPercent: bodyFatPercent,
+            declaredActivityLevel: _selectedPriorActivityLevel,
+            extraCardioHoursOption: _selectedExtraCardioHoursOption,
+            persistGenerated: false,
+            markAsApplied: false,
+          );
 
       if (!mounted) return;
       setState(() {
@@ -492,7 +509,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   bool _activeGoalInputsMatchRecommendation(
-      NutritionRecommendation recommendation) {
+    NutritionRecommendation recommendation,
+  ) {
     return (int.tryParse(_calController.text) ?? -1) ==
             recommendation.recommendedCalories &&
         (int.tryParse(_protController.text) ?? -1) ==
@@ -530,8 +548,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final int? height = heightInput == null
         ? null
         : unitService
-            .convertToMetric(heightInput, UnitDimension.height)
-            .round();
+              .convertToMetric(heightInput, UnitDimension.height)
+              .round();
     final double? weight = weightInput == null
         ? null
         : unitService.convertToMetric(weightInput, UnitDimension.weight);
@@ -543,7 +561,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final effectiveGoal = _resolveEffectiveGoal();
     final effectiveTargetRate = _resolveEffectiveTargetRate();
 
-    final onboardingRecommendation = _onboardingRecommendation ??
+    final onboardingRecommendation =
+        _onboardingRecommendation ??
         await _recommendationService.generateOnboardingRecommendation(
           goal: effectiveGoal,
           targetRateKgPerWeek: effectiveTargetRate,
@@ -569,9 +588,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_selectedGender != null && mounted) {
       try {
         await context.read<ProfileService>().updateGender(
-              UserGender.fromString(_selectedGender),
-              context.read<IProfileRepository>(),
-            );
+          UserGender.fromString(_selectedGender),
+          context.read<IProfileRepository>(),
+        );
       } catch (_) {
         // Safe fallback in widget tests where ProfileService is omitted
       }
@@ -663,9 +682,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Save selected experience level
     if (mounted) {
       try {
-        await context
-            .read<ExperienceLevelService>()
-            .setLevel(_selectedExperienceLevel);
+        await context.read<ExperienceLevelService>().setLevel(
+          _selectedExperienceLevel,
+        );
       } catch (_) {
         // Safe fallback in widget tests where ExperienceLevelService is omitted
         await ExperienceLevelService().setLevel(_selectedExperienceLevel);
@@ -677,11 +696,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     _onboardingCompletedSuccessfully = true;
-    unawaited(TelemetryService.instance.trackOnboardingCompleted(
-      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
-      restoredFromBackup: _isImportedMode,
-      sessionId: _onboardingSessionId,
-    ));
+    unawaited(
+      TelemetryService.instance.trackOnboardingCompleted(
+        totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+        restoredFromBackup: _isImportedMode,
+        sessionId: _onboardingSessionId,
+      ),
+    );
 
     if (!mounted) return;
 
@@ -770,13 +791,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
 
-    final wgerInitialized =
-        await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final wgerInitialized = await BasisDataManager.instance
+        .isExerciseCatalogInitialized();
 
     if (!wgerInitialized) {
       if (!mounted) return;
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       return;
     }
 
@@ -857,9 +879,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _isImportedMode = true;
         _requiresHardRestart = true;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
       _pageController.animateToPage(
         _unitSystemPageIndex,
         duration: const Duration(milliseconds: 300),
@@ -918,9 +939,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _nextPage() async {
     final l10n = AppLocalizations.of(context)!;
     if (_currentPage == _workoutImportPageIndex) {
-      unawaited(TelemetryService.instance.trackFeatureUsed(
-        featureKey: FeatureKey.workoutImportPromptSkipped,
-      ));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.workoutImportPromptSkipped,
+        ),
+      );
     }
     if (_currentPage == _regionSelectionPageIndex) {
       await OffCatalogCountryService.writeActiveCountry(_selectedOffCountry);
@@ -968,7 +991,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         } else {
           final now = DateTime.now();
           var age = now.year - _selectedDate!.year;
-          final hadBirthdayThisYear = now.month > _selectedDate!.month ||
+          final hadBirthdayThisYear =
+              now.month > _selectedDate!.month ||
               (now.month == _selectedDate!.month &&
                   now.day >= _selectedDate!.day);
           if (!hadBirthdayThisYear) {
@@ -999,11 +1023,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           });
           return;
         }
-        final heightInput =
-            double.tryParse(_heightController.text.replaceAll(',', '.'));
+        final heightInput = double.tryParse(
+          _heightController.text.replaceAll(',', '.'),
+        );
         if (heightInput != null) {
-          final heightCm =
-              _unitService.convertToMetric(heightInput, UnitDimension.height);
+          final heightCm = _unitService.convertToMetric(
+            heightInput,
+            UnitDimension.height,
+          );
           if (heightCm < 100 || heightCm > 250) {
             if (_lastWarnedHeightValue != _heightController.text) {
               setState(() {
@@ -1037,8 +1064,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
         final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
         if (weightInput != null) {
-          final weightKg =
-              _unitService.convertToMetric(weightInput, UnitDimension.weight);
+          final weightKg = _unitService.convertToMetric(
+            weightInput,
+            UnitDimension.weight,
+          );
           if (weightKg < 35 || weightKg > 250) {
             if (_lastWarnedWeightValue != _weightController.text) {
               setState(() {
@@ -1192,13 +1221,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         cancelLabel: l10n.health_permission_not_now,
       );
       if (confirmed && mounted) {
-        final service = HealthExportService(adapters: [
-          AppleHealthExportAdapter(),
-          HealthConnectExportAdapter()
-        ]);
-        await service.requestPermissions(Platform.isIOS
-            ? HealthExportPlatform.appleHealth
-            : HealthExportPlatform.healthConnect);
+        final service = HealthExportService(
+          adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()],
+        );
+        await service.requestPermissions(
+          Platform.isIOS
+              ? HealthExportPlatform.appleHealth
+              : HealthExportPlatform.healthConnect,
+        );
       }
     }
 
@@ -1243,11 +1273,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // 4. Sleep Tracking
     final sleepEnabled = prefs.getBool('sleep_tracking_enabled') ?? false;
     if (sleepEnabled) {
-      final controller = SleepPermissionController(Platform.isIOS
-          ? const HealthKitSleepPermissionsService(
-              HealthKitSleepMethodChannelBridge())
-          : const HealthConnectSleepPermissionsService(
-              HealthConnectSleepMethodChannelBridge()));
+      final controller = SleepPermissionController(
+        Platform.isIOS
+            ? const HealthKitSleepPermissionsService(
+                HealthKitSleepMethodChannelBridge(),
+              )
+            : const HealthConnectSleepPermissionsService(
+                HealthConnectSleepMethodChannelBridge(),
+              ),
+      );
       await controller.requestAccess(context);
     }
 
@@ -1257,11 +1291,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     _onboardingCompletedSuccessfully = true;
-    unawaited(TelemetryService.instance.trackOnboardingCompleted(
-      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
-      restoredFromBackup: _isImportedMode,
-      sessionId: _onboardingSessionId,
-    ));
+    unawaited(
+      TelemetryService.instance.trackOnboardingCompleted(
+        totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+        restoredFromBackup: _isImportedMode,
+        sessionId: _onboardingSessionId,
+      ),
+    );
 
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -1360,9 +1396,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         });
                       },
                     ),
-                    NameSlide(
-                      nameController: _nameController,
-                    ),
+                    NameSlide(nameController: _nameController),
                     BioDataSlide(
                       selectedDate: _selectedDate,
                       selectedGender: _selectedGender,
@@ -1371,7 +1405,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onSelectDate: (picked) {
                         final now = DateTime.now();
                         var age = now.year - picked.year;
-                        final hadBirthdayThisYear = now.month > picked.month ||
+                        final hadBirthdayThisYear =
+                            now.month > picked.month ||
                             (now.month == picked.month &&
                                 now.day >= picked.day);
                         if (!hadBirthdayThisYear) {
@@ -1413,7 +1448,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       weightError: _weightError,
                       weightWarning: _weightWarning,
                     ),
-                    _OnboardingActivityStep(
+                    OnboardingActivityStep(
                       selectedPriorActivityLevel: _selectedPriorActivityLevel,
                       selectedExtraCardioHoursOption:
                           _selectedExtraCardioHoursOption,
@@ -1434,7 +1469,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         }
                       },
                     ),
-                    _OnboardingGoalDecisionStep(
+                    OnboardingGoalDecisionStep(
                       onSetupNow: _setupGoalNow,
                       onSetupLater: _skipGoalSetup,
                     ),
@@ -1477,13 +1512,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     WorkoutImportSlide(
                       onImport: () {
-                        unawaited(TelemetryService.instance.trackFeatureUsed(
-                          featureKey: FeatureKey.workoutImportPromptStarted,
-                        ));
+                        unawaited(
+                          TelemetryService.instance.trackFeatureUsed(
+                            featureKey: FeatureKey.workoutImportPromptStarted,
+                          ),
+                        );
                         unawaited(performWorkoutImport(context));
                       },
                     ),
-                    _OnboardingAiHealthStep(
+                    OnboardingAiHealthStep(
                       onOpenAiSettings: _openAiSettings,
                       onOpenHealthSettings: _openHealthSettings,
                     ),
@@ -1505,23 +1542,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       const Spacer(),
                       AppButton.primary(
                         key: const Key('onboarding_bottom_next_button'),
-                        onPressed: _isGeneratingOnboardingRecommendation ||
+                        onPressed:
+                            _isGeneratingOnboardingRecommendation ||
                                 _isCheckingDatabase
                             ? null
                             : _nextPage,
                         label: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
                             : _currentPage == _workoutImportPageIndex
-                                ? l10n.onboardingWorkoutImportLater
-                                    .toUpperCase()
-                                : l10n.onboardingNext.toUpperCase(),
+                            ? l10n.onboardingWorkoutImportLater.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
                         tooltip: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
                             : _currentPage == _workoutImportPageIndex
-                                ? l10n.onboardingWorkoutImportLater
-                                    .toUpperCase()
-                                : l10n.onboardingNext.toUpperCase(),
-                        isLoading: (_isGeneratingOnboardingRecommendation &&
+                            ? l10n.onboardingWorkoutImportLater.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
+                        isLoading:
+                            (_isGeneratingOnboardingRecommendation &&
                                 _currentPage == _nutritionPageIndex) ||
                             _isCheckingDatabase,
                       ),
@@ -1540,15 +1577,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _openAiSettings() {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const AiSettingsScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
   }
 
   Future<void> _openHealthSettings() async {
     final sleepSyncService = SleepSyncService();
-    final sleepPermissionController =
-        sleepSyncService.buildPermissionController();
+    final sleepPermissionController = sleepSyncService
+        .buildPermissionController();
     try {
       await Navigator.of(context).push<bool>(
         MaterialPageRoute(
@@ -1645,10 +1682,7 @@ class _OnboardingMeasurementsStepState
             const SizedBox(height: 4),
             Text(
               widget.weightWarning!,
-              style: TextStyle(
-                color: Colors.orange.shade800,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
             ),
           ],
           const SizedBox(height: DesignConstants.spacingM),
@@ -1761,7 +1795,7 @@ class _OnboardingMeasurementRulerState
   Widget build(BuildContext context) {
     final value =
         double.tryParse(widget.controller.text.replaceAll(',', '.')) ??
-            widget.value;
+        widget.value;
     final theme = Theme.of(context);
     return Column(
       children: [
@@ -1776,8 +1810,9 @@ class _OnboardingMeasurementRulerState
                   controller: widget.controller,
                   autofocus: true,
                   textAlign: TextAlign.center,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   style: theme.textTheme.displaySmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -1797,12 +1832,14 @@ class _OnboardingMeasurementRulerState
                 ),
               )
             else
-              Text('${value.toStringAsFixed(1)} ${widget.unit}',
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  )),
+              Text(
+                '${value.toStringAsFixed(1)} ${widget.unit}',
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
             IconButton(
               key: widget.editorKey,
               tooltip: widget.title,
@@ -1815,277 +1852,14 @@ class _OnboardingMeasurementRulerState
         if (widget.errorText != null)
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(widget.errorText!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                )),
+            child: Text(
+              widget.errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
           ),
       ],
-    );
-  }
-}
-
-class _OnboardingActivityStep extends StatelessWidget {
-  const _OnboardingActivityStep({
-    required this.selectedPriorActivityLevel,
-    required this.selectedExtraCardioHoursOption,
-    required this.onPriorActivityLevelChanged,
-    required this.onExtraCardioHoursOptionChanged,
-  });
-
-  final PriorActivityLevel selectedPriorActivityLevel;
-  final ExtraCardioHoursOption selectedExtraCardioHoursOption;
-  final ValueChanged<PriorActivityLevel> onPriorActivityLevelChanged;
-  final ValueChanged<ExtraCardioHoursOption> onExtraCardioHoursOptionChanged;
-
-  static String _priorActivityLabel(
-      AppLocalizations l10n, PriorActivityLevel level) {
-    switch (level) {
-      case PriorActivityLevel.low:
-        return l10n.adaptivePriorActivityLow;
-      case PriorActivityLevel.moderate:
-        return l10n.adaptivePriorActivityModerate;
-      case PriorActivityLevel.high:
-        return l10n.adaptivePriorActivityHigh;
-      case PriorActivityLevel.veryHigh:
-        return l10n.adaptivePriorActivityVeryHigh;
-    }
-  }
-
-  static String _extraCardioLabel(
-      AppLocalizations l10n, ExtraCardioHoursOption option) {
-    switch (option) {
-      case ExtraCardioHoursOption.h0:
-        return l10n.adaptiveExtraCardioOption0;
-      case ExtraCardioHoursOption.h1:
-        return l10n.adaptiveExtraCardioOption1;
-      case ExtraCardioHoursOption.h2:
-        return l10n.adaptiveExtraCardioOption2;
-      case ExtraCardioHoursOption.h3:
-        return l10n.adaptiveExtraCardioOption3;
-      case ExtraCardioHoursOption.h5:
-        return l10n.adaptiveExtraCardioOption5;
-      case ExtraCardioHoursOption.h7Plus:
-        return l10n.adaptiveExtraCardioOption7Plus;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
-    return KeyedSubtree(
-      key: const Key('onboarding_adaptive_goal_page'),
-      child: SingleChildScrollView(
-        key: const Key('onboarding_activity_page'),
-        padding: const EdgeInsets.all(DesignConstants.spacingXL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: DesignConstants.spacingXL),
-            Text(
-              l10n.onboardingActivityTitle,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              l10n.onboardingActivitySubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
-              key: const Key('onboarding_prior_activity_dropdown'),
-              initialValue: selectedPriorActivityLevel,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(LucideIcons.activity),
-                labelText: l10n.adaptivePriorActivityLabel,
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
-                ),
-              ),
-              items: PriorActivityLevel.values
-                  .map(
-                    (level) => DropdownMenuItem<PriorActivityLevel>(
-                      value: level,
-                      child: Text(_priorActivityLabel(l10n, level)),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (level) {
-                if (level != null) onPriorActivityLevelChanged(level);
-              },
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            PriorActivityHelpBlock(
-              key: const Key('onboarding_prior_activity_help_block'),
-              l10n: l10n,
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
-              key: const Key('onboarding_extra_cardio_dropdown'),
-              initialValue: selectedExtraCardioHoursOption,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(LucideIcons.timer),
-                labelText: l10n.adaptiveExtraCardioLabel,
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
-                ),
-              ),
-              items: ExtraCardioHoursCatalog.supportedOptions
-                  .map(
-                    (option) => DropdownMenuItem<ExtraCardioHoursOption>(
-                      value: option,
-                      child: Text(_extraCardioLabel(l10n, option)),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (option) {
-                if (option != null) onExtraCardioHoursOptionChanged(option);
-              },
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              l10n.adaptiveExtraCardioHelp,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OnboardingGoalDecisionStep extends StatelessWidget {
-  const _OnboardingGoalDecisionStep({
-    required this.onSetupNow,
-    required this.onSetupLater,
-  });
-
-  final VoidCallback onSetupNow;
-  final VoidCallback onSetupLater;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
-    return SingleChildScrollView(
-      key: const Key('onboarding_goal_decision_page'),
-      padding: const EdgeInsets.all(DesignConstants.spacingXL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: DesignConstants.spacingXL),
-          Text(
-            l10n.onboardingGoalDecisionTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.onboardingGoalDecisionSubtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingXL),
-          SummaryCard(
-            key: const Key('onboarding_goal_decision_now_button'),
-            onTap: onSetupNow,
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    LucideIcons.target,
-                    color: theme.colorScheme.primary,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.onboardingGoalDecisionSetupNow,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.goalPresetLoseWeight,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(LucideIcons.chevron_right),
-              ],
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          SummaryCard(
-            key: const Key('onboarding_goal_decision_later_button'),
-            onTap: onSetupLater,
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    LucideIcons.calendar_clock,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.onboardingGoalDecisionSetupLater,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.goalPresetMaintainWeight,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(LucideIcons.chevron_right),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -2110,8 +1884,8 @@ class _OnboardingNutritionStep extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final liquidSuffix = context.watch<UnitService>().suffixFor(
-          UnitDimension.liquid,
-        );
+      UnitDimension.liquid,
+    );
 
     return SingleChildScrollView(
       key: const Key('onboarding_nutrition_page'),
@@ -2140,8 +1914,7 @@ class _OnboardingNutritionStep extends StatelessWidget {
                 technicalExplanation: l10n.infoTdeeTechnicalExplanation,
                 markdownAssetPath:
                     'documentation/features/bayesian_tdee_estimator.md',
-                citationUrl:
-                    'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
+                citationUrl: 'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
               ),
             ],
           ),
@@ -2211,102 +1984,6 @@ class _OnboardingNumberField extends StatelessWidget {
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
       ),
-    );
-  }
-}
-
-class _OnboardingAiHealthStep extends StatelessWidget {
-  const _OnboardingAiHealthStep({
-    required this.onOpenAiSettings,
-    required this.onOpenHealthSettings,
-  });
-
-  final VoidCallback onOpenAiSettings;
-  final VoidCallback onOpenHealthSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
-    return SingleChildScrollView(
-      key: const Key('onboarding_ai_health_page'),
-      padding: const EdgeInsets.all(DesignConstants.spacingXL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: DesignConstants.spacingXL),
-          Text(
-            l10n.onboardingAiHealthTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.onboardingAiHealthSubtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingXL),
-          SummaryCard(
-            child: Column(
-              children: [
-                _OnboardingSettingsTile(
-                  icon: LucideIcons.sparkles,
-                  title: l10n.aiSettingsTitle,
-                  subtitle: l10n.aiSettingsDescription,
-                  onTap: onOpenAiSettings,
-                ),
-                const Divider(height: 1),
-                _OnboardingSettingsTile(
-                  key: const Key('onboarding_health_settings_link'),
-                  icon: LucideIcons.heart_pulse,
-                  title: l10n.healthSettingsTitle,
-                  subtitle: l10n.onboardingHealthSettingsDescription,
-                  onTap: onOpenHealthSettings,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OnboardingSettingsTile extends StatelessWidget {
-  const _OnboardingSettingsTile({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text(subtitle),
-      trailing: TextButton.icon(
-        onPressed: onTap,
-        icon: const Icon(LucideIcons.chevron_right),
-        label: Text(l10n.onboardingOpenSettings),
-      ),
-      onTap: onTap,
     );
   }
 }

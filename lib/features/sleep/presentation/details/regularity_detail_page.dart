@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -65,8 +66,9 @@ class _RegularityChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final displayNights =
-        nights.length <= 7 ? nights : nights.sublist(nights.length - 7);
+    final displayNights = nights.length <= 7
+        ? nights
+        : nights.sublist(nights.length - 7);
     final locale = Localizations.localeOf(context).toString();
     final dateFormat = DateFormat.Md(locale);
     return SleepWindowChartCard(
@@ -79,7 +81,8 @@ class _RegularityChart extends StatelessWidget {
   }
 
   SleepWindowSegment _sleepWindowFromRegularityNight(
-      SleepRegularityNight night) {
+    SleepRegularityNight night,
+  ) {
     final window = regularityToSleepWindowMinutes(
       bedtimeMinutes: night.bedtimeMinutes,
       wakeMinutes: night.wakeMinutes,

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -164,7 +165,8 @@ class WeekSummaryCard extends StatelessWidget {
         : aggregation.meanScore!.toStringAsFixed(0);
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.cardPaddingInternal),
+        horizontal: DesignConstants.cardPaddingInternal,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -266,84 +268,95 @@ class WeekWindowCard extends StatelessWidget {
                                 Positioned.fill(
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: aggregation.days.map((day) {
-                                      final window = aggregation.sleepWindows
-                                          .firstWhere((segment) =>
-                                              segment.date == day.date);
-                                      final scoreFill = _scoreFillColor(
-                                        context,
-                                        day.sleepQuality,
-                                      );
-                                      final top = window.normalizedTop(
-                                        minMinutes: bounds.minMinutes,
-                                        maxMinutes: bounds.maxMinutes,
-                                      );
-                                      final height = window.normalizedHeight(
-                                        minMinutes: bounds.minMinutes,
-                                        maxMinutes: bounds.maxMinutes,
-                                      );
-                                      return Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 2,
-                                          ),
-                                          child: InkWell(
-                                            onTap: () => onTapDay(day.date),
-                                            borderRadius: BorderRadius.circular(
-                                              DesignConstants.borderRadiusS,
-                                            ),
-                                            child: LayoutBuilder(
-                                              builder: (context, inner) {
-                                                final maxHeight =
-                                                    inner.maxHeight;
-                                                final barTop = top * maxHeight;
-                                                final barHeight =
-                                                    (height * maxHeight)
-                                                        .clamp(4.0, maxHeight)
-                                                        .toDouble();
-                                                return Stack(
-                                                  children: [
-                                                    Positioned.fill(
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Theme.of(
-                                                            context,
-                                                          )
-                                                              .colorScheme
-                                                              .surfaceContainerHighest,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(6),
-                                                        ),
-                                                      ),
+                                    children: aggregation.days
+                                        .map((day) {
+                                          final window = aggregation
+                                              .sleepWindows
+                                              .firstWhere(
+                                                (segment) =>
+                                                    segment.date == day.date,
+                                              );
+                                          final scoreFill = _scoreFillColor(
+                                            context,
+                                            day.sleepQuality,
+                                          );
+                                          final top = window.normalizedTop(
+                                            minMinutes: bounds.minMinutes,
+                                            maxMinutes: bounds.maxMinutes,
+                                          );
+                                          final height = window
+                                              .normalizedHeight(
+                                                minMinutes: bounds.minMinutes,
+                                                maxMinutes: bounds.maxMinutes,
+                                              );
+                                          return Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 2,
+                                                  ),
+                                              child: InkWell(
+                                                onTap: () => onTapDay(day.date),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      DesignConstants
+                                                          .borderRadiusS,
                                                     ),
-                                                    if (window.hasData)
-                                                      Positioned(
-                                                        top: barTop,
-                                                        left: 0,
-                                                        right: 0,
-                                                        height: barHeight,
-                                                        child: Container(
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: scoreFill,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                              6,
+                                                child: LayoutBuilder(
+                                                  builder: (context, inner) {
+                                                    final maxHeight =
+                                                        inner.maxHeight;
+                                                    final barTop =
+                                                        top * maxHeight;
+                                                    final barHeight =
+                                                        (height * maxHeight)
+                                                            .clamp(
+                                                              4.0,
+                                                              maxHeight,
+                                                            )
+                                                            .toDouble();
+                                                    return Stack(
+                                                      children: [
+                                                        Positioned.fill(
+                                                          child: Container(
+                                                            decoration: BoxDecoration(
+                                                              color: Theme.of(context)
+                                                                  .colorScheme
+                                                                  .surfaceContainerHighest,
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6,
+                                                                  ),
                                                             ),
                                                           ),
                                                         ),
-                                                      ),
-                                                  ],
-                                                );
-                                              },
+                                                        if (window.hasData)
+                                                          Positioned(
+                                                            top: barTop,
+                                                            left: 0,
+                                                            right: 0,
+                                                            height: barHeight,
+                                                            child: Container(
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                    color:
+                                                                        scoreFill,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                          6,
+                                                                        ),
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    );
+                                                  },
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(growable: false),
+                                          );
+                                        })
+                                        .toList(growable: false),
                                   ),
                                 ),
                                 Positioned.fill(
@@ -353,9 +366,7 @@ class WeekWindowCard extends StatelessWidget {
                                         tickMinutes: bounds.tickMinutes,
                                         minMinutes: bounds.minMinutes,
                                         maxMinutes: bounds.maxMinutes,
-                                        color: Theme.of(
-                                          context,
-                                        )
+                                        color: Theme.of(context)
                                             .colorScheme
                                             .outlineVariant
                                             .withValues(alpha: 0.6),
@@ -372,70 +383,81 @@ class WeekWindowCard extends StatelessWidget {
                       SizedBox(
                         height: 48,
                         child: Row(
-                          children: aggregation.days.map((day) {
-                            final score = day.score;
-                            final scoreFill = _scoreFillColor(
-                              context,
-                              day.sleepQuality,
-                            );
-                            return Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                child: InkWell(
-                                  onTap: () => onTapDay(day.date),
-                                  borderRadius: BorderRadius.circular(
-                                    DesignConstants.borderRadiusS,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: scoreFill,
-                                          borderRadius: BorderRadius.circular(
-                                            DesignConstants.borderRadiusS,
-                                          ),
-                                          border: Border.all(
-                                            color: scoreFill.withValues(
-                                                alpha: 0.7),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          score == null
-                                              ? '--'
-                                              : score.round().toString(),
-                                          textAlign: TextAlign.center,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                color: _fixedTextColor(context),
-                                              ),
-                                        ),
+                          children: aggregation.days
+                              .map((day) {
+                                final score = day.score;
+                                final scoreFill = _scoreFillColor(
+                                  context,
+                                  day.sleepQuality,
+                                );
+                                return Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                    ),
+                                    child: InkWell(
+                                      onTap: () => onTapDay(day.date),
+                                      borderRadius: BorderRadius.circular(
+                                        DesignConstants.borderRadiusS,
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        DateFormat.E(locale).format(day.date),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.copyWith(
-                                              color: _fixedTextColor(context),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 5,
                                             ),
+                                            decoration: BoxDecoration(
+                                              color: scoreFill,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    DesignConstants
+                                                        .borderRadiusS,
+                                                  ),
+                                              border: Border.all(
+                                                color: scoreFill.withValues(
+                                                  alpha: 0.7,
+                                                ),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              score == null
+                                                  ? '--'
+                                                  : score.round().toString(),
+                                              textAlign: TextAlign.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                    color: _fixedTextColor(
+                                                      context,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            DateFormat.E(locale)
+                                                .format(day.date),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  color: _fixedTextColor(
+                                                    context,
+                                                  ),
+                                                ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          }).toList(growable: false),
+                                );
+                              })
+                              .toList(growable: false),
                         ),
                       ),
                     ],
@@ -492,8 +514,10 @@ class WeekWindowCard extends StatelessWidget {
     );
   }
 
-  List<int> _buildTickMinutes(
-      {required int minMinutes, required int maxMinutes}) {
+  List<int> _buildTickMinutes({
+    required int minMinutes,
+    required int maxMinutes,
+  }) {
     final spanMinutes = math.max(60, maxMinutes - minMinutes);
     final spanHours = (spanMinutes / 60).ceil();
     final stepHours = switch (spanHours) {
@@ -576,8 +600,8 @@ class _TimeAxisLabels extends StatelessWidget {
                 child: Text(
                   _formatTickLabel(minute),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
           ],

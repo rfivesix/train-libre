@@ -2,10 +2,12 @@
 
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
+
 import 'drift_database.dart' as db;
 import '../features/diary/domain/models/fluid_entry.dart';
 import '../features/diary/domain/models/food_entry.dart';
 import '../features/diary/domain/models/meal_entry.dart';
+import '../features/diary/domain/models/macro_entry.dart';
 import '../features/profile/domain/models/measurement_session.dart';
 import '../features/supplements/domain/models/supplement.dart';
 import '../features/supplements/domain/models/supplement_log.dart';
@@ -70,6 +72,9 @@ class DatabaseHelper {
     await dbInst.customStatement('PRAGMA foreign_keys = OFF');
     try {
       await dbInst.transaction(() async {
+        await dbInst.customStatement('DELETE FROM assistant_data_access');
+        await dbInst.customStatement('DELETE FROM assistant_messages');
+        await dbInst.customStatement('DELETE FROM assistant_conversations');
         await dbInst.delete(dbInst.goalReviews).go();
         await dbInst.delete(dbInst.goalEvents).go();
         await dbInst.delete(dbInst.userGoals).go();
@@ -79,11 +84,16 @@ class DatabaseHelper {
         await dbInst.customStatement('DELETE FROM health_export_records');
         await dbInst.customStatement('DELETE FROM health_export_identities');
         await dbInst.customStatement('DELETE FROM health_import_records');
+        await dbInst.customStatement(
+          'DELETE FROM health_nutrition_import_records',
+        );
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
-        await dbInst
-            .customStatement('DELETE FROM sleep_canonical_stage_segments');
-        await dbInst
-            .customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst.customStatement(
+          'DELETE FROM sleep_canonical_stage_segments',
+        );
+        await dbInst.customStatement(
+          'DELETE FROM sleep_canonical_heart_rate_samples',
+        );
         await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
         await dbInst.customStatement('DELETE FROM sleep_raw_imports');
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
@@ -93,6 +103,7 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.cardioActivities).go();
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
+        await dbInst.delete(dbInst.macroEntries).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
         await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
@@ -102,30 +113,35 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.meals).go();
         await dbInst.delete(dbInst.appSettings).go();
         await dbInst.delete(dbInst.profiles).go();
-        await (dbInst.delete(dbInst.products)
-              ..where((t) => t.source.equals('user')))
-            .go();
+        await (dbInst.delete(
+          dbInst.products,
+        )..where((t) => t.source.equals('user'))).go();
       });
     } finally {
       await dbInst.customStatement('PRAGMA foreign_keys = ON');
     }
   }
 
-  Future<void> importUserData(
-      {required List<FoodEntry> foodEntries,
-      required List<FluidEntry> fluidEntries,
-      required List<String> favoriteBarcodes,
-      required List<MeasurementSession> measurementSessions,
-      required List<Supplement> supplements,
-      required List<SupplementLog> supplementLogs}) async {
+  Future<void> importUserData({
+    required List<FoodEntry> foodEntries,
+    List<MacroEntry> macroEntries = const [],
+    required List<FluidEntry> fluidEntries,
+    required List<String> favoriteBarcodes,
+    required List<MeasurementSession> measurementSessions,
+    required List<Supplement> supplements,
+    required List<SupplementLog> supplementLogs,
+  }) async {
     final dbInst = dbInstance;
     await dbInst.batch((batch) {
       for (final b in favoriteBarcodes) {
         batch.insert(
-            dbInst.favorites,
-            db.FavoritesCompanion.insert(
-                barcode: b, createdAt: drift.Value(DateTime.now())),
-            mode: drift.InsertMode.insertOrReplace);
+          dbInst.favorites,
+          db.FavoritesCompanion.insert(
+            barcode: b,
+            createdAt: drift.Value(DateTime.now()),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
       }
       for (final s in supplements) {
         batch.insert(
@@ -142,56 +158,92 @@ class DatabaseHelper {
             id: s.id != null
                 ? drift.Value(s.id.toString())
                 : const drift.Value.absent(),
-            localId:
-                s.id != null ? drift.Value(s.id!) : const drift.Value.absent(),
+            localId: s.id != null
+                ? drift.Value(s.id!)
+                : const drift.Value.absent(),
           ),
           mode: drift.InsertMode.insertOrReplace,
         );
       }
       for (final e in foodEntries) {
         batch.insert(
-            dbInst.nutritionLogs,
-            db.NutritionLogsCompanion(
-                legacyBarcode: drift.Value(e.barcode),
-                consumedAt: drift.Value(e.timestamp),
-                amount: drift.Value(e.quantityInGrams.toDouble()),
-                mealType: drift.Value(e.mealType),
-                archiveLocalId: drift.Value(e.archiveLocalId),
-                mealEntryId: drift.Value(e.mealEntryId)),
-            mode: drift.InsertMode.insertOrReplace);
+          dbInst.nutritionLogs,
+          db.NutritionLogsCompanion(
+            legacyBarcode: drift.Value(e.barcode),
+            consumedAt: drift.Value(e.timestamp),
+            amount: drift.Value(e.quantityInGrams.toDouble()),
+            mealType: drift.Value(e.mealType),
+            archiveLocalId: drift.Value(e.archiveLocalId),
+            mealEntryId: drift.Value(e.mealEntryId),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+      }
+      for (final e in macroEntries) {
+        batch.insert(
+          dbInst.macroEntries,
+          db.MacroEntriesCompanion.insert(
+            id: drift.Value(e.id),
+            mealEntryId: drift.Value(e.mealEntryId),
+            consumedAt: e.timestamp,
+            mealType: e.mealType,
+            name: drift.Value(e.name),
+            amount: drift.Value(e.amount),
+            amountUnit: drift.Value(e.amountUnit),
+            isFluid: drift.Value(e.isFluid),
+            calories: e.calories,
+            protein: e.protein,
+            carbs: e.carbs,
+            fat: e.fat,
+            sugar: drift.Value(e.sugar),
+            fiber: drift.Value(e.fiber),
+            salt: drift.Value(e.salt),
+            caffeine: drift.Value(e.caffeine),
+            calculatedNutrient: e.calculatedNutrient,
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
       }
       for (final e in fluidEntries) {
         batch.insert(
-            dbInst.fluidLogs,
-            db.FluidLogsCompanion.insert(
-                consumedAt: e.timestamp,
-                amountMl: e.quantityInMl,
-                name: e.name,
-                kcal: drift.Value(e.kcal),
-                sugarPer100ml: drift.Value(e.sugarPer100ml),
-                caffeinePer100ml: drift.Value(e.caffeinePer100ml)),
-            mode: drift.InsertMode.insertOrReplace);
+          dbInst.fluidLogs,
+          db.FluidLogsCompanion.insert(
+            consumedAt: e.timestamp,
+            amountMl: e.quantityInMl,
+            name: e.name,
+            kcal: drift.Value(e.kcal),
+            sugarPer100ml: drift.Value(e.sugarPer100ml),
+            carbsPer100ml: drift.Value(e.carbsPer100ml),
+            caffeinePer100ml: drift.Value(e.caffeinePer100ml),
+            linkedMacroEntryId: drift.Value(e.linkedMacroEntryId),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
       }
       for (final s in measurementSessions) {
         for (final m in s.measurements) {
           batch.insert(
-              dbInst.measurements,
-              db.MeasurementsCompanion.insert(
-                  type: m.type,
-                  value: m.value,
-                  unit: m.unit,
-                  date: s.timestamp),
-              mode: drift.InsertMode.insertOrReplace);
+            dbInst.measurements,
+            db.MeasurementsCompanion.insert(
+              type: m.type,
+              value: m.value,
+              unit: m.unit,
+              date: s.timestamp,
+            ),
+            mode: drift.InsertMode.insertOrReplace,
+          );
         }
       }
       for (final l in supplementLogs) {
         batch.insert(
-            dbInst.supplementLogs,
-            db.SupplementLogsCompanion.insert(
-                supplementId: l.supplementId.toString(),
-                amount: l.dose,
-                takenAt: l.timestamp),
-            mode: drift.InsertMode.insertOrReplace);
+          dbInst.supplementLogs,
+          db.SupplementLogsCompanion.insert(
+            supplementId: l.supplementId.toString(),
+            amount: l.dose,
+            takenAt: l.timestamp,
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
       }
     });
   }
@@ -222,21 +274,27 @@ class DatabaseHelper {
   Future<int> insertFoodEntry(
     FoodEntry entry, {
     String telemetrySource = FoodLogSource.manualSearch,
-  }) =>
-      diaryLocalDataSource.insertFoodEntry(entry,
-          telemetrySource: telemetrySource);
+  }) => diaryLocalDataSource.insertFoodEntry(
+    entry,
+    telemetrySource: telemetrySource,
+  );
   Future<List<int>> insertMealEntryWithFoodEntries(
     MealEntry mealEntry,
     List<FoodEntry> entries, {
     String telemetrySource = FoodLogSource.meal,
-  }) =>
-      diaryLocalDataSource.insertMealEntryWithFoodEntries(
-        mealEntry,
-        entries,
-        telemetrySource: telemetrySource,
-      );
+  }) => diaryLocalDataSource.insertMealEntryWithFoodEntries(
+    mealEntry,
+    entries,
+    telemetrySource: telemetrySource,
+  );
   Future<int> insertFluidEntry(FluidEntry entry) =>
       diaryLocalDataSource.insertFluidEntry(entry);
+  Future<void> insertMacroEntry(MacroEntry entry) =>
+      diaryLocalDataSource.insertMacroEntry(entry);
+  Future<void> updateMacroEntry(MacroEntry entry) =>
+      diaryLocalDataSource.updateMacroEntry(entry);
+  Future<void> deleteMacroEntry(String id) =>
+      diaryLocalDataSource.deleteMacroEntry(id);
   Future<void> deleteFluidEntryByLinkedFoodId(int id) =>
       diaryLocalDataSource.deleteFluidEntryByLinkedFoodId(id);
   Future<db.DailyGoalsHistoryData?> getGoalsForDate(DateTime date) =>
@@ -247,17 +305,32 @@ class DatabaseHelper {
       diaryLocalDataSource.getAllFoodEntries();
   Future<List<FluidEntry>> getAllFluidEntries() =>
       diaryLocalDataSource.getAllFluidEntries();
-  Future<List<FoodEntry>> getEntriesForDateRange(DateTime start, DateTime end,
-          {DateTime? updatedSince}) =>
-      diaryLocalDataSource.getEntriesForDateRange(start, end,
-          updatedSince: updatedSince);
+  Future<List<FoodEntry>> getEntriesForDateRange(
+    DateTime start,
+    DateTime end, {
+    DateTime? updatedSince,
+  }) => diaryLocalDataSource.getEntriesForDateRange(
+    start,
+    end,
+    updatedSince: updatedSince,
+  );
   Future<List<FluidEntry>> getFluidEntriesForDateRange(
-          DateTime start, DateTime end, {DateTime? updatedSince}) =>
-      diaryLocalDataSource.getFluidEntriesForDateRange(start, end,
-          updatedSince: updatedSince);
+    DateTime start,
+    DateTime end, {
+    DateTime? updatedSince,
+  }) => diaryLocalDataSource.getFluidEntriesForDateRange(
+    start,
+    end,
+    updatedSince: updatedSince,
+  );
+  Future<List<MacroEntry>> getMacroEntriesForDateRange(
+    DateTime start,
+    DateTime end,
+  ) => diaryLocalDataSource.getMacroEntriesForDateRange(start, end);
   Future<FoodCaloriesByDayResult> getFoodCaloriesByDayForDateRange(
-          DateTime start, DateTime end) =>
-      diaryLocalDataSource.getFoodCaloriesByDayForDateRange(start, end);
+    DateTime start,
+    DateTime end,
+  ) => diaryLocalDataSource.getFoodCaloriesByDayForDateRange(start, end);
   Future<DateTime?> getEarliestFoodEntryDate() async {
     final logs = await getAllFoodEntries();
     if (logs.isEmpty) return null;
@@ -271,6 +344,9 @@ class DatabaseHelper {
     logs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return logs.first.timestamp;
   }
+
+  Future<DateTime?> getEarliestMacroEntryDate() =>
+      diaryLocalDataSource.getEarliestMacroEntryDate();
 
   // Restored proxy methods for test backward compatibility
   Future<List<FoodEntry>> getEntriesForDate(DateTime date) =>
@@ -292,25 +368,33 @@ class DatabaseHelper {
       supplementLocalDataSource.ensureStandardSupplements();
   Future<void> logSupplement(dynamic id, [double? d, DateTime? t]) =>
       (id is int && d != null)
-          ? supplementLocalDataSource.logSupplement(
-              supplementId: id, dose: d, takenAt: t)
-          : supplementLocalDataSource.insertSupplementLog(id as dynamic);
+      ? supplementLocalDataSource.logSupplement(
+          supplementId: id,
+          dose: d,
+          takenAt: t,
+        )
+      : supplementLocalDataSource.insertSupplementLog(id as dynamic);
   Future<void> insertSupplementLog(dynamic id, [double? d, DateTime? t]) =>
       (id is SupplementLog)
-          ? supplementLocalDataSource.insertSupplementLog(id)
-          : supplementLocalDataSource.logSupplement(
-              supplementId: id as int, dose: d!, takenAt: t);
+      ? supplementLocalDataSource.insertSupplementLog(id)
+      : supplementLocalDataSource.logSupplement(
+          supplementId: id as int,
+          dose: d!,
+          takenAt: t,
+        );
   Future<List<Supplement>> getAllSupplements() =>
       supplementLocalDataSource.getAllSupplements();
   Future<int> insertSupplement(dynamic n, [double? d, String? u, double? l]) =>
       (n is Supplement)
-          ? supplementLocalDataSource.insertSupplement(n)
-          : supplementLocalDataSource.insertSupplement(Supplement(
-              name: n as String,
-              defaultDose: d!,
-              unit: u!,
-              dailyLimit: l,
-            ));
+      ? supplementLocalDataSource.insertSupplement(n)
+      : supplementLocalDataSource.insertSupplement(
+          Supplement(
+            name: n as String,
+            defaultDose: d!,
+            unit: u!,
+            dailyLimit: l,
+          ),
+        );
 
   Future<bool> isFavorite(String b) => productLocalDataSource.isFavorite(b);
   Future<void> addFavorite(String b) => productLocalDataSource.addFavorite(b);
@@ -328,124 +412,143 @@ class DatabaseHelper {
     String? notes,
     int? servingCount,
     int? cookedWeightInGrams,
-  }) =>
-      (name is String)
-          ? mealLocalDataSource.insertMeal(
-              name: name,
-              notes: notes,
-              servingCount: servingCount,
-              cookedWeightInGrams: cookedWeightInGrams,
-            )
-          : mealLocalDataSource.insertMeal(
-              name: (name as dynamic).name,
-              notes: (name as dynamic).notes,
-              servingCount: servingCount,
-              cookedWeightInGrams: cookedWeightInGrams,
-            );
+  }) => (name is String)
+      ? mealLocalDataSource.insertMeal(
+          name: name,
+          notes: notes,
+          servingCount: servingCount,
+          cookedWeightInGrams: cookedWeightInGrams,
+        )
+      : mealLocalDataSource.insertMeal(
+          name: (name as dynamic).name,
+          notes: (name as dynamic).notes,
+          servingCount: servingCount,
+          cookedWeightInGrams: cookedWeightInGrams,
+        );
   Future<void> updateMeal(
     dynamic id, {
     String? name,
     String? notes,
     int? servingCount,
     int? cookedWeightInGrams,
-  }) =>
-      (id is int && name != null)
-          ? mealLocalDataSource.updateMeal(
-              id,
-              name: name,
-              notes: notes,
-              servingCount: servingCount,
-              cookedWeightInGrams: cookedWeightInGrams,
-            )
-          : mealLocalDataSource.updateMeal((id as dynamic).id,
-              name: (id as dynamic).name,
-              notes: (id as dynamic).notes,
-              servingCount: servingCount,
-              cookedWeightInGrams: cookedWeightInGrams);
+  }) => (id is int && name != null)
+      ? mealLocalDataSource.updateMeal(
+          id,
+          name: name,
+          notes: notes,
+          servingCount: servingCount,
+          cookedWeightInGrams: cookedWeightInGrams,
+        )
+      : mealLocalDataSource.updateMeal(
+          (id as dynamic).id,
+          name: (id as dynamic).name,
+          notes: (id as dynamic).notes,
+          servingCount: servingCount,
+          cookedWeightInGrams: cookedWeightInGrams,
+        );
   Future<void> deleteMeal(int id) => mealLocalDataSource.deleteMeal(id);
   Future<int> duplicateMeal(int id, {required String copySuffix}) =>
       mealLocalDataSource.duplicateMeal(id, copySuffix: copySuffix);
   Future<void> clearMealItems(int id) => mealLocalDataSource.clearMealItems(id);
-  Future<int> addMealItem(
-          {required int mealId,
-          required String barcode,
-          required double amount}) =>
-      mealLocalDataSource.addMealItem(
-          mealId: mealId, barcode: barcode, amount: amount);
+  Future<int> addMealItem({
+    required int mealId,
+    required String barcode,
+    required double amount,
+  }) => mealLocalDataSource.addMealItem(
+    mealId: mealId,
+    barcode: barcode,
+    amount: amount,
+  );
   Future<List<Map<String, dynamic>>> getMealTemplatesForBackup() =>
       mealLocalDataSource.getMealTemplatesForBackup();
 
-  Future<int?> getDailyStepsTotal(
-          {dynamic dayLocal,
-          String providerFilter = 'all',
-          String sourcePolicy = 'all'}) =>
-      (dayLocal is DateTime)
-          ? stepsLocalDataSource.getDailyStepsTotal(
-              dayLocal: dayLocal,
-              providerFilter: providerFilter,
-              sourcePolicy: sourcePolicy)
-          : stepsLocalDataSource.getDailyStepsTotal(
-              dayLocal: (dayLocal as dynamic).dayLocal,
-              providerFilter:
-                  (dayLocal as dynamic).providerFilter ?? providerFilter,
-              sourcePolicy: (dayLocal as dynamic).sourcePolicy ?? sourcePolicy);
-  Future<void> upsertHealthStepSegments(
-          List<db.HealthStepSegmentsCompanion> s) =>
-      stepsLocalDataSource.upsertHealthStepSegments(s);
-  Future<void> markHealthExported(
-          {String? key,
-          String? type,
-          String? platform,
-          String? domain,
-          List<String>? idempotencyKeys}) =>
-      stepsLocalDataSource.markHealthExported(
-          platform: platform ?? 'ios',
-          domain: domain ?? type ?? '',
-          idempotencyKeys: idempotencyKeys ?? (key != null ? [key] : []));
-  Future<List<String>> getExportedHealthKeys(
-          {String? type,
-          String? platform,
-          String? domain,
-          List<String>? idempotencyKeys}) =>
-      stepsLocalDataSource.getExportedHealthKeys(
-          platform: platform ?? 'ios',
-          domain: domain ?? type ?? '',
-          idempotencyKeys: idempotencyKeys ?? []);
-  Future<List<Map<String, dynamic>>> getDailyStepsTotalsForRange(
-          {required DateTime startLocal,
-          required DateTime endLocal,
-          String providerFilter = 'all',
-          String sourcePolicy = 'all'}) =>
-      stepsLocalDataSource.getDailyStepsTotalsForRange(
-          startLocal: startLocal,
-          endLocal: endLocal,
-          providerFilter: providerFilter,
-          sourcePolicy: sourcePolicy);
-  Future<List<Map<String, dynamic>>> getHourlyStepsTotalsForDay(
-          {required DateTime dayLocal,
-          String providerFilter = 'all',
-          String sourcePolicy = 'all'}) =>
-      stepsLocalDataSource.getHourlyStepsTotalsForDay(
+  Future<int?> getDailyStepsTotal({
+    dynamic dayLocal,
+    String providerFilter = 'all',
+    String sourcePolicy = 'all',
+  }) => (dayLocal is DateTime)
+      ? stepsLocalDataSource.getDailyStepsTotal(
           dayLocal: dayLocal,
           providerFilter: providerFilter,
-          sourcePolicy: sourcePolicy);
-  Future<DateTime?> getEarliestHealthStepsDateLocal(
-          {String providerFilter = 'all'}) =>
-      stepsLocalDataSource.getEarliestHealthStepsDateLocal(
-          providerFilter: providerFilter);
+          sourcePolicy: sourcePolicy,
+        )
+      : stepsLocalDataSource.getDailyStepsTotal(
+          dayLocal: (dayLocal as dynamic).dayLocal,
+          providerFilter:
+              (dayLocal as dynamic).providerFilter ?? providerFilter,
+          sourcePolicy: (dayLocal as dynamic).sourcePolicy ?? sourcePolicy,
+        );
+  Future<void> upsertHealthStepSegments(
+    List<db.HealthStepSegmentsCompanion> s,
+  ) => stepsLocalDataSource.upsertHealthStepSegments(s);
+  Future<void> markHealthExported({
+    String? key,
+    String? type,
+    String? platform,
+    String? domain,
+    List<String>? idempotencyKeys,
+  }) => stepsLocalDataSource.markHealthExported(
+    platform: platform ?? 'ios',
+    domain: domain ?? type ?? '',
+    idempotencyKeys: idempotencyKeys ?? (key != null ? [key] : []),
+  );
+  Future<List<String>> getExportedHealthKeys({
+    String? type,
+    String? platform,
+    String? domain,
+    List<String>? idempotencyKeys,
+  }) => stepsLocalDataSource.getExportedHealthKeys(
+    platform: platform ?? 'ios',
+    domain: domain ?? type ?? '',
+    idempotencyKeys: idempotencyKeys ?? [],
+  );
+  Future<List<Map<String, dynamic>>> getDailyStepsTotalsForRange({
+    required DateTime startLocal,
+    required DateTime endLocal,
+    String providerFilter = 'all',
+    String sourcePolicy = 'all',
+  }) => stepsLocalDataSource.getDailyStepsTotalsForRange(
+    startLocal: startLocal,
+    endLocal: endLocal,
+    providerFilter: providerFilter,
+    sourcePolicy: sourcePolicy,
+  );
+  Future<List<Map<String, dynamic>>> getHourlyStepsTotalsForDay({
+    required DateTime dayLocal,
+    String providerFilter = 'all',
+    String sourcePolicy = 'all',
+  }) => stepsLocalDataSource.getHourlyStepsTotalsForDay(
+    dayLocal: dayLocal,
+    providerFilter: providerFilter,
+    sourcePolicy: sourcePolicy,
+  );
+  Future<DateTime?> getEarliestHealthStepsDateLocal({
+    String providerFilter = 'all',
+  }) => stepsLocalDataSource.getEarliestHealthStepsDateLocal(
+    providerFilter: providerFilter,
+  );
 
-  Future<List<MeasurementSession>> getMeasurementSessions(
-          {DateTime? updatedSince}) =>
+  Future<List<MeasurementSession>> getMeasurementSessions({
+    DateTime? updatedSince,
+  }) =>
       profileLocalDataSource.getMeasurementSessions(updatedSince: updatedSince);
-  Future<List<ChartDataPoint>> getChartDataForTypeAndRange(String t, dynamic r,
-      [DateTime? e]) async {
-    final raw =
-        await profileLocalDataSource.getChartDataForTypeAndRange(t, r, e);
+  Future<List<ChartDataPoint>> getChartDataForTypeAndRange(
+    String t,
+    dynamic r, [
+    DateTime? e,
+  ]) async {
+    final raw = await profileLocalDataSource.getChartDataForTypeAndRange(
+      t,
+      r,
+      e,
+    );
     return raw
-        .map((item) => ChartDataPoint(
-              date: item['date'] as DateTime,
-              value: (item['value'] as num).toDouble(),
-            ))
+        .map(
+          (item) => ChartDataPoint(
+            date: item['date'] as DateTime,
+            value: (item['value'] as num).toDouble(),
+          ),
+        )
         .toList();
   }
 
@@ -455,31 +558,33 @@ class DatabaseHelper {
       profileLocalDataSource.getAppSettings();
   Future<int> getCurrentTargetStepsOrDefault() =>
       profileLocalDataSource.getCurrentTargetStepsOrDefault();
-  Future<void> saveUserGoals(
-          {int? calorieGoal,
-          int? proteinGoal,
-          int? carbGoal,
-          int? fatGoal,
-          int? waterGoal,
-          int? stepsGoal,
-          int? calories,
-          int? protein,
-          int? carbs,
-          int? fat,
-          int? water,
-          int? steps}) =>
-      profileLocalDataSource.saveUserGoals(
-          calories: calorieGoal ?? calories ?? 2000,
-          protein: proteinGoal ?? protein ?? 150,
-          carbs: carbGoal ?? carbs ?? 250,
-          fat: fatGoal ?? fat ?? 70,
-          water: waterGoal ?? water ?? 2000,
-          steps: stepsGoal ?? steps ?? 8000);
+  Future<void> saveUserGoals({
+    int? calorieGoal,
+    int? proteinGoal,
+    int? carbGoal,
+    int? fatGoal,
+    int? waterGoal,
+    int? stepsGoal,
+    int? calories,
+    int? protein,
+    int? carbs,
+    int? fat,
+    int? water,
+    int? steps,
+  }) => profileLocalDataSource.saveUserGoals(
+    calories: calorieGoal ?? calories ?? 2000,
+    protein: proteinGoal ?? protein ?? 150,
+    carbs: carbGoal ?? carbs ?? 250,
+    fat: fatGoal ?? fat ?? 70,
+    water: waterGoal ?? water ?? 2000,
+    steps: stepsGoal ?? steps ?? 8000,
+  );
   Future<double?> getLatestWeight() async {
     final sessions = await getMeasurementSessions();
     for (final session in sessions) {
-      final m =
-          session.measurements.where((m) => m.type == 'weight').firstOrNull;
+      final m = session.measurements
+          .where((m) => m.type == 'weight')
+          .firstOrNull;
       if (m != null) return m.value;
     }
     return null;
@@ -489,25 +594,26 @@ class DatabaseHelper {
       profileLocalDataSource.getLatestBodyFatPercentageBefore(b);
   Future<double?> getLatestWeightBefore(DateTime b) =>
       profileLocalDataSource.getLatestWeightBefore(b);
-  Future<void> saveUserProfile(
-          {String? name,
-          double? weight,
-          int? height,
-          int? age,
-          String? gender,
-          String? activityLevel,
-          String? goal,
-          DateTime? birthday,
-          String? username}) =>
-      profileLocalDataSource.saveUserProfile(
-          name: name ?? username ?? 'User',
-          weight: weight ?? 70.0,
-          height: (height ?? 175).toDouble(),
-          age: age ?? 30,
-          gender: gender ?? 'other',
-          activityLevel: activityLevel ?? 'sedentary',
-          goal: goal ?? 'maintenance',
-          birthday: birthday);
+  Future<void> saveUserProfile({
+    String? name,
+    double? weight,
+    int? height,
+    int? age,
+    String? gender,
+    String? activityLevel,
+    String? goal,
+    DateTime? birthday,
+    String? username,
+  }) => profileLocalDataSource.saveUserProfile(
+    name: name ?? username ?? 'User',
+    weight: weight ?? 70.0,
+    height: (height ?? 175).toDouble(),
+    age: age ?? 30,
+    gender: gender ?? 'other',
+    activityLevel: activityLevel ?? 'sedentary',
+    goal: goal ?? 'maintenance',
+    birthday: birthday,
+  );
   Future<void> saveInitialWeight(double w) =>
       profileLocalDataSource.saveInitialWeight(w);
   Future<void> saveInitialBodyFatPercentage(double b) =>
@@ -519,8 +625,11 @@ class DatabaseHelper {
   Future<int> insertMeasurementSession(MeasurementSession s) =>
       profileLocalDataSource.insertMeasurementSession(s);
 
-  Future<double> getAverageCompletedWorkoutsPerWeek(
-          {int weeksBack = 4, DateTime? now}) =>
-      workoutLocalDataSource.getAverageCompletedWorkoutsPerWeek(
-          weeksBack: weeksBack, now: now);
+  Future<double> getAverageCompletedWorkoutsPerWeek({
+    int weeksBack = 4,
+    DateTime? now,
+  }) => workoutLocalDataSource.getAverageCompletedWorkoutsPerWeek(
+    weeksBack: weeksBack,
+    now: now,
+  );
 }

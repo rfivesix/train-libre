@@ -1,4 +1,5 @@
 import '../../../services/local_notification_service.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract interface class AdaptiveRecommendationNotificationPreference {
@@ -11,8 +12,9 @@ class SharedPreferencesAdaptiveRecommendationNotificationPreference
 
   @override
   Future<bool> isEnabled() async =>
-      (await SharedPreferences.getInstance())
-          .getBool('notify_adaptive_recommendation') ??
+      (await SharedPreferences.getInstance()).getBool(
+        'notify_adaptive_recommendation',
+      ) ??
       true;
 }
 

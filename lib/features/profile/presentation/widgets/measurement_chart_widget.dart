@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -43,8 +44,8 @@ class MeasurementChartWidget extends StatefulWidget {
     this.trajectoryStart,
     this.trajectoryEnd,
     this.smoothWeightTrend,
-  })  : dataPoints = null,
-        axisMode = MeasurementChartAxisMode.day;
+  }) : dataPoints = null,
+       axisMode = MeasurementChartAxisMode.day;
 
   const MeasurementChartWidget.fromData({
     super.key,
@@ -66,8 +67,8 @@ class MeasurementChartWidget extends StatefulWidget {
     this.trajectoryStart,
     this.trajectoryEnd,
     this.smoothWeightTrend,
-  })  : chartType = null,
-        dateRange = null;
+  }) : chartType = null,
+       dateRange = null;
 
   /// Whether the chart should render from edge to edge of the screen, removing internal padding and overlaying right titles.
   final bool edgeToEdge;
@@ -226,24 +227,28 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
       _touchedIndex = null;
     });
     final repo = widget.repository ?? context.read<IProfileRepository>();
-    _chartDataSubscription =
-        repo.watchChartDataForTypeAndRange(chartType, dateRange).listen((data) {
-      if (mounted) {
-        final sorted = List<ChartDataPoint>.from(data)
-          ..sort((a, b) => a.date.compareTo(b.date));
-        setState(() {
-          _dataPoints = sorted;
-          _isLoadingChart = false;
-        });
-      }
-    }, onError: (Object err) {
-      if (mounted) {
-        setState(() {
-          _dataPoints = const <ChartDataPoint>[];
-          _isLoadingChart = false;
-        });
-      }
-    });
+    _chartDataSubscription = repo
+        .watchChartDataForTypeAndRange(chartType, dateRange)
+        .listen(
+          (data) {
+            if (mounted) {
+              final sorted = List<ChartDataPoint>.from(data)
+                ..sort((a, b) => a.date.compareTo(b.date));
+              setState(() {
+                _dataPoints = sorted;
+                _isLoadingChart = false;
+              });
+            }
+          },
+          onError: (Object err) {
+            if (mounted) {
+              setState(() {
+                _dataPoints = const <ChartDataPoint>[];
+                _isLoadingChart = false;
+              });
+            }
+          },
+        );
   }
 
   void _setTouchedIndexWithHaptics(int? newIndex) {
@@ -295,7 +300,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     }
 
     final int lastIdx = _dataPoints.length - 1;
-    final int shownIdx = (_touchedIndex != null &&
+    final int shownIdx =
+        (_touchedIndex != null &&
             _touchedIndex! >= 0 &&
             _touchedIndex! < _dataPoints.length)
         ? _touchedIndex!
@@ -304,30 +310,30 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     final ChartDataPoint displayPoint = _dataPoints[shownIdx];
     final double displayNumericValue = _displayValue(displayPoint.value);
     final bool hasSelectedPoint = _touchedIndex != null;
-    final String displayValue = !hasSelectedPoint &&
-            widget.idleValueLabel != null
+    final String displayValue =
+        !hasSelectedPoint && widget.idleValueLabel != null
         ? widget.idleValueLabel!
         : widget.valueLabelBuilder?.call(displayNumericValue, widget.unit) ??
-            '${displayNumericValue.toStringAsFixed(widget.valueFractionDigits)} ${widget.unit}';
+              '${displayNumericValue.toStringAsFixed(widget.valueFractionDigits)} ${widget.unit}';
     final String displayDate = !hasSelectedPoint && widget.idleDateLabel != null
         ? widget.idleDateLabel!
         : widget.selectedDateLabelBuilder?.call(displayPoint.date) ??
-            _defaultSelectedDateLabel(context, displayPoint.date);
+              _defaultSelectedDateLabel(context, displayPoint.date);
 
     final DateTime firstDate = widget.domainDateRange != null
         ? (widget.axisMode == MeasurementChartAxisMode.day
-            ? _atStartOfDay(widget.domainDateRange!.start)
-            : widget.domainDateRange!.start)
+              ? _atStartOfDay(widget.domainDateRange!.start)
+              : widget.domainDateRange!.start)
         : (widget.axisMode == MeasurementChartAxisMode.day
-            ? _atStartOfDay(_dataPoints.first.date)
-            : _dataPoints.first.date);
+              ? _atStartOfDay(_dataPoints.first.date)
+              : _dataPoints.first.date);
     final DateTime lastDate = widget.domainDateRange != null
         ? (widget.axisMode == MeasurementChartAxisMode.day
-            ? _atStartOfDay(widget.domainDateRange!.end)
-            : widget.domainDateRange!.end)
+              ? _atStartOfDay(widget.domainDateRange!.end)
+              : widget.domainDateRange!.end)
         : (widget.axisMode == MeasurementChartAxisMode.day
-            ? _atStartOfDay(_dataPoints.last.date)
-            : _dataPoints.last.date);
+              ? _atStartOfDay(_dataPoints.last.date)
+              : _dataPoints.last.date);
 
     final int spanUnits = widget.axisMode == MeasurementChartAxisMode.day
         ? lastDate.difference(firstDate).inDays
@@ -337,9 +343,10 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
 
     double xForPoint(ChartDataPoint point) {
       if (widget.axisMode == MeasurementChartAxisMode.day) {
-        return _atStartOfDay(
-          point.date,
-        ).difference(firstDate).inDays.toDouble();
+        return _atStartOfDay(point.date)
+            .difference(firstDate)
+            .inDays
+            .toDouble();
       }
       return point.date.difference(firstDate).inMinutes.toDouble();
     }
@@ -384,8 +391,9 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
       maxVal = math.max(maxVal, referenceLineValue);
     }
     final double yRange = maxVal - minVal;
-    final double yPadding =
-        yRange > 0 ? yRange * 0.2 : (minVal == 0 ? 1.0 : minVal * 0.2).abs();
+    final double yPadding = yRange > 0
+        ? yRange * 0.2
+        : (minVal == 0 ? 1.0 : minVal * 0.2).abs();
     final double yMin = minVal - yPadding;
     final double yMax = maxVal + yPadding;
 
@@ -396,14 +404,15 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     final bool shouldSmooth = _shouldSmoothWeight && _dataPoints.length >= 2;
     final List<FlSpot> smoothedSpots = shouldSmooth
         ? WeightSmoothingUtil.calculateEwma(_dataPoints)
-            .map((p) => FlSpot(xForPoint(p), _displayValue(p.value)))
-            .toList()
+              .map((p) => FlSpot(xForPoint(p), _displayValue(p.value)))
+              .toList()
         : const [];
 
     // Resolved once per build: `bar.spots.indexOf(spot)` inside `checkToShowDot`
     // is called for every spot on every frame, so it turns a drag along the
     // chart into O(n^2) work.
-    final FlSpot? touchedSpot = (_touchedIndex != null &&
+    final FlSpot? touchedSpot =
+        (_touchedIndex != null &&
             _touchedIndex! >= 0 &&
             _touchedIndex! < spots.length)
         ? spots[_touchedIndex!]
@@ -417,9 +426,10 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
         for (final dy in <double>[-2, -1, 0, 1, 2])
           if (dx != 0 || dy != 0)
             Shadow(
-                color: axisLabelBackground,
-                offset: Offset(dx, dy),
-                blurRadius: 0),
+              color: axisLabelBackground,
+              offset: Offset(dx, dy),
+              blurRadius: 0,
+            ),
     ];
 
     final chartWidget = SizedBox(
@@ -438,18 +448,16 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
               children: [
                 Text(
                   displayValue,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(context).textTheme.headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: DesignConstants.spacingS),
                 Text(
                   displayDate,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    color: Theme.of(context).colorScheme.onSurface
+                        .withValues(alpha: 0.6),
+                  ),
                 ),
               ],
             ),
@@ -469,10 +477,10 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                   touchTooltipData: LineTouchTooltipData(
                     getTooltipItems: (touchedSpots) =>
                         List<LineTooltipItem?>.filled(
-                      touchedSpots.length,
-                      null,
-                      growable: false,
-                    ),
+                          touchedSpots.length,
+                          null,
+                          growable: false,
+                        ),
                   ),
                   touchCallback: _handleTouchCallback,
                 ),
@@ -504,14 +512,12 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                       getTitlesWidget: (value, meta) {
                         final textWidget = Text(
                           value.toStringAsFixed(0),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.6),
-                                    shadows: hardShadows,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
+                                shadows: hardShadows,
+                              ),
                           textAlign: TextAlign.right,
                         );
 
@@ -561,13 +567,11 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                           ),
                           child: Text(
                             axisLabelFor(date),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.6),
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
                           ),
                         );
                       },
@@ -598,12 +602,12 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         checkToShowDot: (spot, bar) => true,
                         getDotPainter: (spot, percent, bar, index) =>
                             FlDotCirclePainter(
-                          radius: 3.5,
-                          color: Colors.grey.withValues(alpha: 0.6),
-                          strokeWidth: 1.5,
-                          strokeColor:
-                              Theme.of(context).scaffoldBackgroundColor,
-                        ),
+                              radius: 3.5,
+                              color: Colors.grey.withValues(alpha: 0.6),
+                              strokeWidth: 1.5,
+                              strokeColor: Theme.of(context)
+                                  .scaffoldBackgroundColor,
+                            ),
                       ),
                     ),
                   if (shouldSmooth) ...[
@@ -611,9 +615,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                     LineChartBarData(
                       spots: spots,
                       isCurved: false,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
+                      color: Theme.of(context).colorScheme.onSurface
                           .withValues(alpha: 0.28),
                       barWidth: widget.edgeToEdge ? 3.5 : 4.0,
                       isStrokeCapRound: true,
@@ -625,12 +627,12 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                             spot.y == touchedSpot.y,
                         getDotPainter: (spot, percent, bar, index) =>
                             FlDotCirclePainter(
-                          radius: 6,
-                          color: Theme.of(context).colorScheme.primary,
-                          strokeWidth: 2,
-                          strokeColor:
-                              Theme.of(context).scaffoldBackgroundColor,
-                        ),
+                              radius: 6,
+                              color: Theme.of(context).colorScheme.primary,
+                              strokeWidth: 2,
+                              strokeColor: Theme.of(context)
+                                  .scaffoldBackgroundColor,
+                            ),
                       ),
                     ),
                     // Smoothed trend line: clean prominent curve in primary color
@@ -646,13 +648,9 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         show: true,
                         gradient: LinearGradient(
                           colors: [
-                            Theme.of(context)
-                                .colorScheme
-                                .primary
+                            Theme.of(context).colorScheme.primary
                                 .withValues(alpha: 0.25),
-                            Theme.of(context)
-                                .colorScheme
-                                .primary
+                            Theme.of(context).colorScheme.primary
                                 .withValues(alpha: 0.0),
                           ],
                           begin: Alignment.topCenter,
@@ -674,24 +672,21 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                             (touchedSpot != null && spot == touchedSpot),
                         getDotPainter: (spot, percent, bar, index) =>
                             FlDotCirclePainter(
-                          radius: 6,
-                          color: Theme.of(context).colorScheme.primary,
-                          strokeWidth: 2,
-                          strokeColor: Theme.of(
-                            context,
-                          ).scaffoldBackgroundColor,
-                        ),
+                              radius: 6,
+                              color: Theme.of(context).colorScheme.primary,
+                              strokeWidth: 2,
+                              strokeColor: Theme.of(context)
+                                  .scaffoldBackgroundColor,
+                            ),
                       ),
                       belowBarData: BarAreaData(
                         show: true,
                         gradient: LinearGradient(
                           colors: [
-                            Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.3),
-                            Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.0),
+                            Theme.of(context).colorScheme.primary
+                                .withValues(alpha: 0.3),
+                            Theme.of(context).colorScheme.primary
+                                .withValues(alpha: 0.0),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,

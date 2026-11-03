@@ -43,8 +43,8 @@ class RecommendationInputSummary {
       qualityFlags: ((json['qualityFlags'] as List?) ?? const [])
           .map((item) => item.toString())
           .toList(growable: false),
-      phaseEffectiveKcalPerKg:
-          (json['phaseEffectiveKcalPerKg'] as num?)?.toDouble(),
+      phaseEffectiveKcalPerKg: (json['phaseEffectiveKcalPerKg'] as num?)
+          ?.toDouble(),
     );
   }
 }
@@ -171,11 +171,14 @@ class NutritionRecommendation {
         (json['warningState'] as Map?)?.cast<String, dynamic>() ??
             const <String, dynamic>{},
       ),
-      generatedAt: DateTime.tryParse(json['generatedAt'] as String? ?? '') ??
+      generatedAt:
+          DateTime.tryParse(json['generatedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      windowStart: DateTime.tryParse(json['windowStart'] as String? ?? '') ??
+      windowStart:
+          DateTime.tryParse(json['windowStart'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      windowEnd: DateTime.tryParse(json['windowEnd'] as String? ?? '') ??
+      windowEnd:
+          DateTime.tryParse(json['windowEnd'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       algorithmVersion: json['algorithmVersion'] as String? ?? 'unknown',
       inputSummary: RecommendationInputSummary.fromJson(

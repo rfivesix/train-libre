@@ -41,8 +41,10 @@ class PerformanceTelemetry {
     final worst = snapshot.screens.isEmpty ? null : snapshot.screens.first;
     if (worst != null) {
       properties['perf_worst_screen'] = worst.screen;
-      properties['perf_worst_screen_jank_pct'] =
-          _round(worst.jankRatio * 100, 1);
+      properties['perf_worst_screen_jank_pct'] = _round(
+        worst.jankRatio * 100,
+        1,
+      );
       properties['perf_worst_screen_cause'] = worst.dominantCause;
       properties['perf_worst_screen_frames'] = worst.frames;
       properties['perf_worst_frame_ms'] = _round(worst.worstFrameMs, 0);
@@ -52,8 +54,11 @@ class PerformanceTelemetry {
     // without exploding into a property per screen.
     properties['perf_top_screens'] = snapshot.screens
         .take(topScreens)
-        .map((stats) => '${stats.screen}:${_round(stats.jankRatio * 100, 1)}%:'
-            '${stats.dominantCause}')
+        .map(
+          (stats) =>
+              '${stats.screen}:${_round(stats.jankRatio * 100, 1)}%:'
+              '${stats.dominantCause}',
+        )
         .toList(growable: false);
 
     return properties;
@@ -119,9 +124,9 @@ class StallTelemetryReporter {
     required JankRecorder recorder,
     required DeviceLabelResolver deviceLabelResolver,
     this.maxEventsPerSession = 5,
-  })  : _sender = sender,
-        _recorder = recorder,
-        _deviceLabelResolver = deviceLabelResolver;
+  }) : _sender = sender,
+       _recorder = recorder,
+       _deviceLabelResolver = deviceLabelResolver;
 
   final StallTelemetrySender _sender;
   final JankRecorder _recorder;

@@ -10,6 +10,7 @@ import '../../../workout/domain/models/routine_exercise.dart';
 import '../../../workout/domain/models/set_log.dart';
 import '../../../workout/domain/models/set_template.dart';
 import '../../../diary/domain/models/fluid_entry.dart';
+import '../../../diary/domain/models/macro_entry.dart';
 import '../../../workout/domain/models/workout_log.dart';
 import '../../../supplements/domain/models/supplement.dart';
 import '../../../supplements/domain/models/supplement_log.dart';
@@ -30,6 +31,9 @@ class TrainLibreBackup {
 
   /// A list of all recorded fluid intake events.
   final List<FluidEntry> fluidEntries;
+
+  /// Macro-only entries without a catalog food reference.
+  final List<MacroEntry> macroEntries;
 
   /// A list of barcodes for food items marked as favorites by the user.
   final List<String> favoriteBarcodes;
@@ -79,6 +83,9 @@ class TrainLibreBackup {
   /// Raw imported health step segments for deduplicated restoration.
   final List<Map<String, dynamic>> healthStepSegments;
 
+  /// Import identities and deletion tombstones for Health nutrition diary rows.
+  final List<Map<String, dynamic>> healthNutritionImportRecords;
+
   /// Snapshots of offline OFF products transaction history.
   final List<Map<String, dynamic>> offProductsArchive;
 
@@ -97,6 +104,7 @@ class TrainLibreBackup {
     required this.foodEntries,
     this.mealTemplates = const [],
     required this.fluidEntries,
+    this.macroEntries = const [],
     required this.favoriteBarcodes,
     required this.customFoodItems,
     required this.measurementSessions,
@@ -113,6 +121,7 @@ class TrainLibreBackup {
     this.userFoodOverrides = const [],
     this.userFoodOverrideTranslations = const [],
     this.healthStepSegments = const [],
+    this.healthNutritionImportRecords = const [],
     this.offProductsArchive = const [],
     this.userGoals = const [],
     this.goalEvents = const [],
@@ -125,7 +134,8 @@ class TrainLibreBackup {
   factory TrainLibreBackup.fromJson(Map<String, dynamic> json) {
     return TrainLibreBackup(
       schemaVersion: json['schemaVersion'] as int? ?? 1,
-      foodEntries: (json['foodEntries'] as List<dynamic>?)
+      foodEntries:
+          (json['foodEntries'] as List<dynamic>?)
               ?.map(
                 (e) => FoodEntry(
                   id: e['id'],
@@ -141,16 +151,24 @@ class TrainLibreBackup {
               )
               .toList() ??
           [],
-      mealTemplates: (json['mealTemplates'] as List<dynamic>?)
+      mealTemplates:
+          (json['mealTemplates'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      fluidEntries: (json['fluidEntries'] as List<dynamic>?)
+      fluidEntries:
+          (json['fluidEntries'] as List<dynamic>?)
               ?.map((e) => FluidEntry.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
+      macroEntries:
+          (json['macroEntries'] as List<dynamic>?)
+              ?.map((e) => MacroEntry.fromMap(Map<String, dynamic>.from(e)))
+              .toList() ??
+          [],
       favoriteBarcodes: List<String>.from(json['favoriteBarcodes'] ?? []),
-      customFoodItems: (json['customFoodItems'] as List<dynamic>?)
+      customFoodItems:
+          (json['customFoodItems'] as List<dynamic>?)
               ?.map(
                 (e) => FoodItem.fromMap(
                   e as Map<String, dynamic>,
@@ -159,10 +177,11 @@ class TrainLibreBackup {
               )
               .toList() ??
           [],
-      measurementSessions: (json['measurementSessions'] as List<dynamic>?)
-              ?.map((s) {
+      measurementSessions:
+          (json['measurementSessions'] as List<dynamic>?)?.map((s) {
             final sessionMap = s as Map<String, dynamic>;
-            final measurements = (sessionMap['measurements'] as List<dynamic>?)
+            final measurements =
+                (sessionMap['measurements'] as List<dynamic>?)
                     ?.map((m) => Measurement.fromMap(m as Map<String, dynamic>))
                     .toList() ??
                 [];
@@ -175,12 +194,14 @@ class TrainLibreBackup {
           [],
 
       // FIXED: Detailed deserialization for routines
-      routines: (json['routines'] as List<dynamic>?)?.map((r) {
+      routines:
+          (json['routines'] as List<dynamic>?)?.map((r) {
             final routineMap = r as Map<String, dynamic>;
             return Routine(
               id: routineMap['id'],
               name: routineMap['name'],
-              exercises: (routineMap['exercises'] as List<dynamic>?)?.map((re) {
+              exercises:
+                  (routineMap['exercises'] as List<dynamic>?)?.map((re) {
                     final reMap = re as Map<String, dynamic>;
                     return RoutineExercise(
                       progressionData:
@@ -190,7 +211,8 @@ class TrainLibreBackup {
                       exercise: Exercise.fromMap(
                         reMap['exercise'] as Map<String, dynamic>,
                       ),
-                      setTemplates: (reMap['setTemplates'] as List<dynamic>?)
+                      setTemplates:
+                          (reMap['setTemplates'] as List<dynamic>?)
                               ?.map(
                                 (st) => SetTemplate.fromMap(
                                   st as Map<String, dynamic>,
@@ -198,11 +220,12 @@ class TrainLibreBackup {
                               )
                               .toList() ??
                           [],
-                      pauseSeconds: (reMap['pause_seconds'] as num?)?.toInt() ??
+                      pauseSeconds:
+                          (reMap['pause_seconds'] as num?)?.toInt() ??
                           (reMap['pauseSeconds'] as num?)?.toInt(),
                       supersetGroup:
                           (reMap['superset_group'] as num?)?.toInt() ??
-                              (reMap['supersetGroup'] as num?)?.toInt(),
+                          (reMap['supersetGroup'] as num?)?.toInt(),
                       notes: reMap['notes'] as String?,
                     );
                   }).toList() ??
@@ -211,9 +234,11 @@ class TrainLibreBackup {
           }).toList() ??
           [],
 
-      workoutLogs: (json['workoutLogs'] as List<dynamic>?)?.map((log) {
+      workoutLogs:
+          (json['workoutLogs'] as List<dynamic>?)?.map((log) {
             final logMap = log as Map<String, dynamic>;
-            final sets = (logMap['sets'] as List<dynamic>?)
+            final sets =
+                (logMap['sets'] as List<dynamic>?)
                     ?.map((set) => SetLog.fromMap(set as Map<String, dynamic>))
                     .toList() ??
                 [];
@@ -221,59 +246,74 @@ class TrainLibreBackup {
           }).toList() ??
           [],
       userPreferences: Map<String, dynamic>.from(json['userPreferences'] ?? {}),
-      supplements: (json['supplements'] as List<dynamic>?)
+      supplements:
+          (json['supplements'] as List<dynamic>?)
               ?.map((e) => Supplement.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
-      supplementLogs: (json['supplementLogs'] as List<dynamic>?)
+      supplementLogs:
+          (json['supplementLogs'] as List<dynamic>?)
               ?.map((e) => SupplementLog.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
-      customExercises: (json['customExercises'] as List<dynamic>?)
+      customExercises:
+          (json['customExercises'] as List<dynamic>?)
               ?.map((e) => Exercise.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
-      dailyGoalsHistory: (json['dailyGoalsHistory'] as List<dynamic>?)
+      dailyGoalsHistory:
+          (json['dailyGoalsHistory'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
       supplementSettingsHistory:
           (json['supplementSettingsHistory'] as List<dynamic>?)
-                  ?.map((e) => Map<String, dynamic>.from(e as Map))
-                  .toList() ??
-              [],
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
       appSettings: json['appSettings'] != null
           ? Map<String, dynamic>.from(json['appSettings'] as Map)
           : null,
       profile: json['profile'] != null
           ? Map<String, dynamic>.from(json['profile'] as Map)
           : null,
-      userFoodOverrides: (json['userFoodOverrides'] as List<dynamic>?)
+      userFoodOverrides:
+          (json['userFoodOverrides'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
       userFoodOverrideTranslations:
           (json['userFoodOverrideTranslations'] as List<dynamic>?)
-                  ?.map((e) => Map<String, dynamic>.from(e as Map))
-                  .toList() ??
-              [],
-      healthStepSegments: (json['healthStepSegments'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      offProductsArchive: (json['offProductsArchive'] as List<dynamic>?)
+      healthStepSegments:
+          (json['healthStepSegments'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      userGoals: (json['userGoals'] as List<dynamic>?)
+      healthNutritionImportRecords:
+          (json['healthNutritionImportRecords'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      goalEvents: (json['goalEvents'] as List<dynamic>?)
+      offProductsArchive:
+          (json['offProductsArchive'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      goalReviews: (json['goalReviews'] as List<dynamic>?)
+      userGoals:
+          (json['userGoals'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+      goalEvents:
+          (json['goalEvents'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+      goalReviews:
+          (json['goalReviews'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
@@ -287,6 +327,7 @@ class TrainLibreBackup {
       'foodEntries': foodEntries.map((e) => e.toMap()).toList(),
       'mealTemplates': mealTemplates,
       'fluidEntries': fluidEntries.map((e) => e.toMap()).toList(),
+      'macroEntries': macroEntries.map((e) => e.toMap()).toList(),
       'favoriteBarcodes': favoriteBarcodes,
       'customFoodItems': customFoodItems.map((e) => e.toMap()).toList(),
       'measurementSessions': measurementSessions
@@ -304,8 +345,9 @@ class TrainLibreBackup {
           .map(
             (log) => {
               ...log.toMap(), // Uses the existing toMap method
-              'sets':
-                  log.sets.map((s) => s.toMap()).toList(), // Appends the sets
+              'sets': log.sets
+                  .map((s) => s.toMap())
+                  .toList(), // Appends the sets
             },
           )
           .toList(),
@@ -320,6 +362,7 @@ class TrainLibreBackup {
       'userFoodOverrides': userFoodOverrides,
       'userFoodOverrideTranslations': userFoodOverrideTranslations,
       'healthStepSegments': healthStepSegments,
+      'healthNutritionImportRecords': healthNutritionImportRecords,
       'offProductsArchive': offProductsArchive,
       'userGoals': userGoals,
       'goalEvents': goalEvents,

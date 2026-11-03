@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
@@ -40,8 +41,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.createGoalFlow));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.createGoalFlow,
+      ),
+    );
     _state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -71,18 +75,16 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     } else if (_currentStep == 1) {
       final error = _state.validateBaselineStep(unitService, l10n);
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error)));
         return;
       }
       _state.prepareTargetDefaults(unitService);
     } else if (_currentStep == 2) {
       final error = _state.validateTargetStep(unitService, l10n);
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error)));
         return;
       }
     }
@@ -164,8 +166,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                         minHeight: 6,
                         value: (_currentStep + 1) / _totalSteps,
                         color: theme.colorScheme.primary,
-                        backgroundColor:
-                            theme.colorScheme.primary.withValues(alpha: 0.18),
+                        backgroundColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.18,
+                        ),
                       ),
                     ),
                   ),
@@ -202,14 +205,14 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     child: AppButton.primary(
                       label: _currentStep == _totalSteps - 1
                           ? (_state.isSaving
-                              ? l10n.saving
-                              : l10n.goalConfirmCreateButton)
+                                ? l10n.saving
+                                : l10n.goalConfirmCreateButton)
                           : l10n.continueButton,
                       onPressed: _state.isSaving
                           ? null
                           : (_currentStep == _totalSteps - 1
-                              ? _submitGoal
-                              : _nextStep),
+                                ? _submitGoal
+                                : _nextStep),
                     ),
                   ),
                 ],

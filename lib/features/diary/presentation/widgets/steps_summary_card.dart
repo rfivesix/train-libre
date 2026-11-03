@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/card_morph_route.dart';
@@ -23,14 +24,15 @@ class StepsSummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<
-        DiaryViewModel,
-        ({
-          bool isStepsWidgetLoading,
-          int? stepsForSelectedDay,
-          int targetSteps,
-          DateTime selectedDate,
-          bool showSkeleton,
-        })>(
+      DiaryViewModel,
+      ({
+        bool isStepsWidgetLoading,
+        int? stepsForSelectedDay,
+        int targetSteps,
+        DateTime selectedDate,
+        bool showSkeleton,
+      })
+    >(
       selector: (context, vm) => (
         isStepsWidgetLoading: vm.isStepsWidgetLoading,
         stepsForSelectedDay: vm.stepsForSelectedDay,
@@ -46,8 +48,9 @@ class StepsSummaryCard extends StatelessWidget {
         // display yet, show the slim spinner card (same as before).
         if (data.isStepsWidgetLoading && !showSkeleton && steps <= 0) {
           return Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
             child: SummaryCard(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -76,27 +79,29 @@ class StepsSummaryCard extends StatelessWidget {
         // its StatefulWidget state survives across loading transitions and the
         // TweenAnimationBuilder can smoothly animate from the old step count
         // to the new one instead of jumping or resetting to zero.
-        final target = (data.targetSteps > 0
-                ? data.targetSteps
-                : StepsSyncService.defaultStepsGoal)
-            .toDouble();
+        final target =
+            (data.targetSteps > 0
+                    ? data.targetSteps
+                    : StepsSyncService.defaultStepsGoal)
+                .toDouble();
 
         return RepaintBoundary(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
             child: MorphSourceScope(
               builder: (context, setHidden) => Builder(
                 builder: (sourceCtx) {
                   Widget buildBar() => GlassProgressBar(
-                        label: l10n.steps,
-                        unit: 'steps',
-                        value: (data.stepsForSelectedDay ?? 0).toDouble(),
-                        target: target,
-                        color: _stepsProgressColor,
-                        height: 54,
-                        borderRadius: DesignConstants.borderRadiusL,
-                      );
+                    label: l10n.steps,
+                    unit: 'steps',
+                    value: (data.stepsForSelectedDay ?? 0).toDouble(),
+                    target: target,
+                    color: _stepsProgressColor,
+                    height: 54,
+                    borderRadius: DesignConstants.borderRadiusL,
+                  );
 
                   return GestureDetector(
                     onTap: () {

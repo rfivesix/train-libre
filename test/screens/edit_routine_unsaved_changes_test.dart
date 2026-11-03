@@ -31,9 +31,8 @@ Widget _wrapWithPushButton(WidgetBuilder builder) {
               child: TextButton(
                 key: const Key('open_route'),
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: builder),
-                  );
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: builder));
                 },
                 child: const Text('Open'),
               ),
@@ -61,8 +60,9 @@ void main() {
   });
 
   Future<void> openScreen(WidgetTester tester) async {
-    await tester
-        .pumpWidget(_wrapWithPushButton((_) => const EditRoutineScreen()));
+    await tester.pumpWidget(
+      _wrapWithPushButton((_) => const EditRoutineScreen()),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('open_route')));
     await tester.pumpAndSettle();
@@ -81,61 +81,69 @@ void main() {
   });
 
   testWidgets(
-      'dirty state shows confirmation sheet on pop attempt, discard leaves without saving',
-      (tester) async {
-    await openScreen(tester);
+    'dirty state shows confirmation sheet on pop attempt, discard leaves without saving',
+    (tester) async {
+      await openScreen(tester);
 
-    // Make dirty by typing in name field
-    await tester.enterText(find.byType(TextField).first, 'My Awesome Routine');
-    await tester.pumpAndSettle();
+      // Make dirty by typing in name field
+      await tester.enterText(
+        find.byType(TextField).first,
+        'My Awesome Routine',
+      );
+      await tester.pumpAndSettle();
 
-    // Tap the back button
-    await tester.tap(find.byIcon(LucideIcons.arrow_left));
-    await tester.pumpAndSettle();
+      // Tap the back button
+      await tester.tap(find.byIcon(LucideIcons.arrow_left));
+      await tester.pumpAndSettle();
 
-    // The sheet should appear
-    expect(find.text('Unsaved Changes'), findsOneWidget);
+      // The sheet should appear
+      expect(find.text('Unsaved Changes'), findsOneWidget);
 
-    // Tap Discard
-    await tester.tap(find.widgetWithText(AppButton, 'Discard'));
-    await tester.pumpAndSettle();
+      // Tap Discard
+      await tester.tap(find.widgetWithText(AppButton, 'Discard'));
+      await tester.pumpAndSettle();
 
-    // Sheet is gone and screen is popped
-    expect(find.text('Unsaved Changes'), findsNothing);
-    expect(find.byType(EditRoutineScreen), findsNothing);
+      // Sheet is gone and screen is popped
+      expect(find.text('Unsaved Changes'), findsNothing);
+      expect(find.byType(EditRoutineScreen), findsNothing);
 
-    // Verify it wasn't saved to DB
-    final routines = await WorkoutLocalDataSource.instance.getAllRoutines();
-    expect(routines.isEmpty, true);
-  });
+      // Verify it wasn't saved to DB
+      final routines = await WorkoutLocalDataSource.instance.getAllRoutines();
+      expect(routines.isEmpty, true);
+    },
+  );
 
   testWidgets(
-      'dirty state shows confirmation sheet on pop attempt, save persists and leaves',
-      (tester) async {
-    await openScreen(tester);
+    'dirty state shows confirmation sheet on pop attempt, save persists and leaves',
+    (tester) async {
+      await openScreen(tester);
 
-    // Make dirty by typing in name field
-    await tester.enterText(find.byType(TextField).first, 'My Awesome Routine');
-    await tester.pumpAndSettle();
+      // Make dirty by typing in name field
+      await tester.enterText(
+        find.byType(TextField).first,
+        'My Awesome Routine',
+      );
+      await tester.pumpAndSettle();
 
-    // Tap the back button
-    await tester.tap(find.byIcon(LucideIcons.arrow_left));
-    await tester.pumpAndSettle();
+      // Tap the back button
+      await tester.tap(find.byIcon(LucideIcons.arrow_left));
+      await tester.pumpAndSettle();
 
-    // The sheet should appear
-    expect(find.text('Unsaved Changes'), findsOneWidget);
+      // The sheet should appear
+      expect(find.text('Unsaved Changes'), findsOneWidget);
 
-    // Tap Save on the bottom sheet
-    await tester.tap(find.widgetWithText(AppButton, 'Save'));
-    await tester.pumpAndSettle();
+      // Tap Save on the bottom sheet
+      await tester.tap(find.widgetWithText(AppButton, 'Save'));
+      await tester.pumpAndSettle();
 
-    // Sheet is gone and screen is popped
-    expect(find.text('Unsaved Changes'), findsNothing);
-    expect(find.byType(EditRoutineScreen), findsNothing);
+      // Sheet is gone and screen is popped
+      expect(find.text('Unsaved Changes'), findsNothing);
+      expect(find.byType(EditRoutineScreen), findsNothing);
 
-    // Verify it WAS saved to DB
-    final routines = await WorkoutLocalDataSource.instance.getAllRoutines();
-    expect(routines.length, 1);
-    expect(routines.first.name, 'My Awesome Routine');
-  });
+      // Verify it WAS saved to DB
+      final routines = await WorkoutLocalDataSource.instance.getAllRoutines();
+      expect(routines.length, 1);
+      expect(routines.first.name, 'My Awesome Routine');
+    },
+  );
 }

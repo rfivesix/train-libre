@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/app_button.dart';
 
 class DataBackupCard extends StatelessWidget {

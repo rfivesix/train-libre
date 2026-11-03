@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../services/experience_level_service.dart';
@@ -14,6 +15,7 @@ import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
 import 'routine_set_row_widget.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
@@ -270,19 +272,19 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                     ],
                                   )
                                 : isEditMode
-                                    ? Row(
-                                        children: [
-                                          timerRow,
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Align(
-                                              alignment: Alignment.centerRight,
-                                              child: noteRow,
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : timerRow,
+                                ? Row(
+                                    children: [
+                                      timerRow,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: noteRow,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : timerRow,
                           );
                         },
                       ),
@@ -300,49 +302,56 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                   .asMap()
                                   .entries
                                   .map((entry) {
-                                final setIndex = entry.key;
-                                final setTemplate = entry.value;
+                                    final setIndex = entry.key;
+                                    final setTemplate = entry.value;
 
-                                int workingSetIndex = 0;
-                                for (int i = 0; i <= setIndex; i++) {
-                                  if (routineExercise.setTemplates[i].setType !=
-                                      'warmup') {
-                                    workingSetIndex++;
-                                  }
-                                }
+                                    int workingSetIndex = 0;
+                                    for (int i = 0; i <= setIndex; i++) {
+                                      if (routineExercise
+                                              .setTemplates[i]
+                                              .setType !=
+                                          'warmup') {
+                                        workingSetIndex++;
+                                      }
+                                    }
 
-                                return RoutineSetRowWidget(
-                                  key: ValueKey(setTemplate.id),
-                                  setIndex: workingSetIndex,
-                                  rowIndex: setIndex,
-                                  routineExercise: routineExercise,
-                                  template: setTemplate,
-                                  listIndex: setIndex,
-                                  mask: ExerciseLogMask.forExercise(
-                                      routineExercise.exercise),
-                                  repsController:
-                                      repsControllers[setTemplate.id!]!,
-                                  weightController:
-                                      weightControllers[setTemplate.id!]!,
-                                  rirController:
-                                      rirControllers[setTemplate.id!]!,
-                                  onShowSetTypePicker: () =>
-                                      onShowSetTypePicker(setTemplate),
-                                  onSetTypeChanged: onSetTypeChanged != null
-                                      ? (newType) => onSetTypeChanged!(
-                                          setTemplate, newType)
-                                      : null,
-                                  onRemoveSet: () =>
-                                      onRemoveSet(setTemplate, setIndex),
-                                  isEditMode: isEditMode,
-                                );
-                              }),
+                                    return RoutineSetRowWidget(
+                                      key: ValueKey(setTemplate.id),
+                                      setIndex: workingSetIndex,
+                                      rowIndex: setIndex,
+                                      routineExercise: routineExercise,
+                                      template: setTemplate,
+                                      listIndex: setIndex,
+                                      mask: ExerciseLogMask.forExercise(
+                                        routineExercise.exercise,
+                                      ),
+                                      repsController:
+                                          repsControllers[setTemplate.id!]!,
+                                      weightController:
+                                          weightControllers[setTemplate.id!]!,
+                                      rirController:
+                                          rirControllers[setTemplate.id!]!,
+                                      onShowSetTypePicker: () =>
+                                          onShowSetTypePicker(setTemplate),
+                                      onSetTypeChanged: onSetTypeChanged != null
+                                          ? (newType) => onSetTypeChanged!(
+                                              setTemplate,
+                                              newType,
+                                            )
+                                          : null,
+                                      onRemoveSet: () =>
+                                          onRemoveSet(setTemplate, setIndex),
+                                      isEditMode: isEditMode,
+                                    );
+                                  }),
                               if (isEditMode) ...[
                                 const SizedBox(
-                                    height: DesignConstants.spacingS),
+                                  height: DesignConstants.spacingS,
+                                ),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
+                                    horizontal: 16.0,
+                                  ),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -418,17 +427,17 @@ class EditRoutineExerciseCard extends StatelessWidget {
   }
 
   Widget _buildHeader(String text, {required int flex}) => Expanded(
-        flex: flex,
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
+    flex: flex,
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Colors.grey[600],
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
 
   Widget _buildTitleContent(
     BuildContext context,
@@ -460,9 +469,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
               // of the title rather than appearing over it right away.
               sourceBuilder: (_) => title,
               onSourceVisibilityChanged: setHidden,
-              builder: (context) => ExerciseDetailScreen(
-                exercise: routineExercise.exercise,
-              ),
+              builder: (context) =>
+                  ExerciseDetailScreen(exercise: routineExercise.exercise),
             ),
           ),
           child: title,

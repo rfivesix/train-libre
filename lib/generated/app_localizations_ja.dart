@@ -493,6 +493,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appInitStarting => 'アプリを起動しています...';
 
   @override
+  String get appInitFailed =>
+      'Train Libreを起動できませんでした。保存済みのデータは削除されていません。もう一度お試しください。';
+
+  @override
   String get appInitInitializing => '初期化中...';
 
   @override
@@ -633,7 +637,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'ファイルはこの端末上で処理されます。匿名分析が有効な場合、インポートの開始・スキップ・完了のみを記録し、ワークアウトの詳細は送信しません。';
+      'エクスポートはこの端末上で処理されます。仮名化された利用統計が有効な場合、インポートの状態が記録されることがありますが、ワークアウトの詳細は含まれません。';
 
   @override
   String get workoutImportButton => 'ワークアウトデータのインポート';
@@ -1783,7 +1787,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onbPrivacyTitle => 'オフラインファーストとプライバシー';
 
   @override
-  String get onbPrivacyBody => 'データはデバイス上に残ります。クラウド アカウントもバックグラウンド同期もありません。';
+  String get onbPrivacyBody =>
+      'Train Libreはデータを主に端末内に保存します。任意の機能により端末外に送信またはコピーされる場合があります。';
 
   @override
   String get onbFinishTitle => '準備完了';
@@ -2062,7 +2067,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'このデバイスに保存されているユーザー所有のデータを完全に削除し、Train Libre を新しいローカル状態にリセットします。';
+      'アプリのローカルデータと設定を削除します。一部のコピーが残る場合があります。';
 
   @override
   String get deleteAllLocalAppData => 'ローカルアプリのデータをすべて削除する';
@@ -2072,7 +2077,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'これにより、ローカルに保存されたワークアウト、栄養ログ、測定値、サプリメント、設定/状態、キャッシュされた分析、ローカル アプリ データが完全に削除されます。\n\nこれによって、すでに Apple Health または Health Connect にエクスポートされたデータは削除されません。\n\nこれにより、外部プロバイダー データやリモート パブリック カタログ ソースは削除されません。バンドルされたアプリのアセットと必要なデフォルトのカタログは、リセット後にアプリを起動できるように保持または再作成されます。';
+      'リセットは多くのローカルデータと設定を削除しますが、一部の添付ファイルや設定が残る場合があります。バックアップ、エクスポート、ヘルスサービス上のデータ、外部プロバイダーのデータは削除しません。';
 
   @override
   String get localDataDeletionTypeDeleteLabel => '「DELETE」と入力して確認します';
@@ -2399,6 +2404,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealTotalAmountLabel => 'レシピ全体の量';
 
   @override
+  String get aiMealRawEquivalent => '生の状態の換算量';
+
+  @override
+  String get aiMealServed => '提供量';
+
+  @override
   String get mealWeightBasisLabel => '状態';
 
   @override
@@ -2498,7 +2509,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get error => 'エラー';
 
   @override
-  String get mealsViewTitle => '食事ビュータイトル';
+  String get mealsViewTitle => 'レシピ';
 
   @override
   String get noNotes => 'メモはありません';
@@ -2545,6 +2556,66 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settingsMaterialColorsSubtitle =>
       'Train Libre ブランド アクセントの代わりにシステムのダイナミック カラー (マテリアル ユー) を使用する';
+
+  @override
+  String get settingsAppColorTitle => 'アプリの色';
+
+  @override
+  String get settingsAppColorSubtitle => 'ライトモードとダークモードに合うアクセントカラーを選択します。';
+
+  @override
+  String get appColorPresetTrainLibre => 'Train Libre';
+
+  @override
+  String get appColorPresetMonochrome => '白黒';
+
+  @override
+  String get appColorPresetBlue => 'ブルー';
+
+  @override
+  String get appColorPresetTeal => 'ティール';
+
+  @override
+  String get appColorPresetPurple => 'パープル';
+
+  @override
+  String get appColorPresetOrange => 'オレンジ';
+
+  @override
+  String get appColorPresetRose => 'ローズ';
+
+  @override
+  String get appColorPresetCustom => 'カスタム';
+
+  @override
+  String get appColorPresetSystem => 'システムカラー';
+
+  @override
+  String get appColorCustomDialogTitle => '色を選択';
+
+  @override
+  String get appColorHexLabel => '16進数カラーコード';
+
+  @override
+  String get appColorHexInvalid => '6桁の16進数カラーコードを入力してください。';
+
+  @override
+  String get appColorHexOutOfRange => '明るさが40～82%の色を選択してください。';
+
+  @override
+  String get appColorHueLabel => '色相';
+
+  @override
+  String get appColorSaturationLabel => '彩度';
+
+  @override
+  String get appColorBrightnessLabel => '明るさ';
+
+  @override
+  String get appColorCancel => 'キャンセル';
+
+  @override
+  String get appColorApply => '適用';
 
   @override
   String get settingsFoodDbSectionTitle => '食品データベース';
@@ -2596,6 +2667,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'オーストリア (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'オランダ (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'スペイン (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'オーストラリア (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'カラフルなマクロバッジ';
@@ -2682,7 +2762,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingFeatureNutritionBody => 'マクロ、水分、任意のAI画像認識を記録します。';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100%プライベートかつローカル';
+  String get onboardingFeaturePrivacyTitle => 'ローカル優先とプライバシー';
 
   @override
   String get onboardingFeaturePrivacyBody => 'アカウント不要、クラウド強制なし。データはあなたのものです。';
@@ -2884,10 +2964,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get ingredients => '材料';
 
   @override
-  String get aiSettingsTitle => 'AI食事認識';
+  String get aiSettingsTitle => 'AI機能';
 
   @override
-  String get aiSettingsDescription => 'AI支援食事検出の設定を行います。';
+  String get aiSettingsDescription => 'チャットや食事認識などのAI機能を設定します。';
 
   @override
   String get aiProviderSection => 'AIプロバイダー';
@@ -2921,10 +3001,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      '画像、テキスト、生成されたプロンプトは、AI アクションを使用する場合にのみ、選択した AI プロバイダーに送信されます。プロバイダーの保持と処理は、そのプロバイダーの規約に従います。 API キーはこのデバイスにのみ暗号化されて保存されます。';
+      'AI機能はテキスト、画像、関連する文脈を使用するモデルに送信する場合があります。チャットは設定済みの別のプロバイダーに切り替わる場合があります。保存済みデータの読み取りには、自動承認が有効でない限り承認が必要です。プロバイダーの条件を確認してください。APIキーはプラットフォームの安全な保存領域に保存されます。';
 
   @override
   String get aiMealCapture => 'AIミール';
+
+  @override
+  String get aiChatAction => 'AIチャット';
 
   @override
   String get aiCaptureTitle => 'AI 食事キャプチャ';
@@ -2980,11 +3063,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'AI使用量: $countトークン';
+    return '$countトークン';
   }
 
   @override
-  String get aiReviewTokensPending => 'AI使用量: 更新中…';
+  String get aiReviewTokensPending => '更新中…';
 
   @override
   String get aiReviewTokensUnknown => 'AI使用量: 取得できません';
@@ -3000,6 +3083,15 @@ class AppLocalizationsJa extends AppLocalizations {
       'AIへのリクエストがタイムアウトしたため、スキャンを終了しました。戻ってもう一度お試しください。';
 
   @override
+  String get aiReviewAdjustPortions => '推定を調整';
+
+  @override
+  String get aiReviewPortionsLarger => '量を増やす';
+
+  @override
+  String get aiReviewPortionsSmaller => '量を減らす';
+
+  @override
   String get aiReviewFeedbackHint => 'AI が何を間違えたのか説明してください...';
 
   @override
@@ -3009,7 +3101,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewFeedbackSection => '修正';
 
   @override
-  String get aiErrorNoKey => 'API キーが設定されていません。 「設定」→「AI食事キャプチャ」で設定してください。';
+  String get aiErrorNoKey => 'API キーが設定されていません。「設定」→「AI機能」で設定してください。';
 
   @override
   String get aiErrorNetwork => 'ネットワークエラー。接続を確認して、もう一度試してください。';
@@ -3028,7 +3120,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'AIを利用した食事認識が可能になります。これを無効にすると、アプリ内のすべての AI ボタン​​が非表示になります。';
+      'チャットや食事認識などのAI機能を有効にします。無効にすると、アプリ内のAIへの入口がすべて非表示になります。';
+
+  @override
+  String get aiNutritionEngineLabel => '栄養推定方法';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      '直接推定では食品データベースを検索せずに栄養情報を記録します。カタログモードでは従来どおりローカル食品カタログを検索します。';
+
+  @override
+  String get aiNutritionEngineEstimate => 'AI による直接推定';
+
+  @override
+  String get aiNutritionEngineCatalog => 'ローカル食品カタログ';
+
+  @override
+  String get aiDirectEstimateLabel => 'AI 推定';
+
+  @override
+  String get aiFloatingAssistantTitle => 'フローティングAIアシスタントを表示';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'アプリの上にAIクラウドを表示します。クラウドを非表示にしても、追加メニューからAIチャットを利用できます。';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'ステータスと機能';
@@ -5054,11 +5169,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      '最近のログとその完全性に基づいて構築されています。';
+      '食事と体重の記録、および推定の安定性を考慮しています。';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'プロフィール/以前のデータのみに基づいています。適応的な調整のために、最近の体重と摂取量のログを追加します。';
+      '信頼できる評価に必要なデータが現在不足しています。';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5073,10 +5188,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '最近の体重と摂取量のログがまばらであるため、この推奨事項はより保守的です。';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'プロフィール/以前のみ';
+  String get adaptiveConfidenceNotEnoughData => '信頼できるデータが不足';
 
   @override
-  String get adaptiveConfidenceLow => '限定された最近のログ';
+  String get adaptiveConfidenceLow => 'データ基盤が限定的';
 
   @override
   String get adaptiveConfidenceMedium => '使用可能な最近のログ';
@@ -5306,6 +5421,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthExportDomainNutritionHydration => '栄養と水分補給';
 
   @override
+  String get healthNutritionImportTitle => '栄養をインポート';
+
+  @override
+  String get healthNutritionImportSubtitle =>
+      'Apple Health または Health Connect の1日分の合計を日記に取り込みます。';
+
+  @override
+  String get healthNutritionImportPolicy =>
+      '手動入力は別に保持されます。取り込んだ日の値はローカル編集で上書きされず、削除後に再作成されません。';
+
+  @override
   String get healthExportDomainWorkouts => 'トレーニング';
 
   @override
@@ -5400,6 +5526,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => '日本語';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'スペイン語';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'オランダ語';
 
   @override
   String get aiModelLabel => 'モデル';
@@ -5624,7 +5756,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre は、毎日/毎週の統計を表示するために歩数データを読み取る必要があります。データはデバイス上にローカルに残ります。外部サーバーはありません。';
+      'Train Libreは歩数を日別・週別の統計に使用します。取り込んだデータはバックアップに含まれたり、AI機能を使う際に共有されたりすることがあります。ヘルスデータへのアクセスは端末の設定で管理できます。';
 
   @override
   String get health_permission_continue => '続く';
@@ -5641,11 +5773,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。';
+      'プライバシーポリシーに記載のとおり、ワークアウトの記録と分析のためにフィットネスおよび健康データを処理することに明示的に同意します。同意の撤回についてはfeedback@schotte.meにお問い合わせください。';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(任意) アプリの安定性と機能向上のため、仮名化された利用統計を共有します（個人データや健康データは含まれません）。';
+      '(任意) 仮名化された利用統計の共有を希望します。イベントには技術的識別子や利用状況の測定値が含まれる場合があり、氏名がなくても個人データまたは健康関連データとなる可能性があります。';
 
   @override
   String get welcome_back_updated_legal_title => 'おかえりなさい & 利用規約改定のお知らせ';
@@ -5688,11 +5820,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get legal_section => '法的通知とプライバシー';
 
   @override
-  String get aiSettingsInstructionTitle => 'AI 食事認識の仕組み';
+  String get aiSettingsInstructionTitle => 'AI機能の仕組み';
 
   @override
   String get aiSettingsInstructionBody =>
-      'この機能は、AI を使用して食品の画像を分析し、栄養素の推定値を提供します。この機能を使用する場合、画像は選択した AI プロバイダーにのみ送信されます。これは Bring-Your-Own-Key (BYOK) アーキテクチャに依存しており、分析までデータをデバイス上にローカルに保持します。';
+      'AI機能にはチャットと食事認識があります。メッセージ、画像、文脈は使用するモデルに送信されます。チャットでは代替プロバイダーを使う場合があります。保存済みデータには、自動承認が有効でない限り承認が必要です。';
 
   @override
   String get aiSettingsSetupGuideTitle => 'セットアップガイド';
@@ -5841,18 +5973,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      '食事の写真やテキストの説明を構造化された日記エントリに変換し、プライベート製品データベースと照合します。';
+      'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• 不正確な説明 (例: 「パンのスライス」) をメートル単位の重量推定値に変換します。\n• AI の提案をオフラインでデバイス上のローカル製品データベースと照合します。\n• 外部サーバーに計算を委任するのではなく、ローカルで栄養を計算します。';
+      'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
   String get infoAiMealTechnicalTitle => 'ハイブリッド BYOK AI と Jaro-Winkler マッチング';
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Bring-Your-Own-Key (BYOK) プライバシー モデルを使用します。 AI は厳密に提案レイヤーとして機能します。マッチングは、ローカル SQLite データベースに対してトークン化された Jaro-Winkler フィルターを使用してオフラインで実行されます。 AI プロバイダーは、システム プロンプトを介して栄養計算を実行することを固く禁じられています。';
+      'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
   String get infoSleepTitle => '睡眠の質 (SHS v3.5)';
@@ -6390,7 +6522,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      '過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（\$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。';
+      'Train Libreは端末内のテレメトリー識別子とカウンターのリセット、およびPostHogへの削除依頼を試みます。依頼が失敗する場合があり、サーバー側での削除完了は確認されません。過去の識別子やバックアップは対象外となる場合があります。';
 
   @override
   String get telemetryDeleteConfirmButton => '今すぐデータを削除';
@@ -6404,15 +6536,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      '仮名化：氏名、メールアドレス、日記、運動、体重、栄養、健康データは一切送信されません。画面の表示、機能の利用状況、エラー発生の有無のみが送信されます。';
+      '仮名化されていますが、イベントには技術的識別子、アプリと端末の情報、画面や機能の利用、正確なトレーニング回数と時間、食事記録数、AIリクエストの状態、栄養や体重に関連する指標が含まれる場合があります。氏名がなくても個人データまたは健康関連データとなる場合があります。';
 
   @override
   String get telemetryConsentPointNotSold =>
-      '広告目的での利用なし：データが販売されたり、マーケティングや広告に使用されることは決してありません。処理はEU域内のサーバーで行われます。';
+      'アプリ内広告なし：Train Libreは広告を表示しません。利用イベントはアプリ統計のため送信され、処理とホスティングはサービス設定に依存します。';
 
   @override
   String get telemetryConsentPointRevocable =>
-      '任意：設定からいつでもオフにできます。保存されたテレメトリデータは設定画面から削除することも可能です。';
+      '任意：設定から今後の送信を停止できます。削除操作はローカル識別子とカウンターをリセットし、削除リクエストを試みますが、サーバー側の削除完了を確認するものではありません。';
 
   @override
   String get telemetryConsentAccept => 'はい、利用データを共有する';
@@ -6425,14 +6557,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'アプリの改善に役立ちます。仮名化され、個人データや健康データは含まれません。';
+      '任意の利用統計には技術的識別子や測定値が含まれる場合があり、氏名がなくても個人データまたは健康関連データとなることがあります。';
 
   @override
   String get settingsTelemetryDeleteTitle => 'テレメトリーデータを削除';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'ローカルおよびPostHogサーバー上の保存済みIDをすべて削除します';
+      'ローカル識別子をリセットし、削除リクエストを試みます。サーバー側の削除完了は確認されません。';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -6566,6 +6698,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get voiceTapToFinish => '認識中 — タップで終了';
+
+  @override
+  String get aiChatAddImage => '画像を追加';
+
+  @override
+  String get aiChatTakePhoto => '写真を撮る';
+
+  @override
+  String get aiChatChoosePhoto => 'ライブラリから選択';
+
+  @override
+  String get aiChatRemoveImage => '画像を削除';
+
+  @override
+  String get aiChatCameraUnavailable => 'このデバイスではカメラを利用できません。';
+
+  @override
+  String get aiChatCameraPermission => '写真を撮るにはカメラへのアクセスを許可してください。';
+
+  @override
+  String get aiChatCapture => '写真を撮る';
+
+  @override
+  String get aiChatCameraOptions => 'カメラオプション';
+
+  @override
+  String get aiChatFlash => 'フラッシュ';
+
+  @override
+  String get aiChatSwitchCamera => 'カメラを切り替え';
+
+  @override
+  String get aiChatImageLimit => '画像は最大4枚まで添付できます。';
+
+  @override
+  String get aiChatImageQuestion =>
+      'この画像に食べ物や飲み物が写っている場合は、栄養価を推定して、確認できる食事記録を作成してください。そうでなければ、画像の内容を簡潔に説明してください。';
+
+  @override
+  String get aiChatImageUnsupported => '選択したAIモデルは画像に対応していません。下書きは入力欄に残ります。';
 
   @override
   String get voiceStarting => '準備中…';
@@ -7604,7 +7776,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalReasonPlaceholder => '例: 体を軽くして、もっと軽快に動けるようになりたい...';
 
   @override
-  String get goalReasonPrivacyNotice => 'メモは完全に端末内にのみ保存され、外部に共有されることはありません。';
+  String get goalReasonPrivacyNotice =>
+      'メモはアプリに保存され、バックアップまたは承認済みのAIリクエストに含まれる場合があります。';
 
   @override
   String get goalStep7Question => '確認と開始';
@@ -8146,6 +8319,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationSettingsSubtitle => 'ワークアウト、目標、レビューのリマインダー';
 
   @override
+  String get notificationExactAlarmTitle => '正確なタイマーを許可';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Androidの設定でアラームとリマインダーを許可すると、バックグラウンドでも休憩終了音を時間どおりに再生できます。';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'ワークアウト中';
+
+  @override
+  String get notificationRestTimerTitle => '休憩タイマーの通知';
+
+  @override
+  String get notificationRestTimerSubtitle => '休憩タイマーの終了時にシステム通知を表示します。';
+
+  @override
+  String get notificationIgnoreSilentTitle => '消音モードを無視';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'アプリ使用中は消音モードでも休憩終了音を再生します。バックグラウンド通知はシステム設定に従います。';
+
+  @override
   String get notificationWorkoutSectionTitle => 'トレーニングプラン';
 
   @override
@@ -8563,11 +8759,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get developerAiOverlayDemoSubtitle => 'サンプルカードを使ったスクロール可能なUIプレビュー';
 
   @override
-  String get aiOverlayDemoGlobalEnabledTitle => 'アプリ全体で AI Overlay を有効にする';
+  String get aiOverlayDemoGlobalEnabledTitle => 'アプリ全体でAIアシスタントを表示';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'すべての画面にデモの雲を表示します。チャットは保存されません。';
+      'すべての画面にフローティングAIクラウドを表示します。';
 
   @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay UIデモ';
@@ -8622,6 +8818,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiOverlayChatHistory => 'チャット履歴';
 
   @override
+  String get aiOverlayAutoApprove => 'データ要求を自動的に承認';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       '今週は3回トレーニングしました。トレーニング負荷を比較しますか？';
 
@@ -8653,7 +8852,199 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiOverlayDemoCloudHint => '雲を左右にドラッグして移動します。位置は保存されます。';
 
   @override
+  String get aiOverlayDemoAssistantHint => 'AIアシスタントを開く';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => '白黒';
+
+  @override
+  String get aiOverlayDemoColorWhite => '白';
+
+  @override
+  String get aiOverlayDemoColorBlack => '黒';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'クラウドの動き';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription => '展開したAIクラウドの動きを調整します。';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle => 'セーフエリアのポイントを表示';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle => 'エリアを調整するための角を表示します';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle => '最初から全画面で開く';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle => 'クラウドを開くときの中間画面を省略します';
+
+  @override
+  String get developerNutritionLabSubtitle => '栄養ロジックと適応型の提案を確認';
+
+  @override
+  String get appleFoundationReadyTitle => 'このデバイスで利用できます';
+
+  @override
+  String get appleFoundationEnableTitle => 'iOSの設定で有効にする';
+
+  @override
+  String get appleFoundationNoTransferSubtitle => 'データ転送もAPI費用もありません。';
+
+  @override
+  String get telemetryDeleteSuccess => 'テレメトリーのリセットを試みました。サーバー上の削除は確認されていません。';
+
+  @override
   String aiAssistantAskModelHint(String model) {
     return '$modelに質問';
   }
+
+  @override
+  String get aiStarterCheckNutritionTitle => '今日の栄養バランスを確認';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      '今日の栄養とマクロバランスはどうなっていますか？ 1日の目標と比較して、すでに摂取したカロリー、タンパク質、炭水化物、脂質と、あとどれくらい不足しているかを教えてください。';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => '回復状態を確認';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      '現在の回復状態はどうですか？ 完全に回復している筋肉部位と、次のトレーニングまでにまだ休養が必要な筋肉はどれですか？';
+
+  @override
+  String get aiStarterSuggestMealTitle => '残りのマクロに応じた食事を提案';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      '今日の食事記録と残りのマクロを確認してください：今日すでに記録した食事と、残りの目標を達成するために次の食事で何を食べたらよいかを提案してください。';
+
+  @override
+  String get aiAssistantThinking => '考えています…';
+
+  @override
+  String get aiAssistantProcessingData => '承認済みデータを分析しています…';
+
+  @override
+  String get macroEntryButton => 'マクロ';
+
+  @override
+  String get macroEntryTitle => 'マクロを記録';
+
+  @override
+  String get macroEntryName => '名前（任意）';
+
+  @override
+  String get macroEntryAmount => '量（任意）';
+
+  @override
+  String get macroEntryAmountTotalHint => '空欄の場合、栄養値は記録全体の値です。';
+
+  @override
+  String get macroEntryAmountPer100GramHint => '量を入力すると、栄養値は100 gあたりになります。';
+
+  @override
+  String get macroEntryAmountPer100MlHint => '量を入力すると、栄養値は100 mlあたりになります。';
+
+  @override
+  String get macroEntryCalculate => '自動計算する項目';
+
+  @override
+  String get macroEntryInvalidValues => '入力値から有効なマクロを計算できません。';
+
+  @override
+  String get macroEntryLogAsFluid => '飲み物としても記録';
+
+  @override
+  String get macroEntryFluidAmountRequired => '飲み物を記録するにはml単位で量を入力してください。';
+
+  @override
+  String get macroEntryExtraNutrients => 'その他の栄養素を追加';
+
+  @override
+  String get macroEntrySugar => '糖類';
+
+  @override
+  String get macroEntryFiber => '食物繊維';
+
+  @override
+  String get macroEntrySalt => '塩分';
+
+  @override
+  String get macroEntryCaffeine => 'カフェイン';
+
+  @override
+  String get macroEntryPer100 => '100あたり';
+
+  @override
+  String get macroEntryPortion => '1食分';
+
+  @override
+  String get macroEntrySaved => 'マクロを記録しました。';
+
+  @override
+  String get macroEntryDefaultName => 'マクロ記録';
+
+  @override
+  String get macroEntryDetailTitle => '栄養素';
+
+  @override
+  String get macroEntryFillThreeValues => '4つのマクロ値のうち、3つを入力してください。';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'この飲み物はマクロ記録に関連付けられています。削除するとマクロ記録も削除されます。';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => '混在／準備完了';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      '直接送信には仮名化された利用統計を有効にする必要があります。設定で有効にするか、メールまたは共有を利用してください。';
+
+  @override
+  String get feedbackReportDirectSent => '診断レポートを開発者に直接送信しました。ありがとうございます！';
+
+  @override
+  String get feedbackReportDirectSend => '開発者に直接送信';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => '新しいAIチャットのご紹介';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'トレーニングや栄養について質問したり、下書きを作成したりできます。メッセージと画像は送信時にモデルに渡されます。保存済みデータへのアクセスには、自動承認が有効でない限り承認が必要です。代替プロバイダーへの切り替えにより送信先が変わる場合があります。';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'チャットの例';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Train Libreの新しいAIチャットで何ができますか？';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'アシスタントはルーティン、プラン、レシピを下書きとして作成できます。適用や保存の前に提案と食事内容を確認してください。';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'AI機能を有効にする';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint => 'AIチャットとその他のAI機能を切り替えます。';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled => 'フローティングAIチャットを表示';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'チャットの雲を表示または非表示にします。チャットは追加メニューからも開けます。';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'AIチャットを試す';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle => '新しいAIチャットの紹介をいつでも再表示できます。';
 }

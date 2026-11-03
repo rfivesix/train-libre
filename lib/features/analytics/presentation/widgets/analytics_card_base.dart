@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../statistics_hub_view_model.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class AnalyticsCardBase {
@@ -32,16 +34,14 @@ class AnalyticsCardBase {
             Expanded(
               child: Text(
                 title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             Text(
               l10n.load_dots,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
           ],
         ),
@@ -70,22 +70,22 @@ class AnalyticsCardBase {
             Text(
               l10n.error,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               l10n.sleepStatusTechnicalError,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             TextButton(
               onPressed: onRetry,
-              child: Text(MaterialLocalizations.of(context)
-                  .refreshIndicatorSemanticLabel),
+              child: Text(
+                MaterialLocalizations.of(context).refreshIndicatorSemanticLabel,
+              ),
             ),
           ],
         ),
@@ -128,9 +128,7 @@ class AnalyticsCardBase {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
+            style: Theme.of(context).textTheme.titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
@@ -146,10 +144,8 @@ class AnalyticsCardBase {
             ),
             child: Text(
               chipText,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: chipColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: chipColor, fontWeight: FontWeight.w600),
             ),
           ),
       ],
@@ -187,9 +183,8 @@ class AnalyticsCardBase {
     if (text.trim().isEmpty) return const SizedBox.shrink();
     return Text(
       text,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
-          ),
+      style: Theme.of(context).textTheme.labelSmall
+          ?.copyWith(color: Theme.of(context).colorScheme.outline),
     );
   }
 
@@ -206,10 +201,8 @@ class AnalyticsCardBase {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: chipColor,
-              fontWeight: FontWeight.w600,
-            ),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: chipColor, fontWeight: FontWeight.w600),
       ),
     );
   }

@@ -13,7 +13,7 @@ class HealthExportStatusStore {
       'health_export_health_connect_enabled';
 
   HealthExportStatusStore({DatabaseHelper? databaseHelper})
-      : _dbHelper = databaseHelper ?? DatabaseHelper.instance;
+    : _dbHelper = databaseHelper ?? DatabaseHelper.instance;
 
   final DatabaseHelper _dbHelper;
 
@@ -41,7 +41,7 @@ class HealthExportStatusStore {
   }
 
   Future<Map<HealthExportPlatform, HealthExportPlatformStatus>>
-      readStatuses() async {
+  readStatuses() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_statusKey);
     return decodePlatformStatusMap(raw);

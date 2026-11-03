@@ -39,13 +39,13 @@ class ExportWorkoutSegment {
   final double? weightKg;
 
   Map<String, dynamic> toMap() => {
-        'startUtcIso': startUtc.toUtc().toIso8601String(),
-        'endUtcIso': endUtc.toUtc().toIso8601String(),
-        'exerciseType': exerciseType.name,
-        'repetitions': repetitions,
-        'setIndex': setIndex,
-        if (weightKg != null) 'weightKg': weightKg,
-      };
+    'startUtcIso': startUtc.toUtc().toIso8601String(),
+    'endUtcIso': endUtc.toUtc().toIso8601String(),
+    'exerciseType': exerciseType.name,
+    'repetitions': repetitions,
+    'setIndex': setIndex,
+    if (weightKg != null) 'weightKg': weightKg,
+  };
 }
 
 class ExportMeasurementRecord {
@@ -68,12 +68,12 @@ class ExportMeasurementRecord {
   final int? exportRevision;
 
   Map<String, dynamic> get contentMap => {
-        'idempotencyKey': idempotencyKey,
-        'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
-        'zoneOffsetMinutes': zoneOffsetMinutes,
-        'type': type.name,
-        'value': value,
-      };
+    'idempotencyKey': idempotencyKey,
+    'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
+    'zoneOffsetMinutes': zoneOffsetMinutes,
+    'type': type.name,
+    'value': value,
+  };
 
   String get payloadFingerprint => _fingerprint(contentMap);
 
@@ -89,10 +89,10 @@ class ExportMeasurementRecord {
       );
 
   Map<String, dynamic> toMap() => {
-        ...contentMap,
-        if (externalId != null) 'externalId': externalId,
-        if (exportRevision != null) 'exportRevision': exportRevision,
-      };
+    ...contentMap,
+    if (externalId != null) 'externalId': externalId,
+    if (exportRevision != null) 'exportRevision': exportRevision,
+  };
 }
 
 class ExportNutritionRecord {
@@ -134,17 +134,17 @@ class ExportNutritionRecord {
       sodiumGrams != null;
 
   Map<String, dynamic> get contentMap => {
-        'idempotencyKey': idempotencyKey,
-        'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
-        'zoneOffsetMinutes': zoneOffsetMinutes,
-        'caloriesKcal': caloriesKcal,
-        'proteinGrams': proteinGrams,
-        'carbsGrams': carbsGrams,
-        'fatGrams': fatGrams,
-        'fiberGrams': fiberGrams,
-        'sugarGrams': sugarGrams,
-        'sodiumGrams': sodiumGrams,
-      };
+    'idempotencyKey': idempotencyKey,
+    'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
+    'zoneOffsetMinutes': zoneOffsetMinutes,
+    'caloriesKcal': caloriesKcal,
+    'proteinGrams': proteinGrams,
+    'carbsGrams': carbsGrams,
+    'fatGrams': fatGrams,
+    'fiberGrams': fiberGrams,
+    'sugarGrams': sugarGrams,
+    'sodiumGrams': sodiumGrams,
+  };
 
   String get payloadFingerprint => _fingerprint(contentMap);
 
@@ -165,10 +165,10 @@ class ExportNutritionRecord {
       );
 
   Map<String, dynamic> toMap() => {
-        ...contentMap,
-        if (externalId != null) 'externalId': externalId,
-        if (exportRevision != null) 'exportRevision': exportRevision,
-      };
+    ...contentMap,
+    if (externalId != null) 'externalId': externalId,
+    if (exportRevision != null) 'exportRevision': exportRevision,
+  };
 }
 
 class ExportHydrationRecord {
@@ -189,11 +189,11 @@ class ExportHydrationRecord {
   final int? exportRevision;
 
   Map<String, dynamic> get contentMap => {
-        'idempotencyKey': idempotencyKey,
-        'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
-        'zoneOffsetMinutes': zoneOffsetMinutes,
-        'volumeLiters': volumeLiters,
-      };
+    'idempotencyKey': idempotencyKey,
+    'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
+    'zoneOffsetMinutes': zoneOffsetMinutes,
+    'volumeLiters': volumeLiters,
+  };
 
   String get payloadFingerprint => _fingerprint(contentMap);
 
@@ -208,10 +208,10 @@ class ExportHydrationRecord {
       );
 
   Map<String, dynamic> toMap() => {
-        ...contentMap,
-        if (externalId != null) 'externalId': externalId,
-        if (exportRevision != null) 'exportRevision': exportRevision,
-      };
+    ...contentMap,
+    if (externalId != null) 'externalId': externalId,
+    if (exportRevision != null) 'exportRevision': exportRevision,
+  };
 }
 
 class ExportWorkoutRecord {
@@ -244,18 +244,18 @@ class ExportWorkoutRecord {
   final int? exportRevision;
 
   Map<String, dynamic> get contentMap => {
-        'idempotencyKey': idempotencyKey,
-        'startUtcIso': startUtc.toUtc().toIso8601String(),
-        'endUtcIso': endUtc.toUtc().toIso8601String(),
-        'startZoneOffsetMinutes': startZoneOffsetMinutes,
-        'endZoneOffsetMinutes': endZoneOffsetMinutes,
-        'workoutType': workoutType.name,
-        'caloriesBurnedKcal': caloriesBurnedKcal,
-        'title': title,
-        'notes': notes,
-        if (segments.isNotEmpty)
-          'segments': segments.map((segment) => segment.toMap()).toList(),
-      };
+    'idempotencyKey': idempotencyKey,
+    'startUtcIso': startUtc.toUtc().toIso8601String(),
+    'endUtcIso': endUtc.toUtc().toIso8601String(),
+    'startZoneOffsetMinutes': startZoneOffsetMinutes,
+    'endZoneOffsetMinutes': endZoneOffsetMinutes,
+    'workoutType': workoutType.name,
+    'caloriesBurnedKcal': caloriesBurnedKcal,
+    'title': title,
+    'notes': notes,
+    if (segments.isNotEmpty)
+      'segments': segments.map((segment) => segment.toMap()).toList(),
+  };
 
   String get payloadFingerprint => _fingerprint(contentMap);
 
@@ -276,10 +276,10 @@ class ExportWorkoutRecord {
       );
 
   Map<String, dynamic> toMap() => {
-        ...contentMap,
-        if (externalId != null) 'externalId': externalId,
-        if (exportRevision != null) 'exportRevision': exportRevision,
-      };
+    ...contentMap,
+    if (externalId != null) 'externalId': externalId,
+    if (exportRevision != null) 'exportRevision': exportRevision,
+  };
 }
 
 String _fingerprint(Map<String, dynamic> value) =>
@@ -300,11 +300,12 @@ class HealthExportDomainStatus {
       const HealthExportDomainStatus(state: HealthExportState.idle);
 
   Map<String, dynamic> toMap() => {
-        'state': state.name,
-        'lastSuccessfulExportAtUtcIso':
-            lastSuccessfulExportAtUtc?.toUtc().toIso8601String(),
-        'lastError': lastError,
-      };
+    'state': state.name,
+    'lastSuccessfulExportAtUtcIso': lastSuccessfulExportAtUtc
+        ?.toUtc()
+        .toIso8601String(),
+    'lastError': lastError,
+  };
 
   factory HealthExportDomainStatus.fromMap(Map<String, dynamic> map) {
     final stateRaw = (map['state'] as String?) ?? HealthExportState.idle.name;
@@ -315,8 +316,9 @@ class HealthExportDomainStatus {
     final lastSuccessIso = map['lastSuccessfulExportAtUtcIso'] as String?;
     return HealthExportDomainStatus(
       state: state,
-      lastSuccessfulExportAtUtc:
-          lastSuccessIso == null ? null : DateTime.tryParse(lastSuccessIso),
+      lastSuccessfulExportAtUtc: lastSuccessIso == null
+          ? null
+          : DateTime.tryParse(lastSuccessIso),
       lastError: map['lastError'] as String?,
     );
   }
@@ -335,12 +337,11 @@ class HealthExportPlatformStatus {
       byDomain[domain] ?? HealthExportDomainStatus.idle();
 
   Map<String, dynamic> toMap() => {
-        'platform': platform.name,
-        'byDomain': {
-          for (final entry in byDomain.entries)
-            entry.key.name: entry.value.toMap(),
-        },
-      };
+    'platform': platform.name,
+    'byDomain': {
+      for (final entry in byDomain.entries) entry.key.name: entry.value.toMap(),
+    },
+  };
 
   factory HealthExportPlatformStatus.initial(HealthExportPlatform platform) {
     return HealthExportPlatformStatus(

@@ -18,10 +18,7 @@ class FeedbackReportSection {
   final String title;
   final List<String> lines;
 
-  const FeedbackReportSection({
-    required this.title,
-    required this.lines,
-  });
+  const FeedbackReportSection({required this.title, required this.lines});
 
   bool get hasContent => lines.any((line) => line.trim().isNotEmpty);
 }

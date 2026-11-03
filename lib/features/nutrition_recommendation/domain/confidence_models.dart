@@ -1,15 +1,6 @@
-enum RecommendationConfidence {
-  notEnoughData,
-  low,
-  medium,
-  high,
-}
+enum RecommendationConfidence { notEnoughData, low, medium, high }
 
-enum RecommendationWarningLevel {
-  none,
-  moderate,
-  high,
-}
+enum RecommendationWarningLevel { none, moderate, high }
 
 class RecommendationWarningState {
   final bool hasLargeAdjustmentWarning;

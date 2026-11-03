@@ -29,63 +29,68 @@ void main() {
   /// Stands in for the `VACUUM INTO` snapshot: what matters here is that the
   /// exact bytes come back out, not that SQLite can read them.
   File writeSnapshot() => write(
-        'snapshot.sqlite',
-        Uint8List.fromList(List<int>.generate(4096, (i) => i % 251)),
-      );
+    'snapshot.sqlite',
+    Uint8List.fromList(List<int>.generate(4096, (i) => i % 251)),
+  );
 
   group('ICloudBackupArchive', () {
-    test('carries the database and the previews through a round trip',
-        () async {
-      final database = writeSnapshot();
-      final thumb = write('abc_thumb.jpg', [1, 2, 3, 4, 5]);
+    test(
+      'carries the database and the previews through a round trip',
+      () async {
+        final database = writeSnapshot();
+        final thumb = write('abc_thumb.jpg', [1, 2, 3, 4, 5]);
 
-      final archive = await ICloudBackupArchive.pack(
-        targetPath: p.join(workDir.path, 'icloud_backup.zip'),
-        database: database,
-        thumbnails: [thumb],
-      );
+        final archive = await ICloudBackupArchive.pack(
+          targetPath: p.join(workDir.path, 'icloud_backup.zip'),
+          database: database,
+          thumbnails: [thumb],
+        );
 
-      expect(await ICloudBackupArchive.looksLikeArchive(archive), isTrue);
+        expect(await ICloudBackupArchive.looksLikeArchive(archive), isTrue);
 
-      final restoredDb = p.join(workDir.path, 'restored.sqlite');
-      expect(
-        await ICloudBackupArchive.extractDatabase(
-          archivePath: archive.path,
-          targetPath: restoredDb,
-        ),
-        isTrue,
-      );
-      expect(
-        await File(restoredDb).readAsBytes(),
-        await database.readAsBytes(),
-      );
+        final restoredDb = p.join(workDir.path, 'restored.sqlite');
+        expect(
+          await ICloudBackupArchive.extractDatabase(
+            archivePath: archive.path,
+            targetPath: restoredDb,
+          ),
+          isTrue,
+        );
+        expect(
+          await File(restoredDb).readAsBytes(),
+          await database.readAsBytes(),
+        );
 
-      final photoDir = Directory(p.join(workDir.path, 'media', 'meals'));
-      expect(
-        await ICloudBackupArchive.extractThumbnails(
-          archivePath: archive.path,
-          directoryFor: (_) => photoDir,
-        ),
-        1,
-      );
-      expect(
-        await File(p.join(photoDir.path, 'abc_thumb.jpg')).readAsBytes(),
-        [1, 2, 3, 4, 5],
-      );
-    });
+        final photoDir = Directory(p.join(workDir.path, 'media', 'meals'));
+        expect(
+          await ICloudBackupArchive.extractThumbnails(
+            archivePath: archive.path,
+            directoryFor: (_) => photoDir,
+          ),
+          1,
+        );
+        expect(
+          await File(p.join(photoDir.path, 'abc_thumb.jpg')).readAsBytes(),
+          [1, 2, 3, 4, 5],
+        );
+      },
+    );
 
     test('files the previews by feature, next to the database', () async {
       final archive = await ICloudBackupArchive.pack(
         targetPath: p.join(workDir.path, 'icloud_backup.zip'),
         database: writeSnapshot(),
         thumbnails: [
-          write('abc_thumb.jpg', [1])
+          write('abc_thumb.jpg', [1]),
         ],
       );
 
       final input = InputFileStream(archive.path);
-      final names =
-          ZipDecoder().decodeStream(input).files.map((f) => f.name).toList();
+      final names = ZipDecoder()
+          .decodeStream(input)
+          .files
+          .map((f) => f.name)
+          .toList();
       await input.close();
 
       expect(names, contains('icloud_backup.sqlite'));
@@ -154,7 +159,7 @@ void main() {
         database: writeSnapshot(),
         thumbnails: [
           gone,
-          write('abc_thumb.jpg', [1])
+          write('abc_thumb.jpg', [1]),
         ],
       );
 

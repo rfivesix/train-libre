@@ -21,24 +21,28 @@ class LegacyGoalMigration {
     db.AppDatabase? database,
     RecommendationRepository? legacyRepository,
     GoalRepositoryImpl? goalRepository,
-  })  : _database = database ?? DatabaseHelper.instance.dbInstance,
-        _legacyRepository = legacyRepository ?? RecommendationRepository(),
-        _goalRepository = goalRepository ??
-            GoalRepositoryImpl(
-              database: database ?? DatabaseHelper.instance.dbInstance,
-            );
+  }) : _database = database ?? DatabaseHelper.instance.dbInstance,
+       _legacyRepository = legacyRepository ?? RecommendationRepository(),
+       _goalRepository =
+           goalRepository ??
+           GoalRepositoryImpl(
+             database: database ?? DatabaseHelper.instance.dbInstance,
+           );
 
   Future<bool> run({DateTime? now}) async {
-    final existing = await (_database.select(_database.userGoals)..limit(1))
-        .getSingleOrNull();
+    final existing = await (_database.select(
+      _database.userGoals,
+    )..limit(1)).getSingleOrNull();
     if (existing != null) return false;
 
     final measurementQuery = _database.select(_database.measurements)
-      ..where((row) =>
-          row.type.equals('weight') &
-          (now != null
-              ? row.date.isSmallerOrEqualValue(now)
-              : const drift.Constant(true)))
+      ..where(
+        (row) =>
+            row.type.equals('weight') &
+            (now != null
+                ? row.date.isSmallerOrEqualValue(now)
+                : const drift.Constant(true)),
+      )
       ..orderBy([(row) => drift.OrderingTerm.desc(row.date)])
       ..limit(1);
     final baseline = await measurementQuery.getSingleOrNull();
@@ -46,8 +50,11 @@ class LegacyGoalMigration {
 
     final day = now ?? baseline.date;
     final offsetFromMonday = (day.weekday - DateTime.monday) % 7;
-    final activation = DateTime(day.year, day.month, day.day)
-        .subtract(Duration(days: offsetFromMonday));
+    final activation = DateTime(
+      day.year,
+      day.month,
+      day.day,
+    ).subtract(Duration(days: offsetFromMonday));
 
     final legacyGoal = await _legacyRepository.getGoal();
     final rate = await _legacyRepository.getTargetRateKgPerWeek();

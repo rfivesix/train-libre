@@ -10,8 +10,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('MealAnalysisScreen', () {
-    testWidgets('renders all visual elements and transitions through phases',
-        (tester) async {
+    testWidgets('renders all visual elements and transitions through phases', (
+      tester,
+    ) async {
       final controller = MealAnalysisController();
       bool cancelled = false;
 

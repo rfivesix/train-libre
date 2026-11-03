@@ -18,7 +18,8 @@ Future<Set<String>> _columnsOf(db.AppDatabase database, String table) async {
 /// refuses to drop a column another index still refers to.
 Future<void> _dropMealEntryIdColumn(db.AppDatabase database) async {
   await database.customStatement(
-      'DROP INDEX IF EXISTS idx_nutrition_logs_meal_entry_id;');
+    'DROP INDEX IF EXISTS idx_nutrition_logs_meal_entry_id;',
+  );
   await database.customStatement(
     'ALTER TABLE nutrition_logs DROP COLUMN meal_entry_id;',
   );
@@ -98,8 +99,9 @@ void main() {
         final query = database.select(database.fluidLogs).join([
           leftOuterJoin(
             database.nutritionLogs,
-            database.nutritionLogs.id
-                .equalsExp(database.fluidLogs.linkedNutritionLogId),
+            database.nutritionLogs.id.equalsExp(
+              database.fluidLogs.linkedNutritionLogId,
+            ),
           ),
         ]);
         await query.get();

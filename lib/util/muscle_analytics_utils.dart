@@ -65,43 +65,44 @@ class MuscleAnalyticsUtils {
       (sum, value) => sum + value,
     );
 
-    final muscles = equivalentByMuscle.entries.map((entry) {
-      final trainedDays = trainedDaysByMuscle[entry.key] ?? 0;
-      final share =
-          totalEquivalentSets > 0 ? (entry.value / totalEquivalentSets) : 0.0;
-      return {
-        'muscleGroup': entry.key,
-        'equivalentSets': entry.value,
-        'trainedDays': trainedDays,
-        'frequencyPerWeek': trainedDays / totalWeeks,
-        'distributionShare': share,
-      };
-    }).toList()
-      ..sort(
-        (a, b) => ((b['equivalentSets'] as num).toDouble()).compareTo(
-          (a['equivalentSets'] as num).toDouble(),
-        ),
-      );
+    final muscles =
+        equivalentByMuscle.entries.map((entry) {
+          final trainedDays = trainedDaysByMuscle[entry.key] ?? 0;
+          final share = totalEquivalentSets > 0
+              ? (entry.value / totalEquivalentSets)
+              : 0.0;
+          return {
+            'muscleGroup': entry.key,
+            'equivalentSets': entry.value,
+            'trainedDays': trainedDays,
+            'frequencyPerWeek': trainedDays / totalWeeks,
+            'distributionShare': share,
+          };
+        }).toList()..sort(
+          (a, b) => ((b['equivalentSets'] as num).toDouble()).compareTo(
+            (a['equivalentSets'] as num).toDouble(),
+          ),
+        );
 
-    final weekRows = weekMuscleSets.entries.map((entry) {
-      final weekStartDate = entry.key;
-      final weekLabel = '${weekStartDate.day}.${weekStartDate.month}.';
-      final totalWeekSets = entry.value.values.fold<double>(
-        0.0,
-        (sum, value) => sum + value,
-      );
-      return {
-        'weekStart': weekStartDate,
-        'weekLabel': weekLabel,
-        'muscles': entry.value,
-        'totalEquivalentSets': totalWeekSets,
-      };
-    }).toList()
-      ..sort(
-        (a, b) => (a['weekStart'] as DateTime).compareTo(
-          b['weekStart'] as DateTime,
-        ),
-      );
+    final weekRows =
+        weekMuscleSets.entries.map((entry) {
+          final weekStartDate = entry.key;
+          final weekLabel = '${weekStartDate.day}.${weekStartDate.month}.';
+          final totalWeekSets = entry.value.values.fold<double>(
+            0.0,
+            (sum, value) => sum + value,
+          );
+          return {
+            'weekStart': weekStartDate,
+            'weekLabel': weekLabel,
+            'muscles': entry.value,
+            'totalEquivalentSets': totalWeekSets,
+          };
+        }).toList()..sort(
+          (a, b) => (a['weekStart'] as DateTime).compareTo(
+            b['weekStart'] as DateTime,
+          ),
+        );
 
     return {
       'daysBack': daysBack,

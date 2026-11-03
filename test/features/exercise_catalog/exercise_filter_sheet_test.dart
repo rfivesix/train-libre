@@ -53,7 +53,9 @@ void main() {
                   selection: equipment,
                   options: const [
                     ExerciseFilterOption(
-                        value: 'cardio_machine', label: 'Cardio machine'),
+                      value: 'cardio_machine',
+                      label: 'Cardio machine',
+                    ),
                     ExerciseFilterOption(value: 'barbell', label: 'Barbell'),
                   ],
                 ),
@@ -94,7 +96,9 @@ void main() {
   group('structure', () {
     testWidgets('each axis is its own collapsed field', (tester) async {
       expect(
-          find.byType(PlatformAdaptiveMultiSelectField<String>), findsNothing);
+        find.byType(PlatformAdaptiveMultiSelectField<String>),
+        findsNothing,
+      );
       await pump(tester);
 
       expect(
@@ -106,8 +110,9 @@ void main() {
       expect(find.text('Purpose'), findsOneWidget);
     });
 
-    testWidgets('the options are not on screen until a field is opened',
-        (tester) async {
+    testWidgets('the options are not on screen until a field is opened', (
+      tester,
+    ) async {
       // The point of collapsing: fourteen implements do not sit between the
       // user and the rest of the sheet.
       await pump(tester);
@@ -116,18 +121,23 @@ void main() {
       expect(find.text('Barbell'), findsNothing);
     });
 
-    testWidgets('the two "cardio" entries never appear in one list',
-        (tester) async {
+    testWidgets('the two "cardio" entries never appear in one list', (
+      tester,
+    ) async {
       await pump(tester);
 
       await open(tester, 'Body region');
       expect(find.text('Cardio'), findsWidgets);
-      expect(find.text('Cardio machine'), findsNothing,
-          reason: 'the equipment belongs to a different question');
+      expect(
+        find.text('Cardio machine'),
+        findsNothing,
+        reason: 'the equipment belongs to a different question',
+      );
     });
 
-    testWidgets('how the sections combine is stated, not implied',
-        (tester) async {
+    testWidgets('how the sections combine is stated, not implied', (
+      tester,
+    ) async {
       await pump(tester);
 
       expect(find.textContaining('widen'), findsOneWidget);
@@ -158,8 +168,9 @@ void main() {
       await pick(tester, 'Barbell');
 
       expect(regions, ['Chest']);
-      expect(equipment, ['barbell'],
-          reason: 'picking equipment cleared the body region');
+      expect(equipment, [
+        'barbell',
+      ], reason: 'picking equipment cleared the body region');
       expect(tags, isEmpty);
       expect(changeCount, 2);
     });
@@ -198,22 +209,28 @@ void main() {
       await open(tester, 'Body region');
       await pick(tester, 'Chest');
 
-      expect(find.text('Chest'), findsWidgets,
-          reason: 'the collapsed field should name the selection');
+      expect(
+        find.text('Chest'),
+        findsWidgets,
+        reason: 'the collapsed field should name the selection',
+      );
     });
   });
 
   group('reset', () {
-    testWidgets('is always present, and inert while nothing is selected',
-        (tester) async {
+    testWidgets('is always present, and inert while nothing is selected', (
+      tester,
+    ) async {
       // It used to appear on first selection and push everything above it
       // down, so the sheet shifted under the finger that had just tapped.
       await pump(tester);
 
-      TextButton resetButton() => tester.widget<TextButton>(find.ancestor(
-            of: find.text('Reset'),
-            matching: find.byType(TextButton),
-          ));
+      TextButton resetButton() => tester.widget<TextButton>(
+        find.ancestor(
+          of: find.text('Reset'),
+          matching: find.byType(TextButton),
+        ),
+      );
 
       expect(find.text('Reset'), findsOneWidget);
       expect(resetButton().onPressed, isNull);

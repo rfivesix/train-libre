@@ -1,5 +1,6 @@
 // lib/features/supplements/presentation/dialogs/log_supplement_menu.dart
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../domain/repositories/supplement_repository.dart';
@@ -9,7 +10,9 @@ import 'log_supplement_dialog_content.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/supplement.dart';
 import '../../../../util/supplement_l10n.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/app_button.dart';
 
 /// A menu that shows a list of supplements to choose from.
@@ -20,11 +23,7 @@ class LogSupplementMenu extends StatefulWidget {
   final SupplementRepository? repository;
   final VoidCallback close;
 
-  const LogSupplementMenu({
-    super.key,
-    required this.close,
-    this.repository,
-  });
+  const LogSupplementMenu({super.key, required this.close, this.repository});
 
   @override
   State<LogSupplementMenu> createState() => _LogSupplementMenuState();
@@ -38,7 +37,8 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.repository ??
+    _repo =
+        widget.repository ??
         SupplementRepositoryImpl(
           localDataSource: SupplementLocalDataSource.instance,
         );
@@ -82,7 +82,9 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
         ..._supplements.map(
           (s) => Padding(
             padding: const EdgeInsets.symmetric(
-                vertical: 6, horizontal: DesignConstants.spacingXS),
+              vertical: 6,
+              horizontal: DesignConstants.spacingXS,
+            ),
             child: Material(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white.withValues(alpha: 0.06)
@@ -101,10 +103,8 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
                       Expanded(
                         child: Text(
                           localizeSupplementName(s, l10n),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
                       const Icon(LucideIcons.chevron_right, size: 22),

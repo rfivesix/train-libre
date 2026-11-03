@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
+import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import '../../ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 
 /// Scrollable sample content for exploring a future AI assistant surface.
@@ -24,23 +27,20 @@ class AiOverlayDemoScreen extends StatefulWidget {
 }
 
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
-  final _cloudKey = GlobalKey<DraggableAiCloudState>();
   bool _cloudExpanded = false;
-  bool _cloudIsGenerating = false;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final contentTop = MediaQuery.paddingOf(context).top +
+    final l10n = AppLocalizations.of(context)!;
+    final contentTop =
+        MediaQuery.paddingOf(context).top +
         kToolbarHeight +
         DesignConstants.spacingS;
 
     final scaffold = Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: l10n.aiOverlayDemoScreenTitle,
-      ),
+      appBar: GlobalAppBar(title: 'AI Overlay'),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           DesignConstants.spacingL,
@@ -49,20 +49,24 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           MediaQuery.paddingOf(context).bottom + 176,
         ),
         children: [
-          _buildIntroCard(context, l10n, theme),
-          const SizedBox(height: DesignConstants.spacingM),
           ValueListenableBuilder<AiOverlayDemoConfiguration>(
             valueListenable: AiOverlayDemoSettings.configuration,
             builder: (context, settings, _) =>
-                _buildCloudSettingsCard(theme, settings),
+                _buildCloudSettingsCard(theme, l10n, settings),
           ),
           AppSectionHeader(
-            title: 'Schwarz und Weiß',
+            title: l10n.aiOverlayDemoColorSectionTitle,
             isFirst: true,
           ),
-          _buildColorCard(color: Colors.white, semanticLabel: 'Weiß'),
+          _buildColorCard(
+            color: Colors.white,
+            semanticLabel: l10n.aiOverlayDemoColorWhite,
+          ),
           const SizedBox(height: DesignConstants.spacingM),
-          _buildColorCard(color: Colors.black, semanticLabel: 'Schwarz'),
+          _buildColorCard(
+            color: Colors.black,
+            semanticLabel: l10n.aiOverlayDemoColorBlack,
+          ),
         ],
       ),
     );
@@ -89,25 +93,25 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             scaffold,
             ValueListenableBuilder<AiOverlayDemoConfiguration>(
               valueListenable: AiOverlayDemoSettings.configuration,
-              builder: (context, settings, _) => settings.enabled
+              builder: (context, settings, _) =>
+                  (settings.enabled &&
+                      context.watch<ThemeService>().isAiEnabled)
                   ? const SizedBox.shrink()
                   : Positioned.fill(
                       bottom: MediaQuery.viewInsetsOf(context).bottom,
                       child: Material(
                         type: MaterialType.transparency,
                         child: DraggableAiCloud(
-                          key: _cloudKey,
-                          semanticLabel: l10n.developerAiOverlayDemoTitle,
-                          semanticHint: l10n.aiOverlayDemoCloudHint,
+                          navigator: Navigator.of(context),
+                          semanticLabel: 'AI Overlay',
+                          semanticHint: l10n.aiOverlayDemoAssistantHint,
                           liveliness: settings.liveliness,
                           showResizeHandles: settings.showResizeHandles,
                           openDirectlyFullscreen:
                               settings.openDirectlyFullscreen,
-                          useLiveAi: settings.useLiveAi,
+                          useLiveAi: true,
                           onExpandedChanged: (value) =>
                               setState(() => _cloudExpanded = value),
-                          onGenerationChanged: (value) =>
-                              setState(() => _cloudIsGenerating = value),
                         ),
                       ),
                     ),
@@ -135,6 +139,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
 
   Widget _buildCloudSettingsCard(
     ThemeData theme,
+    AppLocalizations l10n,
     AiOverlayDemoConfiguration settings,
   ) {
     return SummaryCard(
@@ -151,7 +156,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
               const SizedBox(width: DesignConstants.spacingS),
               Expanded(
                 child: Text(
-                  'Wolken-Lebhaftigkeit',
+                  l10n.aiOverlayDemoLivelinessTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -166,158 +171,28 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                 unawaited(AiOverlayDemoSettings.update(liveliness: value)),
           ),
           Text(
-            'Steuert die Bewegung der erweiterten KI-Wolke.',
+            l10n.aiOverlayDemoLivelinessDescription,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          SwitchListTile.adaptive(
+          PlatformAdaptiveSwitchListTile(
             contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: const Text('Safe-Space-Punkte anzeigen'),
-            subtitle: const Text('Ecken zum Verändern des Bereichs einblenden'),
+            title: Text(l10n.aiOverlayDemoSafeSpaceTitle),
+            subtitle: Text(l10n.aiOverlayDemoSafeSpaceSubtitle),
             value: settings.showResizeHandles,
             onChanged: (value) => unawaited(
               AiOverlayDemoSettings.update(showResizeHandles: value),
             ),
           ),
-          SwitchListTile.adaptive(
+          PlatformAdaptiveSwitchListTile(
             contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: const Text('Direkt im Vollbild öffnen'),
-            subtitle: const Text(
-              'Überspringt die Zwischenansicht beim Öffnen der Wolke',
-            ),
+            title: Text(l10n.aiOverlayDemoFullscreenTitle),
+            subtitle: Text(l10n.aiOverlayDemoFullscreenSubtitle),
             value: settings.openDirectlyFullscreen,
             onChanged: (value) => unawaited(
               AiOverlayDemoSettings.update(openDirectlyFullscreen: value),
-            ),
-          ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: const Text('Echte KI-Anbindung'),
-            subtitle: const Text(
-              'Antworten live über das konfigurierte KI-Modell streamen',
-            ),
-            value: settings.useLiveAi,
-            onChanged: (value) =>
-                unawaited(AiOverlayDemoSettings.update(useLiveAi: value)),
-          ),
-          if (!settings.useLiveAi)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: DesignConstants.spacingS,
-                runSpacing: DesignConstants.spacingXS,
-                children: [
-                  TextButton.icon(
-                    onPressed: _cloudIsGenerating
-                        ? _cloudKey.currentState?.finishDemoGeneration
-                        : null,
-                    icon: const Icon(LucideIcons.circle_check),
-                    label: const Text('Direkt fertigstellen'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _cloudIsGenerating
-                        ? _cloudKey.currentState?.requestDemoPermission
-                        : null,
-                    icon: const Icon(LucideIcons.shield_alert),
-                    label: const Text('Freigabe anfordern'),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIntroCard(
-    BuildContext context,
-    AppLocalizations l10n,
-    ThemeData theme,
-  ) {
-    return SummaryCard(
-      padding: const EdgeInsets.all(DesignConstants.spacingL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusM,
-                  ),
-                ),
-                child: Icon(
-                  LucideIcons.sparkles,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.aiOverlayDemoIntroTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXS),
-                    Text(
-                      l10n.aiOverlayDemoIntroBody,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.55,
-              ),
-              borderRadius: BorderRadius.circular(
-                DesignConstants.borderRadiusS,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingM,
-                vertical: DesignConstants.spacingS,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    LucideIcons.info,
-                    size: DesignConstants.iconSizeS,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  Expanded(
-                    child: Text(
-                      l10n.aiOverlayDemoPreviewNote,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],

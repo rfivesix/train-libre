@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'widgets/exercise_record_data.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../widgets/common/algorithm_info_sheet.dart';
+
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
 import '../data/sources/workout_local_data_source.dart';
@@ -30,9 +34,13 @@ import 'widgets/workout_photo_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/app_review_service.dart';
 import '../domain/classification/exercise_log_mask.dart';
@@ -86,8 +94,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     if (!widget.requestReviewOnClose || _handlingClose) return;
 
     _handlingClose = true;
-    await AppReviewService.instance
-        .requestAfterFirstWorkoutSummaryClose(context);
+    await AppReviewService.instance.requestAfterFirstWorkoutSummaryClose(
+      context,
+    );
     if (!mounted) return;
     setState(() => _allowClose = true);
     Navigator.of(context).pop();
@@ -96,8 +105,11 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.workoutSummary));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.workoutSummary,
+      ),
+    );
     _loadWorkoutDetails();
   }
 
@@ -271,8 +283,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
               }
             }
           }
-          summaryMap[name] =
-              _ExerciseSummaryData.strength(totalVolumeKg: totalVol);
+          summaryMap[name] = _ExerciseSummaryData.strength(
+            totalVolumeKg: totalVol,
+          );
 
           // Calculate PRs for strength exercises
           final historicalBests = await db.getExerciseBests(
@@ -420,150 +433,115 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _log == null
-                ? Center(child: Text(l10n.workoutNotFound))
-                : SafeArea(
-                    top: false,
-                    bottom: true,
-                    child: Padding(
-                      padding: DesignConstants.cardPadding,
-                      child: Column(
-                      children: [
-                        // Exercise list and all summary content
-                        Expanded(
-                          child: ListView(
-                            children: [
-                              // Overall statistics (very top, under the app bar)
-                              WorkoutSummaryBar(
-                                duration:
-                                    _log!.endTime?.difference(_log!.startTime),
-                                volume: globalVolume,
-                                sets: _log!.sets.length,
-                                progress: null,
+            ? Center(child: Text(l10n.workoutNotFound))
+            : SafeArea(
+                top: false,
+                bottom: true,
+                child: Padding(
+                  padding: DesignConstants.cardPadding,
+                  child: Column(
+                    children: [
+                      // Exercise list and all summary content
+                      Expanded(
+                        child: ListView(
+                          children: [
+                            // Overall statistics (very top, under the app bar)
+                            WorkoutSummaryBar(
+                              duration: _log!.endTime?.difference(
+                                _log!.startTime,
                               ),
-                              const SizedBox(height: DesignConstants.spacingL),
+                              volume: globalVolume,
+                              sets: _log!.sets.length,
+                              progress: null,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
 
-                              // Routine Title, Date/Time & Notes
+                            // Routine Title, Date/Time & Notes
+                            Text(
+                              _log!.routineName != null &&
+                                      _log!.routineName!.isNotEmpty
+                                  ? _log!.routineName!
+                                  : l10n.freeWorkoutTitle,
+                              style: textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              DateFormat.yMMMMd(
+                                Localizations.localeOf(context).toString(),
+                              ).add_Hm().format(_log!.startTime),
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (_log!.notes != null &&
+                                _log!.notes!.isNotEmpty) ...[
+                              const SizedBox(height: DesignConstants.spacingXS),
                               Text(
-                                _log!.routineName != null &&
-                                        _log!.routineName!.isNotEmpty
-                                    ? _log!.routineName!
-                                    : l10n.freeWorkoutTitle,
-                                style: textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                                _log!.notes!,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                                 textAlign: TextAlign.left,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat.yMMMMd(
-                                  Localizations.localeOf(context).toString(),
-                                ).add_Hm().format(_log!.startTime),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              if (_log!.notes != null &&
-                                  _log!.notes!.isNotEmpty) ...[
-                                const SizedBox(
-                                    height: DesignConstants.spacingXS),
-                                Text(
-                                  _log!.notes!,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontStyle: FontStyle.italic,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
-                              ],
-                              const SizedBox(height: DesignConstants.spacingM),
+                            ],
+                            const SizedBox(height: DesignConstants.spacingM),
 
-                              // Photos (under Title, Date, Time and Stats)
-                              WorkoutPhotoCard(
-                                workoutLogId: _log!.id,
-                                photoPaths: _log!.photoPaths,
-                                isEditable: true,
-                                onPhotosChanged: (updatedPaths) {
-                                  setState(() {
-                                    _log = _log!.copyWith(
-                                      photoPaths: updatedPaths,
-                                    );
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: DesignConstants.spacingL),
-
-                              if (_exerciseDetails.isNotEmpty) ...[
-                                _buildMuscleHeatmap(l10n),
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                              ],
-                              if (_heartRateSummary != null &&
-                                  (_pulseTrackingEnabled ||
-                                      _heartRateSummary!.hasData)) ...[
-                                _buildHeartRateCard(l10n, _heartRateSummary!),
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                              ],
-
-                              // NEW RECORDS SECTION
-                              if (_newRecordsPerExercise.isNotEmpty) ...[
-                                AppSectionHeader(
-                                  title: l10n.workoutSummaryNewRecordsTitle,
-                                  padding: EdgeInsets.zero,
-                                  action: AlgorithmInfoButton(
-                                    title: l10n.estimatedOneRepMaxInfoTitle,
-                                    explanation:
-                                        l10n.estimatedOneRepMaxInfoExplanation,
-                                    keyPoints: l10n.estimatedOneRepMaxInfoPoints
-                                        .split('\n'),
-                                    technicalTitle:
-                                        l10n.estimatedOneRepMaxInfoDetailsTitle,
-                                    technicalExplanation:
-                                        l10n.estimatedOneRepMaxInfoDetails,
-                                    citationUrl:
-                                        "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
-                                  ),
-                                ),
-                                const SizedBox(
-                                    height: DesignConstants.spacingS),
-                                ..._newRecordsPerExercise.entries.map((entry) {
-                                  return SummaryCard(
-                                    child: ListTile(
-                                      leading: const Icon(
-                                        LucideIcons.trophy,
-                                        color: Colors.amber,
-                                      ),
-                                      title: Text(
-                                        _exerciseDetails[entry.key]
-                                                ?.getLocalizedName(context) ??
-                                            entry.key,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        entry.value
-                                            .map(
-                                              (record) =>
-                                                  record.format(unitService),
-                                            )
-                                            .join(', '),
-                                      ),
-                                    ),
+                            // Photos (under Title, Date, Time and Stats)
+                            WorkoutPhotoCard(
+                              workoutLogId: _log!.id,
+                              photoPaths: _log!.photoPaths,
+                              isEditable: true,
+                              onPhotosChanged: (updatedPaths) {
+                                setState(() {
+                                  _log = _log!.copyWith(
+                                    photoPaths: updatedPaths,
                                   );
-                                }),
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                              ],
+                                });
+                              },
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
 
+                            if (_exerciseDetails.isNotEmpty) ...[
+                              _buildMuscleHeatmap(l10n),
+                              const SizedBox(height: DesignConstants.spacingL),
+                            ],
+                            if (_heartRateSummary != null &&
+                                (_pulseTrackingEnabled ||
+                                    _heartRateSummary!.hasData)) ...[
+                              _buildHeartRateCard(l10n, _heartRateSummary!),
+                              const SizedBox(height: DesignConstants.spacingL),
+                            ],
+
+                            // NEW RECORDS SECTION
+                            if (_newRecordsPerExercise.isNotEmpty) ...[
                               AppSectionHeader(
-                                title: l10n.workoutSummaryExerciseOverview,
+                                title: l10n.workoutSummaryNewRecordsTitle,
                                 padding: EdgeInsets.zero,
+                                action: AlgorithmInfoButton(
+                                  title: l10n.estimatedOneRepMaxInfoTitle,
+                                  explanation:
+                                      l10n.estimatedOneRepMaxInfoExplanation,
+                                  keyPoints: l10n.estimatedOneRepMaxInfoPoints
+                                      .split('\n'),
+                                  technicalTitle:
+                                      l10n.estimatedOneRepMaxInfoDetailsTitle,
+                                  technicalExplanation:
+                                      l10n.estimatedOneRepMaxInfoDetails,
+                                  citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
+                                ),
                               ),
                               const SizedBox(height: DesignConstants.spacingS),
-                              ..._summaryPerExercise.entries.map((entry) {
+                              ..._newRecordsPerExercise.entries.map((entry) {
                                 return SummaryCard(
                                   child: ListTile(
+                                    leading: const Icon(
+                                      LucideIcons.trophy,
+                                      color: Colors.amber,
+                                    ),
                                     title: Text(
                                       _exerciseDetails[entry.key]
                                               ?.getLocalizedName(context) ??
@@ -572,41 +550,70 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    trailing: Text(
-                                      entry.value.format(unitService),
-                                      style: textTheme.bodyLarge,
+                                    subtitle: Text(
+                                      entry.value
+                                          .map(
+                                            (record) =>
+                                                record.format(unitService),
+                                          )
+                                          .join(', '),
                                     ),
                                   ),
                                 );
                               }),
-
-                              // Update Routine Banner at the very bottom of the screen
-                              if (_showSyncBanner &&
-                                  _associatedRoutine != null) ...[
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                                _buildSyncBanner(colorScheme, textTheme),
-                              ],
+                              const SizedBox(height: DesignConstants.spacingL),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingXL),
 
-                        // Fertig-Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: AppButton.primary(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            label: l10n.doneButtonLabel,
-                            tooltip: l10n.doneButtonLabel,
-                          ),
+                            AppSectionHeader(
+                              title: l10n.workoutSummaryExerciseOverview,
+                              padding: EdgeInsets.zero,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            ..._summaryPerExercise.entries.map((entry) {
+                              return SummaryCard(
+                                child: ListTile(
+                                  title: Text(
+                                    _exerciseDetails[entry.key]
+                                            ?.getLocalizedName(context) ??
+                                        entry.key,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                    entry.value.format(unitService),
+                                    style: textTheme.bodyLarge,
+                                  ),
+                                ),
+                              );
+                            }),
+
+                            // Update Routine Banner at the very bottom of the screen
+                            if (_showSyncBanner &&
+                                _associatedRoutine != null) ...[
+                              const SizedBox(height: DesignConstants.spacingL),
+                              _buildSyncBanner(colorScheme, textTheme),
+                            ],
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingXL),
+
+                      // Fertig-Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: AppButton.primary(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          label: l10n.doneButtonLabel,
+                          tooltip: l10n.doneButtonLabel,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
       ),
     );
   }
@@ -672,7 +679,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Widget _buildMetricTile({required String label, required String value}) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: DesignConstants.spacingS),
+        horizontal: 10,
+        vertical: DesignConstants.spacingS,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -685,9 +694,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           const SizedBox(height: 2),
           Text(
             value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
+            style: Theme.of(context).textTheme.titleSmall
                 ?.copyWith(fontWeight: FontWeight.w700),
           ),
         ],

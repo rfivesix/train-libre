@@ -10,14 +10,15 @@ import UserNotifications
 /// the app is suspended and leave the notification behind on the old time —
 /// so `+15s` would beep 15 seconds early and `Skip` would beep at all.
 ///
-/// The sound is the point of this notification. A banner-less delivery
-/// (`interruptionLevel: .passive`) plays no sound at all, so on the lock screen
-/// the banner comes along with it — that is unavoidable.
+/// The system delivers the sound while the app is suspended. When the user
+/// hides the banner, schedule sound-only content instead of a visible alert.
 public enum RestSoundScheduler {
   public static let requestIdentifier = "trainlibre.rest_timer_done"
 
   private static let titleKey = "rest_sound_title"
   private static let bodyKey = "rest_sound_body"
+  private static let enabledKey = "rest_sound_notifications_enabled"
+  private static let revisionKey = "rest_sound_revision"
 
   private static var defaults: UserDefaults? {
     UserDefaults(suiteName: TrainLibreLiveActivity.appGroupId)
@@ -30,6 +31,19 @@ public enum RestSoundScheduler {
     defaults?.set(body, forKey: bodyKey)
   }
 
+  public static func setNotificationsEnabled(_ enabled: Bool, refreshPending: Bool = true) {
+    defaults?.set(enabled, forKey: enabledKey)
+    guard refreshPending else { return }
+    let revision = defaults?.integer(forKey: revisionKey) ?? 0
+    UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+      guard (defaults?.integer(forKey: revisionKey) ?? 0) == revision,
+            let request = requests.first(where: { $0.identifier == requestIdentifier }),
+            let trigger = request.trigger as? UNTimeIntervalNotificationTrigger,
+            let date = trigger.nextTriggerDate() else { return }
+      schedule(at: date)
+    }
+  }
+
   public static func schedule(at date: Date) {
     cancel()
 
@@ -38,9 +52,15 @@ public enum RestSoundScheduler {
     guard interval > 0.5 else { return }
 
     let content = UNMutableNotificationContent()
-    content.title = defaults?.string(forKey: titleKey) ?? ""
-    content.body = defaults?.string(forKey: bodyKey) ?? ""
-    content.sound = .default
+    let showAlert = defaults?.object(forKey: enabledKey) as? Bool != false
+    if showAlert {
+      content.title = defaults?.string(forKey: titleKey) ?? ""
+      content.body = defaults?.string(forKey: bodyKey) ?? ""
+    }
+    // Custom notification sounds must be present in the app bundle root and
+    // use a supported short format. Convert the actual Flutter timer_done.mp3
+    // to CAF; a Flutter asset path is not visible to UserNotifications.
+    content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "timer_done.caf"))
     // The Runner target still deploys to iOS 14; the extension is 16.2+.
     if #available(iOS 15.0, *) {
       // Time-sensitive so the beep still lands while a Focus mode is on —
@@ -60,6 +80,7 @@ public enum RestSoundScheduler {
   }
 
   public static func cancel() {
+    defaults?.set((defaults?.integer(forKey: revisionKey) ?? 0) + 1, forKey: revisionKey)
     let center = UNUserNotificationCenter.current()
     center.removePendingNotificationRequests(withIdentifiers: [requestIdentifier])
     center.removeDeliveredNotifications(withIdentifiers: [requestIdentifier])

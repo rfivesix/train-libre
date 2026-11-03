@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import '../common/swipe_action_background.dart';
@@ -142,13 +143,11 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     final effectiveKey =
         widget.dismissibleKey ?? widget.key ?? ValueKey(_cardKey.hashCode);
 
-    Widget content = KeyedSubtree(
-      key: _cardKey,
-      child: widget.child,
-    );
+    Widget content = KeyedSubtree(key: _cardKey, child: widget.child);
 
     // Add GestureDetector for tap and long-press
-    final bool hasActions = widget.onEdit != null ||
+    final bool hasActions =
+        widget.onEdit != null ||
         widget.onDelete != null ||
         widget.additionalActions.isNotEmpty;
     if (widget.onTap != null || (widget.enableContextMenu && hasActions)) {
@@ -165,12 +164,14 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     // Add Dismissible for swipe actions if enabled
     if (widget.enableSwipe &&
         (widget.onEdit != null || widget.onDelete != null)) {
-      final effectiveRadius = widget.borderRadius ??
+      final effectiveRadius =
+          widget.borderRadius ??
           BorderRadius.circular(DesignConstants.borderRadiusL);
 
       final bool isOpaqueCard = widget.child is SummaryCard;
 
-      final EdgeInsetsGeometry effectiveMargin = widget.margin ??
+      final EdgeInsetsGeometry effectiveMargin =
+          widget.margin ??
           (isOpaqueCard
               ? const EdgeInsets.symmetric(vertical: 6.0)
               : EdgeInsets.zero);
@@ -206,8 +207,8 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
         direction: (widget.onEdit != null && widget.onDelete != null)
             ? DismissDirection.horizontal
             : (widget.onEdit != null
-                ? DismissDirection.startToEnd
-                : DismissDirection.endToStart),
+                  ? DismissDirection.startToEnd
+                  : DismissDirection.endToStart),
         background: widget.onEdit != null
             ? SwipeActionBackground(
                 color: Colors.blueAccent,
@@ -236,11 +237,14 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     final customSemanticsActions = <CustomSemanticsAction, VoidCallback>{};
     if (widget.onEdit != null) {
       customSemanticsActions[CustomSemanticsAction(
-          label: widget.editLabel ?? l10n?.edit ?? 'Edit')] = widget.onEdit!;
+            label: widget.editLabel ?? l10n?.edit ?? 'Edit',
+          )] =
+          widget.onEdit!;
     }
     if (widget.onDelete != null) {
       customSemanticsActions[CustomSemanticsAction(
-          label: widget.deleteLabel ?? l10n?.delete ?? 'Delete')] = () async {
+        label: widget.deleteLabel ?? l10n?.delete ?? 'Delete',
+      )] = () async {
         final confirmed = widget.confirmDelete != null
             ? await widget.confirmDelete!()
             : await showDeleteConfirmation(context);

@@ -8,9 +8,9 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
 /// Asks whether the user wants to share anonymous usage statistics.
 ///
-/// Shown twice at most: once right after the initial consent, and — only if
-/// that first answer was no — once more after the user has lived with the app
-/// for a while. See `TelemetryConsentPrompt` for when the second one is due.
+/// Shown after initial consent and, for opted-out users, after a legal update.
+/// A separate delayed reminder may also be shown after initial consent; see
+/// `TelemetryConsentPrompt` for its timing.
 ///
 /// Deliberately kept out of the consent screen itself. The consent there is
 /// the one the user has to give to use the app at all; bundling an optional
@@ -35,23 +35,21 @@ Future<bool?> showTelemetryConsentSheet(BuildContext context) {
       final theme = Theme.of(ctx);
 
       Widget point(IconData icon, String text) => Padding(
-            padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 2.0,
-                    right: DesignConstants.spacingM,
-                  ),
-                  child: Icon(icon, size: 20, color: theme.colorScheme.primary),
-                ),
-                Expanded(
-                  child: Text(text, style: theme.textTheme.bodyMedium),
-                ),
-              ],
+        padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 2.0,
+                right: DesignConstants.spacingM,
+              ),
+              child: Icon(icon, size: 20, color: theme.colorScheme.primary),
             ),
-          );
+            Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
+          ],
+        ),
+      );
 
       return Column(
         mainAxisSize: MainAxisSize.min,

@@ -1,8 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../data/sources/product_local_data_source.dart';
 import 'create_food_screen.dart';
+import 'widgets/food_glass_badge.dart';
+import 'widgets/portion_toggle_bar.dart';
+import 'widgets/bls_nutrient_row.dart';
+import 'widgets/bls_nutrient_groups_section.dart';
 import '../../../config/app_data_sources.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -15,19 +20,25 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/value_summary_card.dart';
 import '../../../theme/app_colors.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/bls_food_catalog_refresh_service.dart';
 
@@ -89,16 +100,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     'salz',
     'kochsalz',
   };
-  static const Set<String> _caffeineBlsNames = {
-    'caffeine',
-    'koffein',
-  };
-  static const Set<String> _coreBlsCodes = {
-    'ENERCC',
-    'PROT625',
-    'CHO',
-    'FAT',
-  };
+  static const Set<String> _caffeineBlsNames = {'caffeine', 'koffein'};
+  static const Set<String> _coreBlsCodes = {'ENERCC', 'PROT625', 'CHO', 'FAT'};
 
   bool _isFavorite = false;
   bool _showPer100g = false;
@@ -142,8 +145,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.foodDetail));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.foodDetail,
+      ),
+    );
     if (widget.trackedItem != null) {
       _displayItem = widget.trackedItem!.item;
       _trackedQuantity = widget.trackedItem!.entry.quantityInGrams;
@@ -170,8 +176,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   Future<void> _loadBlsNutrients(String language) async {
     setState(() => _isLoadingBlsNutrients = true);
     try {
-      final facts = await const BlsNutrientRepository()
-          .getFacts(_displayItem.barcode, language);
+      final facts = await const BlsNutrientRepository().getFacts(
+        _displayItem.barcode,
+        language,
+      );
       if (mounted) setState(() => _blsNutrients = facts);
     } catch (error) {
       debugPrint('[BLS food detail] Nutrient read failed: $error');
@@ -223,8 +231,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         'name_de': _deCtrl.text.trim(),
         'name_en': _enCtrl.text.trim().isEmpty ? null : _enCtrl.text.trim(),
         'name': _deCtrl.text.trim(),
-        'category_key':
-            _catCtrl.text.trim().isEmpty ? null : _catCtrl.text.trim(),
+        'category_key': _catCtrl.text.trim().isEmpty
+            ? null
+            : _catCtrl.text.trim(),
         // Nutrients
         'calories_100g': int.tryParse(_calCtrl.text.trim()),
         'protein_100g': double.tryParse(_proCtrl.text.trim()),
@@ -277,15 +286,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.foodDetailSavedBaseDb)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.foodDetailSavedBaseDb)));
     } catch (e) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
     }
   }
 
@@ -302,9 +309,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.foodDetailExportError(e))));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.foodDetailExportError(e))));
     }
   }
 
@@ -369,6 +375,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         return 'Copia di ';
       case 'ja':
         return 'コピー：';
+      case 'es':
+        return 'Copia de ';
+      case 'nl':
+        return 'Kopie van ';
       case 'en':
       default:
         return 'Copy of ';
@@ -481,6 +491,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         nameJa: _displayItem.nameJa.isNotEmpty
             ? '${_getCopyPrefix('ja')}${_displayItem.nameJa}'
             : '',
+        nameEs: _displayItem.nameEs.isNotEmpty
+            ? '${_getCopyPrefix('es')}${_displayItem.nameEs}'
+            : '',
+        nameNl: _displayItem.nameNl.isNotEmpty
+            ? '${_getCopyPrefix('nl')}${_displayItem.nameNl}'
+            : '',
         brand: _displayItem.brand,
         calories: _displayItem.calories,
         protein: _displayItem.protein,
@@ -528,9 +544,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     } catch (e) {
       debugPrint("Error duplicating food: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("${l10n.error}: $e")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("${l10n.error}: $e")));
       }
     } finally {
       if (mounted) {
@@ -597,16 +612,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           _displayItem.barcode,
         );
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.foodItemDeleted)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.foodItemDeleted)));
           Navigator.of(context).pop(true);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
         }
       } finally {
         if (mounted) {
@@ -631,7 +644,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final isBlsFood = _displayItem.barcode.startsWith('bls:');
     final hasVeganTag =
         _displayItem.ingredientsAnalysisTags?.contains('en:vegan') == true;
-    final hasVegetarianTag = !hasVeganTag &&
+    final hasVegetarianTag =
+        !hasVeganTag &&
         _displayItem.ingredientsAnalysisTags?.contains('en:vegetarian') == true;
     final hasFoodMetadata =
         _displayItem.brand.isNotEmpty || hasVeganTag || hasVegetarianTag;
@@ -661,9 +675,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   final themeService = Provider.of<ThemeService>(context);
                   final baseFoodLang =
                       BaseFoodLanguageService.resolveLanguageCode(
-                    choice: themeService.baseFoodLanguage,
-                    context: context,
-                  );
+                        choice: themeService.baseFoodLanguage,
+                        context: context,
+                      );
                   return _displayItem.source == FoodItemSource.base
                       ? _displayItem.getLocalizedName(
                           context,
@@ -671,9 +685,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         )
                       : _displayItem.getLocalizedName(context);
                 }(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -755,9 +768,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        if (hasVeganTag) _GlassBadge(label: l10n.vegan),
+                        if (hasVeganTag) FoodGlassBadge(label: l10n.vegan),
                         if (hasVegetarianTag)
-                          _GlassBadge(label: l10n.vegetarian),
+                          FoodGlassBadge(label: l10n.vegetarian),
                       ],
                     ),
                   ],
@@ -765,8 +778,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     Divider(
                       height: 32,
                       thickness: 1,
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.1,
+                      ),
                     ),
                   // ── Compact nutrition heading + optional portion toggle ────────
                   Row(
@@ -786,7 +800,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ),
                       if (_hasPortionToggle) ...[
                         const SizedBox(width: DesignConstants.spacingM),
-                        _PortionToggleBar(
+                        PortionToggleBar(
                           showPer100g: _showPer100g,
                           onChanged: (val) =>
                               setState(() => _showPer100g = val),
@@ -809,9 +823,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       _displayItem.ingredientsText!.isNotEmpty) ...[
                     const SizedBox(height: DesignConstants.spacingM),
                     Theme(
-                      data: Theme.of(
-                        context,
-                      ).copyWith(dividerColor: Colors.transparent),
+                      data: Theme.of(context)
+                          .copyWith(dividerColor: Colors.transparent),
                       child: SummaryCard(
                         child: ExpansionTile(
                           title: Text(l10n.ingredients),
@@ -876,9 +889,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                   tooltip: l10n.save,
                                   icon: LucideIcons.save,
                                 ),
-                                const SizedBox(
-                                  width: DesignConstants.spacingM,
-                                ),
+                                const SizedBox(width: DesignConstants.spacingM),
                                 TextButton.icon(
                                   onPressed: () =>
                                       setState(() => _devEditing = false),
@@ -933,27 +944,54 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final caffeineValue =
         _displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml;
     if (caffeineFact != null && (caffeineFact.value ?? 0) > 0) {
-      additionalRows.add(_buildBlsNutrientRow(caffeineFact, l10n));
+      additionalRows.add(
+        BlsNutrientRow(
+          fact: caffeineFact,
+          displayValue: _getDisplayValue(caffeineFact.value),
+        ),
+      );
     } else if (caffeineFact == null && (caffeineValue ?? 0) > 0) {
-      additionalRows.add(_buildNutritionValueRow(
-        label: l10n.caffeine,
-        value: _getDisplayValue(caffeineValue),
-        unit: 'mg',
-        isInt: true,
-      ));
+      additionalRows.add(
+        _buildNutritionValueRow(
+          label: l10n.caffeine,
+          value: _getDisplayValue(caffeineValue),
+          unit: 'mg',
+          isInt: true,
+        ),
+      );
     }
 
     return [
       _buildNutritionMetricGrid([
-        _NutritionMetric(l10n.calories, calories.value, calories.marker, 'kcal',
-            macroColors?.calories ?? Colors.orange,
-            decimals: 0),
-        _NutritionMetric(l10n.protein, protein.value, protein.marker, 'g',
-            macroColors?.protein ?? Colors.red),
-        _NutritionMetric(l10n.carbs, carbs.value, carbs.marker, 'g',
-            macroColors?.carbs ?? Colors.green),
-        _NutritionMetric(l10n.fat, fat.value, fat.marker, 'g',
-            macroColors?.fat ?? Colors.purple),
+        _NutritionMetric(
+          l10n.calories,
+          calories.value,
+          calories.marker,
+          'kcal',
+          macroColors?.calories ?? Colors.orange,
+          decimals: 0,
+        ),
+        _NutritionMetric(
+          l10n.protein,
+          protein.value,
+          protein.marker,
+          'g',
+          macroColors?.protein ?? Colors.red,
+        ),
+        _NutritionMetric(
+          l10n.carbs,
+          carbs.value,
+          carbs.marker,
+          'g',
+          macroColors?.carbs ?? Colors.green,
+        ),
+        _NutritionMetric(
+          l10n.fat,
+          fat.value,
+          fat.marker,
+          'g',
+          macroColors?.fat ?? Colors.purple,
+        ),
       ]),
       if (sugarFact != null ||
           _displayItem.sugar != null ||
@@ -965,89 +1003,66 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         _buildNutritionMetricGrid([
           if (sugarFact != null)
             _NutritionMetric(
-                l10n.sugar,
-                _getDisplayValue(sugarFact.value),
-                sugarFact.valueText,
-                sugarFact.unit,
-                macroColors?.sugar ?? Colors.pink)
+              l10n.sugar,
+              _getDisplayValue(sugarFact.value),
+              sugarFact.valueText,
+              sugarFact.unit,
+              macroColors?.sugar ?? Colors.pink,
+            )
           else if (sugar != null)
-            _NutritionMetric(l10n.sugar, sugar, null, 'g',
-                macroColors?.sugar ?? Colors.pink),
+            _NutritionMetric(
+              l10n.sugar,
+              sugar,
+              null,
+              'g',
+              macroColors?.sugar ?? Colors.pink,
+            ),
           if (fiberFact != null)
             _NutritionMetric(
-                l10n.fiber,
-                _getDisplayValue(fiberFact.value),
-                fiberFact.valueText,
-                fiberFact.unit,
-                macroColors?.fiber ?? Colors.brown)
+              l10n.fiber,
+              _getDisplayValue(fiberFact.value),
+              fiberFact.valueText,
+              fiberFact.unit,
+              macroColors?.fiber ?? Colors.brown,
+            )
           else if (fiber != null)
-            _NutritionMetric(l10n.fiber, fiber, null, 'g',
-                macroColors?.fiber ?? Colors.brown),
+            _NutritionMetric(
+              l10n.fiber,
+              fiber,
+              null,
+              'g',
+              macroColors?.fiber ?? Colors.brown,
+            ),
           if (saltFact != null)
             _NutritionMetric(
-                l10n.salt,
-                _getDisplayValue(saltFact.value),
-                saltFact.valueText,
-                saltFact.unit,
-                macroColors?.salt ?? Colors.blueGrey)
+              l10n.salt,
+              _getDisplayValue(saltFact.value),
+              saltFact.valueText,
+              saltFact.unit,
+              macroColors?.salt ?? Colors.blueGrey,
+            )
           else if (salt != null)
-            _NutritionMetric(l10n.salt, salt, null, 'g',
-                macroColors?.salt ?? Colors.blueGrey),
+            _NutritionMetric(
+              l10n.salt,
+              salt,
+              null,
+              'g',
+              macroColors?.salt ?? Colors.blueGrey,
+            ),
         ]),
       ],
       if (additionalRows.isNotEmpty) ...[
         _buildNutritionSectionHeader(l10n.foodDetailOtherNutrientsGroup),
         ...additionalRows,
       ],
-      if (isBlsFood) ..._buildBlsNutrientGroups(l10n),
-    ];
-  }
-
-  List<Widget> _buildBlsNutrientGroups(AppLocalizations l10n) {
-    final groups = <String, List<BlsNutrientFact>>{};
-    for (final fact in _blsNutrients) {
-      if (_isCommonBlsNutrient(fact)) continue;
-      groups.putIfAbsent(fact.group, () => []).add(fact);
-    }
-    if (groups.isEmpty) {
-      if (_blsNutrients.isNotEmpty) return const [];
-      return [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: DesignConstants.spacingM,
-          ),
-          child: _isLoadingBlsNutrients
-              ? Row(
-                  children: [
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Text(l10n.initLoadingRemoteManifest),
-                  ],
-                )
-              : Text(l10n.blsNutrientsUnavailable),
+      if (isBlsFood)
+        BlsNutrientGroupsSection(
+          blsNutrients: _blsNutrients,
+          isLoading: _isLoadingBlsNutrients,
+          getDisplayValue: _getDisplayValue,
+          isCommonNutrient: _isCommonBlsNutrient,
         ),
-      ];
-    }
-    final orderedGroups = groups.entries.toList()
-      ..sort((a, b) {
-        final rankA = _blsNutrientGroupRank(a.key);
-        final rankB = _blsNutrientGroupRank(b.key);
-        final rankOrder = rankA.compareTo(rankB);
-        return rankOrder != 0 ? rankOrder : a.key.compareTo(b.key);
-      });
-    return orderedGroups
-        .expand((entry) => [
-              _buildNutritionSectionHeader(
-                entry.key,
-                topSpacing: DesignConstants.spacingXXL,
-              ),
-              for (final fact in entry.value) _buildBlsNutrientRow(fact, l10n),
-            ])
-        .toList(growable: false);
+    ];
   }
 
   BlsNutrientFact? _findBlsNutrient(Set<String> normalizedNames) {
@@ -1062,9 +1077,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   String _normalizeBlsNutrientName(String name) =>
       name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9äöüß]'), '');
 
-  Widget _buildNutritionMetricGrid(
-    List<_NutritionMetric> metrics,
-  ) {
+  Widget _buildNutritionMetricGrid(List<_NutritionMetric> metrics) {
     if (metrics.isEmpty) return const SizedBox.shrink();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final valueTextColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
@@ -1092,7 +1105,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       final displayValue = metric.value == null
           ? metric.missingValue ?? '-'
           : '${metric.decimals == 0 ? metric.value!.round() : metric.value!.toStringAsFixed(metric.decimals)} ${metric.unit}'
-              .trim();
+                .trim();
       return ValueSummaryCard(
         label: metric.label,
         value: displayValue,
@@ -1185,189 +1198,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     );
   }
 
-  Widget _buildBlsNutrientRow(BlsNutrientFact fact, AppLocalizations l10n) {
-    final displayNumber = fact.value == null
-        ? (fact.valueText?.isNotEmpty == true ? fact.valueText! : '-')
-        : '${_getDisplayValue(fact.value)!.toStringAsFixed(3)} ${fact.unit}'
-            .trim();
-    final provenance = [
-      if (fact.origin != null && fact.origin != '-') fact.origin!,
-      if (fact.reference != null && fact.reference != '-') fact.reference!,
-    ].join(' · ');
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              fact.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(width: DesignConstants.spacingM),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (provenance.isNotEmpty) ...[
-                  IconButton(
-                    tooltip: l10n.blsNutrientDetails,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints.tightFor(
-                      width: 32,
-                      height: 32,
-                    ),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(LucideIcons.info, size: 18),
-                    onPressed: () => _showBlsNutrientDetails(fact),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingXS),
-                ],
-                Flexible(
-                  child: Text(
-                    displayNumber,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  int _blsNutrientGroupRank(String group) {
-    final normalized = group.toLowerCase();
-    if (normalized.contains('vitamin')) {
-      return normalized.contains('fat-soluble') ||
-              normalized.contains('fettlöslich')
-          ? 0
-          : 1;
-    }
-    if (normalized.contains('element') || normalized.contains('mineral')) {
-      return 2;
-    }
-    if (normalized.contains('fatty acid') || normalized.contains('fettsäure')) {
-      return 3;
-    }
-    if (normalized.contains('amino')) return 4;
-    if (normalized.contains('carbohydrate') ||
-        normalized.contains('kohlenhydrat')) {
-      return 5;
-    }
-    if (normalized.contains('fiber') || normalized.contains('ballaststoff')) {
-      return 6;
-    }
-    if (normalized.contains('organic acid') ||
-        normalized.contains('organische säure')) {
-      return 7;
-    }
-    if (normalized.contains('sugar alcohol') ||
-        normalized.contains('zuckeralkohol')) {
-      return 8;
-    }
-    if (normalized.contains('macro') ||
-        normalized.contains('energy') ||
-        normalized.contains('energie')) {
-      return 9;
-    }
-    return 10;
-  }
-
-  Future<void> _showBlsNutrientDetails(BlsNutrientFact fact) async {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    await showGlassBottomMenu<void>(
-      context: context,
-      title: fact.name,
-      contentBuilder: (context, close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (fact.origin != null && fact.origin != '-') ...[
-            _buildNutrientMetadataRow(
-              label: l10n.blsNutrientOrigin,
-              value: fact.origin!,
-              theme: theme,
-            ),
-          ],
-          if (fact.reference != null && fact.reference != '-') ...[
-            if (fact.origin != null && fact.origin != '-')
-              const SizedBox(height: DesignConstants.spacingM),
-            _buildNutrientMetadataRow(
-              label: l10n.blsNutrientReference,
-              value: fact.reference!,
-              theme: theme,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutrientMetadataRow({
-    required String label,
-    required String value,
-    required ThemeData theme,
-  }) {
-    final labelStyle = theme.textTheme.labelLarge;
-    final valueStyle = theme.textTheme.bodyMedium;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final labelWidth = (TextPainter(
-          text: TextSpan(text: label, style: labelStyle),
-          textDirection: Directionality.of(context),
-          maxLines: 1,
-        )..layout(maxWidth: constraints.maxWidth))
-            .width;
-        final valueWidth = (TextPainter(
-          text: TextSpan(text: value, style: valueStyle),
-          textDirection: Directionality.of(context),
-          maxLines: 1,
-        )..layout(maxWidth: constraints.maxWidth))
-            .width;
-        final fitsInOneLine =
-            labelWidth + valueWidth + DesignConstants.spacingM <=
-                constraints.maxWidth;
-
-        if (fitsInOneLine) {
-          return Row(
-            children: [
-              Text(label, style: labelStyle),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: SelectableText(
-                  value,
-                  textAlign: TextAlign.end,
-                  style: valueStyle,
-                ),
-              ),
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: labelStyle),
-            SelectableText(value, style: valueStyle),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildBlsSourceAttribution() {
     final theme = Theme.of(context);
     return Padding(
@@ -1380,9 +1210,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             topSpacing: DesignConstants.spacingXXL,
           ),
           InkWell(
-            onTap: () => launchUrl(Uri.parse(
-              'https://doi.org/10.25826/Data20251217-134202-0',
-            )),
+            onTap: () => launchUrl(
+              Uri.parse('https://doi.org/10.25826/Data20251217-134202-0'),
+            ),
             child: Text(
               '${AppLocalizations.of(context)!.blsFoodSource} · DOI 10.25826/Data20251217-134202-0',
               style: theme.textTheme.bodySmall?.copyWith(
@@ -1392,9 +1222,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingXS),
           InkWell(
-            onTap: () => launchUrl(Uri.parse(
-              'https://creativecommons.org/licenses/by/4.0/',
-            )),
+            onTap: () => launchUrl(
+              Uri.parse('https://creativecommons.org/licenses/by/4.0/'),
+            ),
             child: Text(
               '${AppLocalizations.of(context)!.blsFoodLicense} · ${AppLocalizations.of(context)!.blsFoodModifications}',
               style: theme.textTheme.bodySmall,
@@ -1408,29 +1238,29 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   // ---------- DEV: small helper inputs ----------
 
   Widget _row(String label, TextEditingController c) => TextField(
-        controller: c,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-      );
+    controller: c,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+      isDense: true,
+    ),
+  );
 
   Widget _num(String label, TextEditingController c) => SizedBox(
-        width: 160,
-        child: TextField(
-          controller: c,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-            signed: false,
-          ),
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-      );
+    width: 160,
+    child: TextField(
+      controller: c,
+      keyboardType: const TextInputType.numberWithOptions(
+        decimal: true,
+        signed: false,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        isDense: true,
+      ),
+    ),
+  );
 }
 
 class _NutritionMetric {
@@ -1449,188 +1279,4 @@ class _NutritionMetric {
     this.color, {
     this.decimals = 1,
   });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Portion toggle bar — compact segmented control
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// A compact two-chip glass segmented control for toggling between
-/// per-portion and per-100g nutrition views.
-///
-/// The shared track uses the same restrained rounded-card language as the
-/// nutrition cards, while each [_PortionChip] handles its own tap gesture and
-/// animated selected-state highlight.
-class _PortionToggleBar extends StatelessWidget {
-  final bool showPer100g;
-  final ValueChanged<bool> onChanged;
-  final String labelPortion;
-  final String label100g;
-
-  const _PortionToggleBar({
-    required this.showPer100g,
-    required this.onChanged,
-    required this.labelPortion,
-    required this.label100g,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Semantics(
-      button: true,
-      selected: showPer100g,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        height: 36,
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          color: isDark
-              ? cs.surfaceContainerHighest.withValues(alpha: 0.46)
-              : cs.surfaceContainerHighest.withValues(alpha: 0.74),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: cs.onSurface.withValues(alpha: isDark ? 0.14 : 0.08),
-          ),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-              color: cs.shadow.withValues(alpha: isDark ? 0.12 : 0.08),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _PortionChip(
-              label: labelPortion,
-              selected: !showPer100g,
-              onTap: () => onChanged(false),
-            ),
-            const SizedBox(width: 2),
-            _PortionChip(
-              label: label100g,
-              selected: showPer100g,
-              onTap: () => onChanged(true),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A single selectable chip inside [_PortionToggleBar].
-///
-/// Uses an [AnimatedContainer] to transition the selection highlight
-/// (primary-tinted background + bold primary text) with a 180ms ease.
-class _PortionChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _PortionChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Material(
-      color: Colors.transparent,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        constraints: const BoxConstraints(minWidth: 58, minHeight: 30),
-        decoration: BoxDecoration(
-          color: selected
-              ? cs.primary.withValues(alpha: isDark ? 0.34 : 0.16)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-          border: selected
-              ? Border.all(
-                  color: cs.primary.withValues(alpha: isDark ? 0.34 : 0.18),
-                )
-              : null,
-        ),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(15),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Center(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: selected
-                      ? cs.primary
-                      : cs.onSurfaceVariant.withValues(alpha: 0.88),
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  letterSpacing: 0,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Dietary Badge — Liquid Glass Aesthetic
-// ═══════════════════════════════════════════════════════════════════════════
-class _GlassBadge extends StatelessWidget {
-  final String label;
-  final bool isVegan; // Or status enum
-
-  const _GlassBadge({required this.label}) : isVegan = true;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Uses defined app colors for badge tinting
-    final primaryBadgeColor = Colors.green;
-    final isDarkMode = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
-        vertical: DesignConstants.spacingXS,
-      ),
-      decoration: BoxDecoration(
-        // Light glass tint depending on dark/light mode
-        color: isDarkMode
-            ? primaryBadgeColor.withValues(alpha: 0.15)
-            : primaryBadgeColor.withValues(alpha: 0.20),
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
-        border: Border.all(
-          // Border uses badge color with higher opacity
-          color: primaryBadgeColor.withValues(alpha: 0.5),
-          width: 0.5,
-        ),
-      ),
-      child: Text(
-        label,
-        //.toUpperCase(), // Optional: Often looks cleaner on badges
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: isDarkMode ? primaryBadgeColor : primaryBadgeColor.shade800,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
 }

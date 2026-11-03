@@ -32,9 +32,10 @@ class BodyNutritionAnalyticsUtils {
           productDatabaseHelper: ProductLocalDataSource.instance,
         );
         final raw = await adapter.fetch(
-            selectedBlockType: selectedBlockType,
-            anchorDate: anchorDate,
-            isRolling: isRolling);
+          selectedBlockType: selectedBlockType,
+          anchorDate: anchorDate,
+          isRolling: isRolling,
+        );
         return BodyNutritionAnalyticsEngine.build(
           range: raw.range,
           weightPoints: raw.weightPoints,

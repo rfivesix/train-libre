@@ -35,22 +35,23 @@ void main() {
       await database.close();
     });
 
-    test(
-        'buildInput uses productId first, falls back to barcode, merges fluid kcal, and flags unresolved rows',
-        () async {
-      final byIdProduct =
-          await database.into(database.products).insertReturning(
-                const ProductsCompanion(
-                  barcode: drift.Value('id-product'),
-                  name: drift.Value('ID Product'),
-                  calories: drift.Value(220),
-                  protein: drift.Value(10),
-                  carbs: drift.Value(20),
-                  fat: drift.Value(5),
-                  source: drift.Value('base'),
-                ),
-              );
-      await database.into(database.products).insertReturning(
+    test('buildInput uses productId first, falls back to barcode, merges fluid kcal, and flags unresolved rows', () async {
+      final byIdProduct = await database
+          .into(database.products)
+          .insertReturning(
+            const ProductsCompanion(
+              barcode: drift.Value('id-product'),
+              name: drift.Value('ID Product'),
+              calories: drift.Value(220),
+              protein: drift.Value(10),
+              carbs: drift.Value(20),
+              fat: drift.Value(5),
+              source: drift.Value('base'),
+            ),
+          );
+      await database
+          .into(database.products)
+          .insertReturning(
             const ProductsCompanion(
               barcode: drift.Value('barcode-product'),
               name: drift.Value('Barcode Product'),
@@ -64,7 +65,9 @@ void main() {
 
       final day = DateTime(2026, 4, 5);
 
-      await database.into(database.nutritionLogs).insert(
+      await database
+          .into(database.nutritionLogs)
+          .insert(
             NutritionLogsCompanion(
               productId: drift.Value(byIdProduct.id),
               consumedAt: drift.Value(DateTime(2026, 4, 5, 8, 0)),
@@ -72,7 +75,9 @@ void main() {
               mealType: const drift.Value('mealtypeBreakfast'),
             ),
           );
-      await database.into(database.nutritionLogs).insert(
+      await database
+          .into(database.nutritionLogs)
+          .insert(
             NutritionLogsCompanion(
               legacyBarcode: const drift.Value('barcode-product'),
               consumedAt: drift.Value(DateTime(2026, 4, 5, 13, 0)),
@@ -80,7 +85,9 @@ void main() {
               mealType: const drift.Value('mealtypeLunch'),
             ),
           );
-      await database.into(database.nutritionLogs).insert(
+      await database
+          .into(database.nutritionLogs)
+          .insert(
             NutritionLogsCompanion(
               productId: drift.Value(byIdProduct.id),
               legacyBarcode: const drift.Value('barcode-product'),
@@ -89,7 +96,9 @@ void main() {
               mealType: const drift.Value('mealtypeDinner'),
             ),
           );
-      await database.into(database.nutritionLogs).insert(
+      await database
+          .into(database.nutritionLogs)
+          .insert(
             NutritionLogsCompanion(
               legacyBarcode: const drift.Value('missing-product'),
               consumedAt: drift.Value(DateTime(2026, 4, 5, 19, 0)),
@@ -106,10 +115,7 @@ void main() {
         ),
       );
 
-      final input = await adapter.buildInput(
-        now: day,
-        baselineWeightKg: 80,
-      );
+      final input = await adapter.buildInput(now: day, baselineWeightKg: 80);
 
       expect(input.intakeLoggedDays, 1);
       expect(input.avgLoggedCalories, closeTo(670.0, 0.001));
@@ -119,46 +125,45 @@ void main() {
     test('buildInput defaults to a 14-day adaptive lookback', () async {
       final now = DateTime(2026, 4, 14, 12);
 
-      final input = await adapter.buildInput(
-        now: now,
-        baselineWeightKg: 80,
-      );
+      final input = await adapter.buildInput(now: now, baselineWeightKg: 80);
 
       expect(input.windowStart, DateTime(2026, 4, 1));
       expect(input.windowEnd, DateTime(2026, 4, 14, 23, 59, 59));
     });
 
-    test('estimate prior differentiates same bodyweight by body-fat percent',
-        () {
-      final profile = _profile(
-        birthday: DateTime(1992, 3, 10),
-        height: 180,
-        gender: 'male',
-      );
+    test(
+      'estimate prior differentiates same bodyweight by body-fat percent',
+      () {
+        final profile = _profile(
+          birthday: DateTime(1992, 3, 10),
+          height: 180,
+          gender: 'male',
+        );
 
-      final leaner =
-          RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 95,
-        bodyFatPercent: 15,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 2,
-        targetSteps: 8000,
-        now: DateTime(2026, 4, 5),
-      );
-      final higherBodyFat =
-          RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 95,
-        bodyFatPercent: 30,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 2,
-        targetSteps: 8000,
-        now: DateTime(2026, 4, 5),
-      );
+        final leaner =
+            RecommendationInputAdapter.estimatePriorMaintenanceCalories(
+              profile: profile,
+              currentWeightKg: 95,
+              bodyFatPercent: 15,
+              declaredActivityLevel: PriorActivityLevel.moderate,
+              averageCompletedWorkoutsPerWeek: 2,
+              targetSteps: 8000,
+              now: DateTime(2026, 4, 5),
+            );
+        final higherBodyFat =
+            RecommendationInputAdapter.estimatePriorMaintenanceCalories(
+              profile: profile,
+              currentWeightKg: 95,
+              bodyFatPercent: 30,
+              declaredActivityLevel: PriorActivityLevel.moderate,
+              averageCompletedWorkoutsPerWeek: 2,
+              targetSteps: 8000,
+              now: DateTime(2026, 4, 5),
+            );
 
-      expect(leaner, greaterThan(higherBodyFat));
-    });
+        expect(leaner, greaterThan(higherBodyFat));
+      },
+    );
 
     test('estimate prior differentiates same profile by activity level', () {
       final profile = _profile(
@@ -187,14 +192,14 @@ void main() {
       );
       final veryHigh =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 75,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.veryHigh,
-        averageCompletedWorkoutsPerWeek: 4,
-        targetSteps: 11000,
-        now: DateTime(2026, 4, 5),
-      );
+            profile: profile,
+            currentWeightKg: 75,
+            bodyFatPercent: null,
+            declaredActivityLevel: PriorActivityLevel.veryHigh,
+            averageCompletedWorkoutsPerWeek: 4,
+            targetSteps: 11000,
+            now: DateTime(2026, 4, 5),
+          );
 
       expect(high, greaterThan(low));
       expect(veryHigh, greaterThan(high));
@@ -209,24 +214,24 @@ void main() {
 
       final missingBodyFat =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 88,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 2,
-        targetSteps: 9000,
-        now: DateTime(2026, 4, 5),
-      );
+            profile: profile,
+            currentWeightKg: 88,
+            bodyFatPercent: null,
+            declaredActivityLevel: PriorActivityLevel.moderate,
+            averageCompletedWorkoutsPerWeek: 2,
+            targetSteps: 9000,
+            now: DateTime(2026, 4, 5),
+          );
       final invalidBodyFat =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 88,
-        bodyFatPercent: 0,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 2,
-        targetSteps: 9000,
-        now: DateTime(2026, 4, 5),
-      );
+            profile: profile,
+            currentWeightKg: 88,
+            bodyFatPercent: 0,
+            declaredActivityLevel: PriorActivityLevel.moderate,
+            averageCompletedWorkoutsPerWeek: 2,
+            targetSteps: 9000,
+            now: DateTime(2026, 4, 5),
+          );
 
       expect(missingBodyFat, invalidBodyFat);
     });
@@ -240,115 +245,143 @@ void main() {
 
       final baseline =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 82,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        extraCardioHoursOption: ExtraCardioHoursOption.h0,
-        averageCompletedWorkoutsPerWeek: 2,
-        targetSteps: 8000,
-        now: DateTime(2026, 4, 5),
-      );
+            profile: profile,
+            currentWeightKg: 82,
+            bodyFatPercent: null,
+            declaredActivityLevel: PriorActivityLevel.moderate,
+            extraCardioHoursOption: ExtraCardioHoursOption.h0,
+            averageCompletedWorkoutsPerWeek: 2,
+            targetSteps: 8000,
+            now: DateTime(2026, 4, 5),
+          );
       final higherCardio =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: profile,
-        currentWeightKg: 82,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        extraCardioHoursOption: ExtraCardioHoursOption.h7Plus,
-        averageCompletedWorkoutsPerWeek: 2,
-        targetSteps: 8000,
-        now: DateTime(2026, 4, 5),
-      );
+            profile: profile,
+            currentWeightKg: 82,
+            bodyFatPercent: null,
+            declaredActivityLevel: PriorActivityLevel.moderate,
+            extraCardioHoursOption: ExtraCardioHoursOption.h7Plus,
+            averageCompletedWorkoutsPerWeek: 2,
+            targetSteps: 8000,
+            now: DateTime(2026, 4, 5),
+          );
 
       expect(higherCardio, greaterThan(baseline));
     });
 
-    test('buildInput uses recent average actual steps over target steps',
-        () async {
-      final now = DateTime(2026, 4, 5, 12, 0);
-      await dbHelper.saveUserProfile(
-        name: 'Alex',
-        birthday: DateTime(1994, 1, 1),
-        height: 178,
-        gender: 'male',
-      );
-      await dbHelper.saveUserGoals(
-        calories: 2400,
-        protein: 170,
-        carbs: 260,
-        fat: 75,
-        water: 3000,
-        steps: 15000,
-      );
-      for (var offset = 0; offset < 3; offset++) {
-        await _insertStepTotalForDay(
-          dbHelper,
-          DateTime(2026, 4, 5).subtract(Duration(days: offset)),
-          6000,
+    test(
+      'buildInput uses recent average actual steps over target steps',
+      () async {
+        final now = DateTime(2026, 4, 5, 12, 0);
+        await dbHelper.saveUserProfile(
+          name: 'Alex',
+          birthday: DateTime(1994, 1, 1),
+          height: 178,
+          gender: 'male',
         );
-      }
-      final persistedProfile = _profile(
-        birthday: DateTime(1994, 1, 1),
-        height: 178,
-        gender: 'male',
-      );
+        await dbHelper.saveUserGoals(
+          calories: 2400,
+          protein: 170,
+          carbs: 260,
+          fat: 75,
+          water: 3000,
+          steps: 15000,
+        );
+        for (var offset = 0; offset < 3; offset++) {
+          await _insertStepTotalForDay(
+            dbHelper,
+            DateTime(2026, 4, 5).subtract(Duration(days: offset)),
+            6000,
+          );
+        }
+        final persistedProfile = _profile(
+          birthday: DateTime(1994, 1, 1),
+          height: 178,
+          gender: 'male',
+        );
 
-      final input = await adapter.buildInput(
-        now: now,
-        rollingWindowDays: 21,
-        baselineWeightKg: 75,
-      );
+        final input = await adapter.buildInput(
+          now: now,
+          rollingWindowDays: 21,
+          baselineWeightKg: 75,
+        );
 
-      final expectedWithActual =
-          RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: persistedProfile,
-        currentWeightKg: 75,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 0,
-        targetSteps: 15000,
-        recentAverageSteps: 6000,
-        now: now,
-      );
-      final expectedTargetFallback =
-          RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: persistedProfile,
-        currentWeightKg: 75,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 0,
-        targetSteps: 15000,
-        recentAverageSteps: null,
-        now: now,
-      );
+        final expectedWithActual =
+            RecommendationInputAdapter.estimatePriorMaintenanceCalories(
+              profile: persistedProfile,
+              currentWeightKg: 75,
+              bodyFatPercent: null,
+              declaredActivityLevel: PriorActivityLevel.moderate,
+              averageCompletedWorkoutsPerWeek: 0,
+              targetSteps: 15000,
+              recentAverageSteps: 6000,
+              now: now,
+            );
+        final expectedTargetFallback =
+            RecommendationInputAdapter.estimatePriorMaintenanceCalories(
+              profile: persistedProfile,
+              currentWeightKg: 75,
+              bodyFatPercent: null,
+              declaredActivityLevel: PriorActivityLevel.moderate,
+              averageCompletedWorkoutsPerWeek: 0,
+              targetSteps: 15000,
+              recentAverageSteps: null,
+              now: now,
+            );
 
-      expect(input.priorMaintenanceCalories, expectedWithActual);
-      expect(input.priorMaintenanceCalories, isNot(expectedTargetFallback));
-    });
+        expect(input.priorMaintenanceCalories, expectedWithActual);
+        expect(input.priorMaintenanceCalories, isNot(expectedTargetFallback));
+      },
+    );
 
-    test('buildInput falls back to target steps when actual steps are absent',
-        () async {
+    test(
+      'buildInput falls back to target steps when actual steps are absent',
+      () async {
+        final now = DateTime(2026, 4, 5, 12, 0);
+        await dbHelper.saveUserProfile(
+          name: 'Alex',
+          birthday: DateTime(1994, 1, 1),
+          height: 178,
+          gender: 'male',
+        );
+        await dbHelper.saveUserGoals(
+          calories: 2400,
+          protein: 170,
+          carbs: 260,
+          fat: 75,
+          water: 3000,
+          steps: 12000,
+        );
+        final persistedProfile = _profile(
+          birthday: DateTime(1994, 1, 1),
+          height: 178,
+          gender: 'male',
+        );
+
+        final input = await adapter.buildInput(
+          now: now,
+          rollingWindowDays: 21,
+          baselineWeightKg: 75,
+        );
+
+        final expected =
+            RecommendationInputAdapter.estimatePriorMaintenanceCalories(
+              profile: persistedProfile,
+              currentWeightKg: 75,
+              bodyFatPercent: null,
+              declaredActivityLevel: PriorActivityLevel.moderate,
+              averageCompletedWorkoutsPerWeek: 0,
+              targetSteps: 12000,
+              recentAverageSteps: null,
+              now: now,
+            );
+
+        expect(input.priorMaintenanceCalories, expected);
+      },
+    );
+
+    test('buildInput falls back to default steps when target and actual are absent', () async {
       final now = DateTime(2026, 4, 5, 12, 0);
-      await dbHelper.saveUserProfile(
-        name: 'Alex',
-        birthday: DateTime(1994, 1, 1),
-        height: 178,
-        gender: 'male',
-      );
-      await dbHelper.saveUserGoals(
-        calories: 2400,
-        protein: 170,
-        carbs: 260,
-        fat: 75,
-        water: 3000,
-        steps: 12000,
-      );
-      final persistedProfile = _profile(
-        birthday: DateTime(1994, 1, 1),
-        height: 178,
-        gender: 'male',
-      );
 
       final input = await adapter.buildInput(
         now: now,
@@ -358,64 +391,36 @@ void main() {
 
       final expected =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: persistedProfile,
-        currentWeightKg: 75,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 0,
-        targetSteps: 12000,
-        recentAverageSteps: null,
-        now: now,
-      );
+            profile: null,
+            currentWeightKg: 75,
+            bodyFatPercent: null,
+            declaredActivityLevel: PriorActivityLevel.moderate,
+            averageCompletedWorkoutsPerWeek: 0,
+            targetSteps: null,
+            recentAverageSteps: null,
+            now: now,
+          );
 
       expect(input.priorMaintenanceCalories, expected);
     });
 
     test(
-        'buildInput falls back to default steps when target and actual are absent',
-        () async {
-      final now = DateTime(2026, 4, 5, 12, 0);
+      'buildInput returns null slope when insufficient weight data exists',
+      () async {
+        await _insertWeightForDay(dbHelper, DateTime(2026, 4, 5), 80.0);
+        final input = await adapter.buildInput(now: DateTime(2026, 4, 5));
+        expect(input.smoothedWeightSlopeKgPerWeek, isNull);
+      },
+    );
 
-      final input = await adapter.buildInput(
-        now: now,
-        rollingWindowDays: 21,
-        baselineWeightKg: 75,
-      );
-
-      final expected =
-          RecommendationInputAdapter.estimatePriorMaintenanceCalories(
-        profile: null,
-        currentWeightKg: 75,
-        bodyFatPercent: null,
-        declaredActivityLevel: PriorActivityLevel.moderate,
-        averageCompletedWorkoutsPerWeek: 0,
-        targetSteps: null,
-        recentAverageSteps: null,
-        now: now,
-      );
-
-      expect(input.priorMaintenanceCalories, expected);
-    });
-
-    test('buildInput returns null slope when insufficient weight data exists',
-        () async {
-      await _insertWeightForDay(dbHelper, DateTime(2026, 4, 5), 80.0);
-      final input = await adapter.buildInput(now: DateTime(2026, 4, 5));
-      expect(input.smoothedWeightSlopeKgPerWeek, isNull);
-    });
-
-    test(
-        'buildInput throws StateError when neither weight measurement nor baseline snapshot exists',
-        () async {
+    test('buildInput throws StateError when neither weight measurement nor baseline snapshot exists', () async {
       expect(
         () => adapter.buildInput(now: DateTime(2026, 4, 5)),
         throwsStateError,
       );
     });
 
-    test(
-        'buildInput uses historical weight outside window when current window has no weight logs',
-        () async {
+    test('buildInput uses historical weight outside window when current window has no weight logs', () async {
       await _insertWeightForDay(dbHelper, DateTime(2026, 3, 1), 84.0);
       final input = await adapter.buildInput(now: DateTime(2026, 4, 5));
       expect(input.currentWeightKg, 84.0);
@@ -423,22 +428,22 @@ void main() {
       expect(input.smoothedWeightSlopeKgPerWeek, isNull);
     });
 
-    test('buildInput returns negative slope for monotonic downward weights',
-        () async {
-      final endDay = DateTime(2026, 4, 5);
-      for (var i = 0; i < 7; i++) {
-        final day = endDay.subtract(Duration(days: 6 - i));
-        await _insertWeightForDay(dbHelper, day, 90.0 - (i * 0.4));
-      }
-
-      final input = await adapter.buildInput(now: endDay);
-      expect(input.smoothedWeightSlopeKgPerWeek, isNotNull);
-      expect(input.smoothedWeightSlopeKgPerWeek!, lessThan(0));
-    });
-
     test(
-        'buildInput trend slope uses regression over smoothed series (not endpoint-only)',
-        () async {
+      'buildInput returns negative slope for monotonic downward weights',
+      () async {
+        final endDay = DateTime(2026, 4, 5);
+        for (var i = 0; i < 7; i++) {
+          final day = endDay.subtract(Duration(days: 6 - i));
+          await _insertWeightForDay(dbHelper, day, 90.0 - (i * 0.4));
+        }
+
+        final input = await adapter.buildInput(now: endDay);
+        expect(input.smoothedWeightSlopeKgPerWeek, isNotNull);
+        expect(input.smoothedWeightSlopeKgPerWeek!, lessThan(0));
+      },
+    );
+
+    test('buildInput trend slope uses regression over smoothed series (not endpoint-only)', () async {
       final endDay = DateTime(2026, 4, 5);
       final values = <double>[90, 84, 83, 82, 81, 80, 88];
       for (var i = 0; i < values.length; i++) {
@@ -473,12 +478,7 @@ Future<void> _insertWeightForDay(
     MeasurementSession(
       timestamp: DateTime(day.year, day.month, day.day, 7, 0),
       measurements: [
-        Measurement(
-          sessionId: 0,
-          type: 'weight',
-          value: kg,
-          unit: 'kg',
-        ),
+        Measurement(sessionId: 0, type: 'weight', value: kg, unit: 'kg'),
       ],
     ),
   );

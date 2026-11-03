@@ -78,16 +78,20 @@ class GoalBaselineStep extends StatelessWidget {
                   }
                 }
               },
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: DesignConstants.spacingXS,
                 ),
                 child: Row(
                   children: [
-                    Icon(LucideIcons.calendar,
-                        color: theme.colorScheme.primary, size: 22),
+                    Icon(
+                      LucideIcons.calendar,
+                      color: theme.colorScheme.primary,
+                      size: 22,
+                    ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: Column(
@@ -96,8 +100,9 @@ class GoalBaselineStep extends StatelessWidget {
                           Text(
                             l10n.goalStartDateLabel,
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.6),
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -142,7 +147,8 @@ class GoalBaselineStep extends StatelessWidget {
                           state.toggleEditingBaseline();
                         },
                         borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
+                          DesignConstants.borderRadiusM,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: DesignConstants.spacingS,
@@ -164,8 +170,9 @@ class GoalBaselineStep extends StatelessWidget {
                               Text(
                                 unitStr,
                                 style: theme.textTheme.titleMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.6,
+                                  ),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -176,8 +183,9 @@ class GoalBaselineStep extends StatelessWidget {
                       const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         key: const Key('goal_edit_baseline_button'),
-                        tooltip:
-                            state.isEditingBaseline ? l10n.save : l10n.edit,
+                        tooltip: state.isEditingBaseline
+                            ? l10n.save
+                            : l10n.edit,
                         icon: Icon(
                           state.isEditingBaseline
                               ? LucideIcons.check
@@ -209,8 +217,9 @@ class GoalBaselineStep extends StatelessWidget {
                     Text(
                       dateFormat.format(state.detectedBaselineDate!),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                     ),
                   ],
@@ -221,14 +230,18 @@ class GoalBaselineStep extends StatelessWidget {
                         key: const Key('goal_inline_baseline_input'),
                         controller: state.baselineWeightController,
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                          decimal: true,
+                        ),
                         textAlign: TextAlign.center,
                         onChanged: (text) {
-                          final parsed =
-                              double.tryParse(text.replaceAll(',', '.'));
+                          final parsed = double.tryParse(
+                            text.replaceAll(',', '.'),
+                          );
                           if (parsed != null && parsed > 0) {
                             final metric = unitService.convertToMetric(
-                                parsed, UnitDimension.weight);
+                              parsed,
+                              UnitDimension.weight,
+                            );
                             state.setBaselineManual(metric, unitService);
                           }
                         },
@@ -236,22 +249,28 @@ class GoalBaselineStep extends StatelessWidget {
                           suffixText: unitStr,
                           hintText: '0.0',
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusM),
+                              DesignConstants.borderRadiusM,
+                            ),
                           ),
                         ),
                       ),
                     ],
                     const SizedBox(height: DesignConstants.spacingM),
                     AppRulerPicker.weight(
-                      value: baselineDisp ??
+                      value:
+                          baselineDisp ??
                           (unitService.isImperial ? 160.0 : 75.0),
                       imperial: unitService.isImperial,
                       onChanged: (newWeight) {
                         final metric = unitService.convertToMetric(
-                            newWeight, UnitDimension.weight);
+                          newWeight,
+                          UnitDimension.weight,
+                        );
                         state.setBaselineManual(metric, unitService);
                       },
                     ),

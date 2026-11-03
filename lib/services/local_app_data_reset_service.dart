@@ -27,12 +27,12 @@ class LocalAppDataResetService implements LocalAppDataResetter {
     WorkoutLocalDataSource? workoutDatabaseHelper,
     SharedPreferencesLoader? prefsLoader,
     FlutterSecureStorage? secureStorage,
-  })  : _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
-        _workoutDatabaseHelper =
-            workoutDatabaseHelper ?? WorkoutLocalDataSource.instance,
-        _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
-        // Must match AiService's options so lookups target the same items.
-        _secureStorage = secureStorage ?? AiService.deviceOnlySecureStorage;
+  }) : _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
+       _workoutDatabaseHelper =
+           workoutDatabaseHelper ?? WorkoutLocalDataSource.instance,
+       _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
+       // Must match AiService's options so lookups target the same items.
+       _secureStorage = secureStorage ?? AiService.deviceOnlySecureStorage;
 
   final DatabaseHelper _databaseHelper;
   final WorkoutLocalDataSource _workoutDatabaseHelper;

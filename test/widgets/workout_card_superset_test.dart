@@ -29,10 +29,7 @@ void main() {
   }
 
   Finder cardContainer() => find
-      .ancestor(
-        of: find.text('card'),
-        matching: find.byType(Container),
-      )
+      .ancestor(of: find.text('card'), matching: find.byType(Container))
       .last;
 
   testWidgets('a lone card keeps all four corners rounded', (tester) async {
@@ -42,16 +39,18 @@ void main() {
     expect(radius.bottomLeft, const Radius.circular(20));
   });
 
-  testWidgets('a middle member squares both edges facing its siblings',
-      (tester) async {
+  testWidgets('a middle member squares both edges facing its siblings', (
+    tester,
+  ) async {
     await pumpCard(tester, above: true, below: true);
     final radius = _radiusOf(tester, cardContainer());
     expect(radius.topLeft, Radius.zero);
     expect(radius.bottomLeft, Radius.zero);
   });
 
-  testWidgets('the first member opens the bracket and carries it down',
-      (tester) async {
+  testWidgets('the first member opens the bracket and carries it down', (
+    tester,
+  ) async {
     await pumpCard(tester, above: false, below: true);
     final radius = _radiusOf(tester, cardContainer());
     expect(radius.topLeft, const Radius.circular(20));

@@ -10,12 +10,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Supplement.isCaffeine', () {
-    Supplement build({String? code, required String name}) => Supplement(
-          name: name,
-          defaultDose: 100,
-          unit: 'mg',
-          code: code,
-        );
+    Supplement build({String? code, required String name}) =>
+        Supplement(name: name, defaultDose: 100, unit: 'mg', code: code);
 
     test('matches the canonical code regardless of the name', () {
       expect(build(code: 'caffeine', name: 'Koffein').isCaffeine, isTrue);
@@ -30,8 +26,10 @@ void main() {
     });
 
     test('does not match a row that carries a different explicit code', () {
-      expect(build(code: 'creatine_monohydrate', name: 'Koffein').isCaffeine,
-          isFalse);
+      expect(
+        build(code: 'creatine_monohydrate', name: 'Koffein').isCaffeine,
+        isFalse,
+      );
     });
 
     test('does not match an unrelated supplement', () {
@@ -60,48 +58,60 @@ void main() {
 
       final rows = await supplements();
       expect(
-          rows.where((s) => s.code == Supplement.caffeineCode), hasLength(1));
+        rows.where((s) => s.code == Supplement.caffeineCode),
+        hasLength(1),
+      );
       expect(
-          rows.where((s) => s.code == Supplement.creatineCode), hasLength(1));
+        rows.where((s) => s.code == Supplement.creatineCode),
+        hasLength(1),
+      );
     });
 
-    test('seeds caffeine even when the user already has their own supplement',
-        () async {
-      await database.into(database.supplements).insert(
-            SupplementsCompanion.insert(
-              name: 'Magnesium',
-              dose: 400,
-              unit: 'mg',
-            ),
-          );
+    test(
+      'seeds caffeine even when the user already has their own supplement',
+      () async {
+        await database
+            .into(database.supplements)
+            .insert(
+              SupplementsCompanion.insert(
+                name: 'Magnesium',
+                dose: 400,
+                unit: 'mg',
+              ),
+            );
 
-      await dbHelper.ensureStandardSupplements();
+        await dbHelper.ensureStandardSupplements();
 
-      final rows = await supplements();
-      expect(rows.where((s) => s.isCaffeine), hasLength(1));
-    });
+        final rows = await supplements();
+        expect(rows.where((s) => s.isCaffeine), hasLength(1));
+      },
+    );
 
-    test('back-fills the code on a legacy row instead of duplicating it',
-        () async {
-      await database.into(database.supplements).insert(
-            SupplementsCompanion.insert(
-              name: 'Koffein',
-              dose: 80,
-              unit: 'mg',
-              dailyLimit: const drift.Value(300),
-            ),
-          );
+    test(
+      'back-fills the code on a legacy row instead of duplicating it',
+      () async {
+        await database
+            .into(database.supplements)
+            .insert(
+              SupplementsCompanion.insert(
+                name: 'Koffein',
+                dose: 80,
+                unit: 'mg',
+                dailyLimit: const drift.Value(300),
+              ),
+            );
 
-      await dbHelper.ensureStandardSupplements();
+        await dbHelper.ensureStandardSupplements();
 
-      final caffeine = (await supplements()).where((s) => s.isCaffeine);
-      expect(caffeine, hasLength(1));
-      expect(caffeine.single.code, Supplement.caffeineCode);
-      // The user's own edits survive the heal.
-      expect(caffeine.single.name, 'Koffein');
-      expect(caffeine.single.defaultDose, 80);
-      expect(caffeine.single.dailyLimit, 300);
-    });
+        final caffeine = (await supplements()).where((s) => s.isCaffeine);
+        expect(caffeine, hasLength(1));
+        expect(caffeine.single.code, Supplement.caffeineCode);
+        // The user's own edits survive the heal.
+        expect(caffeine.single.name, 'Koffein');
+        expect(caffeine.single.defaultDose, 80);
+        expect(caffeine.single.dailyLimit, 300);
+      },
+    );
 
     test('is idempotent across repeated launches', () async {
       await dbHelper.ensureStandardSupplements();

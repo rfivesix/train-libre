@@ -30,7 +30,9 @@ void main() {
 
     test('an rms of zero yields -infinity, which must not escape', () {
       expect(
-          VoiceDictationService.normalizeDbLevel(double.negativeInfinity), 0);
+        VoiceDictationService.normalizeDbLevel(double.negativeInfinity),
+        0,
+      );
       expect(VoiceDictationService.normalizeDbLevel(double.nan), 0);
     });
   });
@@ -40,7 +42,9 @@ void main() {
       expect(VoiceDictationService.normalizeAndroidLevel(-2), 0);
       expect(VoiceDictationService.normalizeAndroidLevel(10), 1);
       expect(
-          VoiceDictationService.normalizeAndroidLevel(4), closeTo(0.5, 0.01));
+        VoiceDictationService.normalizeAndroidLevel(4),
+        closeTo(0.5, 0.01),
+      );
     });
 
     test('clamps outside the range', () {

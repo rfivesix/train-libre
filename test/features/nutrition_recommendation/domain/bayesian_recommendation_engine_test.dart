@@ -98,7 +98,8 @@ void main() {
               .abs();
       final observedSpread =
           (positive.maintenanceEstimate.observationImpliedMaintenanceCalories! -
-                  negative.maintenanceEstimate
+                  negative
+                      .maintenanceEstimate
                       .observationImpliedMaintenanceCalories!)
               .abs();
 
@@ -173,8 +174,10 @@ void main() {
         result.recommendation.algorithmVersion,
         'tdee_adaptive_recommendation_1_0_bayesian_recursive',
       );
-      expect(result.recommendation.confidence,
-          isNot(RecommendationConfidence.notEnoughData));
+      expect(
+        result.recommendation.confidence,
+        isNot(RecommendationConfidence.notEnoughData),
+      );
       expect(result.recursiveState, isNotNull);
     });
 

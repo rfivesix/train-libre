@@ -29,16 +29,19 @@ void main() {
   });
 
   Future<void> pumpApp(WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      navigatorObservers: [observer],
-      home: const HomeShellScreen(),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        navigatorObservers: [observer],
+        home: const HomeShellScreen(),
+      ),
+    );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('derives the screen name from the mounted widget',
-      (tester) async {
+  testWidgets('derives the screen name from the mounted widget', (
+    tester,
+  ) async {
     await pumpApp(tester);
 
     // The app pushes unnamed MaterialPageRoutes; the label has to come from the
@@ -64,14 +67,17 @@ void main() {
     expect(recorder.currentScreen, 'HomeShellScreen');
   });
 
-  testWidgets('an explicit route name wins over the derived one',
-      (tester) async {
+  testWidgets('an explicit route name wins over the derived one', (
+    tester,
+  ) async {
     await pumpApp(tester);
 
-    navigatorKey.currentState!.push(MaterialPageRoute<void>(
-      settings: const RouteSettings(name: 'CheckoutFlow'),
-      builder: (_) => const MealDetailScreen(),
-    ));
+    navigatorKey.currentState!.push(
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'CheckoutFlow'),
+        builder: (_) => const MealDetailScreen(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(recorder.currentScreen, 'CheckoutFlow');

@@ -24,8 +24,9 @@ class WorkoutImportSlide extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingWorkoutImportTitle,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
           Text(

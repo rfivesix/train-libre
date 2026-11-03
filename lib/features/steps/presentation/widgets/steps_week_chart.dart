@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import '../../domain/steps_models.dart';
 import 'horizontal_guide_painter.dart';
 import 'steps_chart_utils.dart';
 import '../../../../widgets/common/value_summary_card.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StepsWeekChart extends StatelessWidget {
@@ -50,12 +52,12 @@ class StepsWeekChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(
-      context,
-    ).languageCode.toLowerCase();
+    final localeCode = Localizations.localeOf(context).languageCode
+        .toLowerCase();
     final numberFormat = NumberFormat.decimalPattern(localeCode);
-    final safeGoal =
-        dailyGoal > 0 ? dailyGoal : StepsSyncService.defaultStepsGoal;
+    final safeGoal = dailyGoal > 0
+        ? dailyGoal
+        : StepsSyncService.defaultStepsGoal;
     final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
     final avg = buckets.isEmpty ? 0 : (total / buckets.length).round();
     final goalDays = buckets.where((b) => b.steps >= safeGoal).length;
@@ -75,8 +77,9 @@ class StepsWeekChart extends StatelessWidget {
     final weekGoalRatio = (safeGoal / maxValue).clamp(0.0, 1.0);
     final weekGoalLineY =
         weekChartBottom - (weekDrawableHeight * weekGoalRatio);
-    final weekGoalLabelTop =
-        (weekGoalLineY - 10).clamp(0.0, weekChartHeight - 16).toDouble();
+    final weekGoalLabelTop = (weekGoalLineY - 10)
+        .clamp(0.0, weekChartHeight - 16)
+        .toDouble();
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -113,9 +116,8 @@ class StepsWeekChart extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   painter: HorizontalGuidePainter(
-                    lineColor: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    lineColor: Theme.of(context).colorScheme.outlineVariant
+                        .withValues(alpha: 0.5),
                     goalColor: Theme.of(context).colorScheme.primary,
                     goalRatio: (safeGoal / maxValue).clamp(0.0, 1.0),
                     leftInset: chartLeftInset,
@@ -130,22 +132,23 @@ class StepsWeekChart extends StatelessWidget {
                 child: Text(
                   compactAxisLabel(maxValue),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Positioned(
                 left: 0,
-                top: ((172 - chartBottomInset - weekChartTopInset) / 2) +
+                top:
+                    ((172 - chartBottomInset - weekChartTopInset) / 2) +
                     weekChartTopInset -
                     8,
                 child: Text(
                   compactAxisLabel((maxValue / 2).round()),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Positioned.fill(
@@ -176,9 +179,9 @@ class StepsWeekChart extends StatelessWidget {
                                     width: 14,
                                     height: 4,
                                     decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.outlineVariant,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant,
                                       borderRadius: BorderRadius.circular(3),
                                     ),
                                   )
@@ -187,11 +190,12 @@ class StepsWeekChart extends StatelessWidget {
                                     width: 34,
                                     height: barHeight,
                                     decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
                                       borderRadius: BorderRadius.circular(
-                                          DesignConstants.borderRadiusS),
+                                        DesignConstants.borderRadiusS,
+                                      ),
                                     ),
                                   ),
                                 if (isGoalHit && bucket.steps > 0)
@@ -201,9 +205,9 @@ class StepsWeekChart extends StatelessWidget {
                                       width: 13,
                                       height: 13,
                                       decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                       child: const Icon(
@@ -235,24 +239,24 @@ class StepsWeekChart extends StatelessWidget {
                       bucket.start.day,
                     );
                     final isToday = day == today;
-                    final label = DateFormat.E(
-                      localeCode,
-                    ).format(bucket.start).substring(0, 1).toUpperCase();
+                    final label = DateFormat.E(localeCode)
+                        .format(bucket.start)
+                        .substring(0, 1)
+                        .toUpperCase();
                     return Expanded(
                       child: Center(
                         child: Text(
                           label,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
+                          style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(
-                                fontWeight:
-                                    isToday ? FontWeight.w700 : FontWeight.w500,
+                                fontWeight: isToday
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
                                 color: isToday
                                     ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
+                                    : Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                               ),
                         ),
                       ),

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../util/design_constants.dart';
 
 import '../../../generated/app_localizations.dart';
 
-enum BodyFatGuidanceSex {
-  male,
-  female,
-}
+enum BodyFatGuidanceSex { male, female }
 
 class BodyFatGuidanceEntry {
   final int percent;
@@ -141,19 +139,33 @@ List<BodyFatGuidanceEntry> _entriesForSex(
     case BodyFatGuidanceSex.male:
       return [
         BodyFatGuidanceEntry(
-            percent: 10, description: l10n.bodyFatGuidanceMale10),
+          percent: 10,
+          description: l10n.bodyFatGuidanceMale10,
+        ),
         BodyFatGuidanceEntry(
-            percent: 15, description: l10n.bodyFatGuidanceMale15),
+          percent: 15,
+          description: l10n.bodyFatGuidanceMale15,
+        ),
         BodyFatGuidanceEntry(
-            percent: 20, description: l10n.bodyFatGuidanceMale20),
+          percent: 20,
+          description: l10n.bodyFatGuidanceMale20,
+        ),
         BodyFatGuidanceEntry(
-            percent: 25, description: l10n.bodyFatGuidanceMale25),
+          percent: 25,
+          description: l10n.bodyFatGuidanceMale25,
+        ),
         BodyFatGuidanceEntry(
-            percent: 30, description: l10n.bodyFatGuidanceMale30),
+          percent: 30,
+          description: l10n.bodyFatGuidanceMale30,
+        ),
         BodyFatGuidanceEntry(
-            percent: 35, description: l10n.bodyFatGuidanceMale35),
+          percent: 35,
+          description: l10n.bodyFatGuidanceMale35,
+        ),
         BodyFatGuidanceEntry(
-            percent: 40, description: l10n.bodyFatGuidanceMale40),
+          percent: 40,
+          description: l10n.bodyFatGuidanceMale40,
+        ),
       ];
     case BodyFatGuidanceSex.female:
       return [
@@ -211,12 +223,7 @@ class _BodyFatGuidanceRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: DesignConstants.spacingS),
-        Expanded(
-          child: Text(
-            description,
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
+        Expanded(child: Text(description, style: theme.textTheme.bodyMedium)),
       ],
     );
   }

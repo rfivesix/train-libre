@@ -13,58 +13,60 @@ calorie tracker,calorie counter,macro tracker,workout tracker,food scanner,diet 
 Log workouts, calories and macros offline. No ads, no account, no commercial tracking. Optional usage stats are off by default. Open source — verify it yourself.
 
 ## Description (Full App Store Description)
-Train Libre is a private, open-source workout and nutrition tracker for people who want serious logging without giving up control of their data. It is offline-first: no account, no social feeds, no gamification, no ads, and no commercial tracking or data selling.
+Train Libre is a private, open-source workout and nutrition tracker for people who want to stay in control of their data. It is offline-first: you can log workouts and meals without an account or an internet connection. Your data is stored securely on your device.
 
-Track your workouts, calories, bodyweight, and muscle recovery in one focused app, with secure local storage and optional Apple Health integration.
+Track workouts, meals, calories, bodyweight and recovery in one app, with optional Apple Health or Health Connect sync.
 
 WHY TRAIN LIBRE IS DIFFERENT:
-• Offline-First: No account and no network connection required. Your training and nutrition data stays in your device's sandbox.
-• Privacy by Design: No ads, no ad trackers, no session recording, no user profiles. Usage statistics are optional and off by default — they never contain health data or your IP address, and you can turn them off and request erasure at any time.
-• Structured Gym Tracking: Built for progressive overload and rigorous logging, not addictive engagement hooks.
-• Transparent Analytics: Understand your long-term physical trends through clear, math-based insights.
+• Offline-first: Log workouts and meals without an account or internet connection. Your data stays on your device.
+• Privacy by design: No ads, ad trackers, session recording, user profiles or data selling. Optional usage statistics are off by default and never include health data.
+• Structured strength training: Train for progressive overload and keep precise records, without gamification or social feeds.
+• Clear insights: Follow longer-term changes in your training, nutrition and recovery with straightforward analytics.
+
+OPTIONAL AI FEATURES:
+• Log meals: Take a photo, scan a packaged product's barcode, or describe your meal with voice or text.
+• Apple Intelligence: On supported iPhones, Apple Intelligence can analyse meals directly on your device. Or connect an AI provider using your own API key.
+• Review every suggestion: Check and adjust recognised foods and portion sizes before saving. On iPhones with LiDAR, depth data can help estimate portions.
+• AI chat: Ask about training and nutrition. Create drafts for routines, training plans, recipes or meals, then review them before applying.
+• Your data stays in your hands: Personal app data is shared with the AI chat only after you approve it.
 
 KEY FEATURES:
 
 1. ADVANCED WORKOUT LOGGING
-• Log workouts set by set, including warm-ups, working sets, failure sets, and dropsets.
-• Track precise metrics: reps, weight, and RPE / RIR (Rate of Perceived Exertion / Reps in Reserve).
-• Build reusable routines, add custom exercises, and review your full session history.
-• Attach up to 4 photos to any session, taken with the camera or picked from your library, and keep them in your backups.
+• Log workouts set by set, including warm-ups, working sets, sets to failure and dropsets.
+• Track reps, weight and RPE / RIR (rate of perceived exertion / reps in reserve).
+• Build routines and training plans, add custom exercises and review your training history.
+• Attach up to four photos to each session and keep them in your backups.
 
-2. SCIENCE-BASED NUTRITION & TDEE
-• Log meals, calories, macronutrients, hydration, caffeine, creatine, and custom supplements.
-• Adaptive Energy Expenditure Engine: a Kalman filter-based Bayesian TDEE estimator calculates your true maintenance calories dynamically from your actual scale weight and nutrition data.
+2. NUTRITION AND ADAPTIVE GOALS
+• Track meals, calories, macronutrients, fluids, caffeine, creatine and custom supplements.
+• Follow bodyweight and nutrition. Adaptive estimates help you understand your approximate energy needs.
+• Set your own daily targets. Recommendations only change your active goals when you choose to apply them.
 
-3. PHYSICAL RECOVERY TRACKING
-• Visual Recovery Heatmap: monitor muscle readiness based on localized volume, training effort, and recent load.
-• Comprehensive stats for PRs, total training volume, consistency, body measurements, and physical vitals.
+3. RECOVERY TRACKING
+• See how training volume, intensity and recent effort relate to muscle recovery on a visual muscle map.
+• Track personal records, total volume, consistency, body measurements and other statistics.
 
-4. NATIVE HEALTH SYNC
-• Optional integration to read physical metrics (steps, sleep, pulse) and feed them into your local recovery tracking.
-• Completely local, secure, and user-controlled.
-
-5. BYOK AI MEAL CAPTURE (Optional)
-• Bring Your Own Key (BYOK): optional AI meal recognition that runs on your own API key. Disabled by default.
-• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, depth scale is captured to assist portion estimation.
-• State-Aware Matching: a local "Top-N Fuzzy Alternatives" system uses Open Food Facts to find plausible matches while keeping every result reviewable before saving.
-• 100% Transparent: every AI suggestion is fully reviewable and adjustable before saving.
+4. HEALTH SYNC
+• Optionally sync calories and macronutrients with Apple Health or Health Connect.
+• With your permission, steps, sleep and heart rate can inform your local recovery tracking.
 
 DISCLAIMER:
-Train Libre is not a medical application. Algorithmic recovery feedback, sleep tracking, and physical vital metrics are intended strictly for personal athletic tracking and training guidance. They do not constitute, and must not replace, professional medical diagnosis or treatment.
+Train Libre is not a medical app. Recovery, sleep and physical metric information is for personal training guidance only. It is not a medical diagnosis or treatment and does not replace professional medical advice.
 
-OPEN SOURCE & OPEN DATA:
-Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
+OPEN SOURCE AND OPEN DATA:
+Train Libre uses the community catalogs Open Food Facts and OpenExerciseDB. The complete source code is public, so you can verify our privacy commitments for yourself.
 
 ## Release Notes (What's New / Release Notes in this version)
-Better AI meal capture: Meal analysis is faster and food matching is more reliable. On supported iPhones, Apple Intelligence can analyse meals on the device; you can still use your own API key with another provider. Review and edit every suggestion before saving.
+Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.
 
-More detailed food data: Download the BLS 4.0 catalog for translated generic food names and nutrient details, including micronutrients. Search it offline after download; branded products remain available through Open Food Facts.
+Hello, Spain! Hello, the Netherlands!: Train Libre and its exercise catalog are now available in Spanish and Dutch. The BLS and exercise catalogs also include translated names. Open Food Facts adds catalogs for the Netherlands, Spain, and Australia.
 
-Bring your training history: Import workouts from Hevy, Strong, or CSV with a preview that flags duplicates and invalid dates. Find exercises you have trained before, and keep notes for an exercise, a routine, or a single workout.
+Improved meal recognition: Meals are captured more reliably and much faster. AI can now recognize and log drinks and caffeine too.
 
-Share and reuse your content: Share routines, plans, and recipes by link, text, or JSON; export completed workouts as text or JSON. Preview supported imports before adding them. Log saved recipes by serving or cooked weight.
+Sync nutrition with Health: Import and export calories and macronutrients with Apple Health and Health Connect. Workouts are not synchronized.
 
-Clearer insights and smoother everyday use: Customise your Statistics overview, explore nutrition and recovery insights, and find health import and export settings in one place. This update also improves backup restoration, accessibility, and small-screen layouts.
+More personalization: Set a custom accent color and choose which cards appear in the Statistics hub.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

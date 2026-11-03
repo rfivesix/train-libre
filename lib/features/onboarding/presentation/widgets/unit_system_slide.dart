@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'springy_scale.dart';
 
 class UnitSystemSlide extends StatelessWidget {
@@ -30,8 +33,9 @@ class UnitSystemSlide extends StatelessWidget {
             const SizedBox(height: DesignConstants.spacingXL),
             Text(
               l10n.onboardingUnitSystemTitle,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Text(

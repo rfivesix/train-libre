@@ -16,26 +16,26 @@ import 'package:train_libre/services/unit_service.dart';
 /// while a pull-up kept an empty weight field. A data-layer test cannot see
 /// that. This one can.
 Exercise _exercise({String? trackingType, String? loadMode}) => Exercise(
-      texts: const {'en': ExerciseText(name: 'Test')},
-      categoryName: 'Abs',
-      primaryMuscles: const [],
-      secondaryMuscles: const [],
-      trackingType: trackingType,
-      loadMode: loadMode,
-    );
+  texts: const {'en': ExerciseText(name: 'Test')},
+  categoryName: 'Abs',
+  primaryMuscles: const [],
+  secondaryMuscles: const [],
+  trackingType: trackingType,
+  loadMode: loadMode,
+);
 
 SetLog _setLog() => SetLog(
-      id: 1,
-      workoutLogId: 1,
-      exerciseName: 'Test',
-      setType: 'normal',
-      weightKg: 40,
-      reps: 8,
-      durationSeconds: 45,
-      distanceKm: 2.5,
-      isCompleted: true,
-      logOrder: 0,
-    );
+  id: 1,
+  workoutLogId: 1,
+  exerciseName: 'Test',
+  setType: 'normal',
+  weightKg: 40,
+  reps: 8,
+  durationSeconds: 45,
+  distanceKm: 2.5,
+  isCompleted: true,
+  logOrder: 0,
+);
 
 Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
   await tester.pumpWidget(
@@ -75,19 +75,24 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
 void main() {
   group('ExerciseLogMask derivation', () {
     test('weight_reps shows weight and reps', () {
-      final mask =
-          ExerciseLogMask.forExercise(_exercise(trackingType: 'weight_reps'));
+      final mask = ExerciseLogMask.forExercise(
+        _exercise(trackingType: 'weight_reps'),
+      );
       expect(mask.primary, LogField.weight);
       expect(mask.secondary, LogField.reps);
     });
 
     test('bodyweight_reps shows an added-weight column, not a weight one', () {
       final mask = ExerciseLogMask.forExercise(
-          _exercise(trackingType: 'bodyweight_reps'));
+        _exercise(trackingType: 'bodyweight_reps'),
+      );
       expect(mask.primary, LogField.addedWeight);
       expect(mask.secondary, LogField.reps);
-      expect(mask.showsPrimary, isTrue,
-          reason: 'the column stays, so a belt can be entered');
+      expect(
+        mask.showsPrimary,
+        isTrue,
+        reason: 'the column stays, so a belt can be entered',
+      );
     });
 
     test('time shows a duration and nothing else', () {
@@ -98,15 +103,17 @@ void main() {
     });
 
     test('time_weight keeps a weight column alongside the duration', () {
-      final mask =
-          ExerciseLogMask.forExercise(_exercise(trackingType: 'time_weight'));
+      final mask = ExerciseLogMask.forExercise(
+        _exercise(trackingType: 'time_weight'),
+      );
       expect(mask.primary, LogField.weight);
       expect(mask.secondary, LogField.duration);
     });
 
     test('distance_only shows a distance and no second column', () {
-      final mask =
-          ExerciseLogMask.forExercise(_exercise(trackingType: 'distance_only'));
+      final mask = ExerciseLogMask.forExercise(
+        _exercise(trackingType: 'distance_only'),
+      );
       expect(mask.primary, LogField.distance);
       expect(mask.secondary, LogField.none);
     });
@@ -115,13 +122,18 @@ void main() {
       final mask = ExerciseLogMask.forExercise(
         _exercise(trackingType: 'weight_reps', loadMode: 'assisted'),
       );
-      expect(mask.primary, LogField.assistance,
-          reason: 'the number is a reduction, and the column has to say so');
+      expect(
+        mask.primary,
+        LogField.assistance,
+        reason: 'the number is a reduction, and the column has to say so',
+      );
     });
 
     test('an unclassified exercise falls back to weight and reps', () {
-      expect(ExerciseLogMask.forExercise(_exercise()),
-          ExerciseLogMask.weightAndReps);
+      expect(
+        ExerciseLogMask.forExercise(_exercise()),
+        ExerciseLogMask.weightAndReps,
+      );
       expect(ExerciseLogMask.forExercise(null), ExerciseLogMask.weightAndReps);
     });
 
@@ -133,9 +145,8 @@ void main() {
         'distance_only',
       ]) {
         expect(
-          ExerciseLogMask.forExercise(
-            _exercise(trackingType: trackingType),
-          ).supportsLoadRepProgression,
+          ExerciseLogMask.forExercise(_exercise(trackingType: trackingType))
+              .supportsLoadRepProgression,
           isFalse,
           reason: '$trackingType needs a metric-specific progression model',
         );
@@ -174,8 +185,11 @@ void main() {
 
       // 45 seconds, not 8 reps.
       expect(find.text('00:45'), findsOneWidget);
-      expect(find.text('8'), findsNothing,
-          reason: 'a plank was showing a repetitions column');
+      expect(
+        find.text('8'),
+        findsNothing,
+        reason: 'a plank was showing a repetitions column',
+      );
       // And no weight either.
       expect(find.text('40 kg'), findsNothing);
     });
@@ -190,8 +204,9 @@ void main() {
       expect(find.text('00:45'), findsNothing);
     });
 
-    testWidgets('a bodyweight exercise keeps its repetitions column',
-        (tester) async {
+    testWidgets('a bodyweight exercise keeps its repetitions column', (
+      tester,
+    ) async {
       await _pumpRow(
         tester,
         ExerciseLogMask.forExercise(_exercise(trackingType: 'bodyweight_reps')),
@@ -201,8 +216,9 @@ void main() {
       expect(find.text('00:45'), findsNothing);
     });
 
-    testWidgets('a distance_time exercise shows distance and duration',
-        (tester) async {
+    testWidgets('a distance_time exercise shows distance and duration', (
+      tester,
+    ) async {
       await _pumpRow(
         tester,
         ExerciseLogMask.forExercise(_exercise(trackingType: 'distance_time')),
@@ -213,8 +229,9 @@ void main() {
       expect(find.text('8'), findsNothing);
     });
 
-    testWidgets('a distance_only exercise has no second column',
-        (tester) async {
+    testWidgets('a distance_only exercise has no second column', (
+      tester,
+    ) async {
       await _pumpRow(
         tester,
         ExerciseLogMask.forExercise(_exercise(trackingType: 'distance_only')),

@@ -10,7 +10,7 @@ class _FakePulseRepository implements PulseAnalysisRepository {
   _FakePulseRepository(this.summaryBuilder);
 
   final PulseAnalysisSummary Function(PulseAnalysisWindow window)
-      summaryBuilder;
+  summaryBuilder;
   final windows = <PulseAnalysisWindow>[];
 
   @override
@@ -38,11 +38,17 @@ PulseAnalysisSummary _summaryWithSamples(PulseAnalysisWindow window) {
   final start = window.startUtc;
   final samples = [
     PulseSamplePoint(
-        sampledAtUtc: start.add(const Duration(hours: 1)), bpm: 60),
+      sampledAtUtc: start.add(const Duration(hours: 1)),
+      bpm: 60,
+    ),
     PulseSamplePoint(
-        sampledAtUtc: start.add(const Duration(hours: 2)), bpm: 70),
+      sampledAtUtc: start.add(const Duration(hours: 2)),
+      bpm: 70,
+    ),
     PulseSamplePoint(
-        sampledAtUtc: start.add(const Duration(hours: 3)), bpm: 80),
+      sampledAtUtc: start.add(const Duration(hours: 3)),
+      bpm: 80,
+    ),
   ];
   return PulseAnalysisSummary(
     window: window,
@@ -59,8 +65,9 @@ PulseAnalysisSummary _summaryWithSamples(PulseAnalysisWindow window) {
 }
 
 void main() {
-  testWidgets('renders KPI metrics and reused measurement chart',
-      (tester) async {
+  testWidgets('renders KPI metrics and reused measurement chart', (
+    tester,
+  ) async {
     final repository = _FakePulseRepository(_summaryWithSamples);
 
     await tester.pumpWidget(
@@ -81,8 +88,9 @@ void main() {
     expect(find.byType(MeasurementChartWidget), findsOneWidget);
   });
 
-  testWidgets('scope and period controls drive selected analysis window',
-      (tester) async {
+  testWidgets('scope and period controls drive selected analysis window', (
+    tester,
+  ) async {
     final repository = _FakePulseRepository(_summaryWithSamples);
 
     await tester.pumpWidget(
@@ -131,12 +139,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-        find.text('Pulse analysis is disabled in Settings.'), findsOneWidget);
+      find.text('Pulse analysis is disabled in Settings.'),
+      findsOneWidget,
+    );
     expect(find.byType(MeasurementChartWidget), findsNothing);
   });
 
-  testWidgets('uses partial-day end for current local day scope',
-      (tester) async {
+  testWidgets('uses partial-day end for current local day scope', (
+    tester,
+  ) async {
     final repository = _FakePulseRepository(_summaryWithSamples);
     final nowLocal = DateTime.now();
     final expectedStartUtc = DateTime(
@@ -147,12 +158,7 @@ void main() {
     final beforeBuild = DateTime.now().toUtc();
 
     await tester.pumpWidget(
-      _wrap(
-        PulseAnalysisScreen(
-          repository: repository,
-          initialDate: nowLocal,
-        ),
-      ),
+      _wrap(PulseAnalysisScreen(repository: repository, initialDate: nowLocal)),
     );
     await tester.pumpAndSettle();
     final afterBuild = DateTime.now().toUtc();

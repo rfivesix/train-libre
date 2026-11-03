@@ -39,11 +39,13 @@ class HealthPlatformSteps {
     required DateTime fromUtc,
     required DateTime toUtc,
   }) async {
-    final response = await _channel
-        .invokeMethod<List<dynamic>>('readStepSegments', <String, dynamic>{
-      'fromUtcIso': fromUtc.toUtc().toIso8601String(),
-      'toUtcIso': toUtc.toUtc().toIso8601String(),
-    });
+    final response = await _channel.invokeMethod<List<dynamic>>(
+      'readStepSegments',
+      <String, dynamic>{
+        'fromUtcIso': fromUtc.toUtc().toIso8601String(),
+        'toUtcIso': toUtc.toUtc().toIso8601String(),
+      },
+    );
     final rows = response ?? const <dynamic>[];
     return rows
         .map(

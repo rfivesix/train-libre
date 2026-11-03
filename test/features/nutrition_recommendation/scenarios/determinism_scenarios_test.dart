@@ -7,26 +7,32 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Adaptive nutrition determinism scenarios', () {
-    test('same multi-week scenario run twice yields identical outputs/state',
-        () async {
-      final firstRun = await _runDeterministicScenario();
-      final secondRun = await _runDeterministicScenario();
+    test(
+      'same multi-week scenario run twice yields identical outputs/state',
+      () async {
+        final firstRun = await _runDeterministicScenario();
+        final secondRun = await _runDeterministicScenario();
 
-      expect(firstRun.length, secondRun.length);
-      expect(
-          encodeDeterministicRun(firstRun), encodeDeterministicRun(secondRun));
+        expect(firstRun.length, secondRun.length);
+        expect(
+          encodeDeterministicRun(firstRun),
+          encodeDeterministicRun(secondRun),
+        );
 
-      for (var i = 0; i < firstRun.length; i++) {
-        final first = firstRun[i];
-        final second = secondRun[i];
+        for (var i = 0; i < firstRun.length; i++) {
+          final first = firstRun[i];
+          final second = secondRun[i];
 
-        expect(first.dueWeekKey, second.dueWeekKey);
-        expect(first.recommendation.toJson(), second.recommendation.toJson());
-        expect(first.recursiveState.toJson(), second.recursiveState.toJson());
-        expect(first.maintenanceEstimate.debugInfo,
-            second.maintenanceEstimate.debugInfo);
-      }
-    });
+          expect(first.dueWeekKey, second.dueWeekKey);
+          expect(first.recommendation.toJson(), second.recommendation.toJson());
+          expect(first.recursiveState.toJson(), second.recursiveState.toJson());
+          expect(
+            first.maintenanceEstimate.debugInfo,
+            second.maintenanceEstimate.debugInfo,
+          );
+        }
+      },
+    );
   });
 }
 

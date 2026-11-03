@@ -499,6 +499,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appInitStarting => 'App wird gestartet...';
 
   @override
+  String get appInitFailed =>
+      'Train Libre konnte nicht gestartet werden. Deine gespeicherten Daten wurden nicht gelöscht. Bitte versuche es erneut.';
+
+  @override
   String get appInitInitializing => 'Initialisierung läuft...';
 
   @override
@@ -642,7 +646,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'Dein Export wird lokal verarbeitet. Bei aktivierter anonymer Nutzungsanalyse erfassen wir nur, ob du den Schritt startest, überspringst oder einen Import abschließt – keine Trainingsdaten.';
+      'Dein Export wird lokal verarbeitet. Falls pseudonymisierte Nutzungsstatistiken aktiviert sind, kann der Importstatus erfasst werden; dabei werden keine Trainingsdetails dieses Imports übermittelt.';
 
   @override
   String get workoutImportButton => 'Workout-Daten importieren';
@@ -1820,7 +1824,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onbPrivacyBody =>
-      'Deine Daten bleiben auf dem Gerät. Keine Cloud-Konten, kein Hintergrund-Sync.';
+      'Train Libre speichert Daten überwiegend auf dem Gerät. Optionale Funktionen können Daten außerhalb des Geräts senden oder kopieren.';
 
   @override
   String get onbFinishTitle => 'Alles bereit';
@@ -2108,7 +2112,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'Löscht dauerhaft deine auf diesem Gerät gespeicherten Daten und setzt Train Libre in einen frischen lokalen Zustand zurück.';
+      'Lokale App-Daten und Einstellungen entfernen. Einige Kopien können bestehen bleiben.';
 
   @override
   String get deleteAllLocalAppData => 'Alle lokalen App-Daten löschen';
@@ -2118,7 +2122,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'Dies löscht dauerhaft lokal gespeicherte Workouts, Ernährungslogs, Messwerte, Supplements, Einstellungen/Zustand, zwischengespeicherte Analysen und lokale App-Daten.\n\nDies löscht keine Daten, die bereits zu Apple Health oder Health Connect exportiert wurden.\n\nDies löscht keine Daten externer Anbieter und keine entfernten öffentlichen Katalogquellen. Gebündelte App-Assets und erforderliche Standardkataloge bleiben erhalten oder werden neu angelegt, damit die App nach dem Zurücksetzen starten kann.';
+      'Das Zurücksetzen entfernt viele lokale Daten und Einstellungen. Manche Anhänge oder Konfigurationen können verbleiben. Sicherungen, Exporte, Gesundheitsdaten auf der Plattform und Daten bei externen Anbietern werden nicht gelöscht.';
 
   @override
   String get localDataDeletionTypeDeleteLabel =>
@@ -2455,6 +2459,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealTotalAmountLabel => 'Gesamtmenge des Rezepts';
 
   @override
+  String get aiMealRawEquivalent => 'Rohäquivalent';
+
+  @override
+  String get aiMealServed => 'Serviert';
+
+  @override
   String get mealWeightBasisLabel => 'Zustand';
 
   @override
@@ -2556,7 +2566,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get error => 'Fehler';
 
   @override
-  String get mealsViewTitle => 'mealsViewTitle';
+  String get mealsViewTitle => 'Rezepte';
 
   @override
   String get noNotes => 'Keine Notizen';
@@ -2604,6 +2614,68 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsMaterialColorsSubtitle =>
       'Verwende dynamische System-Farben (Material You) statt des Train Libre-Markenakzents';
+
+  @override
+  String get settingsAppColorTitle => 'App-Farbe';
+
+  @override
+  String get settingsAppColorSubtitle =>
+      'Wähle eine Akzentfarbe, die sich an den hellen und dunklen Modus anpasst.';
+
+  @override
+  String get appColorPresetTrainLibre => 'Train Libre';
+
+  @override
+  String get appColorPresetMonochrome => 'Schwarz-Weiß';
+
+  @override
+  String get appColorPresetBlue => 'Blau';
+
+  @override
+  String get appColorPresetTeal => 'Türkis';
+
+  @override
+  String get appColorPresetPurple => 'Violett';
+
+  @override
+  String get appColorPresetOrange => 'Orange';
+
+  @override
+  String get appColorPresetRose => 'Rosé';
+
+  @override
+  String get appColorPresetCustom => 'Eigene Farbe';
+
+  @override
+  String get appColorPresetSystem => 'Systemfarben';
+
+  @override
+  String get appColorCustomDialogTitle => 'Farbe auswählen';
+
+  @override
+  String get appColorHexLabel => 'Hex-Farbcode';
+
+  @override
+  String get appColorHexInvalid => 'Gib einen sechsstelligen Hex-Farbcode ein.';
+
+  @override
+  String get appColorHexOutOfRange =>
+      'Wähle eine Farbe mit 40–82 % Helligkeit.';
+
+  @override
+  String get appColorHueLabel => 'Farbton';
+
+  @override
+  String get appColorSaturationLabel => 'Sättigung';
+
+  @override
+  String get appColorBrightnessLabel => 'Helligkeit';
+
+  @override
+  String get appColorCancel => 'Abbrechen';
+
+  @override
+  String get appColorApply => 'Übernehmen';
 
   @override
   String get settingsFoodDbSectionTitle => 'Lebensmittel-Datenbank';
@@ -2656,6 +2728,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'Österreich (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'Niederlande (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'Spanien (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'Australien (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Bunte Nährwert-Badges';
@@ -2747,7 +2828,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tracke Makros, Wasser und nutze optionale KI-Bilderkennung.';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100% Privat & Lokal';
+  String get onboardingFeaturePrivacyTitle => 'Lokal zuerst & Datenschutz';
 
   @override
   String get onboardingFeaturePrivacyBody =>
@@ -2959,11 +3040,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get ingredients => 'Zutaten';
 
   @override
-  String get aiSettingsTitle => 'KI-Mahlzeitenerkennung';
+  String get aiSettingsTitle => 'KI-Funktionen';
 
   @override
   String get aiSettingsDescription =>
-      'KI-basierte Mahlzeitenerkennung konfigurieren.';
+      'KI-Funktionen wie Chat und Mahlzeitenerkennung konfigurieren.';
 
   @override
   String get aiProviderSection => 'KI-Anbieter';
@@ -2997,10 +3078,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      'Bilder, Texte und erzeugte Prompts werden nur an den gewählten KI-Anbieter gesendet, wenn du eine KI-Aktion nutzt. Speicherung und Verarbeitung beim Anbieter richten sich nach dessen Bedingungen. Dein API-Schlüssel wird verschlüsselt nur auf diesem Gerät gespeichert.';
+      'KI-Funktionen können Text, Bilder und Kontext an das verwendete Modell senden. Der Chat kann auf einen anderen eingerichteten Anbieter zurückgreifen. Gespeicherte App-Daten erfordern eine Zugriffsfreigabe, sofern die automatische Freigabe nicht aktiviert ist. Prüfe die Anbieterbedingungen; API-Schlüssel werden im sicheren Speicher der Plattform abgelegt.';
 
   @override
   String get aiMealCapture => 'KI-Mahlzeit';
+
+  @override
+  String get aiChatAction => 'KI-Chat';
 
   @override
   String get aiCaptureTitle => 'KI-Mahlzeitenerkennung';
@@ -3059,11 +3143,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'KI-Nutzung: $count Tokens';
+    return '$count Tokens';
   }
 
   @override
-  String get aiReviewTokensPending => 'KI-Nutzung: wird aktualisiert…';
+  String get aiReviewTokensPending => 'wird aktualisiert…';
 
   @override
   String get aiReviewTokensUnknown => 'KI-Nutzung: nicht verfügbar';
@@ -3081,6 +3165,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die KI-Anfrage hat zu lange gedauert. Der Scan wurde beendet. Bitte gehe zurück und versuche es erneut.';
 
   @override
+  String get aiReviewAdjustPortions => 'Schätzung anpassen';
+
+  @override
+  String get aiReviewPortionsLarger => 'Portionen größer';
+
+  @override
+  String get aiReviewPortionsSmaller => 'Portionen kleiner';
+
+  @override
   String get aiReviewFeedbackHint =>
       'Beschreibe, was die KI falsch erkannt hat...';
 
@@ -3092,7 +3185,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiErrorNoKey =>
-      'Kein API-Schlüssel konfiguriert. Bitte unter Einstellungen → KI-Mahlzeitenerkennung eingeben.';
+      'Kein API-Schlüssel konfiguriert. Bitte unter Einstellungen → KI-Funktionen eingeben.';
 
   @override
   String get aiErrorNetwork =>
@@ -3114,7 +3207,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'Ermöglicht die Nutzung von KI zur Mahlzeitenerkennung. Bei Deaktivierung werden alle KI-Buttons in der App ausgeblendet.';
+      'Aktiviert KI-Funktionen wie Chat und Mahlzeitenerkennung. Bei Deaktivierung werden alle KI-Einstiegspunkte ausgeblendet.';
+
+  @override
+  String get aiNutritionEngineLabel => 'Methode der Nährwertbestimmung';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      'Die direkte Schätzung legt Nährwerte ohne Abgleich mit der Lebensmitteldatenbank an. Der Katalogmodus nutzt weiterhin den lokalen Lebensmittelabgleich.';
+
+  @override
+  String get aiNutritionEngineEstimate => 'Direkte KI-Schätzung';
+
+  @override
+  String get aiNutritionEngineCatalog => 'Lokaler Lebensmittelkatalog';
+
+  @override
+  String get aiDirectEstimateLabel => 'KI-Schätzung';
+
+  @override
+  String get aiFloatingAssistantTitle => 'Schwebenden KI-Assistenten anzeigen';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'Zeigt die KI-Wolke über der App. Der KI-Chat bleibt bei deaktivierter Wolke über das Plus-Menü erreichbar.';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'Status & Features';
@@ -5255,11 +5371,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Basiert auf deinen letzten Logs und deren Vollständigkeit.';
+      'Die Einschätzung berücksichtigt Ernährungs- und Gewichtsdaten sowie die Stabilität der Schätzung.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Aktuell nur auf Profil-/Prior-Daten basiert. Mit aktuellen Gewichts- und Intake-Logs wird die Anpassung präziser.';
+      'Für eine verlässliche Einschätzung fehlen derzeit ausreichend aussagekräftige Daten.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5274,10 +5390,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gewichts- und Intake-Logs sind aktuell spärlich, deshalb ist diese Empfehlung konservativer.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Nur Profil-/Prior-Basis';
+  String get adaptiveConfidenceNotEnoughData => 'Zu wenig verlässliche Daten';
 
   @override
-  String get adaptiveConfidenceLow => 'Wenige aktuelle Logs';
+  String get adaptiveConfidenceLow => 'Begrenzte Datengrundlage';
 
   @override
   String get adaptiveConfidenceMedium => 'Nutzbare aktuelle Logs';
@@ -5527,6 +5643,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get healthExportDomainNutritionHydration => 'Ernährung & Hydration';
 
   @override
+  String get healthNutritionImportTitle => 'Ernährung importieren';
+
+  @override
+  String get healthNutritionImportSubtitle =>
+      'Tageswerte aus Apple Health oder Health Connect ins Tagebuch übernehmen.';
+
+  @override
+  String get healthNutritionImportPolicy =>
+      'Manuelle Einträge bleiben separat. Importierte Tage werden bei Änderungen in Train Libre nicht überschrieben und nach dem Löschen nicht erneut importiert.';
+
+  @override
   String get healthExportDomainWorkouts => 'Workouts';
 
   @override
@@ -5629,6 +5756,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => 'Japanisch';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'Spanisch';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'Niederländisch';
 
   @override
   String get aiModelLabel => 'Modell';
@@ -5862,7 +5995,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre möchte deine Schrittdaten lesen, um dir tägliche/wöchentliche Statistiken anzuzeigen. Deine Daten bleiben lokal auf deinem Gerät; es gibt keinen externen Server.';
+      'Train Libre nutzt Schrittdaten für Tages- und Wochenstatistiken. Importierte Daten können auch in Sicherungen enthalten sein oder bei Nutzung der KI-Funktion an diese weitergegeben werden. Verwalte den Gesundheitszugriff in den Geräteeinstellungen.';
 
   @override
   String get health_permission_continue => 'Fortfahren';
@@ -5879,11 +6012,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein. Ich kann meine Einwilligung jederzeit in den Einstellungen widerrufen.';
+      'Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein, wie in der Datenschutzerklärung beschrieben. Für Fragen zum Widerruf meiner Einwilligung wende ich mich an feedback@schotte.me.';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optional) Ich möchte pseudonymisierte Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten oder Gesundheitsdaten).';
+      '(Optional) Ich möchte pseudonymisierte Nutzungsstatistiken teilen. Ereignisse können technische Kennungen und Kennzahlen enthalten, die auch ohne Namen personenbezogen oder gesundheitsbezogen sein können.';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -5930,11 +6063,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionTitle =>
-      'Wie die KI-Mahlzeitenerkennung funktioniert';
+      'Wie die KI-Funktionen funktionieren';
 
   @override
   String get aiSettingsInstructionBody =>
-      'Diese Funktion nutzt KI zur Analyse von Lebensmittelbildern und liefert Nährwertschätzungen. Deine Bilder werden nur dann an den ausgewählten KI-Anbieter gesendet, wenn du die Funktion nutzt. Sie basiert auf einer Bring-Your-Own-Key (BYOK)-Architektur, wodurch deine Daten lokal auf dem Gerät bleiben, bis sie analysiert werden.';
+      'KI-Funktionen umfassen Chat und Mahlzeitenerkennung. Nachrichten, Bilder und Kontext werden an das verwendete Modell gesendet. Der Chat kann einen Ausweichanbieter nutzen. Gespeicherte Daten benötigen eine Freigabe, sofern die automatische Freigabe nicht aktiviert ist.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Einrichtungs-Anleitung';
@@ -6085,11 +6218,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      'Trägt Mahlzeitenfotos oder Freitexte in strukturierte Tagebucheinträge ein und gleicht diese mit deiner privaten Produktdatenbank ab.';
+      'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Übersetzt ungenaue Beschreibungen (z. B. \'eine Scheibe Brot\') in metrische Gewichtsschätzungen.\n• Gleicht KI-Vorschläge offline mit der lokalen Produktdatenbank du deinem Gerät ab.\n• Berechnet Nährwerte lokal auf deinem Gerät, anstatt Berechnungen an externe Server zu delegieren.';
+      'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
   String get infoAiMealTechnicalTitle =>
@@ -6097,7 +6230,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Nutzt ein Bring-Your-Own-Key (BYOK) Datenschutzmodell. Die KI fungiert ausschließlich als Vorschlagsebene. Der Abgleich erfolgt offline über einen tokenbasierten Jaro-Winkler-Filter (Ähnlichkeit >= 0,82) gegen die SQLite-Datenbank. Dem KI-Anbieter wird die Nährwertberechnung per System-Prompt strikt untersagt.';
+      'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
   String get infoSleepTitle => 'Schlafqualität (SHS v3.5)';
@@ -6660,7 +6793,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      'Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\nFolgendes passiert dabei:\n• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n• Es wird ein Löschauftrag (\$delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n• Das Telemetrie-SDK wird vollständig zurückgesetzt.';
+      'Train Libre versucht, lokale Telemetriekennungen und Zähler zurückzusetzen und eine Löschanfrage an PostHog zu senden. Die Anfrage kann fehlschlagen, bestätigt keine serverseitige Löschung und erfasst möglicherweise frühere Kennungen oder Backups nicht.';
 
   @override
   String get telemetryDeleteConfirmButton => 'Daten jetzt löschen';
@@ -6674,15 +6807,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      'Pseudonymisiert: Kein Name, keine E-Mail, keine Trainings-, Tagebuch-, Gewichts-, Ernährungs- oder Gesundheitsdaten. Übermittelt wird nur, welche Screens und Funktionen genutzt werden und ob Fehler auftreten.';
+      'Pseudonymisiert: Ereignisse können technische Kennungen, App- und Gerätekontext, Bildschirm- und Funktionsnutzung, genaue Trainingszähler und -dauer, Ernährungseintragszähler, den Status von KI-Anfragen sowie Kennzahlen aus Ernährungs- oder Gewichtsbereichen enthalten. Auch ohne Namen können diese Daten personenbezogen oder gesundheitsbezogen sein.';
 
   @override
   String get telemetryConsentPointNotSold =>
-      'Nicht für Werbung: Die Daten werden niemals verkauft und nicht für Marketing oder Werbung verwendet. Die Verarbeitung erfolgt auf Servern in der EU.';
+      'Keine Werbung in der App: Train Libre zeigt keine Werbung. Nutzungsereignisse werden für App-Statistiken übermittelt; Verarbeitung und Hosting hängen von der Dienstkonfiguration ab.';
 
   @override
   String get telemetryConsentPointRevocable =>
-      'Freiwillig: Jederzeit in den Einstellungen deaktivierbar. Gespeicherte Daten können dort auch gelöscht werden.';
+      'Freiwillig: Künftige Übermittlungen kannst du in den Einstellungen ausschalten. Die Löschfunktion setzt lokale Kennungen und Zähler zurück und versucht eine Löschanfrage; sie bestätigt keine serverseitige Löschung.';
 
   @override
   String get telemetryConsentAccept => 'Ja, Nutzungsdaten teilen';
@@ -6696,14 +6829,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'Hilft bei der Verbesserung der App. Pseudonymisiert, ohne persönliche Daten oder Gesundheitsdaten.';
+      'Optionale Nutzungsstatistiken können technische Kennungen und Kennzahlen enthalten, die auch ohne Namen personenbezogen oder gesundheitsbezogen sein können.';
 
   @override
   String get settingsTelemetryDeleteTitle => 'Telemetrie-Daten löschen';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server';
+      'Setzt lokale Kennungen zurück und versucht eine Löschanfrage; eine serverseitige Löschung wird nicht bestätigt.';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -6841,6 +6974,49 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get voiceTapToFinish => 'Hört zu — zum Beenden tippen';
+
+  @override
+  String get aiChatAddImage => 'Bild hinzufügen';
+
+  @override
+  String get aiChatTakePhoto => 'Foto aufnehmen';
+
+  @override
+  String get aiChatChoosePhoto => 'Aus Galerie auswählen';
+
+  @override
+  String get aiChatRemoveImage => 'Bild entfernen';
+
+  @override
+  String get aiChatCameraUnavailable =>
+      'Die Kamera ist auf diesem Gerät nicht verfügbar.';
+
+  @override
+  String get aiChatCameraPermission =>
+      'Erlaube den Kamerazugriff, um ein Foto aufzunehmen.';
+
+  @override
+  String get aiChatCapture => 'Foto aufnehmen';
+
+  @override
+  String get aiChatCameraOptions => 'Kameraoptionen';
+
+  @override
+  String get aiChatFlash => 'Blitz';
+
+  @override
+  String get aiChatSwitchCamera => 'Kamera wechseln';
+
+  @override
+  String get aiChatImageLimit => 'Du kannst bis zu 4 Bilder anhängen.';
+
+  @override
+  String get aiChatImageQuestion =>
+      'Wenn das Bild Essen oder Getränke zeigt, schätze bitte die Nährwerte und bereite einen passenden Tagebucheintrag zur Überprüfung vor. Falls nicht, beschreibe kurz, was auf dem Bild zu sehen ist.';
+
+  @override
+  String get aiChatImageUnsupported =>
+      'Das ausgewählte KI-Modell unterstützt keine Bilder. Dein Entwurf bleibt im Eingabefeld.';
 
   @override
   String get voiceStarting => 'Einen Moment…';
@@ -7945,7 +8121,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalReasonPrivacyNotice =>
-      'Deine Notiz bleibt 100 % privat auf deinem Gerät und wird niemals geteilt.';
+      'Deine Notiz wird in der App gespeichert und kann in Sicherungen oder einer freigegebenen KI-Anfrage enthalten sein.';
 
   @override
   String get goalStep7Question => 'Prüfen & Aktivieren';
@@ -8515,6 +8691,30 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erinnerungen für Training, Ziele und Reviews';
 
   @override
+  String get notificationExactAlarmTitle => 'Genaue Timer erlauben';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Erlaube Wecker und Erinnerungen in den Android-Einstellungen, damit Pausentöne im Hintergrund pünktlich erklingen.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Live-Workout';
+
+  @override
+  String get notificationRestTimerTitle => 'Pausentimer-Benachrichtigungen';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Systembenachrichtigung anzeigen, wenn ein Pausentimer endet.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Stummmodus ignorieren';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Pausenton in der geöffneten App auch im Stummmodus abspielen. Hintergrundbenachrichtigungen folgen den Systemeinstellungen.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Trainingsplan';
 
   @override
@@ -8951,11 +9151,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiOverlayDemoGlobalEnabledTitle =>
-      'AI Overlay app-weit aktivieren';
+      'KI-Assistent app-weit anzeigen';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'Die Demo-Wolke auf allen Screens anzeigen. Chats werden nicht gespeichert.';
+      'Die schwebende KI-Wolke auf allen Screens anzeigen.';
 
   @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay – UI-Demo';
@@ -9011,6 +9211,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiOverlayChatHistory => 'Chatverlauf';
 
   @override
+  String get aiOverlayAutoApprove => 'Datenanfragen automatisch freigeben';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'Du hast diese Woche dreimal trainiert. Soll ich deine Trainingslast vergleichen?';
 
@@ -9045,7 +9248,217 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wolke horizontal ziehen. Die Position wird gespeichert.';
 
   @override
+  String get aiOverlayDemoAssistantHint => 'KI-Assistent öffnen';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => 'Schwarz und Weiß';
+
+  @override
+  String get aiOverlayDemoColorWhite => 'Weiß';
+
+  @override
+  String get aiOverlayDemoColorBlack => 'Schwarz';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'Lebhaftigkeit der Wolke';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription =>
+      'Steuert die Bewegung der erweiterten KI-Wolke.';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle =>
+      'Punkte für den sicheren Bereich anzeigen';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      'Ecken zum Anpassen des Bereichs einblenden';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle => 'Direkt im Vollbild öffnen';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle =>
+      'Zwischenansicht beim Öffnen der Wolke überspringen';
+
+  @override
+  String get developerNutritionLabSubtitle =>
+      'Ernährungslogik und adaptive Empfehlungen prüfen';
+
+  @override
+  String get appleFoundationReadyTitle => 'Auf diesem Gerät verfügbar';
+
+  @override
+  String get appleFoundationEnableTitle =>
+      'In den iOS-Einstellungen aktivieren';
+
+  @override
+  String get appleFoundationNoTransferSubtitle =>
+      'Keine Datenübertragung und keine API-Kosten.';
+
+  @override
+  String get telemetryDeleteSuccess =>
+      'Das Zurücksetzen der Telemetrie wurde versucht. Die Löschung auf dem Server wurde nicht bestätigt.';
+
+  @override
   String aiAssistantAskModelHint(String model) {
     return 'Frage $model';
   }
+
+  @override
+  String get aiStarterCheckNutritionTitle => 'Heutige Nährwerte prüfen';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      'Wie sieht meine Nährwert- und Makrobilanz für heute aus? Zeige mir die bereits aufgenommenen Kalorien, Proteine, Kohlenhydrate und Fette im Vergleich zu meinen Tageszielen und was mir noch fehlt.';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => 'Erholungsstatus abfragen';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      'Wie ist mein aktueller Erholungsstatus? Welche Muskelgruppen sind vollständig regeneriert und welche Muskeln brauchen noch Erholung vor dem nächsten Training?';
+
+  @override
+  String get aiStarterSuggestMealTitle => 'Mahlzeit nach Makros vorschlagen';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      'Prüfe mein heutiges Ernährungstagebuch und meine verbleibenden Makros: Welche Mahlzeiten habe ich heute schon erfasst und was kann ich als nächste Mahlzeit essen, um meine noch offenen Kalorien und Nährwerte optimal abzudecken?';
+
+  @override
+  String get aiAssistantThinking => 'Denkt nach …';
+
+  @override
+  String get aiAssistantProcessingData => 'Wertet freigegebene Daten aus …';
+
+  @override
+  String get macroEntryButton => 'Makros';
+
+  @override
+  String get macroEntryTitle => 'Makros eintragen';
+
+  @override
+  String get macroEntryName => 'Name (optional)';
+
+  @override
+  String get macroEntryAmount => 'Menge (optional)';
+
+  @override
+  String get macroEntryAmountTotalHint =>
+      'Leer lassen: Nährwerte gelten für den ganzen Eintrag.';
+
+  @override
+  String get macroEntryAmountPer100GramHint =>
+      'Menge angegeben: Nährwerte gelten pro 100 g.';
+
+  @override
+  String get macroEntryAmountPer100MlHint =>
+      'Menge angegeben: Nährwerte gelten pro 100 ml.';
+
+  @override
+  String get macroEntryCalculate => 'Automatisch berechnen';
+
+  @override
+  String get macroEntryInvalidValues =>
+      'Die eingegebenen Werte ergeben keinen gültigen Makrowert.';
+
+  @override
+  String get macroEntryLogAsFluid => 'Zusätzlich als Flüssigkeit erfassen';
+
+  @override
+  String get macroEntryFluidAmountRequired =>
+      'Für Flüssigkeiten bitte eine Menge in ml angeben.';
+
+  @override
+  String get macroEntryExtraNutrients => 'Weitere Nährwerte hinzufügen';
+
+  @override
+  String get macroEntrySugar => 'Zucker';
+
+  @override
+  String get macroEntryFiber => 'Ballaststoffe';
+
+  @override
+  String get macroEntrySalt => 'Salz';
+
+  @override
+  String get macroEntryCaffeine => 'Koffein';
+
+  @override
+  String get macroEntryPer100 => 'Pro 100';
+
+  @override
+  String get macroEntryPortion => 'Portion';
+
+  @override
+  String get macroEntrySaved => 'Makros wurden eingetragen.';
+
+  @override
+  String get macroEntryDefaultName => 'Makroeintrag';
+
+  @override
+  String get macroEntryDetailTitle => 'Nährwerte';
+
+  @override
+  String get macroEntryFillThreeValues =>
+      'Bitte genau drei der vier Makrowerte eintragen.';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'Dieser Eintrag ist mit einem Makroeintrag verknüpft. Beim Löschen werden Getränk und Makroeintrag entfernt.';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => 'Gemischt / Bereit';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      'Für den Direktversand muss die pseudonymisierte Nutzungsstatistik aktiviert sein. Aktiviere sie in den Einstellungen oder nutze stattdessen E-Mail oder Teilen.';
+
+  @override
+  String get feedbackReportDirectSent =>
+      'Diagnosebericht direkt an den Entwickler gesendet. Vielen Dank!';
+
+  @override
+  String get feedbackReportDirectSend => 'Direkt an den Entwickler senden';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Der neue KI-Chat';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Stelle Fragen zu Training und Ernährung oder erstelle Entwürfe. Deine Nachricht und Bilder werden beim Senden an das Modell übermittelt. Der Zugriff auf gespeicherte Daten benötigt eine Freigabe, sofern die automatische Freigabe nicht aktiviert ist. Durch einen Ausweichanbieter kann sich der Empfänger ändern.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Beispiel-Chat';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Was kann der neue KI-Chat in Train Libre?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'Der Assistent kann Routinen, Pläne und Rezepte als Entwürfe erstellen. Prüfe Vorschläge und Mahlzeiten vor dem Übernehmen oder Speichern.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'KI-Funktionen aktivieren';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Steuert den KI-Chat und die anderen KI-Funktionen.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled =>
+      'Schwebenden KI-Chat anzeigen';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Blende die Chat-Wolke ein oder aus. Der Chat bleibt auch über das Hinzufügen-Menü erreichbar.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'KI-Chat ausprobieren';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Öffne die Vorschau des neuen KI-Chats jederzeit erneut.';
 }

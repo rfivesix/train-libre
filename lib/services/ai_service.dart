@@ -15,6 +15,8 @@ import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
+import '../features/diary/domain/models/food_item.dart';
+import '../features/diary/domain/macro_entry_calculator.dart';
 import 'ai/apple_foundation_service.dart';
 
 part 'ai/ai_models.dart';
@@ -62,6 +64,9 @@ class AiService {
   final AiHttpGet _httpGet;
   final Map<String, (String, String)> _geminiResolvedRoutes = {};
 
+  /// Increments whenever the selected AI provider or model configuration changes.
+  final ValueNotifier<int> configurationRevision = ValueNotifier<int>(0);
+
   /// Keychain items default to `kSecAttrAccessibleWhenUnlocked`, which Apple
   /// copies into device and iCloud backups and restores onto whatever device
   /// the backup is applied to. BYOK credentials must not travel that way, so
@@ -98,6 +103,19 @@ class AiService {
   static const _customModelKey = 'ai_custom_model';
   static const _timeoutKey = 'ai_timeout_seconds';
   static const _fastModeKey = 'ai_fast_mode_enabled';
+  static const _mealNutritionModeKey = 'ai_meal_nutrition_mode';
+
+  Future<AiMealNutritionMode> getMealNutritionMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_mealNutritionModeKey) == 'localCatalog'
+        ? AiMealNutritionMode.localCatalog
+        : AiMealNutritionMode.directEstimate;
+  }
+
+  Future<void> setMealNutritionMode(AiMealNutritionMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_mealNutritionModeKey, mode.name);
+  }
 
   Future<bool> isFastModeEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -133,11 +151,7 @@ class AiService {
         'gpt-4.1',
         'gpt-4o',
       ],
-      emergencyFallbackModels: [
-        'gpt-5.4',
-        'gpt-5.4-mini',
-        'gpt-4.1',
-      ],
+      emergencyFallbackModels: ['gpt-5.4', 'gpt-5.4-mini', 'gpt-4.1'],
       supportsVision: true,
       supportsDynamicModelLoading: true,
     ),
@@ -217,21 +231,23 @@ class AiService {
       supportsVision: true,
       supportsDynamicModelLoading: true,
     ),
+    AiProvider.deepseek: AiProviderMetadata(
+      provider: AiProvider.deepseek,
+      displayName: 'DeepSeek',
+      keyHint: 'sk-...',
+      defaultModel: 'deepseek-flash',
+      rankingHints: ['deepseek-flash', 'deepseek-v4-pro'],
+      emergencyFallbackModels: ['deepseek-flash', 'deepseek-v4-pro'],
+      supportsVision: true,
+      supportsDynamicModelLoading: true,
+    ),
     AiProvider.ollama: AiProviderMetadata(
       provider: AiProvider.ollama,
       displayName: 'Ollama',
       keyHint: 'Not required',
       defaultModel: 'llama3',
-      rankingHints: [
-        'llama3',
-        'llava',
-        'mistral',
-        'phi3',
-      ],
-      emergencyFallbackModels: [
-        'llama3',
-        'llava',
-      ],
+      rankingHints: ['llama3', 'llava', 'mistral', 'phi3'],
+      emergencyFallbackModels: ['llama3', 'llava'],
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
@@ -241,9 +257,7 @@ class AiService {
       keyHint: 'API Key (if required)',
       defaultModel: 'custom-model',
       rankingHints: [],
-      emergencyFallbackModels: [
-        'custom-model',
-      ],
+      emergencyFallbackModels: ['custom-model'],
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
@@ -252,12 +266,8 @@ class AiService {
       displayName: 'Apple Intelligence',
       keyHint: 'System Model (On-Device)',
       defaultModel: 'apple-foundation-system',
-      rankingHints: [
-        'apple-foundation-system',
-      ],
-      emergencyFallbackModels: [
-        'apple-foundation-system',
-      ],
+      rankingHints: ['apple-foundation-system'],
+      emergencyFallbackModels: ['apple-foundation-system'],
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
@@ -293,6 +303,7 @@ class AiService {
     } else {
       await _secureStorage.write(key: _customModelKey, value: model);
     }
+    configurationRevision.value++;
   }
 
   /// Reads the AI request timeout in seconds.
@@ -423,6 +434,7 @@ class AiService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_providerKey, provider.name);
     } catch (_) {}
+    configurationRevision.value++;
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
@@ -474,6 +486,7 @@ class AiService {
       key: selectedModelStorageKeyFor(provider),
       value: resolvedModel,
     );
+    configurationRevision.value++;
   }
 
   /// How many live models the picker shows at most.
@@ -528,13 +541,7 @@ class AiService {
     final fallback = _safeEmergencyFallback(provider);
     return AiModelListResult(
       options: fallback
-          .map(
-            (m) => AiModelOption(
-              id: m,
-              label: m,
-              isFallback: true,
-            ),
-          )
+          .map((m) => AiModelOption(id: m, label: m, isFallback: true))
           .toList(growable: false),
       isFallback: true,
       error: error,
@@ -683,9 +690,7 @@ class AiService {
     try {
       final provider = await getSelectedProvider();
       if (provider == AiProvider.appleFoundation) {
-        final prompt = _AiPrompts.buildSystemPrompt(
-          languageCode: languageCode,
-        );
+        final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
         await AppleFoundationService.instance.prewarm(systemPrompt: prompt);
       }
     } catch (_) {}
@@ -716,6 +721,7 @@ class AiService {
     String? languageCode,
     AiMatchingContext? matchingContext,
     DepthScaleFacts? depthFacts,
+    int? depthPhotoIndex,
     File? depthMap,
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
@@ -739,7 +745,7 @@ class AiService {
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
-      systemPrompt: prompt,
+      systemPrompt: '$prompt${_depthPhotoContext(depthFacts, depthPhotoIndex)}',
       images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.3,
       usageCollector: usageCollector,
@@ -774,6 +780,184 @@ class AiService {
 
     return _parseMealCandidateFromContent(raw);
   }
+
+  /// Estimates each ingredient directly from the capture without consulting
+  /// the product or base-food catalog. The response contains macros per 100 g;
+  /// calories are derived with the same 4/4/9 calculation used by macro logs.
+  Future<AiMealCandidate> analyzeDirectNutritionImages(
+    List<File> images, {
+    String? textHint,
+    String? languageCode,
+    DepthScaleFacts? depthFacts,
+    int? depthPhotoIndex,
+    File? depthMap,
+    String? depthMapLegend,
+    AiUsageCollector? usageCollector,
+  }) async {
+    final attachDepthMap = depthMap != null &&
+        depthMapLegend != null &&
+        depthMapLegend.trim().isNotEmpty;
+    final prompt = _buildDirectNutritionPrompt(
+      languageCode: languageCode,
+      depthFacts: depthFacts,
+      depthMapLegend: attachDepthMap ? depthMapLegend : null,
+    );
+    final raw = await _callSelectedProviderRaw(
+      userContent: textHint?.trim().isNotEmpty == true
+          ? 'Meal description: $textHint. Estimate the visible ingredients and their nutrition.'
+          : 'Analyze the meal and estimate each ingredient and its nutrition.',
+      systemPrompt: '$prompt${_depthPhotoContext(depthFacts, depthPhotoIndex)}',
+      images: attachDepthMap ? [...images, depthMap] : images,
+      temperature: 0.25,
+      usageCollector: usageCollector,
+    );
+    return _attachDirectEstimateFoods(
+      await _parseMealCandidateFromContent(raw),
+    );
+  }
+
+  Future<AiMealCandidate> analyzeDirectNutritionText(
+    String description, {
+    String? languageCode,
+    AiUsageCollector? usageCollector,
+  }) async {
+    final raw = await _callSelectedProviderRaw(
+      userContent: description,
+      systemPrompt: _buildDirectNutritionPrompt(languageCode: languageCode),
+      temperature: 0.25,
+      usageCollector: usageCollector,
+    );
+    return _attachDirectEstimateFoods(
+      await _parseMealCandidateFromContent(raw),
+    );
+  }
+
+  Future<AiMealCandidate> retryDirectNutrition({
+    required List<AiMealCandidateItem> previousItems,
+    required String feedback,
+    List<File>? images,
+    String? languageCode,
+    AiUsageCollector? usageCollector,
+  }) async {
+    final raw = await _callSelectedProviderRaw(
+      userContent: '''Previous meal estimate:
+${jsonEncode({'items': previousItems.map((item) => item.toJson()).toList()})}
+
+User correction: $feedback
+Update the ingredient quantities and nutrient estimates to follow this correction.''',
+      systemPrompt: _buildDirectNutritionPrompt(languageCode: languageCode),
+      images: images,
+      temperature: 0.2,
+      usageCollector: usageCollector,
+    );
+    return _attachDirectEstimateFoods(
+      await _parseMealCandidateFromContent(raw),
+    );
+  }
+
+  AiMealCandidate _attachDirectEstimateFoods(AiMealCandidate candidate) {
+    if (candidate.items.isEmpty) throw const AiParseException();
+    final items = <AiMealCandidateItem>[];
+    for (var index = 0; index < candidate.items.length; index++) {
+      final original = candidate.items[index];
+      // Direct estimates describe the food as eaten. Some models still return
+      // a raw equivalent in estimatedGrams despite the prompt.
+      final served = original.servedGrams;
+      final grams = served != null && served > 0 ? served : original.grams;
+      final item = original.copyWith(grams: grams, servedGrams: grams);
+      final nutrition = item.nutritionPer100g;
+      if (item.grams <= 0 || nutrition == null) {
+        throw const AiParseException(
+          'The direct nutrition estimate is incomplete.',
+        );
+      }
+      double core(String key) {
+        final value = nutrition[key];
+        if (value == null || !value.isFinite || value < 0 || value > 110) {
+          throw const AiParseException(
+            'The direct nutrition estimate contains invalid values.',
+          );
+        }
+        return value;
+      }
+
+      final protein = core('protein');
+      final carbs = core('carbs');
+      final fat = core('fat');
+      final calculation = MacroEntryCalculator.calculate({
+        'protein': protein,
+        'carbs': carbs,
+        'fat': fat,
+      });
+      if (calculation == null || !calculation.calories.isFinite) {
+        throw const AiParseException();
+      }
+      double? extra(String key) {
+        final value = nutrition[key];
+        if (value == null) return null;
+        final maxValue = key == 'caffeine' ? 2000.0 : 110.0;
+        if (!value.isFinite || value < 0 || value > maxValue) {
+          throw const AiParseException(
+            'The direct nutrition estimate contains invalid values.',
+          );
+        }
+        return value;
+      }
+
+      final syntheticFood = FoodItem(
+        barcode:
+            'ai-estimate-$index-${Object.hash(item.name, protein, carbs, fat, nutrition['sugar'], nutrition['fiber'], nutrition['salt'], nutrition['caffeine'], item.isFluid)}',
+        name: item.name,
+        nameDe: item.name,
+        calories: calculation.calories.round(),
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        fiber: extra('fiber'),
+        sugar: extra('sugar'),
+        salt: extra('salt'),
+        isFluid: item.isFluid,
+        caffeineMgPer100ml: item.isFluid ? extra('caffeine') : null,
+        caffeineMgPer100g: item.isFluid ? null : extra('caffeine'),
+      );
+      items.add(item.copyWith(selectedFood: syntheticFood));
+    }
+    return candidate.copyWith(items: items);
+  }
+
+  @visibleForTesting
+  AiMealCandidate attachDirectEstimateFoodsForTesting(AiMealCandidate candidate) =>
+      _attachDirectEstimateFoods(candidate);
+
+  String _buildDirectNutritionPrompt({
+    String? languageCode,
+    DepthScaleFacts? depthFacts,
+    String? depthMapLegend,
+  }) {
+    final language = languageCode ?? 'de';
+    final depth = depthFacts == null || !depthFacts.isValid
+        ? ''
+        : '\nUse this approximate LiDAR scene scale as a size cue: ${depthFacts.toMap()}. Frame dimensions apply at the central subject distance, not directly to the plate or food.';
+    final depthMap = depthMapLegend == null
+        ? ''
+        : '\nA depth image follows the meal photos. It shows camera-to-surface distance, not food height or volume; camera angle and background affect it. Use it cautiously as a size cue: $depthMapLegend.';
+    return '''You are a nutrition estimation engine. Analyze the meal and return atomic ingredients with estimated eaten weight and nutrient values per 100 g. Write all food names and meal title in $language.$depth$depthMap
+
+Do not search, cite, or imitate any food database or branded catalog entry. Estimate the actual visible/prepared food. Break composite meals into useful ingredients without inventing tiny ingredients that cannot be distinguished.
+Estimate the entire visible or described serving, including heaped, deep, stacked or unusually large portions. Use visible dimensions, depth cues when available, and reasonable food density; do not assume a standard serving or cap the total. Respect explicit user-provided quantities. Check that component weights plausibly account for the whole serving without double counting.
+Consider each component's footprint and average thickness, including layers and the interior of mounds, before estimating its eaten weight. Use only supported scale cues; do not invent a precise size when scale is uncertain. In this mode both gram fields describe the same eaten weight and nutrition is per 100 g of that food as eaten.
+Include every consumed food and drink. For each item include `name`, `estimatedGrams` (positive integer, or millilitres for drinks), `servedGrams` (positive integer), `isFluid` (true for drinks, false for foods), `confidence` (0..1), and `nutritionPer100g` (or per 100ml for drinks) with `protein`, `carbs`, and `fat` as non-negative numbers. Include `sugar`, `fiber`, `salt`, or `caffeine` only when you can make a reasonable estimate; otherwise use null or omit the field. Do not return calories: the app calculates calories from the three macros using 4/4/9.
+Return only JSON, with a top-level `dishType` and `items` array:
+{"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"isFluid":false,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4,"caffeine":0}}]}''';
+  }
+
+  String _depthPhotoContext(DepthScaleFacts? facts, int? index) => facts
+                  ?.isValid ==
+              true &&
+          index != null &&
+          index >= 0
+      ? '\nThe LiDAR scene scale corresponds to meal photo ${index + 1} (counting meal photos in order).'
+      : '';
 
   /// Turns a raw dictation transcript into bullets, correcting mishearings.
   ///
@@ -931,9 +1115,11 @@ Please provide an updated analysis incorporating the user's feedback. Return the
         : List<int>.generate(candidate.items.length, (index) => index);
     final semanticOnly = actionable.isNotEmpty &&
         scoped &&
-        actionable.every((issue) =>
-            issue.code == 'ambiguous_nutrition_match' ||
-            issue.code == 'ambiguous_db_match');
+        actionable.every(
+          (issue) =>
+              issue.code == 'ambiguous_nutrition_match' ||
+              issue.code == 'ambiguous_db_match',
+        );
     final userContent = '''
 Requested meal items (itemIndex is zero-based and must be returned unchanged):
 ${jsonEncode([
@@ -942,7 +1128,7 @@ ${jsonEncode([
               ...candidate.items[index].toJson(),
               'estimatedGrams': candidate.items[index].grams,
               'itemIndex': index,
-              'catalogLocked': !validation.items[index].needsCatalogRepair,
+              'catalogLocked': !validation.items[index].needsCatalogRepair
             },
         ])}
 
@@ -950,7 +1136,7 @@ Deterministic validation feedback (totals include unchanged items):
 ${validation.toRepairFeedback(itemIndices: affectedIndices.toSet())}
 
 Return exactly these ${affectedIndices.length} items, identified by itemIndex.
-${semanticOnly ? 'Select only catalog entries; preserve quantities and preparation state.' : 'Repair only the requested items. For catalogLocked items adjust only quantities to fit the meal context; their food selection is fixed.'}
+${semanticOnly ? 'Select only catalog entries; preserve quantities and preparation state.' : 'Repair only the requested items. Preserve valid quantities; do not resize portions to fit the meal context. For catalogLocked items the food selection is fixed.'}
 Use only the candidate IDs supplied for that particular item. If none are supplied, return matchedBarcode: null. Return catalogSearchTerm: null when it is no longer relevant. Original packaged-product evidence cannot be added or changed by this repair.
 ''';
 
@@ -981,10 +1167,11 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       final previous = candidate.items[index];
       final checked = validation.items[index];
       final response = byIndex[index]!;
-      final grams = semanticOnly || response.estimatedGrams <= 0
+      final preserveQuantity = previous.grams > 0;
+      final grams = preserveQuantity || response.estimatedGrams <= 0
           ? previous.grams
           : response.estimatedGrams;
-      final served = semanticOnly
+      final served = preserveQuantity
           ? previous.servedGrams
           : response.servedGrams ?? previous.servedGrams;
       if (!checked.needsCatalogRepair) {
@@ -1004,7 +1191,8 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
           ? supplied.where((food) => food.barcode == requestedId).toList()
           : supplied
               .where(
-                  (food) => food.getLocalizedName(null) == response.name.trim())
+                (food) => food.getLocalizedName(null) == response.name.trim(),
+              )
               .toList();
       if (requestedId != null &&
           requestedId.isNotEmpty &&
@@ -1069,9 +1257,13 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       // prepared these already, so this is a cache hit by the time it runs.
       final imageDataList = images == null
           ? <String>[]
-          : await Future.wait(images.map((img) async =>
-              (await MealImageProcessor.instance.prepareForAnalysis(img))
-                  .base64));
+          : await Future.wait(
+              images.map(
+                (img) async =>
+                    (await MealImageProcessor.instance.prepareForAnalysis(img))
+                        .base64,
+              ),
+            );
 
       final _AiRawResponse rawResult;
       switch (providerEnum) {
@@ -1163,27 +1355,42 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
             temperature: temperature,
           );
           break;
+        case AiProvider.deepseek:
+          rawResult = await _callOpenAiRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+            baseUrlOverride: 'https://api.deepseek.com',
+            provider: providerEnum,
+          );
+          break;
       }
 
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
       if (kDebugMode) {
         debugPrint(
-            '[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+          '[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}',
+        );
       }
       return rawResult.text;
     } catch (e) {
       usageCollector?.finishRequest(null, requestId: usageRequestId);
       if (!modelRefreshAttempted &&
           e is AiNetworkException &&
-          RegExp(r'(model not found|model does not exist|unknown model|invalid model|model is not supported)',
-                  caseSensitive: false)
-              .hasMatch(e.message)) {
+          RegExp(
+            r'(model not found|model does not exist|unknown model|invalid model|model is not supported)',
+            caseSensitive: false,
+          ).hasMatch(e.message)) {
         final provider = await getSelectedProvider();
         if (provider != AiProvider.ollama && provider != AiProvider.custom) {
           final rejected = await getSelectedModel(provider);
           final options = await loadModelOptions(provider);
-          final alternatives =
-              options.options.where((option) => option.id != rejected);
+          final alternatives = options.options.where(
+            (option) => option.id != rejected,
+          );
           if (alternatives.isNotEmpty) {
             await setSelectedModel(provider, alternatives.first.id);
             return _callSelectedProviderRaw(

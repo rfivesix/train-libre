@@ -82,9 +82,7 @@ Widget _wrapWithPushButton(WidgetBuilder builder) {
           return TextButton(
             key: const Key('open_route'),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: builder),
-              );
+              Navigator.of(context).push(MaterialPageRoute(builder: builder));
             },
             child: const Text('Open'),
           );

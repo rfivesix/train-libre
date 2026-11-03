@@ -11,9 +11,7 @@ part 'bayesian/regression_engine.dart';
 class BayesianTdeeEstimator {
   final BayesianEstimatorConfig config;
 
-  const BayesianTdeeEstimator({
-    this.config = const BayesianEstimatorConfig(),
-  });
+  const BayesianTdeeEstimator({this.config = const BayesianEstimatorConfig()});
 
   static double steadyStateKalmanGain({
     required double processVariance,
@@ -29,8 +27,10 @@ class BayesianTdeeEstimator {
       (processVariance * processVariance) +
           (4 * processVariance * observationVariance),
     );
-    return ((root - processVariance) / (2 * observationVariance))
-        .clamp(0.0, 1.0);
+    return ((root - processVariance) / (2 * observationVariance)).clamp(
+      0.0,
+      1.0,
+    );
   }
 
   static double steadyStatePosteriorVariance({
@@ -52,15 +52,15 @@ class BayesianTdeeEstimator {
   }) {
     final profilePriorMean = input.priorMaintenanceCalories.toDouble();
     final normalizedDueWeekKey = _normalizeDueWeekKey(dueWeekKey);
-    final effectivePhaseContext = phaseContext ??
+    final effectivePhaseContext =
+        phaseContext ??
         BayesianObservationPhaseContext.bootstrap(
           phase: AdaptiveDietPhase.maintain,
         );
-    final qualityFlags = <String>[
-      'bayesian_recursive_filter',
-    ];
-    final baseQVariance =
-        math.pow(config.weeklyMaintenanceDriftCalories, 2).toDouble();
+    final qualityFlags = <String>['bayesian_recursive_filter'];
+    final baseQVariance = math
+        .pow(config.weeklyMaintenanceDriftCalories, 2)
+        .toDouble();
 
     final observationModel = _buildObservationModel(
       input: input,
@@ -218,7 +218,7 @@ class BayesianTdeeEstimator {
         recursiveState?.recentObservationResidualsCalories ?? const <double>[];
     final previousObservationHistory =
         recursiveState?.recentObservationImpliedMaintenanceCalories ??
-            const <double>[];
+        const <double>[];
 
     final nextPosteriorHistory = isSameDueWeekReplay
         ? previousPosteriorHistory
@@ -230,21 +230,21 @@ class BayesianTdeeEstimator {
     final nextResidualHistory = isSameDueWeekReplay
         ? previousResidualHistory
         : (!hasObservation || observedMaintenance == null)
-            ? previousResidualHistory
-            : _appendRollingHistory(
-                existing: previousResidualHistory,
-                value: residualCalories,
-                maxLength: config.calibrationHistoryWindowWeeks,
-              );
+        ? previousResidualHistory
+        : _appendRollingHistory(
+            existing: previousResidualHistory,
+            value: residualCalories,
+            maxLength: config.calibrationHistoryWindowWeeks,
+          );
     final nextObservationHistory = isSameDueWeekReplay
         ? previousObservationHistory
         : (!hasObservation || observedMaintenance == null)
-            ? previousObservationHistory
-            : _appendRollingHistory(
-                existing: previousObservationHistory,
-                value: observedMaintenance,
-                maxLength: config.calibrationHistoryWindowWeeks,
-              );
+        ? previousObservationHistory
+        : _appendRollingHistory(
+            existing: previousObservationHistory,
+            value: observedMaintenance,
+            maxLength: config.calibrationHistoryWindowWeeks,
+          );
 
     final residualBiasSummary = BayesianResidualBiasDiagnostics.summarize(
       residuals: nextResidualHistory,
@@ -269,8 +269,9 @@ class BayesianTdeeEstimator {
       priorMeanUsedCalories: priorMean,
       priorStdDevUsedCalories: math.sqrt(priorVariance),
       priorSource: priorStep.priorSource,
-      observedIntakeCalories:
-          observationModel.hasIntake ? input.avgLoggedCalories : null,
+      observedIntakeCalories: observationModel.hasIntake
+          ? input.avgLoggedCalories
+          : null,
       observedWeightSlopeKgPerWeek: input.smoothedWeightSlopeKgPerWeek,
       observationImpliedMaintenanceCalories: observedMaintenance,
       effectiveSampleSize: effectiveSampleSize,
@@ -344,9 +345,6 @@ class BayesianTdeeEstimator {
       recentObservationImpliedMaintenanceCalories: nextObservationHistory,
     );
 
-    return BayesianEstimatorRunResult(
-      estimate: estimate,
-      nextState: nextState,
-    );
+    return BayesianEstimatorRunResult(estimate: estimate, nextState: nextState);
   }
 }

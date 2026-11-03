@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../services/ai_meal_validation.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../widgets/common/macro_badge_row.dart';
@@ -8,15 +9,13 @@ import '../../../../widgets/common/macro_badge_row.dart';
 class MealReviewMacrosBar extends StatelessWidget {
   final AiNutritionTotals nutrition;
 
-  const MealReviewMacrosBar({
-    super.key,
-    required this.nutrition,
-  });
+  const MealReviewMacrosBar({super.key, required this.nutrition});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isZero = nutrition.kcalRounded == 0 &&
+    final isZero =
+        nutrition.kcalRounded == 0 &&
         nutrition.proteinRounded == 0 &&
         nutrition.carbsRounded == 0 &&
         nutrition.fatRounded == 0;
@@ -30,8 +29,9 @@ class MealReviewMacrosBar extends StatelessWidget {
         ),
         child: Text(
           '---',
-          style: theme.textTheme.labelSmall
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
@@ -41,8 +41,10 @@ class MealReviewMacrosBar extends StatelessWidget {
       protein: nutrition.proteinRounded.toDouble(),
       carbs: nutrition.carbsRounded.toDouble(),
       fat: nutrition.fatRounded.toDouble(),
-      useBadges: Provider.of<ThemeService>(context, listen: false)
-          .useColorfulMacroBadges,
+      useBadges: Provider.of<ThemeService>(
+        context,
+        listen: false,
+      ).useColorfulMacroBadges,
     );
   }
 }

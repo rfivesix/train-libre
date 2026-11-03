@@ -4,7 +4,7 @@ import '../../platform/apple_health_export_platform.dart';
 
 class AppleHealthExportAdapter implements HealthExportAdapter {
   AppleHealthExportAdapter({AppleHealthExportPlatform? platform})
-      : _platform = platform ?? const AppleHealthExportPlatform();
+    : _platform = platform ?? const AppleHealthExportPlatform();
 
   final AppleHealthExportPlatform _platform;
 

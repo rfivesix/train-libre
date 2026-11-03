@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -6,10 +7,7 @@ import '../../../../generated/app_localizations.dart';
 class OnboardingCaloriesSlide extends StatelessWidget {
   final TextEditingController calController;
 
-  const OnboardingCaloriesSlide({
-    super.key,
-    required this.calController,
-  });
+  const OnboardingCaloriesSlide({super.key, required this.calController});
 
   @override
   Widget build(BuildContext context) {
@@ -22,16 +20,16 @@ class OnboardingCaloriesSlide extends StatelessWidget {
           Text(
             l10n.onboardingGoalsTitle,
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingGoalCalories,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 16),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           TextField(
@@ -49,7 +47,8 @@ class OnboardingCaloriesSlide extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingXL),
+                vertical: DesignConstants.spacingXL,
+              ),
             ),
           ),
         ],
@@ -80,16 +79,16 @@ class OnboardingMacrosSlide extends StatelessWidget {
         children: [
           Text(
             l10n.onboardingMacrosStepTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingMacrosStepSubtitle,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 16),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           _MacroInput(

@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+
 import '../../../util/design_constants.dart';
 
 import '../../../generated/app_localizations.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 enum MealType { breakfast, lunch, dinner, snack }
@@ -78,8 +83,11 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.mealEditor));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.mealEditor,
+      ),
+    );
     _nameCtrl = TextEditingController(text: widget.initialName ?? '');
     _type = widget.initialType;
     _nameCtrl.addListener(() => setState(() {})); // Update button state
@@ -104,9 +112,8 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
       debugPrint('Error saving meal: $e');
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.error)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.error)));
       setState(() => _saving = false);
     }
   }
@@ -121,7 +128,9 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingS, vertical: 6),
+              horizontal: DesignConstants.spacingS,
+              vertical: 6,
+            ),
             child: AppButton.primary(
               onPressed: _canSave ? _onSave : null,
               label: l10n.save,

@@ -87,8 +87,9 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final visible =
-        widget.sections.where((section) => section.options.isNotEmpty).toList();
+    final visible = widget.sections
+        .where((section) => section.options.isNotEmpty)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,10 +117,12 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
             label: section.title,
             selected: section.selection,
             items: section.options
-                .map((option) => PlatformAdaptivePopupMenuItem<String>(
-                      value: option.value,
-                      label: option.label,
-                    ))
+                .map(
+                  (option) => PlatformAdaptivePopupMenuItem<String>(
+                    value: option.value,
+                    label: option.label,
+                  ),
+                )
                 .toList(),
             onToggled: (value) => _apply(() {
               if (section.selection.contains(value)) {
@@ -144,14 +147,14 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
           child: TextButton(
             onPressed: _hasSelection
                 ? () => _apply(() {
-                      for (final section in widget.sections) {
-                        section.selection.clear();
-                      }
-                      if (_onlyPerformed) {
-                        _onlyPerformed = false;
-                        widget.onOnlyPerformedChanged?.call(false);
-                      }
-                    })
+                    for (final section in widget.sections) {
+                      section.selection.clear();
+                    }
+                    if (_onlyPerformed) {
+                      _onlyPerformed = false;
+                      widget.onOnlyPerformedChanged?.call(false);
+                    }
+                  })
                 : null,
             child: Text(l10n.catalogFilterReset),
           ),

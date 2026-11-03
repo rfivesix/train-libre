@@ -37,9 +37,14 @@ void main() {
   /// A catalog row, so the query can learn what the logged numbers mean.
   /// Without one it falls back to the caller's `isCardio` belief, which is the
   /// documented behaviour for pre-v2 rows and user-created exercises.
-  Future<String> exerciseRow(String id, String trackingType,
-      {String loadMode = 'external'}) async {
-    await db.into(db.exercises).insert(
+  Future<String> exerciseRow(
+    String id,
+    String trackingType, {
+    String loadMode = 'external',
+  }) async {
+    await db
+        .into(db.exercises)
+        .insert(
           ExercisesCompanion.insert(
             id: Value(id),
             trackingType: Value(trackingType),
@@ -57,14 +62,18 @@ void main() {
     double? distanceKm,
   }) async {
     final logId = 'log-$exerciseName';
-    await db.into(db.workoutLogs).insert(
+    await db
+        .into(db.workoutLogs)
+        .insert(
           WorkoutLogsCompanion.insert(
             id: Value(logId),
             startTime: DateTime.now().subtract(const Duration(days: 3)),
             status: const Value('completed'),
           ),
         );
-    await db.into(db.setLogs).insert(
+    await db
+        .into(db.setLogs)
+        .insert(
           SetLogsCompanion.insert(
             workoutLogId: logId,
             exerciseNameSnapshot: Value(exerciseName),
@@ -105,8 +114,11 @@ void main() {
     test('a held position holds a duration record', () async {
       // Not cardio, so it used to be sent down the rep-bracket branch, where
       // it has no reps and therefore never held a record of any kind.
-      final uuid =
-          await exerciseRow('ex-plank', 'time', loadMode: 'bodyweight');
+      final uuid = await exerciseRow(
+        'ex-plank',
+        'time',
+        loadMode: 'bodyweight',
+      );
       await logSet('Plank', durationSeconds: 90);
 
       final prs = await source.getExercisePRs('Plank', exerciseUuid: uuid);
@@ -117,7 +129,9 @@ void main() {
     test('the longest hold wins, not the last one', () async {
       final uuid = await exerciseRow('ex-hang', 'time', loadMode: 'bodyweight');
       await logSet('Hang', durationSeconds: 45);
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion.insert(
               workoutLogId: 'log-Hang',
               exerciseNameSnapshot: const Value('Hang'),
@@ -150,25 +164,32 @@ void main() {
       expect(prs['4-6 RM']?.weightKg, 100);
     });
 
-    test('a body-weight set reaches the brackets with no weight typed',
-        () async {
-      // The query required `weight > 0 AND reps > 0`, so a pull-up at body
-      // weight never reached the aggregation at all.
-      final uuid = await exerciseRow('ex-pullup', 'bodyweight_reps',
-          loadMode: 'bodyweight');
-      await db.into(db.measurements).insert(
-            MeasurementsCompanion.insert(
-              type: 'weight',
-              value: 82,
-              unit: 'kg',
-              date: DateTime.now().subtract(const Duration(days: 10)),
-            ),
-          );
-      await logSet('Pull-up', reps: 8);
+    test(
+      'a body-weight set reaches the brackets with no weight typed',
+      () async {
+        // The query required `weight > 0 AND reps > 0`, so a pull-up at body
+        // weight never reached the aggregation at all.
+        final uuid = await exerciseRow(
+          'ex-pullup',
+          'bodyweight_reps',
+          loadMode: 'bodyweight',
+        );
+        await db
+            .into(db.measurements)
+            .insert(
+              MeasurementsCompanion.insert(
+                type: 'weight',
+                value: 82,
+                unit: 'kg',
+                date: DateTime.now().subtract(const Duration(days: 10)),
+              ),
+            );
+        await logSet('Pull-up', reps: 8);
 
-      final prs = await source.getExercisePRs('Pull-up', exerciseUuid: uuid);
-      expect(prs['7-10 RM']?.reps, 8);
-    });
+        final prs = await source.getExercisePRs('Pull-up', exerciseUuid: uuid);
+        expect(prs['7-10 RM']?.reps, 8);
+      },
+    );
   });
 
   test('a barbell set still carries weight and reps', () async {

@@ -1,9 +1,4 @@
-enum WorkoutHeartRateDataQuality {
-  ready,
-  limited,
-  insufficient,
-  noData,
-}
+enum WorkoutHeartRateDataQuality { ready, limited, insufficient, noData }
 
 enum WorkoutHeartRateNoDataReason {
   none,

@@ -55,9 +55,9 @@ class AiRepairCandidate {
       matchEvidence: food.catalogMatchAlias == null
           ? null
           : ' [alias:${food.catalogMatchAlias};'
-              ' language:${food.catalogMatchLanguage};'
-              ' scope:${food.catalogMatchScope};'
-              ' review:${food.catalogMatchReviewStatus}]',
+                ' language:${food.catalogMatchLanguage};'
+                ' scope:${food.catalogMatchScope};'
+                ' review:${food.catalogMatchReviewStatus}]',
     );
   }
 }

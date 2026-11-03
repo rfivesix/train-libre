@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+
 import '../../../util/design_constants.dart';
 
 import '../../../generated/app_localizations.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class PriorActivityHelpBlock extends StatelessWidget {
   final AppLocalizations l10n;
 
-  const PriorActivityHelpBlock({
-    super.key,
-    required this.l10n,
-  });
+  const PriorActivityHelpBlock({super.key, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -72,10 +71,7 @@ class PriorActivityHelpBlock extends StatelessWidget {
         ),
         const SizedBox(width: DesignConstants.spacingS),
         Expanded(
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          child: Text(text, style: Theme.of(context).textTheme.bodySmall),
         ),
       ],
     );

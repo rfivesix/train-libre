@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart' show DateFormat;
@@ -18,8 +19,9 @@ class SleepTimelineCard extends StatelessWidget {
     final chartSegments = _toChartSegments(overview.timelineSegments);
     if (chartSegments.isEmpty) {
       return Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingL,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -42,8 +44,9 @@ class SleepTimelineCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -90,12 +93,12 @@ class _SleepTimelinePlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final axisTextStyle =
-        (theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-      color: theme.colorScheme.onSurfaceVariant,
-    );
+    final axisTextStyle = (theme.textTheme.bodySmall ?? const TextStyle())
+        .copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurfaceVariant,
+        );
     return LayoutBuilder(
       builder: (context, constraints) {
         final ticks = _buildTimelineTicks(
@@ -172,7 +175,7 @@ List<_TimelineAxisTick> _buildTimelineTicks({
   final startMinutes = startLocal.hour * 60 + startLocal.minute;
   final firstBoundaryMinute =
       ((startMinutes + intervalMinutes - 1) ~/ intervalMinutes) *
-          intervalMinutes;
+      intervalMinutes;
   var current = DateTime(
     startLocal.year,
     startLocal.month,
@@ -188,10 +191,9 @@ List<_TimelineAxisTick> _buildTimelineTicks({
     current = current.add(Duration(minutes: intervalMinutes));
   }
 
-  final sortedTicksUtc = rawTicksLocal
-      .map((tick) => tick.toUtc())
-      .toList(growable: false)
-    ..sort((a, b) => a.compareTo(b));
+  final sortedTicksUtc =
+      rawTicksLocal.map((tick) => tick.toUtc()).toList(growable: false)
+        ..sort((a, b) => a.compareTo(b));
 
   if (sortedTicksUtc.isEmpty) return [];
 
@@ -211,11 +213,7 @@ List<_TimelineAxisTick> _buildTimelineTicks({
       availableWidth - labelWidth - DesignConstants.spacingL,
     );
     candidates.add(
-      _TimelineAxisTick(
-        timestampUtc: tickUtc,
-        label: label,
-        left: left,
-      ),
+      _TimelineAxisTick(timestampUtc: tickUtc, label: label, left: left),
     );
   }
 
@@ -455,12 +453,10 @@ List<_ChartStageSegment> _toChartSegments(List<SleepStageSegment> segments) {
   for (final segment in sorted) {
     final chartStage = switch (segment.stage) {
       CanonicalSleepStage.awake ||
-      CanonicalSleepStage.outOfBed =>
-        _SleepChartStage.awake,
+      CanonicalSleepStage.outOfBed => _SleepChartStage.awake,
       CanonicalSleepStage.rem => _SleepChartStage.rem,
       CanonicalSleepStage.light ||
-      CanonicalSleepStage.asleepUnspecified =>
-        _SleepChartStage.light,
+      CanonicalSleepStage.asleepUnspecified => _SleepChartStage.light,
       CanonicalSleepStage.deep => _SleepChartStage.deep,
       _ => null,
     };

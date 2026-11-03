@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'platform_adaptive_switch.dart';
 
 /// A standardized row widget for settings screens.
@@ -41,8 +42,10 @@ class AppSettingsRow extends StatelessWidget {
     Widget? leading,
     VoidCallback? onTap,
     IconData trailingIcon = LucideIcons.chevron_right,
-    EdgeInsetsGeometry padding =
-        const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      vertical: 12.0,
+      horizontal: 4.0,
+    ),
     BorderRadius borderRadius = const BorderRadius.all(Radius.circular(12.0)),
   }) {
     return AppSettingsRow(
@@ -74,8 +77,10 @@ class AppSettingsRow extends StatelessWidget {
     Widget? leading,
     required bool value,
     required ValueChanged<bool>? onChanged,
-    EdgeInsetsGeometry padding =
-        const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      vertical: 12.0,
+      horizontal: 4.0,
+    ),
     BorderRadius borderRadius = const BorderRadius.all(Radius.circular(12.0)),
   }) {
     return AppSettingsRow(
@@ -86,10 +91,7 @@ class AppSettingsRow extends StatelessWidget {
       padding: padding,
       borderRadius: borderRadius,
       onTap: onChanged != null ? () => onChanged(!value) : null,
-      trailing: PlatformAdaptiveSwitch(
-        value: value,
-        onChanged: onChanged,
-      ),
+      trailing: PlatformAdaptiveSwitch(value: value, onChanged: onChanged),
     );
   }
 
@@ -100,8 +102,10 @@ class AppSettingsRow extends StatelessWidget {
     String? subtitle,
     required bool selected,
     required VoidCallback? onTap,
-    EdgeInsetsGeometry padding =
-        const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      vertical: 12.0,
+      horizontal: 4.0,
+    ),
     BorderRadius borderRadius = const BorderRadius.all(Radius.circular(12.0)),
   }) {
     return AppSettingsRow(
@@ -179,10 +183,7 @@ class AppSettingsRow extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 12.0),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 12.0), trailing!],
         ],
       ),
     );

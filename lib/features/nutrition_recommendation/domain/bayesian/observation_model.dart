@@ -8,24 +8,24 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
     final hasSlope = input.smoothedWeightSlopeKgPerWeek != null;
     final hasIntake = input.intakeLoggedDays > 0;
     final hasObservation = hasSlope && hasIntake;
-    final kcalPerKgSelection = _resolveKcalPerKg(
-      phaseContext: phaseContext,
-    );
+    final kcalPerKgSelection = _resolveKcalPerKg(phaseContext: phaseContext);
     final phaseVarianceMultiplier = _resolvePhaseVarianceMultiplier(
       phaseContext: phaseContext,
     );
     final kcalPerKgPerDay = kcalPerKgSelection.kcalPerKg / 7;
 
-    final baseVariance =
-        math.pow(config.baseObservationStdDevCalories, 2).toDouble();
-    final intakeStdError = config.intakeDayStdDevCalories /
+    final baseVariance = math
+        .pow(config.baseObservationStdDevCalories, 2)
+        .toDouble();
+    final intakeStdError =
+        config.intakeDayStdDevCalories /
         math.sqrt(math.max(input.intakeLoggedDays, 1));
     final intakeVariance = math.pow(intakeStdError, 2).toDouble();
 
     final weightSignalDays = math.max(input.weightLogCount - 1, 1);
     final slopeStdErrorCalories =
         (config.weightTrendStdDevKgPerWeek * kcalPerKgPerDay) /
-            math.sqrt(weightSignalDays);
+        math.sqrt(weightSignalDays);
     final slopeVariance = math.pow(slopeStdErrorCalories, 2).toDouble();
 
     final unadjustedReferenceVariance = math.max(
@@ -36,11 +36,12 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
         unadjustedReferenceVariance * phaseVarianceMultiplier;
 
     final usableWindowDays = math.max(input.windowDays, 1);
-    final intakeCompleteness =
-        (input.intakeLoggedDays / usableWindowDays).clamp(0.05, 1.0);
-    final weightCompleteness = ((math.max(input.weightLogCount - 1, 0)) /
-            math.max(usableWindowDays - 1, 1))
+    final intakeCompleteness = (input.intakeLoggedDays / usableWindowDays)
         .clamp(0.05, 1.0);
+    final weightCompleteness =
+        ((math.max(input.weightLogCount - 1, 0)) /
+                math.max(usableWindowDays - 1, 1))
+            .clamp(0.05, 1.0);
     final completenessMultiplier =
         1 / math.sqrt(intakeCompleteness * weightCompleteness);
 
@@ -66,16 +67,19 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
 
     final observedMaintenance = hasObservation
         ? input.avgLoggedCalories -
-            (input.smoothedWeightSlopeKgPerWeek! * kcalPerKgPerDay)
+              (input.smoothedWeightSlopeKgPerWeek! * kcalPerKgPerDay)
         : null;
 
-    final confirmedPhaseAgeDays =
-        math.max(phaseContext.confirmedPhaseAgeDays, 0);
+    final confirmedPhaseAgeDays = math.max(
+      phaseContext.confirmedPhaseAgeDays,
+      0,
+    );
     final confirmedPhaseAgeWeeks = confirmedPhaseAgeDays <= 0
         ? 0.0
         : ((confirmedPhaseAgeDays - 1) / 7) + 1;
-    final confirmedPhaseWeekIndex =
-        confirmedPhaseAgeDays <= 0 ? 0 : ((confirmedPhaseAgeDays - 1) ~/ 7) + 1;
+    final confirmedPhaseWeekIndex = confirmedPhaseAgeDays <= 0
+        ? 0
+        : ((confirmedPhaseAgeDays - 1) ~/ 7) + 1;
     final pendingPhaseAgeDaysRaw = phaseContext.pendingPhaseAgeDays;
     final pendingPhaseAgeDays = pendingPhaseAgeDaysRaw == null
         ? null
@@ -83,8 +87,8 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
     final pendingPhaseAgeWeeks = pendingPhaseAgeDays == null
         ? null
         : pendingPhaseAgeDays <= 0
-            ? 0.0
-            : ((pendingPhaseAgeDays - 1) / 7) + 1;
+        ? 0.0
+        : ((pendingPhaseAgeDays - 1) / 7) + 1;
 
     return _ObservationModel(
       hasSlope: hasSlope,
@@ -177,20 +181,23 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
           2,
         );
         qScaleFromHistory = rawScale.toDouble().clamp(
-              config.minimumHistoricalQScale,
-              config.maximumHistoricalQScale,
-            );
+          config.minimumHistoricalQScale,
+          config.maximumHistoricalQScale,
+        );
         usedHistoryForQ = true;
       }
     }
 
-    final calibratedQVariance = baseQVariance *
+    final calibratedQVariance =
+        baseQVariance *
         ((1 - config.posteriorDriftHistoryInfluenceOnQ) +
             (config.posteriorDriftHistoryInfluenceOnQ * qScaleFromHistory));
-    final calibratedObservationVariance = baseObservationVariance *
+    final calibratedObservationVariance =
+        baseObservationVariance *
         ((1 - config.residualHistoryInfluenceOnR) +
             (config.residualHistoryInfluenceOnR * rScaleFromHistory));
-    final calibratedReferenceVariance = baseReferenceObservationVariance *
+    final calibratedReferenceVariance =
+        baseReferenceObservationVariance *
         ((1 - config.residualHistoryInfluenceOnR) +
             (config.residualHistoryInfluenceOnR * rScaleFromHistory));
 
@@ -235,9 +242,9 @@ class BayesianResidualBiasDiagnostics {
     int minimumObservations = defaultMinimumObservations,
     double neutralBandCalories = defaultNeutralBandCalories,
   }) {
-    final usableResiduals = residuals.where((value) => value.isFinite).toList(
-          growable: false,
-        );
+    final usableResiduals = residuals
+        .where((value) => value.isFinite)
+        .toList(growable: false);
     final count = usableResiduals.length;
     if (count < minimumObservations) {
       return BayesianResidualBiasSummary(
@@ -253,8 +260,8 @@ class BayesianResidualBiasDiagnostics {
     final status = meanResidual > neutralBand
         ? BayesianResidualBiasStatus.likelyOverestimatingEnergyDensity
         : meanResidual < -neutralBand
-            ? BayesianResidualBiasStatus.likelyUnderestimatingEnergyDensity
-            : BayesianResidualBiasStatus.neutral;
+        ? BayesianResidualBiasStatus.likelyUnderestimatingEnergyDensity
+        : BayesianResidualBiasStatus.neutral;
 
     return BayesianResidualBiasSummary(
       meanResidualCalories: meanResidual,

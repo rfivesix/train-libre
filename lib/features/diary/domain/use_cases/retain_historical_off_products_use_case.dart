@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
+
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/drift_database.dart';
 
@@ -171,8 +172,7 @@ class RetainHistoricalOffProductsUseCase {
       );
       await (database.delete(
         database.products,
-      )..where((t) => t.source.equals('off') & t.barcode.isIn(chunk)))
-          .go();
+      )..where((t) => t.source.equals('off') & t.barcode.isIn(chunk))).go();
 
       doneOps += chunk.length;
       if (onProgress != null && totalOps > 0) {

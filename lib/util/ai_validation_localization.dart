@@ -1,10 +1,7 @@
 import '../generated/app_localizations.dart';
 import '../services/ai_meal_validation.dart';
 
-String aiValidationIssueText(
-  AppLocalizations l10n,
-  AiValidationIssue issue,
-) {
+String aiValidationIssueText(AppLocalizations l10n, AiValidationIssue issue) {
   switch (issue.code) {
     case 'empty_item_name':
       return l10n.aiValidationEmptyItemName;

@@ -21,6 +21,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
 
         val updated = when (intent.action) {
             LiveUpdateAction.SKIP_REST -> {
+                RestTimerSound.cancel(context)
                 WorkoutLiveStore.enqueue(context, "skipRest")
                 // Skipping ends the rest, but which set comes next is the app's
                 // answer to give. Until it runs, the card drops the countdown
@@ -40,6 +41,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
                 // Never below now: a −15s that would land in the past reads as a
                 // finished rest, which is what the app would make of it too.
                 val moved = (ends + delta * 1000L).coerceAtLeast(System.currentTimeMillis())
+                RestTimerSound.reschedule(context, moved)
                 content.copy(restEndsAtEpochMs = moved)
             }
 

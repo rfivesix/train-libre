@@ -26,15 +26,11 @@ void main() {
 
       expect(result.weightTrend.direction, BodyNutritionTrendDirection.falling);
       expect(
-          result.calorieTrend.direction, BodyNutritionTrendDirection.falling);
-      expect(
-        result.relationship,
-        BodyNutritionRelationshipType.alignedCutLike,
+        result.calorieTrend.direction,
+        BodyNutritionTrendDirection.falling,
       );
-      expect(
-        result.confidence != BodyNutritionConfidence.insufficient,
-        isTrue,
-      );
+      expect(result.relationship, BodyNutritionRelationshipType.alignedCutLike);
+      expect(result.confidence != BodyNutritionConfidence.insufficient, isTrue);
     });
 
     test('classifies stable maintenance-like pattern', () {
@@ -97,7 +93,9 @@ void main() {
         weightPoints: [
           ChartDataPoint(date: start.add(const Duration(days: 1)), value: 80),
           ChartDataPoint(
-              date: start.add(const Duration(days: 12)), value: 79.8),
+            date: start.add(const Duration(days: 12)),
+            value: 79.8,
+          ),
         ],
         caloriesByDay: {
           start.add(const Duration(days: 2)): 2000,
@@ -130,16 +128,15 @@ void main() {
         },
       );
 
-      expect(
-        result.relationship,
-        BodyNutritionRelationshipType.mixedOrUnclear,
-      );
+      expect(result.relationship, BodyNutritionRelationshipType.mixedOrUnclear);
     });
 
     test('normalized comparison starts both series from same baseline', () {
       final start = DateTime.utc(2026, 10, 1);
-      final range =
-          DateTimeRange(start: start, end: DateTime.utc(2026, 10, 30));
+      final range = DateTimeRange(
+        start: start,
+        end: DateTime.utc(2026, 10, 30),
+      );
       final result = BodyNutritionAnalyticsEngine.build(
         range: range,
         weightPoints: List.generate(

@@ -74,12 +74,12 @@ class SleepDayOverviewData {
   }
 
   bool get hasStageData => timelineSegments.any(
-        (segment) =>
-            segment.stage == CanonicalSleepStage.deep ||
-            segment.stage == CanonicalSleepStage.light ||
-            segment.stage == CanonicalSleepStage.rem ||
-            segment.stage == CanonicalSleepStage.asleepUnspecified,
-      );
+    (segment) =>
+        segment.stage == CanonicalSleepStage.deep ||
+        segment.stage == CanonicalSleepStage.light ||
+        segment.stage == CanonicalSleepStage.rem ||
+        segment.stage == CanonicalSleepStage.asleepUnspecified,
+  );
 
   bool get hasStageDurations =>
       (deepDuration?.inMinutes ?? 0) > 0 ||
@@ -103,10 +103,10 @@ class SleepDayRepository implements SleepDayDataRepository {
     AppDatabase? database,
     DatabaseHelper? databaseHelper,
     bool ownsDatabase = false,
-  })  : _databaseFuture = database != null
-            ? Future.value(database)
-            : (databaseHelper ?? DatabaseHelper.instance).database,
-        _ownsDatabase = ownsDatabase && database != null;
+  }) : _databaseFuture = database != null
+           ? Future.value(database)
+           : (databaseHelper ?? DatabaseHelper.instance).database,
+       _ownsDatabase = ownsDatabase && database != null;
 
   final Future<AppDatabase> _databaseFuture;
   final bool _ownsDatabase;
@@ -132,9 +132,12 @@ class SleepDayRepository implements SleepDayDataRepository {
       'sleep_canonical_heart_rate_samples',
     };
 
-    yield* db.tableUpdates().where((updates) {
-      return updates.any((update) => sleepTables.contains(update.table));
-    }).asyncMap((_) => fetchOverview(day));
+    yield* db
+        .tableUpdates()
+        .where((updates) {
+          return updates.any((update) => sleepTables.contains(update.table));
+        })
+        .asyncMap((_) => fetchOverview(day));
   }
 
   @override
@@ -148,12 +151,11 @@ class SleepDayRepository implements SleepDayDataRepository {
     if (analyses.isEmpty) return null;
 
     final sortedAnalysesRecords =
-        List<SleepNightlyAnalysisRecord>.from(analyses)
-          ..sort((a, b) {
-            if (a.score != null && b.score == null) return -1;
-            if (b.score != null && a.score == null) return 1;
-            return b.analyzedAt.compareTo(a.analyzedAt);
-          });
+        List<SleepNightlyAnalysisRecord>.from(analyses)..sort((a, b) {
+          if (a.score != null && b.score == null) return -1;
+          if (b.score != null && a.score == null) return 1;
+          return b.analyzedAt.compareTo(a.analyzedAt);
+        });
 
     final primaryRecord = sortedAnalysesRecords.first;
     final allSessions = <SleepSession>[];
@@ -288,8 +290,10 @@ class SleepDayRepository implements SleepDayDataRepository {
       baseline: baseline,
     );
 
-    final deepDuration =
-        _sumStageDuration(allSegments, CanonicalSleepStage.deep);
+    final deepDuration = _sumStageDuration(
+      allSegments,
+      CanonicalSleepStage.deep,
+    );
     final lightDuration = _sumStageDuration(
       allSegments,
       CanonicalSleepStage.light,
@@ -417,9 +421,11 @@ class SleepDayRepository implements SleepDayDataRepository {
       result.add(
         SleepRegularityNight(
           nightDate: DateTime.parse(analysis.nightDate),
-          bedtimeMinutes: session.startedAt.toLocal().hour * 60 +
+          bedtimeMinutes:
+              session.startedAt.toLocal().hour * 60 +
               session.startedAt.toLocal().minute,
-          wakeMinutes: session.endedAt.toLocal().hour * 60 +
+          wakeMinutes:
+              session.endedAt.toLocal().hour * 60 +
               session.endedAt.toLocal().minute,
         ),
       );

@@ -28,7 +28,9 @@ void main() {
     source = WorkoutLocalDataSource.forTesting(database);
     for (var index = 0; index < 3; index++) {
       final id = 'exercise-$index';
-      await database.into(database.exercises).insert(
+      await database
+          .into(database.exercises)
+          .insert(
             db.ExercisesCompanion.insert(
               id: Value(id),
               isCustom: const Value(true),
@@ -36,7 +38,9 @@ void main() {
               categoryName: const Value('Strength'),
             ),
           );
-      await database.into(database.exerciseTranslations).insert(
+      await database
+          .into(database.exerciseTranslations)
+          .insert(
             db.ExerciseTranslationsCompanion.insert(
               exerciseId: id,
               languageCode: 'en',
@@ -49,18 +53,18 @@ void main() {
   tearDown(() => database.close());
 
   Widget wrap(Widget child) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeService()),
-          ChangeNotifierProvider(create: (_) => UnitService()),
-          ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
-        ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: child,
-        ),
-      );
+    providers: [
+      ChangeNotifierProvider(create: (_) => ThemeService()),
+      ChangeNotifierProvider(create: (_) => UnitService()),
+      ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+    ],
+    child: MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: child,
+    ),
+  );
 
   testWidgets('connect buttons build a pair and then a triset', (tester) async {
     final routine = await source.createRoutine('Supersets');
@@ -95,8 +99,11 @@ void main() {
     expect(cards.map((card) => card.canDrag), [true, true, true]);
 
     final persisted = await source.getRoutineById(routine.id!);
-    expect(persisted!.exercises.map((exercise) => exercise.supersetGroup),
-        [1, 1, 1]);
+    expect(persisted!.exercises.map((exercise) => exercise.supersetGroup), [
+      1,
+      1,
+      1,
+    ]);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();

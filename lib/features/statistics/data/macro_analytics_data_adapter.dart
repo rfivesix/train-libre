@@ -7,6 +7,7 @@ import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_entry.dart';
 import '../../diary/domain/models/food_item.dart';
+import '../../diary/domain/models/macro_entry.dart';
 
 /// Represents aggregated nutritional intake for a single calendar day.
 class DailyMacroIntake {
@@ -71,8 +72,8 @@ class MacroAnalyticsDataAdapter {
   const MacroAnalyticsDataAdapter({
     DatabaseHelper? databaseHelper,
     ProductLocalDataSource? productDataSource,
-  })  : _customDatabaseHelper = databaseHelper,
-        _customProductDataSource = productDataSource;
+  }) : _customDatabaseHelper = databaseHelper,
+       _customProductDataSource = productDataSource;
 
   DatabaseHelper get _databaseHelper =>
       _customDatabaseHelper ?? DatabaseHelper.instance;
@@ -88,22 +89,31 @@ class MacroAnalyticsDataAdapter {
   }) async {
     final startDay = normalizeDay(range.start);
     final endDay = normalizeDay(range.end);
-    final endOfDay =
-        DateTime(endDay.year, endDay.month, endDay.day, 23, 59, 59);
+    final endOfDay = DateTime(
+      endDay.year,
+      endDay.month,
+      endDay.day,
+      23,
+      59,
+      59,
+    );
 
     final results = await Future.wait([
       _databaseHelper.getEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getFluidEntriesForDateRange(startDay, endOfDay),
+      _databaseHelper.getMacroEntriesForDateRange(startDay, endOfDay),
     ]);
 
     final foodEntries = results[0] as List<FoodEntry>;
     final fluidEntries = results[1] as List<FluidEntry>;
+    final macroEntries = results[2] as List<MacroEntry>;
 
     final dailyMap = await _aggregateDays(
       startDay: startDay,
       endDay: endDay,
       foodEntries: foodEntries,
       fluidEntries: fluidEntries,
+      macroEntries: macroEntries,
     );
 
     final totalDays = endDay.difference(startDay).inDays + 1;
@@ -116,9 +126,13 @@ class MacroAnalyticsDataAdapter {
 
     for (int i = 0; i < totalDays; i++) {
       final currentDay = startDay.add(Duration(days: i));
-      final dayKey =
-          DateTime.utc(currentDay.year, currentDay.month, currentDay.day);
-      final intake = dailyMap[dayKey] ??
+      final dayKey = DateTime.utc(
+        currentDay.year,
+        currentDay.month,
+        currentDay.day,
+      );
+      final intake =
+          dailyMap[dayKey] ??
           DailyMacroIntake(
             date: currentDay,
             calories: 0,
@@ -138,8 +152,9 @@ class MacroAnalyticsDataAdapter {
 
     // Averages are calculated across days with actual tracking when available,
     // or across total days if trackedDays == 0.
-    final divisor =
-        trackedDays > 0 ? trackedDays : (totalDays > 0 ? totalDays : 1);
+    final divisor = trackedDays > 0
+        ? trackedDays
+        : (totalDays > 0 ? totalDays : 1);
 
     return MacroPeriodSummary(
       range: range,
@@ -160,21 +175,21 @@ class MacroAnalyticsDataAdapter {
   }) async {
     final end = normalizeDay(anchorDate ?? DateTime.now());
     final start = end.subtract(Duration(days: days - 1));
-    final summary =
-        await fetchSummary(range: DateTimeRange(start: start, end: end));
+    final summary = await fetchSummary(
+      range: DateTimeRange(start: start, end: end),
+    );
     return summary.dailyIntakes;
   }
 
   /// Fetches the 7 days of the calendar week (Monday to Sunday) containing [date] or today.
-  Future<List<DailyMacroIntake>> fetchCurrentWeekDays({
-    DateTime? date,
-  }) async {
+  Future<List<DailyMacroIntake>> fetchCurrentWeekDays({DateTime? date}) async {
     final target = normalizeDay(date ?? DateTime.now());
     final offset = target.weekday - DateTime.monday;
     final monday = target.subtract(Duration(days: offset));
     final sunday = monday.add(const Duration(days: 6));
-    final summary =
-        await fetchSummary(range: DateTimeRange(start: monday, end: sunday));
+    final summary = await fetchSummary(
+      range: DateTimeRange(start: monday, end: sunday),
+    );
     return summary.dailyIntakes;
   }
 
@@ -183,6 +198,7 @@ class MacroAnalyticsDataAdapter {
     required DateTime endDay,
     required List<FoodEntry> foodEntries,
     required List<FluidEntry> fluidEntries,
+    required List<MacroEntry> macroEntries,
   }) async {
     final Set<int> archiveIdsSet = {};
     final Set<String> barcodesSet = {};
@@ -199,14 +215,16 @@ class MacroAnalyticsDataAdapter {
     final Map<String, FoodItem> legacyProductsMap = {};
 
     if (archiveIdsSet.isNotEmpty) {
-      final archivedProducts = await _productDataSource
-          .getProductsByArchiveIds(archiveIdsSet.toList());
+      final archivedProducts = await _productDataSource.getProductsByArchiveIds(
+        archiveIdsSet.toList(),
+      );
       archiveProductsMap.addAll(archivedProducts);
     }
 
     if (barcodesSet.isNotEmpty) {
-      final legacyProducts =
-          await _productDataSource.getProductsByBarcodes(barcodesSet.toList());
+      final legacyProducts = await _productDataSource.getProductsByBarcodes(
+        barcodesSet.toList(),
+      );
       for (final p in legacyProducts) {
         legacyProductsMap[p.barcode] = p;
       }
@@ -241,8 +259,21 @@ class MacroAnalyticsDataAdapter {
       }
     }
 
+    for (final entry in macroEntries) {
+      final day = DateTime.utc(
+        entry.timestamp.year,
+        entry.timestamp.month,
+        entry.timestamp.day,
+      );
+      caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + entry.totalCalories;
+      proteinByDay[day] = (proteinByDay[day] ?? 0.0) + entry.totalProtein;
+      carbsByDay[day] = (carbsByDay[day] ?? 0.0) + entry.totalCarbs;
+      fatByDay[day] = (fatByDay[day] ?? 0.0) + entry.totalFat;
+    }
+
     for (final entry in fluidEntries) {
-      final isLinked = entry.linkedFoodEntryId != null;
+      final isLinked =
+          entry.linkedFoodEntryId != null || entry.linkedMacroEntryId != null;
       final isDuplicateOfFood = foodEntries.any((food) {
         final foodItem = food.archiveLocalId != null
             ? archiveProductsMap[food.archiveLocalId!]
@@ -250,8 +281,10 @@ class MacroAnalyticsDataAdapter {
         final isFluidFood = foodItem != null && foodItem.isFluid;
         if (!isFluidFood) return false;
         if (entry.linkedFoodEntryId == food.id) return true;
-        final timeDiff =
-            entry.timestamp.difference(food.timestamp).inSeconds.abs();
+        final timeDiff = entry.timestamp
+            .difference(food.timestamp)
+            .inSeconds
+            .abs();
         return timeDiff < 2 && entry.quantityInMl == food.quantityInGrams;
       });
 
@@ -275,7 +308,7 @@ class MacroAnalyticsDataAdapter {
       ...caloriesByDay.keys,
       ...proteinByDay.keys,
       ...carbsByDay.keys,
-      ...fatByDay.keys
+      ...fatByDay.keys,
     };
 
     for (final day in allDays) {

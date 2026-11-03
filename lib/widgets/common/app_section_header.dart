@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../util/design_constants.dart';
 
 /// A standardized section header enforcing the perfected diary screen style:
@@ -40,7 +41,8 @@ class AppSectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final displayText = autoUpperCase ? title.toUpperCase() : title;
 
-    final resolvedPadding = padding ??
+    final resolvedPadding =
+        padding ??
         (isFirst
             ? EdgeInsets.only(
                 top: 4.0,
@@ -63,10 +65,7 @@ class AppSectionHeader extends StatelessWidget {
     return Padding(
       padding: resolvedPadding,
       child: action == null
-          ? Align(
-              alignment: Alignment.centerLeft,
-              child: titleTextWidget,
-            )
+          ? Align(alignment: Alignment.centerLeft, child: titleTextWidget)
           : Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

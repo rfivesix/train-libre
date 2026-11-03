@@ -57,31 +57,57 @@ class LoadIncrement {
 
   const LoadIncrement(this.value, {this.unit = 'kg', this.minimumLoad = 0});
 
-  static const LoadIncrement barbellMetric =
-      LoadIncrement(2.5, unit: 'kg', minimumLoad: 20);
-  static const LoadIncrement dumbbellMetric =
-      LoadIncrement(2.0, unit: 'kg', minimumLoad: 2);
-  static const LoadIncrement machineMetric =
-      LoadIncrement(5.0, unit: 'kg', minimumLoad: 5);
-  static const LoadIncrement cableMetric =
-      LoadIncrement(2.5, unit: 'kg', minimumLoad: 2.5);
+  static const LoadIncrement barbellMetric = LoadIncrement(
+    2.5,
+    unit: 'kg',
+    minimumLoad: 20,
+  );
+  static const LoadIncrement dumbbellMetric = LoadIncrement(
+    2.0,
+    unit: 'kg',
+    minimumLoad: 2,
+  );
+  static const LoadIncrement machineMetric = LoadIncrement(
+    5.0,
+    unit: 'kg',
+    minimumLoad: 5,
+  );
+  static const LoadIncrement cableMetric = LoadIncrement(
+    2.5,
+    unit: 'kg',
+    minimumLoad: 2.5,
+  );
   static const LoadIncrement assistedMetric = LoadIncrement(2.5, unit: 'kg');
   static const LoadIncrement defaultMetric = LoadIncrement(2.5, unit: 'kg');
 
-  static const LoadIncrement barbellImperial =
-      LoadIncrement(5.0, unit: 'lb', minimumLoad: 45);
-  static const LoadIncrement dumbbellImperial =
-      LoadIncrement(5.0, unit: 'lb', minimumLoad: 5);
-  static const LoadIncrement machineImperial =
-      LoadIncrement(10.0, unit: 'lb', minimumLoad: 10);
-  static const LoadIncrement cableImperial =
-      LoadIncrement(5.0, unit: 'lb', minimumLoad: 5);
+  static const LoadIncrement barbellImperial = LoadIncrement(
+    5.0,
+    unit: 'lb',
+    minimumLoad: 45,
+  );
+  static const LoadIncrement dumbbellImperial = LoadIncrement(
+    5.0,
+    unit: 'lb',
+    minimumLoad: 5,
+  );
+  static const LoadIncrement machineImperial = LoadIncrement(
+    10.0,
+    unit: 'lb',
+    minimumLoad: 10,
+  );
+  static const LoadIncrement cableImperial = LoadIncrement(
+    5.0,
+    unit: 'lb',
+    minimumLoad: 5,
+  );
   static const LoadIncrement assistedImperial = LoadIncrement(5.0, unit: 'lb');
   static const LoadIncrement defaultImperial = LoadIncrement(5.0, unit: 'lb');
 
   /// Resolves the load increment for an equipment descriptor.
-  static LoadIncrement fromEquipment(String? equipment,
-      {bool isMetric = true}) {
+  static LoadIncrement fromEquipment(
+    String? equipment, {
+    bool isMetric = true,
+  }) {
     if (equipment == null) {
       return isMetric ? defaultMetric : defaultImperial;
     }

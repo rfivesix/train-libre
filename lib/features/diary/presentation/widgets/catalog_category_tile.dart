@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../domain/models/food_item.dart';
@@ -47,16 +48,15 @@ class CatalogCategoryTile extends StatelessWidget {
           else if (categoryItems == null || categoryItems.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingM),
+                vertical: DesignConstants.spacingM,
+              ),
               child: Center(child: Text(l10n.emptyCategory)),
             )
           else
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              padding: DesignConstants.cardPadding.copyWith(
-                top: 0,
-              ),
+              padding: DesignConstants.cardPadding.copyWith(top: 0),
               itemCount: categoryItems.length,
               itemBuilder: (context, i) => itemTileBuilder(categoryItems[i]),
             ),

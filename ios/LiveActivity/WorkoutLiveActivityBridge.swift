@@ -28,6 +28,12 @@ final class WorkoutLiveActivityBridge {
       result(consumePendingCommands())
     case "scheduleRestSound":
       scheduleRestSound(args: call.arguments as? [String: Any], result: result)
+    case "setRestNotificationsEnabled":
+      let args = call.arguments as? [String: Any]
+      RestSoundScheduler.setNotificationsEnabled(args?["enabled"] as? Bool ?? true, refreshPending: args?["refreshPending"] as? Bool ?? true)
+      result(nil)
+    case "setRestIgnoreSilentMode":
+      result(nil)
     case "cancelRestSound":
       RestSoundScheduler.cancel()
       result(true)

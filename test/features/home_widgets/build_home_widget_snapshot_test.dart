@@ -29,25 +29,25 @@ void main() {
   });
 
   DailyNutrition sampleNutrition() => DailyNutrition(
-        calories: 1234,
-        water: 1500,
-        protein: 98,
-        carbs: 180,
-        fat: 55,
-        fiber: 12.5,
-        sugar: 40.25,
-        salt: 3.5,
-        caffeine: 90,
-        targetCalories: 2000,
-        targetWater: 2500,
-        targetProtein: 150,
-        targetCarbs: 200,
-        targetFat: 60,
-        targetSugar: 50,
-        targetFiber: 30,
-        targetSalt: 6,
-        targetCaffeine: 400,
-      );
+    calories: 1234,
+    water: 1500,
+    protein: 98,
+    carbs: 180,
+    fat: 55,
+    fiber: 12.5,
+    sugar: 40.25,
+    salt: 3.5,
+    caffeine: 90,
+    targetCalories: 2000,
+    targetWater: 2500,
+    targetProtein: 150,
+    targetCarbs: 200,
+    targetFat: 60,
+    targetSugar: 50,
+    targetFiber: 30,
+    targetSalt: 6,
+    targetCaffeine: 400,
+  );
 
   HomeWidgetSnapshot build({
     DailyNutrition? nutrition,
@@ -55,15 +55,14 @@ void main() {
     UnitService? units,
     bool isAiEnabled = true,
     DateTime? now,
-  }) =>
-      buildHomeWidgetSnapshot(
-        nutrition: nutrition ?? sampleNutrition(),
-        extraNutrient: extraNutrient,
-        l10n: l10n,
-        unitService: units ?? metricUnits,
-        isAiEnabled: isAiEnabled,
-        now: now ?? DateTime(2026, 8, 10, 12, 0),
-      );
+  }) => buildHomeWidgetSnapshot(
+    nutrition: nutrition ?? sampleNutrition(),
+    extraNutrient: extraNutrient,
+    l10n: l10n,
+    unitService: units ?? metricUnits,
+    isAiEnabled: isAiEnabled,
+    now: now ?? DateTime(2026, 8, 10, 12, 0),
+  );
 
   HomeWidgetTile tileOf(HomeWidgetSnapshot s, String slot) =>
       s.tiles.firstWhere((t) => t.slot == slot);
@@ -98,10 +97,7 @@ void main() {
     });
 
     test('rolls back across a year boundary', () {
-      expect(
-        homeWidgetLogicalDayKey(DateTime(2026, 1, 1, 0, 5)),
-        '2025-12-31',
-      );
+      expect(homeWidgetLogicalDayKey(DateTime(2026, 1, 1, 0, 5)), '2025-12-31');
     });
 
     test('pads single-digit months and days', () {
@@ -114,17 +110,14 @@ void main() {
 
   group('grid composition', () {
     test('produces the diary\'s six tiles in column order', () {
-      expect(
-        build().tiles.map((t) => t.slot).toList(),
-        [
-          HomeWidgetSlot.calories,
-          HomeWidgetSlot.water,
-          HomeWidgetSlot.extra,
-          HomeWidgetSlot.protein,
-          HomeWidgetSlot.carbs,
-          HomeWidgetSlot.fat,
-        ],
-      );
+      expect(build().tiles.map((t) => t.slot).toList(), [
+        HomeWidgetSlot.calories,
+        HomeWidgetSlot.water,
+        HomeWidgetSlot.extra,
+        HomeWidgetSlot.protein,
+        HomeWidgetSlot.carbs,
+        HomeWidgetSlot.fat,
+      ]);
     });
 
     test('carries localized labels rather than keys', () {
@@ -237,9 +230,7 @@ void main() {
 
   group('edge cases', () {
     test('a zero target survives without dividing by zero downstream', () {
-      final snapshot = build(
-        nutrition: DailyNutrition(calories: 500),
-      );
+      final snapshot = build(nutrition: DailyNutrition(calories: 500));
       final calories = tileOf(snapshot, HomeWidgetSlot.calories);
       expect(calories.target, 0);
       expect(calories.value, 500);
@@ -304,9 +295,7 @@ void main() {
           l10n: l10n,
         ),
         steps: buildHomeWidgetSteps(
-          dailyTotals: [
-            StepsBucket(start: DateTime(2026, 8, 9), steps: 12300),
-          ],
+          dailyTotals: [StepsBucket(start: DateTime(2026, 8, 9), steps: 12300)],
           todaySteps: 8432,
           dailyGoal: 10000,
           isTrackingEnabled: true,
@@ -319,7 +308,11 @@ void main() {
               timestamp: DateTime(2026, 8, 1),
               measurements: [
                 Measurement(
-                    sessionId: 1, type: 'weight', value: 82.2, unit: 'kg'),
+                  sessionId: 1,
+                  type: 'weight',
+                  value: 82.2,
+                  unit: 'kg',
+                ),
               ],
             ),
           ],
@@ -448,7 +441,11 @@ void main() {
             timestamp: DateTime(2026, 8, 5),
             measurements: [
               Measurement(
-                  sessionId: 2, type: 'weight', value: 81.4, unit: 'kg'),
+                sessionId: 2,
+                type: 'weight',
+                value: 81.4,
+                unit: 'kg',
+              ),
               Measurement(sessionId: 2, type: 'waist', value: 88, unit: 'cm'),
             ],
           ),
@@ -457,7 +454,11 @@ void main() {
             timestamp: DateTime(2026, 8, 1),
             measurements: [
               Measurement(
-                  sessionId: 1, type: 'weight', value: 82.2, unit: 'kg'),
+                sessionId: 1,
+                type: 'weight',
+                value: 82.2,
+                unit: 'kg',
+              ),
             ],
           ),
         ],
@@ -482,7 +483,11 @@ void main() {
           timestamp: DateTime(2020, 1, 1).add(Duration(days: i)),
           measurements: [
             Measurement(
-                sessionId: i, type: 'weight', value: 80 + i / 100, unit: 'kg'),
+              sessionId: i,
+              type: 'weight',
+              value: 80 + i / 100,
+              unit: 'kg',
+            ),
           ],
         ),
       );
@@ -513,29 +518,27 @@ void main() {
       DateTime? endTime,
       List<SetLog> sets = const [],
       String? routineName = 'Push Day',
-    }) =>
-        WorkoutLog(
-          id: id,
-          routineName: routineName,
-          startTime: DateTime(2026, 8, 9, 18, 0),
-          endTime: endTime ?? DateTime(2026, 8, 9, 19, 14),
-          sets: sets,
-        );
+    }) => WorkoutLog(
+      id: id,
+      routineName: routineName,
+      startTime: DateTime(2026, 8, 9, 18, 0),
+      endTime: endTime ?? DateTime(2026, 8, 9, 19, 14),
+      sets: sets,
+    );
 
     SetLog set({double? weightKg, int? reps}) => SetLog(
-          workoutLogId: 42,
-          exerciseName: 'Bench Press',
-          setType: 'normal',
-          weightKg: weightKg,
-          reps: reps,
-        );
+      workoutLogId: 42,
+      exerciseName: 'Bench Press',
+      setType: 'normal',
+      weightKg: weightKg,
+      reps: reps,
+    );
 
     test('sums volume, reps and sets and keeps the duration', () {
       final workout = buildHomeWidgetLastWorkout(
-        log: log(sets: [
-          set(weightKg: 100, reps: 10),
-          set(weightKg: 80, reps: 8),
-        ]),
+        log: log(
+          sets: [set(weightKg: 100, reps: 10), set(weightKg: 80, reps: 8)],
+        ),
         l10n: l10n,
         unitService: metricUnits,
       )!;
@@ -568,8 +571,7 @@ void main() {
           log: log(routineName: null),
           l10n: l10n,
           unitService: metricUnits,
-        )!
-            .title,
+        )!.title,
         l10n.freeWorkoutTitle,
       );
     });
@@ -585,8 +587,11 @@ void main() {
       );
       expect(
         buildHomeWidgetLastWorkout(
-          log:
-              WorkoutLog(id: 1, startTime: DateTime(2026, 8, 9), endTime: null),
+          log: WorkoutLog(
+            id: 1,
+            startTime: DateTime(2026, 8, 9),
+            endTime: null,
+          ),
           l10n: l10n,
           unitService: metricUnits,
         ),
@@ -611,15 +616,14 @@ RecoveryAnalyticsPayload samplePayload({
   required int fresh,
   bool hasData = true,
   String overallState = 'severalRecovering',
-}) =>
-    RecoveryAnalyticsPayload.fromMap({
-      'hasData': hasData,
-      'overallState': overallState,
-      'totals': {
-        'recovering': recovering,
-        'ready': ready,
-        'fresh': fresh,
-        'tracked': recovering + ready + fresh,
-      },
-      'muscles': const <Map<String, dynamic>>[],
-    });
+}) => RecoveryAnalyticsPayload.fromMap({
+  'hasData': hasData,
+  'overallState': overallState,
+  'totals': {
+    'recovering': recovering,
+    'ready': ready,
+    'fresh': fresh,
+    'tracked': recovering + ready + fresh,
+  },
+  'muscles': const <Map<String, dynamic>>[],
+});

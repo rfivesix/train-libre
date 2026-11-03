@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../nutrition_recommendation/data/recommendation_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A premium, glassmorphic dismissible notification banner that alerts the user
@@ -37,7 +39,8 @@ class _RecommendationBannerState extends State<RecommendationBanner>
   @override
   void initState() {
     super.initState();
-    _recommendationService = widget.recommendationService ??
+    _recommendationService =
+        widget.recommendationService ??
         AdaptiveNutritionRecommendationService();
     _fadeController = AnimationController(
       vsync: this,
@@ -67,8 +70,9 @@ class _RecommendationBannerState extends State<RecommendationBanner>
   Future<void> _checkBannerStatus() async {
     try {
       // Load adaptive recommendation state
-      final recState =
-          await _recommendationService.loadState(refreshIfDue: false);
+      final recState = await _recommendationService.loadState(
+        refreshIfDue: false,
+      );
       final latestRec = recState.latestGeneratedRecommendation;
       final latestApplied = recState.latestAppliedRecommendation;
 
@@ -100,7 +104,8 @@ class _RecommendationBannerState extends State<RecommendationBanner>
       }
 
       final recommendedCalories = latestRec.recommendedCalories;
-      final isUnacknowledged = latestApplied == null ||
+      final isUnacknowledged =
+          latestApplied == null ||
           latestApplied.dueWeekKey != latestRec.dueWeekKey;
 
       final currentCaloriesMatch =
@@ -193,12 +198,14 @@ class _RecommendationBannerState extends State<RecommendationBanner>
         opacity: _fadeAnimation,
         child: Padding(
           padding: const EdgeInsets.symmetric(
-              vertical: DesignConstants.cardPaddingExternal),
+            vertical: DesignConstants.cardPaddingExternal,
+          ),
           child: Container(
             decoration: BoxDecoration(
               color: bg.withValues(alpha: isDark ? 0.85 : 0.95),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.15)
@@ -208,7 +215,9 @@ class _RecommendationBannerState extends State<RecommendationBanner>
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL, vertical: 14.0),
+                horizontal: DesignConstants.spacingL,
+                vertical: 14.0,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -238,13 +247,17 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                       onTap: _applyRecommendation,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.spacingM, vertical: 6),
+                          horizontal: DesignConstants.spacingM,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
                           borderRadius: BorderRadius.circular(
-                              DesignConstants.borderRadiusS),
-                          border:
-                              Border.all(color: accent.withValues(alpha: 0.3)),
+                            DesignConstants.borderRadiusS,
+                          ),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Text(
                           l10n.recommendationBannerApply,

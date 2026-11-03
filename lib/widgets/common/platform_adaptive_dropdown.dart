@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../util/design_constants.dart';
+import '../../features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
 /// Configuration item for [PlatformAdaptivePopupMenu].
 class PlatformAdaptivePopupMenuItem<T> {
@@ -9,6 +11,7 @@ class PlatformAdaptivePopupMenuItem<T> {
   final String label;
   final IconData? icon;
   final Widget? customIcon;
+  final Widget? customTrailing;
   final bool isDestructive;
   final bool showDividerAbove;
 
@@ -17,6 +20,7 @@ class PlatformAdaptivePopupMenuItem<T> {
     required this.label,
     this.icon,
     this.customIcon,
+    this.customTrailing,
     this.isDestructive = false,
     this.showDividerAbove = false,
   });
@@ -33,6 +37,13 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
   final T? selectedValue;
   final double menuWidth;
   final bool enabled;
+  final GlassMenuAlignment? menuAlignment;
+  final bool autoAdjustToScreen;
+
+  /// Whether this menu should hide the global AI cloud while it is open.
+  /// Menus rendered inside the expanded AI cloud must opt out so they don't
+  /// hide their own host overlay.
+  final bool hideGlobalAiCloud;
 
   const PlatformAdaptivePopupMenu({
     super.key,
@@ -42,6 +53,9 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     this.selectedValue,
     this.menuWidth = 260.0,
     this.enabled = true,
+    this.menuAlignment,
+    this.autoAdjustToScreen = false,
+    this.hideGlobalAiCloud = true,
   });
 
   @override
@@ -70,16 +84,19 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       menuItems.add(
         GlassMenuItem(
           title: item.label,
-          icon: item.customIcon ??
+          icon:
+              item.customIcon ??
               (item.icon != null ? Icon(item.icon, size: 20) : null),
           isSelected: isSelected,
-          trailing: isSelected
-              ? Icon(
-                  LucideIcons.check,
-                  size: 18,
-                  color: isDark ? Colors.white : Colors.black87,
-                )
-              : null,
+          trailing:
+              item.customTrailing ??
+              (isSelected
+                  ? Icon(
+                      LucideIcons.check,
+                      size: 18,
+                      color: isDark ? Colors.white : Colors.black87,
+                    )
+                  : null),
           isDestructive: item.isDestructive,
           onTap: () {
             onSelected(item.value);
@@ -91,15 +108,24 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     return AdaptiveLiquidGlassLayer(
       settings: menuSettings,
       quality: DesignConstants.defaultGlassQuality,
-      child: GlassMenu(
-        menuWidth: menuWidth,
-        settings: menuSettings,
-        triggerBuilder: (context, toggle) => GestureDetector(
-          onTap: toggle,
-          behavior: HitTestBehavior.opaque,
-          child: icon,
+      child: _CloudAwareGlassMenu(
+        hideGlobalAiCloud: hideGlobalAiCloud,
+        builder: (context, onToggle, onClose) => GlassMenu(
+          menuWidth: menuWidth,
+          menuAlignment: menuAlignment,
+          autoAdjustToScreen: autoAdjustToScreen,
+          menuPadding: autoAdjustToScreen
+              ? const EdgeInsets.all(8)
+              : EdgeInsets.zero,
+          onClose: onClose,
+          settings: menuSettings,
+          triggerBuilder: (context, toggle) => GestureDetector(
+            onTap: () => onToggle(toggle),
+            behavior: HitTestBehavior.opaque,
+            child: icon,
+          ),
+          items: menuItems,
         ),
-        items: menuItems,
       ),
     );
   }
@@ -167,14 +193,15 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           selectedItem = items.first;
         }
 
-        final selectedText =
-            selectedItem != null ? _getItemText(selectedItem.child) : '';
+        final selectedText = selectedItem != null
+            ? _getItemText(selectedItem.child)
+            : '';
         // Keep the collapsed trigger visually identical to a regular text field:
         // take the fill straight from the input theme (white in Light, 0xFF2C2C2E
         // in Dark) and stay borderless like the themed fields do.
         final containerFillColor =
             Theme.of(context).inputDecorationTheme.fillColor ??
-                (isDark ? const Color(0xFF2C2C2E) : Colors.white);
+            (isDark ? const Color(0xFF2C2C2E) : Colors.white);
 
         const borderColor = Colors.transparent;
 
@@ -192,7 +219,9 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary, width: 2),
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.spacingM,
@@ -210,11 +239,13 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           fillColor: decoration?.fillColor ?? containerFillColor,
           filled: decoration?.filled ?? true,
           contentPadding: decoration?.contentPadding,
-          border: decoration?.border != null &&
+          border:
+              decoration?.border != null &&
                   decoration?.border != const OutlineInputBorder()
               ? decoration?.border
               : defaultDecoration.border,
-          enabledBorder: decoration?.enabledBorder != null &&
+          enabledBorder:
+              decoration?.enabledBorder != null &&
                   decoration?.enabledBorder != const OutlineInputBorder()
               ? decoration?.enabledBorder
               : defaultDecoration.enabledBorder,
@@ -222,66 +253,69 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final menuWidth =
-                constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+            final menuWidth = constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : 280.0;
             return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
               quality: DesignConstants.defaultGlassQuality,
-              child: GlassMenu(
-                menuWidth: menuWidth,
-                autoAdjustToScreen: true,
-                settings: menuSettings,
-                triggerBuilder: (context, toggle) {
-                  return GestureDetector(
-                    onTap: onChanged == null ? null : toggle,
-                    behavior: HitTestBehavior.opaque,
-                    child: InputDecorator(
-                      decoration: mergedDecoration,
-                      isEmpty: selectedText.isEmpty,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              selectedText,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    color:
-                                        isDark ? Colors.white : Colors.black87,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+              child: _CloudAwareGlassMenu(
+                builder: (context, onToggle, onClose) => GlassMenu(
+                  menuWidth: menuWidth,
+                  autoAdjustToScreen: true,
+                  onClose: onClose,
+                  settings: menuSettings,
+                  triggerBuilder: (context, toggle) {
+                    return GestureDetector(
+                      onTap: onChanged == null ? null : () => onToggle(toggle),
+                      behavior: HitTestBehavior.opaque,
+                      child: InputDecorator(
+                        decoration: mergedDecoration,
+                        isEmpty: selectedText.isEmpty,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                selectedText,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            color: isDark ? Colors.white70 : Colors.black54,
-                          ),
-                        ],
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-                items: items.map((item) {
-                  final isSelected = item.value == state.value;
-                  return GlassMenuItem(
-                    title: _getItemText(item.child),
-                    isSelected: isSelected,
-                    trailing: isSelected
-                        ? Icon(
-                            LucideIcons.check,
-                            size: 18,
-                            color: isDark ? Colors.white : Colors.black87,
-                          )
-                        : null,
-                    onTap: () {
-                      state.didChange(item.value);
-                      onChanged?.call(item.value);
-                    },
-                  );
-                }).toList(),
+                    );
+                  },
+                  items: items.map((item) {
+                    final isSelected = item.value == state.value;
+                    return GlassMenuItem(
+                      title: _getItemText(item.child),
+                      isSelected: isSelected,
+                      trailing: isSelected
+                          ? Icon(
+                              LucideIcons.check,
+                              size: 18,
+                              color: isDark ? Colors.white : Colors.black87,
+                            )
+                          : null,
+                      onTap: () {
+                        state.didChange(item.value);
+                        onChanged?.call(item.value);
+                      },
+                    );
+                  }).toList(),
+                ),
               ),
             );
           },
@@ -357,7 +391,8 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
         .toList(growable: false);
     final summary = selectedLabels.join(', ');
 
-    final fillColor = theme.inputDecorationTheme.fillColor ??
+    final fillColor =
+        theme.inputDecorationTheme.fillColor ??
         (isDark ? const Color(0xFF2C2C2E) : Colors.white);
     const borderColor = Colors.transparent;
 
@@ -369,72 +404,122 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final menuWidth =
-            constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+        final menuWidth = constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : 280.0;
         return AdaptiveLiquidGlassLayer(
           settings: menuSettings,
           quality: DesignConstants.defaultGlassQuality,
-          child: GlassMenu(
-            menuWidth: menuWidth,
-            autoAdjustToScreen: true,
-            settings: menuSettings,
-            triggerBuilder: (context, toggle) => GestureDetector(
-              onTap: toggle,
-              behavior: HitTestBehavior.opaque,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: label,
-                  filled: true,
-                  fillColor: fillColor,
-                  border: border(),
-                  enabledBorder: border(),
-                  focusedBorder: border(theme.colorScheme.primary, 2),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM,
-                    vertical: DesignConstants.spacingS + 2,
+          child: _CloudAwareGlassMenu(
+            builder: (context, onToggle, onClose) => GlassMenu(
+              menuWidth: menuWidth,
+              autoAdjustToScreen: true,
+              onClose: onClose,
+              settings: menuSettings,
+              triggerBuilder: (context, toggle) => GestureDetector(
+                onTap: () => onToggle(toggle),
+                behavior: HitTestBehavior.opaque,
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: label,
+                    filled: true,
+                    fillColor: fillColor,
+                    border: border(),
+                    enabledBorder: border(),
+                    focusedBorder: border(theme.colorScheme.primary, 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingM,
+                      vertical: DesignConstants.spacingS + 2,
+                    ),
+                  ),
+                  isEmpty: summary.isEmpty,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          summary,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ],
                   ),
                 ),
-                isEmpty: summary.isEmpty,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        summary,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ],
-                ),
               ),
+              items: items.map((item) {
+                final isSelected = selected.contains(item.value);
+                return GlassMenuItem(
+                  title: item.label,
+                  isSelected: isSelected,
+                  trailing: isSelected
+                      ? Icon(
+                          LucideIcons.check,
+                          size: 18,
+                          color: isDark ? Colors.white : Colors.black87,
+                        )
+                      : null,
+                  // The menu closes itself afterwards — see the class comment.
+                  onTap: () => onToggled(item.value),
+                );
+              }).toList(),
             ),
-            items: items.map((item) {
-              final isSelected = selected.contains(item.value);
-              return GlassMenuItem(
-                title: item.label,
-                isSelected: isSelected,
-                trailing: isSelected
-                    ? Icon(
-                        LucideIcons.check,
-                        size: 18,
-                        color: isDark ? Colors.white : Colors.black87,
-                      )
-                    : null,
-                // The menu closes itself afterwards — see the class comment.
-                onTap: () => onToggled(item.value),
-              );
-            }).toList(),
           ),
         );
       },
     );
   }
+}
+
+typedef _CloudAwareGlassMenuBuilder = Widget Function(
+  BuildContext context,
+  void Function(VoidCallback toggle) onToggle,
+  VoidCallback onClose,
+);
+
+/// Keeps the global AI cloud hidden while a GlassMenu popover is open.
+class _CloudAwareGlassMenu extends StatefulWidget {
+  const _CloudAwareGlassMenu({
+    required this.builder,
+    this.hideGlobalAiCloud = true,
+  });
+
+  final _CloudAwareGlassMenuBuilder builder;
+  final bool hideGlobalAiCloud;
+
+  @override
+  State<_CloudAwareGlassMenu> createState() => _CloudAwareGlassMenuState();
+}
+
+class _CloudAwareGlassMenuState extends State<_CloudAwareGlassMenu> {
+  AiGlobalCloudVisibilityLease? _lease;
+
+  void _onToggle(VoidCallback toggle) {
+    if (widget.hideGlobalAiCloud) {
+      _lease ??= AiGlobalCloudVisibility.suppress();
+    }
+    toggle();
+  }
+
+  void _onClose() {
+    _lease?.dispose();
+    _lease = null;
+  }
+
+  @override
+  void dispose() {
+    _onClose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      widget.builder(context, _onToggle, _onClose);
 }

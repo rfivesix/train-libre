@@ -24,12 +24,15 @@ import 'data_management_screen.dart';
 import 'goal_notification_settings_screen.dart';
 import 'calculation_basis_screen.dart';
 import 'health_settings_screen.dart';
+import 'widgets/off_catalog_region_picker_dialog.dart';
 import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
+
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -44,9 +47,9 @@ class SettingsScreen extends StatefulWidget {
     SleepSettingsService? sleepSyncService,
     SleepPermissionController? sleepPermissionController,
     TrainingAutonomyService? trainingAutonomyService,
-  })  : _sleepSyncService = sleepSyncService,
-        _sleepPermissionController = sleepPermissionController,
-        _trainingAutonomyService = trainingAutonomyService;
+  }) : _sleepSyncService = sleepSyncService,
+       _sleepPermissionController = sleepPermissionController,
+       _trainingAutonomyService = trainingAutonomyService;
 
   final SleepSettingsService? _sleepSyncService;
   final SleepPermissionController? _sleepPermissionController;
@@ -77,15 +80,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _ownsSleepSyncService = widget._sleepSyncService == null;
     _sleepSyncService = widget._sleepSyncService ?? SleepSyncService();
     _ownsSleepPermissionController = widget._sleepPermissionController == null;
-    _sleepPermissionController = widget._sleepPermissionController ??
+    _sleepPermissionController =
+        widget._sleepPermissionController ??
         _sleepSyncService.buildPermissionController();
 
     _loadDiaryOverviewSettings();
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
     _loadTelemetryOptIn();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.settingsMain));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.settingsMain,
+      ),
+    );
   }
 
   Future<void> _loadTelemetryOptIn() async {
@@ -106,8 +113,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDiaryOverviewSettings() async {
-    final nutrient =
-        await UserPreferencesRepository.instance.getOverviewExtraNutrient();
+    final nutrient = await UserPreferencesRepository.instance
+        .getOverviewExtraNutrient();
     if (!mounted) return;
     setState(() {
       _overviewExtraNutrient = nutrient;
@@ -137,6 +144,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       BaseFoodLanguage.fr => l10n.settingsBaseFoodLanguageFrench,
       BaseFoodLanguage.it => l10n.settingsBaseFoodLanguageItalian,
       BaseFoodLanguage.ja => l10n.settingsBaseFoodLanguageJapanese,
+      BaseFoodLanguage.es => l10n.settingsBaseFoodLanguageSpanish,
+      BaseFoodLanguage.nl => l10n.settingsBaseFoodLanguageDutch,
     };
   }
 
@@ -211,9 +220,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10nNow = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(l10nNow.settingsFoodDbRegionChanged(
-          _baseFoodLanguageLabel(selected, l10nNow),
-        )),
+        content: Text(
+          l10nNow.settingsFoodDbRegionChanged(
+            _baseFoodLanguageLabel(selected, l10nNow),
+          ),
+        ),
       ),
     );
   }
@@ -228,6 +239,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       OffCatalogCountry.it => l10n.settingsFoodDbRegionItaly,
       OffCatalogCountry.jp => l10n.settingsFoodDbRegionJapan,
       OffCatalogCountry.at => l10n.settingsFoodDbRegionAustria,
+      OffCatalogCountry.nl => l10n.settingsFoodDbRegionNetherlands,
+      OffCatalogCountry.es => l10n.settingsFoodDbRegionSpain,
+      OffCatalogCountry.au => l10n.settingsFoodDbRegionAustralia,
     };
   }
 
@@ -237,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       title: l10n.settingsFoodDbRegionDialogTitle,
       contentBuilder: (dialogContext, close) {
-        return _OffCatalogRegionPickerContent(
+        return OffCatalogRegionPickerContent(
           initialSelection: _activeOffCatalogCountry,
           countryLabelResolver: _offCountryLabel,
         );
@@ -276,7 +290,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final unitService = context.watch<UnitService>();
-    final trainingAutonomyService = widget._trainingAutonomyService ??
+    final trainingAutonomyService =
+        widget._trainingAutonomyService ??
         Provider.of<TrainingAutonomyService?>(context) ??
         TrainingAutonomyService();
     final currentAutonomy = trainingAutonomyService.level;
@@ -286,7 +301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final experienceLevelService =
         Provider.of<ExperienceLevelService?>(context) ??
-            ExperienceLevelService();
+        ExperienceLevelService();
     final currentExperienceLevel = experienceLevelService.level;
     final experienceLevelLabel = switch (currentExperienceLevel) {
       ExperienceLevel.beginner => l10n.experienceLevelBeginner,
@@ -372,10 +387,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   });
                   await UserPreferencesRepository.instance
                       .setOverviewExtraNutrient(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'overview_extra_nutrient',
-                    value: value,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'overview_extra_nutrient',
+                      value: value,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -396,8 +413,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
                 icon: AppSettingsRow.navigation(
                   title: l10n.settingsOverviewExtraNutrientTitle,
-                  subtitle:
-                      _getExtraNutrientLabel(l10n, _overviewExtraNutrient),
+                  subtitle: _getExtraNutrientLabel(
+                    l10n,
+                    _overviewExtraNutrient,
+                  ),
                   leading: Icon(
                     _getExtraNutrientIcon(_overviewExtraNutrient),
                     size: 24,
@@ -409,10 +428,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 selectedValue: unitService.unitSystem,
                 onSelected: (value) {
                   unitService.setUnitSystem(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'unit_system',
-                    value: value.name,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'unit_system',
+                      value: value.name,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -444,10 +465,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onSelected: (value) async {
                   if (value == currentExperienceLevel) return;
                   await experienceLevelService.setLevel(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'training_experience_level',
-                    value: value.name,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_experience_level',
+                      value: value.name,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -483,10 +506,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onSelected: (value) async {
                   if (value == currentAutonomy) return;
                   await trainingAutonomyService.setLevel(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'training_autonomy_level',
-                    value: value.name,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_autonomy_level',
+                      value: value.name,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -609,7 +634,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               AppSettingsRow.navigation(
                 title: l10n.settingsFoodDbRegionTitle,
-                subtitle: '${l10n.settingsFoodDbRegionSubtitle}\n'
+                subtitle:
+                    '${l10n.settingsFoodDbRegionSubtitle}\n'
                     '${l10n.settingsFoodDbRegionCurrent}: '
                     '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
                 leading: Icon(
@@ -681,10 +707,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   } else {
                     await TelemetryService.instance.optOut();
                   }
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'telemetry_opt_in',
-                    value: value,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'telemetry_opt_in',
+                      value: value,
+                    ),
+                  );
                   if (!mounted) return;
                   setState(() => _isTelemetryOptedIn = value);
                 },
@@ -708,11 +736,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await TelemetryService.instance.resetLocalData();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Telemetrie-IDs & Daten wurden lokal und vom Server gelöscht.',
-                  ),
-                ),
+                SnackBar(content: Text(l10n.telemetryDeleteSuccess)),
               );
             },
           ),
@@ -744,11 +768,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               l10n.localDataDeletionCardDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
-                  ),
+                color: Theme.of(context).colorScheme.onSurface
+                    .withValues(alpha: 0.7),
+              ),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingL),
@@ -757,8 +779,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: SizedBox(
               width: double.infinity,
               child: AppButton.danger(
-                onPressed:
-                    _isLocalResetRunning ? null : _confirmAndDeleteLocalData,
+                onPressed: _isLocalResetRunning
+                    ? null
+                    : _confirmAndDeleteLocalData,
                 label: l10n.deleteAllLocalAppData,
                 tooltip: l10n.deleteAllLocalAppData,
                 icon: LucideIcons.trash,
@@ -880,9 +903,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return confirmed ?? false;
   }
 
-  Future<bool> _showLocalDataDeletionConfirmation(
-    AppLocalizations l10n,
-  ) async {
+  Future<bool> _showLocalDataDeletionConfirmation(AppLocalizations l10n) async {
     final controller = TextEditingController();
     final result = await showGlassBottomMenu<bool>(
       context: context,
@@ -895,9 +916,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.localDataDeletionConfirmBody,
-                ),
+                Text(l10n.localDataDeletionConfirmBody),
                 const SizedBox(height: DesignConstants.spacingL),
                 TextField(
                   controller: controller,
@@ -982,10 +1001,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return tile;
     }
 
-    return SummaryCard(
-      padding: EdgeInsets.zero,
-      child: tile,
-    );
+    return SummaryCard(padding: EdgeInsets.zero, child: tile);
   }
 
   String _getExtraNutrientLabel(AppLocalizations l10n, String key) {
@@ -1010,154 +1026,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
       default:
         return LucideIcons.wheat;
     }
-  }
-}
-
-class _OffCatalogRegionPickerContent extends StatefulWidget {
-  final OffCatalogCountry initialSelection;
-  final String Function(OffCatalogCountry, AppLocalizations)
-      countryLabelResolver;
-
-  const _OffCatalogRegionPickerContent({
-    required this.initialSelection,
-    required this.countryLabelResolver,
-  });
-
-  @override
-  State<_OffCatalogRegionPickerContent> createState() =>
-      __OffCatalogRegionPickerContentState();
-}
-
-class __OffCatalogRegionPickerContentState
-    extends State<_OffCatalogRegionPickerContent> {
-  late OffCatalogCountry _draftSelection;
-  late final TextEditingController _searchController;
-  String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _draftSelection = widget.initialSelection;
-    _searchController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final query = _searchQuery.toLowerCase().trim();
-    final filteredCountries =
-        AppDataSources.supportedOffCatalogCountries.where((country) {
-      if (query.isEmpty) return true;
-      final label = widget.countryLabelResolver(country, l10n).toLowerCase();
-      final code = country.code.toLowerCase();
-      return label.contains(query) || code.contains(query);
-    }).toList();
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.settingsFoodDbRegionDialogSubtitle),
-        const SizedBox(height: DesignConstants.spacingM),
-        TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: l10n.settingsFoodDbRegionSearchPlaceholder,
-            prefixIcon: Icon(
-              LucideIcons.search,
-              color: colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    tooltip: l10n.clearSearch,
-                    icon: Icon(
-                      LucideIcons.x,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                      });
-                    },
-                  )
-                : null,
-          ),
-          onChanged: (val) {
-            setState(() {
-              _searchQuery = val;
-            });
-          },
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 320),
-          child: filteredCountries.isEmpty
-              ? Container(
-                  height: 100,
-                  alignment: Alignment.center,
-                  child: Text(
-                    l10n.settingsFoodDbRegionNoResults,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  child: RadioGroup<OffCatalogCountry>(
-                    groupValue: _draftSelection,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() => _draftSelection = value);
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final country in filteredCountries)
-                          RadioListTile<OffCatalogCountry>(
-                            contentPadding: EdgeInsets.zero,
-                            value: country,
-                            title: Text(
-                                widget.countryLabelResolver(country, l10n)),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          l10n.settingsFoodDbRegionIssueHint,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
-        Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(l10n.cancel),
-              ),
-            ),
-            const SizedBox(width: DesignConstants.spacingM),
-            Expanded(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(_draftSelection),
-                child: Text(l10n.save),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 }

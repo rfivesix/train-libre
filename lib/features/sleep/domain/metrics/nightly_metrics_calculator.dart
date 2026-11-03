@@ -101,8 +101,9 @@ NightlySleepMetrics calculateNightlySleepMetrics({
         : sleepOnsetAt.difference(session.startAtUtc),
     totalSleepTime: tst,
     wakeAfterSleepOnset: waso,
-    sleepEfficiencyPct:
-        tib.inSeconds == 0 ? 0 : (tst.inSeconds / tib.inSeconds) * 100,
+    sleepEfficiencyPct: tib.inSeconds == 0
+        ? 0
+        : (tst.inSeconds / tib.inSeconds) * 100,
     finalAwakeningAtUtc: finalAwakeningAt,
     interruptionsCount: interruptions,
     totalWakeDuration: totalWake,

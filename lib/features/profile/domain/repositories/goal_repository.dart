@@ -5,7 +5,7 @@ import '../models/goal_progress.dart';
 
 abstract class IGoalRepository {
   Future<({String id, double valueKg, DateTime date})?>
-      findLatestWeightAtOrBefore(DateTime date);
+  findLatestWeightAtOrBefore(DateTime date);
 
   Future<Goal> captureMissingBaseline(String goalId);
 
@@ -89,8 +89,11 @@ abstract class IGoalRepository {
   Future<void> saveReview(GoalReviewRecord review);
 
   /// Updates the status of a review (e.g. 'applied', 'dismissed', 'deferred').
-  Future<void> updateReviewStatus(String reviewId, String status,
-      {String? decision});
+  Future<void> updateReviewStatus(
+    String reviewId,
+    String status, {
+    String? decision,
+  });
 
   /// Closes unresolved reviews when their goal stops being the active goal.
   Future<void> closePendingReviews(String goalId);

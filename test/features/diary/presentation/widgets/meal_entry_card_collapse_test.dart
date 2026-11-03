@@ -51,24 +51,27 @@ void main() {
   ];
 
   Future<void> pumpCard(WidgetTester tester, {required bool collapsed}) =>
-      tester.pumpWidget(MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'),
-        home: Scaffold(
-          body: MealEntryCard(
-            mealEntry: mealEntry,
-            items: items,
-            collapsed: collapsed,
+      tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: MealEntryCard(
+              mealEntry: mealEntry,
+              items: items,
+              collapsed: collapsed,
+            ),
           ),
         ),
-      ));
+      );
 
   // The sub-item list is what shows the ingredient's own name.
   Finder subItem() => find.text('Reis');
 
-  testWidgets('folds an expanded card away when a flight starts',
-      (tester) async {
+  testWidgets('folds an expanded card away when a flight starts', (
+    tester,
+  ) async {
     await pumpCard(tester, collapsed: false);
     await tester.pumpAndSettle();
 

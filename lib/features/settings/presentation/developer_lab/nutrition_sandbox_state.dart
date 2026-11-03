@@ -184,8 +184,8 @@ class NutritionSandboxState extends ChangeNotifier {
       title: _preset == GoalPreset.loseWeight
           ? 'Gewicht verlieren (Sandbox)'
           : (_preset == GoalPreset.gainWeight
-              ? 'Gewicht aufbauen (Sandbox)'
-              : 'Gewicht halten (Sandbox)'),
+                ? 'Gewicht aufbauen (Sandbox)'
+                : 'Gewicht halten (Sandbox)'),
       reason: 'Sandbox Testziel für die Adaptive Engine',
       status: GoalStatus.active,
       startDate: baselineDate,
@@ -229,8 +229,9 @@ class NutritionSandboxState extends ChangeNotifier {
       status: 'pending',
       trajectoryStatus: assessment.overallStatus,
       observedRateKgPerWeek: _recentRateKgPerWeek,
-      confidenceLevel:
-          assessment.dataQuality == 'sufficient' ? 'high' : 'uncalibrated',
+      confidenceLevel: assessment.dataQuality == 'sufficient'
+          ? 'high'
+          : 'uncalibrated',
       tdeeEstimate: _tdeeEstimate,
       recommendedCalories: canAdjust ? _recommendedCalories : null,
       recommendedProtein: canAdjust ? _recommendedProtein : null,

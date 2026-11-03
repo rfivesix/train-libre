@@ -181,11 +181,10 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
                       children: [
                         _sectionHeader(l10n.statisticsAddCardsTitle),
                         for (final category in categories)
-                          if (unpinned
-                              .any((card) => card.categoryId == category)) ...[
-                            const SizedBox(
-                              height: DesignConstants.spacingM,
-                            ),
+                          if (unpinned.any(
+                            (card) => card.categoryId == category,
+                          )) ...[
+                            const SizedBox(height: DesignConstants.spacingM),
                             _sectionHeader(_categoryName(category, l10n)),
                             _buildAvailableList(
                               context,
@@ -209,10 +208,8 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
     );
   }
 
-  Widget _sectionHeader(String title, {bool first = false}) => AppSectionHeader(
-        title: title,
-        isFirst: first,
-      );
+  Widget _sectionHeader(String title, {bool first = false}) =>
+      AppSectionHeader(title: title, isFirst: first);
 
   Widget _buildPinnedRow(
     BuildContext context,
@@ -250,8 +247,9 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
                     child: Icon(
                       LucideIcons.grip_horizontal,
                       size: 22,
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
                     ),
                   ),
                 ),

@@ -1,19 +1,23 @@
 // lib/widgets/common/platform_adaptive_pickers.dart
 
+export 'adaptive_timeframe_picker.dart';
+export 'adaptive_duration_picker.dart';
+export 'adaptive_target_rate_picker.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
-import '../../features/statistics/domain/timeframe_block.dart';
-import 'package:intl/intl.dart';
+
 import 'package:table_calendar/table_calendar.dart';
+
 import 'glass_border_painter.dart';
 import '../../services/haptic_feedback_service.dart';
 import 'app_button.dart';
-import '../../features/nutrition_recommendation/domain/goal_models.dart';
-import '../../services/unit_service.dart';
+import '../../features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
 /// Helper to get the localized date picker title.
 String _getSelectDateTitle(BuildContext context) {
@@ -24,6 +28,14 @@ String _getSelectDateTitle(BuildContext context) {
 String _getSelectTimeTitle(BuildContext context) {
   return AppLocalizations.of(context)?.selectTimeTitle ?? 'Select Time';
 }
+
+bool _uses24HourClock(BuildContext context) =>
+    MediaQuery.alwaysUse24HourFormatOf(context) ||
+    const {
+      'de',
+      'es',
+      'nl',
+    }.contains(Localizations.localeOf(context).languageCode);
 
 enum AdaptiveDatePickerView { wheel, calendar }
 
@@ -40,13 +52,18 @@ Future<DateTime?> showAdaptiveDatePicker({
   Locale? locale,
   AdaptiveDatePickerView initialView = AdaptiveDatePickerView.calendar,
 }) async {
-  return _showGlassDatePicker(
-    context: context,
-    initialDate: initialDate,
-    firstDate: firstDate,
-    lastDate: lastDate,
-    initialView: initialView,
-  );
+  final cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+  try {
+    return await _showGlassDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      initialView: initialView,
+    );
+  } finally {
+    cloudVisibilityLease.dispose();
+  }
 }
 
 /// Helper to get the localized combined date+time picker title.
@@ -174,8 +191,7 @@ Future<DateTime?> showAdaptiveDateTimePicker({
                     minimumDate: minimumDate,
                     maximumDate: maximumDate,
                     mode: CupertinoDatePickerMode.dateAndTime,
-                    use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                        Localizations.localeOf(ctx).languageCode == 'de',
+                    use24hFormat: _uses24HourClock(ctx),
                     onDateTimeChanged: (DateTime newDateTime) {
                       tempDateTime = newDateTime;
                     },
@@ -234,10 +250,7 @@ Future<TimeOfDay?> showAdaptiveTimePicker({
   required BuildContext context,
   required TimeOfDay initialTime,
 }) async {
-  return _showGlassTimePicker(
-    context: context,
-    initialTime: initialTime,
-  );
+  return _showGlassTimePicker(context: context, initialTime: initialTime);
 }
 
 /// Internal iOS Liquid Glass Date Picker sheet
@@ -306,7 +319,8 @@ Future<DateTime?> _showGlassDatePicker({
                                 HapticFeedbackService.instance
                                     .selectionFeedback();
                                 setModalState(
-                                    () => showCalendar = !showCalendar);
+                                  () => showCalendar = !showCalendar,
+                                );
                               },
                               icon: Icon(
                                 showCalendar
@@ -340,7 +354,8 @@ Future<DateTime?> _showGlassDatePicker({
                               child: Text(
                                 l10n?.today ?? 'Today',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w600),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
@@ -394,8 +409,9 @@ Future<DateTime?> _showGlassDatePicker({
                             color: theme.colorScheme.onSurface,
                           ),
                           todayDecoration: BoxDecoration(
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.18),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.18,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           todayTextStyle: TextStyle(
@@ -419,8 +435,9 @@ Future<DateTime?> _showGlassDatePicker({
                       height: 200,
                       child: CupertinoTheme(
                         data: CupertinoThemeData(
-                          brightness:
-                              isDark ? Brightness.dark : Brightness.light,
+                          brightness: isDark
+                              ? Brightness.dark
+                              : Brightness.light,
                           textTheme: CupertinoTextThemeData(
                             dateTimePickerTextStyle: TextStyle(
                               color: isDark ? Colors.white : Colors.black87,
@@ -433,10 +450,7 @@ Future<DateTime?> _showGlassDatePicker({
                           minimumDate: firstDate,
                           maximumDate: lastDate,
                           mode: CupertinoDatePickerMode.date,
-                          use24hFormat:
-                              MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                                  Localizations.localeOf(ctx).languageCode ==
-                                      'de',
+                          use24hFormat: _uses24HourClock(ctx),
                           onDateTimeChanged: (DateTime newDate) {
                             tempDate = newDate;
                           },
@@ -579,8 +593,7 @@ Future<TimeOfDay?> _showGlassTimePicker({
                   child: CupertinoDatePicker(
                     initialDateTime: tempDateTime,
                     mode: CupertinoDatePickerMode.time,
-                    use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                        Localizations.localeOf(ctx).languageCode == 'de',
+                    use24hFormat: _uses24HourClock(ctx),
                     onDateTimeChanged: (DateTime newDateTime) {
                       tempDateTime = newDateTime;
                     },
@@ -629,10 +642,41 @@ Future<TimeOfDay?> _showGlassTimePicker({
 }
 
 /// Reusable Glass Picker Sheet container that replicates the styling of [showGlassBottomMenu].
-class _GlassPickerSheet extends StatelessWidget {
+class GlassPickerSheet extends StatefulWidget {
   final Widget child;
 
-  const _GlassPickerSheet({required this.child});
+  const GlassPickerSheet({super.key, required this.child});
+
+  @override
+  State<GlassPickerSheet> createState() => _GlassPickerSheetState();
+}
+
+class _GlassPickerSheetState extends State<GlassPickerSheet> {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
+
+  @override
+  void initState() {
+    super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+  }
+
+  @override
+  void dispose() {
+    _cloudVisibilityLease.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      _GlassPickerSheetContent(child: widget.child);
+}
+
+typedef _GlassPickerSheet = GlassPickerSheet;
+
+class _GlassPickerSheetContent extends StatelessWidget {
+  final Widget child;
+
+  const _GlassPickerSheetContent({required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -658,8 +702,10 @@ class _GlassPickerSheet extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          constraints: BoxConstraints(
+            maxWidth: 680,
+            maxHeight: maxAvailableHeight,
+          ),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -672,8 +718,9 @@ class _GlassPickerSheet extends StatelessWidget {
                   child: ClipPath(
                     clipper: const ShapeBorderClipper(
                       shape: RoundedSuperellipseBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(r),
+                        ),
                       ),
                     ),
                     child: RepaintBoundary(
@@ -690,9 +737,7 @@ class _GlassPickerSheet extends StatelessWidget {
                           bottomRadius: 0,
                         ),
                         child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: neutralTint,
-                          ),
+                          decoration: BoxDecoration(color: neutralTint),
                         ),
                       ),
                     ),
@@ -703,8 +748,9 @@ class _GlassPickerSheet extends StatelessWidget {
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(r),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.18),
@@ -740,7 +786,8 @@ class _GlassPickerSheet extends StatelessWidget {
                                 color: neutralTint,
                                 shape: const RoundedSuperellipseBorder(
                                   borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(r)),
+                                    top: Radius.circular(r),
+                                  ),
                                 ),
                               ),
                             ),
@@ -750,8 +797,9 @@ class _GlassPickerSheet extends StatelessWidget {
                               painter: GlassBorderPainter(
                                 color: isDark
                                     ? Colors.white.withValues(alpha: 0.15)
-                                    : theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.08),
+                                    : theme.colorScheme.onSurface.withValues(
+                                        alpha: 0.08,
+                                      ),
                                 radius: r,
                                 strokeWidth: 0.5,
                                 bottomPadding: bottomInset,
@@ -764,7 +812,8 @@ class _GlassPickerSheet extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 const SizedBox(
-                                    height: DesignConstants.spacingS),
+                                  height: DesignConstants.spacingS,
+                                ),
                                 Center(
                                   child: Container(
                                     width: 44,
@@ -792,241 +841,6 @@ class _GlassPickerSheet extends StatelessWidget {
       ),
     );
   }
-}
-
-class TimeframeSelection {
-  final DateTime anchorDate;
-  final bool isRolling;
-
-  TimeframeSelection(this.anchorDate, {this.isRolling = false});
-}
-
-Future<TimeframeSelection?> showAdaptiveTimeframePicker({
-  required BuildContext context,
-  required TimeframeBlock activeBlock,
-  required DateTime initialAnchor,
-  required DateTime earliestAvailableDay,
-  DateTime? latestAvailableDay,
-  bool initialIsRolling = false,
-  bool supportRolling = true,
-}) async {
-  if (activeBlock == TimeframeBlock.maxBlock) return null;
-
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
-  final theme = Theme.of(context);
-
-  final Color barrierColor = isDark
-      ? Colors.black.withValues(alpha: 0.5)
-      : Colors.black.withValues(alpha: 0.3);
-
-  final now = DateTime.now();
-  final latest = latestAvailableDay ?? now;
-
-  // Generate selectable calendar blocks inside the caller's real data range.
-  final List<DateTime> options = [];
-  DateTime current =
-      activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
-
-  while (current.isBefore(latest) ||
-      current.isAtSameMomentAs(latest) ||
-      current.year == latest.year && current.month == latest.month) {
-    if (activeBlock
-        .getBounds(current, earliestAvailableDay)
-        .start
-        .isAfter(latest)) {
-      break;
-    }
-    options.add(current);
-
-    // Increment to next block
-    switch (activeBlock) {
-      case TimeframeBlock.day:
-        current = DateTime(current.year, current.month, current.day + 1);
-        break;
-      case TimeframeBlock.week:
-        current = DateTime(current.year, current.month, current.day + 7);
-        break;
-      case TimeframeBlock.month:
-        current = DateTime(current.year, current.month + 1, 15);
-        break;
-      case TimeframeBlock.threeMonths:
-        current = DateTime(current.year, current.month + 3, 15);
-        break;
-      case TimeframeBlock.sixMonths:
-        current = DateTime(current.year, current.month + 6, 15);
-        break;
-      case TimeframeBlock.year:
-        current = DateTime(current.year + 1, 6, 15);
-        break;
-      case TimeframeBlock.maxBlock:
-        break;
-    }
-    // Snap current back to bounds start for safety in iteration
-    if (activeBlock != TimeframeBlock.maxBlock) {
-      current = activeBlock.getBounds(current, earliestAvailableDay).start;
-    } else {
-      break;
-    }
-  }
-
-  // Fallback if empty
-  if (options.isEmpty) {
-    options.add(earliestAvailableDay);
-  }
-
-  // Insert rolling option
-  final DateTime rollingFlag = DateTime(9999);
-  if (supportRolling &&
-      activeBlock != TimeframeBlock.day &&
-      activeBlock != TimeframeBlock.maxBlock) {
-    // Insert before the last element (which is the current calendar block)
-    if (options.isNotEmpty) {
-      options.insert(options.length - 1, rollingFlag);
-    } else {
-      options.add(rollingFlag);
-    }
-  }
-
-  // Find initial index
-  int initialIndex;
-  if (initialIsRolling && options.contains(rollingFlag)) {
-    initialIndex = options.indexOf(rollingFlag);
-  } else {
-    initialIndex = options.indexWhere((d) {
-      if (d == rollingFlag) return false;
-      final b1 = activeBlock.getBounds(d, earliestAvailableDay);
-      final b2 = activeBlock.getBounds(initialAnchor, earliestAvailableDay);
-      return b1.start.year == b2.start.year &&
-          b1.start.month == b2.start.month &&
-          b1.start.day == b2.start.day;
-    });
-    if (initialIndex < 0) initialIndex = options.length - 1;
-  }
-
-  int selectedIndex = initialIndex;
-
-  final locale = Localizations.localeOf(context).toString();
-  String formatOption(DateTime date) {
-    if (date == rollingFlag) {
-      return l10n?.rollingDaysLabel(activeBlock.rollingDurationDays) ??
-          "Letzte ${activeBlock.rollingDurationDays} Tage (rollierend)";
-    }
-    final b = activeBlock.getBounds(date, earliestAvailableDay);
-    switch (activeBlock) {
-      case TimeframeBlock.day:
-        return DateFormat('dd. MMM yyyy', locale).format(b.start);
-      case TimeframeBlock.week:
-        return "${DateFormat('dd. MMM', locale).format(b.start)} - ${DateFormat('dd. MMM yyyy', locale).format(b.end)}";
-      case TimeframeBlock.month:
-        return DateFormat('MMMM yyyy', locale).format(b.start);
-      case TimeframeBlock.threeMonths:
-        return "${DateFormat('MMM', locale).format(b.start)} - ${DateFormat('MMM yyyy', locale).format(b.end)}";
-      case TimeframeBlock.sixMonths:
-        return "${DateFormat('MMM', locale).format(b.start)} - ${DateFormat('MMM yyyy', locale).format(b.end)}";
-      case TimeframeBlock.year:
-        return DateFormat('yyyy', locale).format(b.start);
-      default:
-        return "";
-    }
-  }
-
-  final selected = await showModalBottomSheet<TimeframeSelection>(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true,
-    enableDrag: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: barrierColor,
-    builder: (ctx) {
-      final kb = MediaQuery.of(ctx).viewInsets.bottom;
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.only(bottom: kb),
-        child: _GlassPickerSheet(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: DesignConstants.spacingL),
-                child: Center(
-                  child: Text(
-                    _getSelectDateTitle(ctx),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 200,
-                child: CupertinoTheme(
-                  data: CupertinoThemeData(
-                    brightness: isDark ? Brightness.dark : Brightness.light,
-                    textTheme: CupertinoTextThemeData(
-                      pickerTextStyle: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 22,
-                      ),
-                    ),
-                  ),
-                  child: CupertinoPicker(
-                    scrollController:
-                        FixedExtentScrollController(initialItem: initialIndex),
-                    itemExtent: 40,
-                    onSelectedItemChanged: (int index) {
-                      selectedIndex = index;
-                    },
-                    children: options
-                        .map((date) => Center(child: Text(formatOption(date))))
-                        .toList(),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: DesignConstants.spacingL,
-                  right: DesignConstants.spacingL,
-                  top: DesignConstants.spacingXS,
-                  bottom: DesignConstants.spacingM,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppButton.secondary(
-                        onPressed: () => Navigator.pop(ctx),
-                        label: l10n?.cancel ?? 'Cancel',
-                        tooltip: l10n?.cancel ?? 'Cancel',
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: AppButton.primary(
-                        onPressed: () {
-                          final selectedDate = options[selectedIndex];
-                          final isRolling = selectedDate.year == 9999;
-                          final anchor =
-                              isRolling ? DateTime.now() : selectedDate;
-                          Navigator.pop(ctx,
-                              TimeframeSelection(anchor, isRolling: isRolling));
-                        },
-                        label: l10n?.snackbarButtonOK ?? 'OK',
-                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-
-  return selected;
 }
 
 Future<int?> showAdaptiveBlockTypePicker({
@@ -1063,7 +877,8 @@ Future<int?> showAdaptiveBlockTypePicker({
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: DesignConstants.spacingL),
+                  vertical: DesignConstants.spacingL,
+                ),
                 child: Center(
                   child: Text(
                     'Timeframe',
@@ -1086,14 +901,16 @@ Future<int?> showAdaptiveBlockTypePicker({
                     ),
                   ),
                   child: CupertinoPicker(
-                    scrollController:
-                        FixedExtentScrollController(initialItem: initialIndex),
+                    scrollController: FixedExtentScrollController(
+                      initialItem: initialIndex,
+                    ),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
                       selectedIndex = index;
                     },
-                    children:
-                        ranges.map((r) => Center(child: Text(r))).toList(),
+                    children: ranges
+                        .map((r) => Center(child: Text(r)))
+                        .toList(),
                   ),
                 ),
               ),
@@ -1132,309 +949,4 @@ Future<int?> showAdaptiveBlockTypePicker({
   );
 
   return selected;
-}
-
-Future<Duration?> showAdaptiveDurationPicker({
-  required BuildContext context,
-  required Duration initialDuration,
-  String? title,
-  bool allowClear = false,
-}) async {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
-  final theme = Theme.of(context);
-
-  final Color barrierColor = isDark
-      ? Colors.black.withValues(alpha: 0.5)
-      : Colors.black.withValues(alpha: 0.3);
-
-  Duration selectedDuration = initialDuration;
-
-  final selected = await showModalBottomSheet<Duration>(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true,
-    enableDrag: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: barrierColor,
-    builder: (ctx) {
-      return _GlassPickerSheet(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                left: DesignConstants.spacingL,
-                right: DesignConstants.spacingL,
-                top: DesignConstants.spacingL,
-                bottom: DesignConstants.spacingS,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 80),
-                  Expanded(
-                    child: Text(
-                      title ?? l10n?.restTimerLabel ?? 'Timer',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 100,
-                    child: allowClear
-                        ? Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: const Size(0, 0),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () {
-                                HapticFeedbackService.instance
-                                    .selectionFeedback();
-                                Navigator.pop(ctx, Duration.zero);
-                              },
-                              child: Text(
-                                l10n?.clearDuration ?? 'Clear duration',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.error,
-                                ),
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 200,
-              child: CupertinoTheme(
-                data: CupertinoThemeData(
-                  brightness: isDark ? Brightness.dark : Brightness.light,
-                  textTheme: CupertinoTextThemeData(
-                    pickerTextStyle: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                      fontSize: 22,
-                    ),
-                  ),
-                ),
-                child: CupertinoTimerPicker(
-                  mode: CupertinoTimerPickerMode.hms,
-                  initialTimerDuration: initialDuration,
-                  onTimerDurationChanged: (Duration newDuration) {
-                    selectedDuration = newDuration;
-                  },
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: DesignConstants.spacingL,
-                right: DesignConstants.spacingL,
-                top: DesignConstants.spacingXS,
-                bottom: DesignConstants.spacingM,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppButton.secondary(
-                      onPressed: () => Navigator.pop(ctx),
-                      label: l10n?.cancel ?? 'Cancel',
-                      tooltip: l10n?.cancel ?? 'Cancel',
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Expanded(
-                    child: AppButton.primary(
-                      onPressed: () => Navigator.pop(ctx, selectedDuration),
-                      label: l10n?.snackbarButtonOK ?? 'OK',
-                      tooltip: l10n?.snackbarButtonOK ?? 'OK',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-
-  return selected;
-}
-
-/// A platform-adaptive target rate picker sheet with a Cupertino wheel spinner.
-///
-/// Allows setting a custom target rate (e.g. 0.37 kg/week or 370 g/week).
-Future<double?> showAdaptiveTargetRatePicker({
-  required BuildContext context,
-  required BodyweightGoal goal,
-  required double initialKgPerWeek,
-  required UnitService unitService,
-}) async {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
-  final theme = Theme.of(context);
-  final isMetric = unitService.isMetric;
-
-  final Color barrierColor = isDark
-      ? Colors.black.withValues(alpha: 0.5)
-      : Colors.black.withValues(alpha: 0.3);
-
-  // Generate options list
-  // Metric: 0.05 kg to 1.50 kg in 0.01 kg (10 g) steps (50g to 1500g)
-  // Imperial: 0.10 lbs to 3.00 lbs in 0.02 lbs steps
-  final List<double> rateValues = [];
-  if (isMetric) {
-    for (int step = 5; step <= 150; step++) {
-      rateValues.add(step / 100.0); // 0.05, 0.06, ..., 1.50 kg/week
-    }
-  } else {
-    for (int step = 10; step <= 300; step += 2) {
-      rateValues.add(
-        unitService.convertToMetric(step / 100.0, UnitDimension.weight),
-      );
-    }
-  }
-
-  final absInitial = initialKgPerWeek.abs();
-  int initialIndex = 0;
-  double minDiff = double.infinity;
-  for (int i = 0; i < rateValues.length; i++) {
-    final diff = (rateValues[i] - absInitial).abs();
-    if (diff < minDiff) {
-      minDiff = diff;
-      initialIndex = i;
-    }
-  }
-
-  int selectedIndex = initialIndex;
-  double selectedValue = rateValues[selectedIndex];
-
-  String formatRate(double rawKgPerWeek) {
-    final sign = goal == BodyweightGoal.loseWeight ? '-' : '+';
-    if (isMetric) {
-      final grams = (rawKgPerWeek * 1000).round();
-      final displayVal = rawKgPerWeek
-          .toStringAsFixed(2)
-          .replaceAll(RegExp(r'0*$'), '')
-          .replaceAll(RegExp(r'\.$'), '');
-      if (grams < 1000 && grams % 100 != 0) {
-        return '$sign$grams g/Woche ($sign$displayVal kg)';
-      }
-      return '$sign$displayVal kg/Woche ($sign$grams g)';
-    } else {
-      final displayLbs = unitService.convertDisplayValue(
-        rawKgPerWeek,
-        UnitDimension.weight,
-      );
-      final valStr = displayLbs
-          .toStringAsFixed(2)
-          .replaceAll(RegExp(r'0*$'), '')
-          .replaceAll(RegExp(r'\.$'), '');
-      final suffix = unitService.suffixFor(UnitDimension.weight);
-      return '$sign$valStr $suffix/week';
-    }
-  }
-
-  final result = await showModalBottomSheet<double>(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true,
-    enableDrag: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: barrierColor,
-    builder: (ctx) {
-      return _GlassPickerSheet(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: DesignConstants.spacingL,
-              ),
-              child: Center(
-                child: Text(
-                  l10n?.customTargetRateDialogTitle ??
-                      'Eigene Zielrate festlegen',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 200,
-              child: CupertinoTheme(
-                data: CupertinoThemeData(
-                  brightness: isDark ? Brightness.dark : Brightness.light,
-                  textTheme: CupertinoTextThemeData(
-                    pickerTextStyle: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                child: CupertinoPicker(
-                  scrollController: FixedExtentScrollController(
-                    initialItem: initialIndex,
-                  ),
-                  itemExtent: 42,
-                  onSelectedItemChanged: (int index) {
-                    selectedIndex = index;
-                    selectedValue = rateValues[index];
-                    HapticFeedbackService.instance.selectionFeedback();
-                  },
-                  children: rateValues
-                      .map((val) => Center(child: Text(formatRate(val))))
-                      .toList(),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: DesignConstants.spacingL,
-                right: DesignConstants.spacingL,
-                top: DesignConstants.spacingXS,
-                bottom: DesignConstants.spacingM,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppButton.secondary(
-                      onPressed: () => Navigator.pop(ctx),
-                      label: l10n?.cancel ?? 'Cancel',
-                      tooltip: l10n?.cancel ?? 'Cancel',
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Expanded(
-                    child: AppButton.primary(
-                      onPressed: () {
-                        final finalSigned = goal == BodyweightGoal.loseWeight
-                            ? -selectedValue
-                            : selectedValue;
-                        Navigator.pop(ctx, finalSigned);
-                      },
-                      label: l10n?.snackbarButtonOK ?? 'OK',
-                      tooltip: l10n?.snackbarButtonOK ?? 'OK',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-
-  return result;
 }

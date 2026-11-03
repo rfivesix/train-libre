@@ -7,9 +7,11 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
+import 'app_localizations_nl.dart';
 
 // ignore_for_file: type=lint
 
@@ -99,9 +101,11 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
     Locale('en'),
+    Locale('es'),
     Locale('fr'),
     Locale('it'),
-    Locale('ja')
+    Locale('ja'),
+    Locale('nl')
   ];
 
   /// No description provided for @selectDateTitle.
@@ -1028,6 +1032,12 @@ abstract class AppLocalizations {
   /// **'Starting app...'**
   String get appInitStarting;
 
+  /// No description provided for @appInitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre could not start. Your saved data was not deleted. Please try again.'**
+  String get appInitFailed;
+
   /// No description provided for @appInitInitializing.
   ///
   /// In en, this message translates to:
@@ -1259,7 +1269,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWorkoutImportPrivacy.
   ///
   /// In en, this message translates to:
-  /// **'Your export is processed on this device. If anonymous analytics is enabled, we record whether you start, skip, or complete an import, never workout details.'**
+  /// **'Your export is processed on this device. If pseudonymous usage statistics are enabled, the import status may be recorded; workout details from this import are not included.'**
   String get onboardingWorkoutImportPrivacy;
 
   /// No description provided for @workoutImportButton.
@@ -3263,7 +3273,7 @@ abstract class AppLocalizations {
   /// Onboarding slide 3 description
   ///
   /// In en, this message translates to:
-  /// **'Your data stays on the device. No cloud accounts, no background sync.'**
+  /// **'Train Libre stores records mainly on the device. Optional features can send or copy data outside it.'**
   String get onbPrivacyBody;
 
   /// Onboarding final slide title
@@ -3785,7 +3795,7 @@ abstract class AppLocalizations {
   /// No description provided for @localDataDeletionCardDescription.
   ///
   /// In en, this message translates to:
-  /// **'Permanently delete user-owned data stored on this device and reset Train Libre to a fresh local state.'**
+  /// **'Remove local app records and settings. Some copies may remain.'**
   String get localDataDeletionCardDescription;
 
   /// No description provided for @deleteAllLocalAppData.
@@ -3803,7 +3813,7 @@ abstract class AppLocalizations {
   /// No description provided for @localDataDeletionConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'This permanently deletes locally stored workouts, nutrition logs, measurements, supplements, settings/state, cached analytics, and local app data.\n\nThis does not delete data already exported to Apple Health or Health Connect.\n\nThis does not delete external provider data or remote public catalog sources. Bundled app assets and required default catalogs are kept or recreated so the app can launch after reset.'**
+  /// **'Reset removes many local records and settings. Some attachments or configuration may remain. It does not delete backups, exports, health-platform records or data held by external providers.'**
   String get localDataDeletionConfirmBody;
 
   /// No description provided for @localDataDeletionTypeDeleteLabel.
@@ -4442,6 +4452,18 @@ abstract class AppLocalizations {
   /// **'Total recipe amount'**
   String get mealTotalAmountLabel;
 
+  /// No description provided for @aiMealRawEquivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw equivalent'**
+  String get aiMealRawEquivalent;
+
+  /// No description provided for @aiMealServed.
+  ///
+  /// In en, this message translates to:
+  /// **'Served'**
+  String get aiMealServed;
+
   /// No description provided for @mealWeightBasisLabel.
   ///
   /// In en, this message translates to:
@@ -4619,7 +4641,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealsViewTitle.
   ///
   /// In en, this message translates to:
-  /// **'mealsViewTitle'**
+  /// **'Recipes'**
   String get mealsViewTitle;
 
   /// No description provided for @noNotes.
@@ -4711,6 +4733,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use dynamic system colors (Material You) instead of the Train Libre brand accent'**
   String get settingsMaterialColorsSubtitle;
+
+  /// No description provided for @settingsAppColorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App color'**
+  String get settingsAppColorTitle;
+
+  /// No description provided for @settingsAppColorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an accent color that adapts to light and dark mode.'**
+  String get settingsAppColorSubtitle;
+
+  /// No description provided for @appColorPresetTrainLibre.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre'**
+  String get appColorPresetTrainLibre;
+
+  /// No description provided for @appColorPresetMonochrome.
+  ///
+  /// In en, this message translates to:
+  /// **'Black & white'**
+  String get appColorPresetMonochrome;
+
+  /// No description provided for @appColorPresetBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get appColorPresetBlue;
+
+  /// No description provided for @appColorPresetTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get appColorPresetTeal;
+
+  /// No description provided for @appColorPresetPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get appColorPresetPurple;
+
+  /// No description provided for @appColorPresetOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get appColorPresetOrange;
+
+  /// No description provided for @appColorPresetRose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get appColorPresetRose;
+
+  /// No description provided for @appColorPresetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get appColorPresetCustom;
+
+  /// No description provided for @appColorPresetSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System colors'**
+  String get appColorPresetSystem;
+
+  /// No description provided for @appColorCustomDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color'**
+  String get appColorCustomDialogTitle;
+
+  /// No description provided for @appColorHexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hex color'**
+  String get appColorHexLabel;
+
+  /// No description provided for @appColorHexInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a 6-digit hex color.'**
+  String get appColorHexInvalid;
+
+  /// No description provided for @appColorHexOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color with 40–82% brightness.'**
+  String get appColorHexOutOfRange;
+
+  /// No description provided for @appColorHueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get appColorHueLabel;
+
+  /// No description provided for @appColorSaturationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get appColorSaturationLabel;
+
+  /// No description provided for @appColorBrightnessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get appColorBrightnessLabel;
+
+  /// No description provided for @appColorCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get appColorCancel;
+
+  /// No description provided for @appColorApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get appColorApply;
 
   /// No description provided for @settingsFoodDbSectionTitle.
   ///
@@ -4807,6 +4949,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Austria (AT)'**
   String get settingsFoodDbRegionAustria;
+
+  /// No description provided for @settingsFoodDbRegionNetherlands.
+  ///
+  /// In en, this message translates to:
+  /// **'Netherlands (NL)'**
+  String get settingsFoodDbRegionNetherlands;
+
+  /// No description provided for @settingsFoodDbRegionSpain.
+  ///
+  /// In en, this message translates to:
+  /// **'Spain (ES)'**
+  String get settingsFoodDbRegionSpain;
+
+  /// No description provided for @settingsFoodDbRegionAustralia.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia (AU)'**
+  String get settingsFoodDbRegionAustralia;
 
   /// No description provided for @settingsColorfulMacroBadgesTitle.
   ///
@@ -4961,7 +5121,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeaturePrivacyTitle.
   ///
   /// In en, this message translates to:
-  /// **'100% Private & Local'**
+  /// **'Local-first & privacy'**
   String get onboardingFeaturePrivacyTitle;
 
   /// No description provided for @onboardingFeaturePrivacyBody.
@@ -5345,13 +5505,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'AI Meal Capture'**
+  /// **'AI Features'**
   String get aiSettingsTitle;
 
   /// No description provided for @aiSettingsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Configure AI-powered meal recognition.'**
+  /// **'Configure AI features such as chat and meal recognition.'**
   String get aiSettingsDescription;
 
   /// No description provided for @aiProviderSection.
@@ -5417,7 +5577,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiPrivacyDisclosure.
   ///
   /// In en, this message translates to:
-  /// **'Images, text, and generated prompts are sent to the selected AI provider only when you use an AI action. Provider retention and processing follow that provider\'s terms. Your API key is stored encrypted on this device only.'**
+  /// **'AI features can send text, images and context to the model handling the request. Chat may fall back to another configured provider. Stored app records require an access request unless automatic approval is enabled. Check the provider\'s terms; API keys use platform secure storage.'**
   String get aiPrivacyDisclosure;
 
   /// No description provided for @aiMealCapture.
@@ -5425,6 +5585,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI Meal'**
   String get aiMealCapture;
+
+  /// No description provided for @aiChatAction.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Chat'**
+  String get aiChatAction;
 
   /// No description provided for @aiCaptureTitle.
   ///
@@ -5525,13 +5691,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiReviewTokensUsed.
   ///
   /// In en, this message translates to:
-  /// **'AI usage: {count} tokens'**
+  /// **'{count} tokens'**
   String aiReviewTokensUsed(int count);
 
   /// No description provided for @aiReviewTokensPending.
   ///
   /// In en, this message translates to:
-  /// **'AI usage: updating…'**
+  /// **'updating…'**
   String get aiReviewTokensPending;
 
   /// No description provided for @aiReviewTokensUnknown.
@@ -5558,6 +5724,24 @@ abstract class AppLocalizations {
   /// **'The AI request took too long. The scan has stopped. Please go back and try again.'**
   String get aiReviewScanTimedOut;
 
+  /// No description provided for @aiReviewAdjustPortions.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust estimate'**
+  String get aiReviewAdjustPortions;
+
+  /// No description provided for @aiReviewPortionsLarger.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger portions'**
+  String get aiReviewPortionsLarger;
+
+  /// No description provided for @aiReviewPortionsSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller portions'**
+  String get aiReviewPortionsSmaller;
+
   /// No description provided for @aiReviewFeedbackHint.
   ///
   /// In en, this message translates to:
@@ -5579,7 +5763,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiErrorNoKey.
   ///
   /// In en, this message translates to:
-  /// **'No API key configured. Please set one in Settings → AI Meal Capture.'**
+  /// **'No API key configured. Please set one in Settings → AI Features.'**
   String get aiErrorNoKey;
 
   /// No description provided for @aiErrorNetwork.
@@ -5615,8 +5799,50 @@ abstract class AppLocalizations {
   /// No description provided for @aiEnableSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.'**
+  /// **'Enables AI features such as chat and meal recognition. Disabling this hides all AI entry points.'**
   String get aiEnableSubtitle;
+
+  /// No description provided for @aiNutritionEngineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition estimation method'**
+  String get aiNutritionEngineLabel;
+
+  /// No description provided for @aiNutritionEngineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct estimates create nutrition snapshots without matching the food database. Catalog mode keeps matching suggestions against the local food catalog.'**
+  String get aiNutritionEngineSubtitle;
+
+  /// No description provided for @aiNutritionEngineEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct AI estimate'**
+  String get aiNutritionEngineEstimate;
+
+  /// No description provided for @aiNutritionEngineCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Local food catalog'**
+  String get aiNutritionEngineCatalog;
+
+  /// No description provided for @aiDirectEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI estimate'**
+  String get aiDirectEstimateLabel;
+
+  /// No description provided for @aiFloatingAssistantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show floating AI assistant'**
+  String get aiFloatingAssistantTitle;
+
+  /// No description provided for @aiFloatingAssistantSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the AI cloud over the app. AI chat remains available from the Add menu when the cloud is hidden.'**
+  String get aiFloatingAssistantSubtitle;
 
   /// No description provided for @aiStatusAndFeaturesSectionTitle.
   ///
@@ -9171,13 +9397,13 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveRecommendationDataBasisHintDefault.
   ///
   /// In en, this message translates to:
-  /// **'Built from recent logs and their completeness.'**
+  /// **'The assessment considers nutrition and weight logs and the stability of the estimate.'**
   String get adaptiveRecommendationDataBasisHintDefault;
 
   /// No description provided for @adaptiveRecommendationDataBasisHintPriorOnly.
   ///
   /// In en, this message translates to:
-  /// **'Based on profile/prior data only. Add recent weight and intake logs for adaptive adjustment.'**
+  /// **'There is currently not enough informative data for a reliable assessment.'**
   String get adaptiveRecommendationDataBasisHintPriorOnly;
 
   /// No description provided for @adaptiveRecommendationDataBasisHintSparseWeight.
@@ -9201,13 +9427,13 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveConfidenceNotEnoughData.
   ///
   /// In en, this message translates to:
-  /// **'Profile/prior only'**
+  /// **'Insufficient reliable data'**
   String get adaptiveConfidenceNotEnoughData;
 
   /// No description provided for @adaptiveConfidenceLow.
   ///
   /// In en, this message translates to:
-  /// **'Limited recent logs'**
+  /// **'Limited data basis'**
   String get adaptiveConfidenceLow;
 
   /// No description provided for @adaptiveConfidenceMedium.
@@ -9618,6 +9844,24 @@ abstract class AppLocalizations {
   /// **'Nutrition & hydration'**
   String get healthExportDomainNutritionHydration;
 
+  /// No description provided for @healthNutritionImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import nutrition'**
+  String get healthNutritionImportTitle;
+
+  /// No description provided for @healthNutritionImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import daily totals from Apple Health or Health Connect into your diary.'**
+  String get healthNutritionImportSubtitle;
+
+  /// No description provided for @healthNutritionImportPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual entries stay separate. Imported days are not overwritten after local edits or recreated after deletion.'**
+  String get healthNutritionImportPolicy;
+
   /// No description provided for @healthExportDomainWorkouts.
   ///
   /// In en, this message translates to:
@@ -9797,6 +10041,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Japanese'**
   String get settingsBaseFoodLanguageJapanese;
+
+  /// No description provided for @settingsBaseFoodLanguageSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get settingsBaseFoodLanguageSpanish;
+
+  /// No description provided for @settingsBaseFoodLanguageDutch.
+  ///
+  /// In en, this message translates to:
+  /// **'Dutch'**
+  String get settingsBaseFoodLanguageDutch;
 
   /// No description provided for @aiModelLabel.
   ///
@@ -10215,7 +10471,7 @@ abstract class AppLocalizations {
   /// No description provided for @health_permission_dialog_body.
   ///
   /// In en, this message translates to:
-  /// **'Train Libre needs to read your step data to show daily/weekly statistics. Your data stays locally on your device; there is no external server.'**
+  /// **'Train Libre uses step data for daily and weekly statistics. Imported data can also be included in backups or shared with AI when you use that feature. Manage health access in your device settings.'**
   String get health_permission_dialog_body;
 
   /// No description provided for @health_permission_continue.
@@ -10245,13 +10501,13 @@ abstract class AppLocalizations {
   /// No description provided for @i_agree_to_privacy_policy.
   ///
   /// In en, this message translates to:
-  /// **'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.'**
+  /// **'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights, as described in the Privacy Policy. For questions about withdrawing my consent, I can contact feedback@schotte.me.'**
   String get i_agree_to_privacy_policy;
 
   /// No description provided for @i_agree_to_optional_telemetry.
   ///
   /// In en, this message translates to:
-  /// **'(Optional) I want to share pseudonymised usage statistics to help improve app stability and features (zero personal or health data).'**
+  /// **'(Optional) I want to share pseudonymous usage statistics. Events may include technical identifiers and usage measurements that can be personal or health-related even without my name.'**
   String get i_agree_to_optional_telemetry;
 
   /// No description provided for @welcome_back_updated_legal_title.
@@ -10329,13 +10585,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiSettingsInstructionTitle.
   ///
   /// In en, this message translates to:
-  /// **'How AI Meal Recognition Works'**
+  /// **'How AI Features Work'**
   String get aiSettingsInstructionTitle;
 
   /// No description provided for @aiSettingsInstructionBody.
   ///
   /// In en, this message translates to:
-  /// **'This feature uses AI to analyze food images and provide nutrient estimates. Your images are only sent to the selected AI provider when you use the feature. It relies on a Bring-Your-Own-Key (BYOK) architecture, keeping your data locally on your device until analysis.'**
+  /// **'AI features include chat and meal recognition. Messages, images and context go to the model handling a request. Chat can use a fallback provider. Stored records need approval unless automatic approval is enabled.'**
   String get aiSettingsInstructionBody;
 
   /// No description provided for @aiSettingsSetupGuideTitle.
@@ -10605,13 +10861,13 @@ abstract class AppLocalizations {
   /// No description provided for @infoAiMealExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Converts meal photos or text descriptions into structured diary entries and matches them against your private product database.'**
+  /// **'In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.'**
   String get infoAiMealExplanation;
 
   /// No description provided for @infoAiMealKeyPoints.
   ///
   /// In en, this message translates to:
-  /// **'• Translates imprecise descriptions (e.g., \'a slice of bread\') into metric weight estimates.\n• Matches AI suggestions offline against the local product database on your device.\n• Computes nutrition locally instead of delegating calculations to external servers.'**
+  /// **'In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.'**
   String get infoAiMealKeyPoints;
 
   /// No description provided for @infoAiMealTechnicalTitle.
@@ -10623,7 +10879,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoAiMealTechnicalExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Uses a Bring-Your-Own-Key (BYOK) privacy model. The AI functions strictly as a suggestion layer. Matching is performed offline using a tokenized Jaro-Winkler filter against the local SQLite database. The AI provider is strictly prohibited from performing nutritional calculations via system prompts.'**
+  /// **'In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.'**
   String get infoAiMealTechnicalExplanation;
 
   /// No description provided for @infoSleepTitle.
@@ -11560,7 +11816,7 @@ abstract class AppLocalizations {
   /// No description provided for @telemetryDeleteDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request (\$delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.'**
+  /// **'Train Libre will attempt to reset local telemetry identifiers and counters and request deletion from PostHog. The request may fail, does not confirm server-side deletion, and may not cover older identifiers or backups.'**
   String get telemetryDeleteDialogBody;
 
   /// No description provided for @telemetryDeleteConfirmButton.
@@ -11584,19 +11840,19 @@ abstract class AppLocalizations {
   /// No description provided for @telemetryConsentPointAnonymous.
   ///
   /// In en, this message translates to:
-  /// **'Pseudonymised: No name, no email, no workout, diary, weight, nutrition, or health data. Only screen views, feature usage, and error reports are transmitted.'**
+  /// **'Pseudonymous: Events may include technical identifiers, app and device context, screen and feature use, exact workout counts and duration, food-entry counts, AI request status, and indicators derived from nutrition or weight-related features. These can be personal or health-related even without your name.'**
   String get telemetryConsentPointAnonymous;
 
   /// No description provided for @telemetryConsentPointNotSold.
   ///
   /// In en, this message translates to:
-  /// **'Not for advertising: Data is never sold and never used for marketing or advertising. Processed on servers in the EU.'**
+  /// **'No in-app advertising: Train Libre does not show ads. Usage events are sent for app statistics; processing and hosting depend on the service configuration.'**
   String get telemetryConsentPointNotSold;
 
   /// No description provided for @telemetryConsentPointRevocable.
   ///
   /// In en, this message translates to:
-  /// **'Voluntary: Can be disabled in Settings at any time. Stored telemetry data can also be deleted there.'**
+  /// **'Voluntary: You can turn off future transmissions in Settings. The deletion control resets local identifiers and counters and attempts a deletion request; it does not confirm server-side deletion.'**
   String get telemetryConsentPointRevocable;
 
   /// No description provided for @telemetryConsentAccept.
@@ -11620,7 +11876,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTelemetryToggleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Helps improve the app. Pseudonymised, without personal or health data.'**
+  /// **'Optional usage statistics may include technical identifiers and measurements that can be personal or health-related even without your name.'**
   String get settingsTelemetryToggleSubtitle;
 
   /// No description provided for @settingsTelemetryDeleteTitle.
@@ -11632,7 +11888,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTelemetryDeleteSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Deletes all stored IDs locally and on the PostHog server'**
+  /// **'Resets local identifiers and attempts a deletion request; server-side deletion is not confirmed.'**
   String get settingsTelemetryDeleteSubtitle;
 
   /// No description provided for @liveActivitySetPosition.
@@ -11880,6 +12136,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Listening — tap to finish'**
   String get voiceTapToFinish;
+
+  /// No description provided for @aiChatAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add image'**
+  String get aiChatAddImage;
+
+  /// No description provided for @aiChatTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get aiChatTakePhoto;
+
+  /// No description provided for @aiChatChoosePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from library'**
+  String get aiChatChoosePhoto;
+
+  /// No description provided for @aiChatRemoveImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove image'**
+  String get aiChatRemoveImage;
+
+  /// No description provided for @aiChatCameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera is unavailable on this device.'**
+  String get aiChatCameraUnavailable;
+
+  /// No description provided for @aiChatCameraPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera access to take a photo.'**
+  String get aiChatCameraPermission;
+
+  /// No description provided for @aiChatCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get aiChatCapture;
+
+  /// No description provided for @aiChatCameraOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera options'**
+  String get aiChatCameraOptions;
+
+  /// No description provided for @aiChatFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash'**
+  String get aiChatFlash;
+
+  /// No description provided for @aiChatSwitchCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get aiChatSwitchCamera;
+
+  /// No description provided for @aiChatImageLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can attach up to 4 images.'**
+  String get aiChatImageLimit;
+
+  /// No description provided for @aiChatImageQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'If this image shows food or drinks, estimate the nutrition and prepare a diary entry for me to review. Otherwise, briefly describe what is shown.'**
+  String get aiChatImageQuestion;
+
+  /// No description provided for @aiChatImageUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected AI model does not support images. Your draft remains in the composer.'**
+  String get aiChatImageUnsupported;
 
   /// No description provided for @voiceStarting.
   ///
@@ -13810,7 +14144,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalReasonPrivacyNotice.
   ///
   /// In en, this message translates to:
-  /// **'Your note stays 100% private on your device and is never shared.'**
+  /// **'Your note is stored in the app and may be included in backups or in an approved AI request.'**
   String get goalReasonPrivacyNotice;
 
   /// No description provided for @goalStep7Question.
@@ -14822,6 +15156,48 @@ abstract class AppLocalizations {
   /// **'Workout, goal, and review reminders'**
   String get notificationSettingsSubtitle;
 
+  /// No description provided for @notificationExactAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow precise timers'**
+  String get notificationExactAlarmTitle;
+
+  /// No description provided for @notificationExactAlarmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow alarms and reminders in Android settings so rest sounds can play on time in the background.'**
+  String get notificationExactAlarmSubtitle;
+
+  /// No description provided for @notificationLiveWorkoutSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live workout'**
+  String get notificationLiveWorkoutSectionTitle;
+
+  /// No description provided for @notificationRestTimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest timer notifications'**
+  String get notificationRestTimerTitle;
+
+  /// No description provided for @notificationRestTimerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a system notification when a rest timer ends.'**
+  String get notificationRestTimerSubtitle;
+
+  /// No description provided for @notificationIgnoreSilentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore silent mode'**
+  String get notificationIgnoreSilentTitle;
+
+  /// No description provided for @notificationIgnoreSilentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play the rest timer sound in the app even in silent mode. Background notifications follow system settings.'**
+  String get notificationIgnoreSilentSubtitle;
+
   /// No description provided for @notificationWorkoutSectionTitle.
   ///
   /// In en, this message translates to:
@@ -15600,13 +15976,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiOverlayDemoGlobalEnabledTitle.
   ///
   /// In en, this message translates to:
-  /// **'Enable AI overlay throughout the app'**
+  /// **'Show AI assistant throughout the app'**
   String get aiOverlayDemoGlobalEnabledTitle;
 
   /// No description provided for @aiOverlayDemoGlobalEnabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Show the demo cloud on every screen. Chats are not saved.'**
+  /// **'Show the floating AI cloud on every screen.'**
   String get aiOverlayDemoGlobalEnabledSubtitle;
 
   /// No description provided for @aiOverlayDemoScreenTitle.
@@ -15711,6 +16087,12 @@ abstract class AppLocalizations {
   /// **'Chat history'**
   String get aiOverlayChatHistory;
 
+  /// No description provided for @aiOverlayAutoApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically approve data requests'**
+  String get aiOverlayAutoApprove;
+
   /// No description provided for @aiOverlayDemoAssistantMessage.
   ///
   /// In en, this message translates to:
@@ -15771,11 +16153,377 @@ abstract class AppLocalizations {
   /// **'Drag horizontally to move the cloud. Its position is saved.'**
   String get aiOverlayDemoCloudHint;
 
+  /// No description provided for @aiOverlayDemoAssistantHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open AI assistant'**
+  String get aiOverlayDemoAssistantHint;
+
+  /// No description provided for @aiOverlayDemoColorSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Black and white'**
+  String get aiOverlayDemoColorSectionTitle;
+
+  /// No description provided for @aiOverlayDemoColorWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get aiOverlayDemoColorWhite;
+
+  /// No description provided for @aiOverlayDemoColorBlack.
+  ///
+  /// In en, this message translates to:
+  /// **'Black'**
+  String get aiOverlayDemoColorBlack;
+
+  /// No description provided for @aiOverlayDemoLivelinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud liveliness'**
+  String get aiOverlayDemoLivelinessTitle;
+
+  /// No description provided for @aiOverlayDemoLivelinessDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls the motion of the expanded AI cloud.'**
+  String get aiOverlayDemoLivelinessDescription;
+
+  /// No description provided for @aiOverlayDemoSafeSpaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show safe-area points'**
+  String get aiOverlayDemoSafeSpaceTitle;
+
+  /// No description provided for @aiOverlayDemoSafeSpaceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the corners used to resize the area'**
+  String get aiOverlayDemoSafeSpaceSubtitle;
+
+  /// No description provided for @aiOverlayDemoFullscreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open directly in full screen'**
+  String get aiOverlayDemoFullscreenTitle;
+
+  /// No description provided for @aiOverlayDemoFullscreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip the intermediate view when opening the cloud'**
+  String get aiOverlayDemoFullscreenSubtitle;
+
+  /// No description provided for @developerNutritionLabSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspect nutrition logic and adaptive recommendations'**
+  String get developerNutritionLabSubtitle;
+
+  /// No description provided for @appleFoundationReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available on this device'**
+  String get appleFoundationReadyTitle;
+
+  /// No description provided for @appleFoundationEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable in iOS Settings'**
+  String get appleFoundationEnableTitle;
+
+  /// No description provided for @appleFoundationNoTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data transfer and no API costs.'**
+  String get appleFoundationNoTransferSubtitle;
+
+  /// No description provided for @telemetryDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry reset was attempted. Server-side deletion has not been confirmed.'**
+  String get telemetryDeleteSuccess;
+
   /// No description provided for @aiAssistantAskModelHint.
   ///
   /// In en, this message translates to:
   /// **'Ask {model}'**
   String aiAssistantAskModelHint(String model);
+
+  /// No description provided for @aiStarterCheckNutritionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s nutrition'**
+  String get aiStarterCheckNutritionTitle;
+
+  /// No description provided for @aiStarterCheckNutritionPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'How do my nutrition and macro totals look for today? Show my consumed calories, protein, carbs, and fat compared to my daily targets and what is still remaining.'**
+  String get aiStarterCheckNutritionPrompt;
+
+  /// No description provided for @aiStarterCheckRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check recovery status'**
+  String get aiStarterCheckRecoveryTitle;
+
+  /// No description provided for @aiStarterCheckRecoveryPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'What is my current recovery status? Which muscle groups are fully recovered and which muscles still need rest before the next workout?'**
+  String get aiStarterCheckRecoveryPrompt;
+
+  /// No description provided for @aiStarterSuggestMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest meal for remaining macros'**
+  String get aiStarterSuggestMealTitle;
+
+  /// No description provided for @aiStarterSuggestMealPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Check my food diary for today and my remaining macros: Which meals have I already logged today and what can I eat for my next meal to best meet my remaining calorie and nutrition goals?'**
+  String get aiStarterSuggestMealPrompt;
+
+  /// No description provided for @aiAssistantThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking…'**
+  String get aiAssistantThinking;
+
+  /// No description provided for @aiAssistantProcessingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing approved data…'**
+  String get aiAssistantProcessingData;
+
+  /// No description provided for @macroEntryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros'**
+  String get macroEntryButton;
+
+  /// No description provided for @macroEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log macros'**
+  String get macroEntryTitle;
+
+  /// No description provided for @macroEntryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get macroEntryName;
+
+  /// No description provided for @macroEntryAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (optional)'**
+  String get macroEntryAmount;
+
+  /// No description provided for @macroEntryAmountTotalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to enter values for the whole item.'**
+  String get macroEntryAmountTotalHint;
+
+  /// No description provided for @macroEntryAmountPer100GramHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With an amount, nutrient values are per 100 g.'**
+  String get macroEntryAmountPer100GramHint;
+
+  /// No description provided for @macroEntryAmountPer100MlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With an amount, nutrient values are per 100 ml.'**
+  String get macroEntryAmountPer100MlHint;
+
+  /// No description provided for @macroEntryCalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate automatically'**
+  String get macroEntryCalculate;
+
+  /// No description provided for @macroEntryInvalidValues.
+  ///
+  /// In en, this message translates to:
+  /// **'These values do not produce a valid macro value.'**
+  String get macroEntryInvalidValues;
+
+  /// No description provided for @macroEntryLogAsFluid.
+  ///
+  /// In en, this message translates to:
+  /// **'Also log as a drink'**
+  String get macroEntryLogAsFluid;
+
+  /// No description provided for @macroEntryFluidAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount in ml to log a drink.'**
+  String get macroEntryFluidAmountRequired;
+
+  /// No description provided for @macroEntryExtraNutrients.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more nutrients'**
+  String get macroEntryExtraNutrients;
+
+  /// No description provided for @macroEntrySugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sugar'**
+  String get macroEntrySugar;
+
+  /// No description provided for @macroEntryFiber.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiber'**
+  String get macroEntryFiber;
+
+  /// No description provided for @macroEntrySalt.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt'**
+  String get macroEntrySalt;
+
+  /// No description provided for @macroEntryCaffeine.
+  ///
+  /// In en, this message translates to:
+  /// **'Caffeine'**
+  String get macroEntryCaffeine;
+
+  /// No description provided for @macroEntryPer100.
+  ///
+  /// In en, this message translates to:
+  /// **'Per 100'**
+  String get macroEntryPer100;
+
+  /// No description provided for @macroEntryPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Portion'**
+  String get macroEntryPortion;
+
+  /// No description provided for @macroEntrySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros logged.'**
+  String get macroEntrySaved;
+
+  /// No description provided for @macroEntryDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro entry'**
+  String get macroEntryDefaultName;
+
+  /// No description provided for @macroEntryDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrients'**
+  String get macroEntryDetailTitle;
+
+  /// No description provided for @macroEntryFillThreeValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter exactly three of the four macro values.'**
+  String get macroEntryFillThreeValues;
+
+  /// No description provided for @macroEntryDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This drink is linked to a macro entry. Deleting it also removes the macro entry.'**
+  String get macroEntryDeleteConfirm;
+
+  /// No description provided for @recoveryMixedReadyZoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed / Ready'**
+  String get recoveryMixedReadyZoneTitle;
+
+  /// No description provided for @feedbackReportDirectRequiresTelemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct submission requires pseudonymous usage statistics to be enabled. Enable them in Settings, or use email or share instead.'**
+  String get feedbackReportDirectRequiresTelemetry;
+
+  /// No description provided for @feedbackReportDirectSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostic report sent directly to the developer. Thank you!'**
+  String get feedbackReportDirectSent;
+
+  /// No description provided for @feedbackReportDirectSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send directly to the developer'**
+  String get feedbackReportDirectSend;
+
+  /// No description provided for @aiAssistantUpdateIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet the AI chat'**
+  String get aiAssistantUpdateIntroTitle;
+
+  /// No description provided for @aiAssistantUpdateIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about training and nutrition or prepare drafts. Your message and images go to the model when you send them. Access to stored records requires approval unless automatic approval is enabled. The recipient can change through fallback.'**
+  String get aiAssistantUpdateIntroBody;
+
+  /// No description provided for @aiAssistantUpdateIntroDemoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Example chat'**
+  String get aiAssistantUpdateIntroDemoLabel;
+
+  /// No description provided for @aiAssistantUpdateIntroExampleQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What can the new AI chat do in Train Libre?'**
+  String get aiAssistantUpdateIntroExampleQuestion;
+
+  /// No description provided for @aiAssistantUpdateIntroExampleAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant can prepare routines, plans and recipes as drafts. Review suggestions and meal entries before applying or saving them.'**
+  String get aiAssistantUpdateIntroExampleAnswer;
+
+  /// No description provided for @aiAssistantUpdateIntroAiEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable AI features'**
+  String get aiAssistantUpdateIntroAiEnabled;
+
+  /// No description provided for @aiAssistantUpdateIntroAiEnabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls AI chat and the other AI features.'**
+  String get aiAssistantUpdateIntroAiEnabledHint;
+
+  /// No description provided for @aiAssistantUpdateIntroLauncherEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the floating AI chat'**
+  String get aiAssistantUpdateIntroLauncherEnabled;
+
+  /// No description provided for @aiAssistantUpdateIntroLauncherEnabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show or hide the chat orb. You can still open chat from the Add menu.'**
+  String get aiAssistantUpdateIntroLauncherEnabledHint;
+
+  /// No description provided for @aiAssistantIntroAboutRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the AI chat'**
+  String get aiAssistantIntroAboutRow;
+
+  /// No description provided for @aiAssistantIntroAboutRowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the new AI chat preview again at any time.'**
+  String get aiAssistantIntroAboutRowSubtitle;
 }
 
 class _AppLocalizationsDelegate
@@ -15788,8 +16536,15 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['de', 'en', 'fr', 'it', 'ja'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+        'de',
+        'en',
+        'es',
+        'fr',
+        'it',
+        'ja',
+        'nl'
+      ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -15802,12 +16557,16 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
     case 'fr':
       return AppLocalizationsFr();
     case 'it':
       return AppLocalizationsIt();
     case 'ja':
       return AppLocalizationsJa();
+    case 'nl':
+      return AppLocalizationsNl();
   }
 
   throw FlutterError(

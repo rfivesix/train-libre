@@ -7,10 +7,14 @@ enum AiProvider {
   anthropic,
   mistral,
   xai,
+  deepseek,
   ollama,
   custom,
   appleFoundation,
 }
+
+/// How the meal capture flow turns an AI result into diary items.
+enum AiMealNutritionMode { directEstimate, localCatalog }
 
 /// Usage reported by a provider, never inferred from prompt length.
 class AiTokenUsage {
@@ -62,11 +66,13 @@ class AiUsageCollector extends ChangeNotifier {
     outputTokens += usage?.outputTokens ?? 0;
     totalTokens += usage?.totalTokens ?? 0;
     if (completedId != null) {
-      onRequestCompleted?.call(AiUsageRequestReport(
-        requestIndex: completedId,
-        durationMilliseconds: watch?.elapsedMilliseconds ?? 0,
-        usage: usage,
-      ));
+      onRequestCompleted?.call(
+        AiUsageRequestReport(
+          requestIndex: completedId,
+          durationMilliseconds: watch?.elapsedMilliseconds ?? 0,
+          usage: usage,
+        ),
+      );
     }
     if (pendingCount == 0) {
       _idleCompleter?.complete();
@@ -81,10 +87,11 @@ class AiUsageRequestReport {
   final int durationMilliseconds;
   final AiTokenUsage? usage;
 
-  const AiUsageRequestReport(
-      {required this.requestIndex,
-      required this.durationMilliseconds,
-      required this.usage});
+  const AiUsageRequestReport({
+    required this.requestIndex,
+    required this.durationMilliseconds,
+    required this.usage,
+  });
 }
 
 class _AiRawResponse {
@@ -175,11 +182,7 @@ class AiModelListError {
   /// The provider's own `error.message`, when it sent one.
   final String? providerMessage;
 
-  const AiModelListError(
-    this.kind, {
-    this.statusCode,
-    this.providerMessage,
-  });
+  const AiModelListError(this.kind, {this.statusCode, this.providerMessage});
 
   /// True for the two "nothing was even attempted" kinds, which describe a
   /// normal state rather than a failure.
@@ -238,6 +241,9 @@ class AiSuggestedItem {
   /// The visible portion when [estimatedGrams] is a raw-equivalent amount.
   int? servedGrams;
 
+  /// Whether this suggestion is a drink measured in millilitres.
+  bool isFluid;
+
   /// Confidence score between 0.0 and 1.0.
   double confidence;
 
@@ -247,6 +253,7 @@ class AiSuggestedItem {
   String? catalogSearchTerm;
   List<String> searchTerms;
   String? packagedProductEvidence;
+  Map<String, double?>? nutritionPer100g;
   final int? repairItemIndex;
 
   AiSuggestedItem({
@@ -254,33 +261,44 @@ class AiSuggestedItem {
     required this.estimatedGrams,
     required this.confidence,
     this.servedGrams,
+    this.isFluid = false,
     this.matchedBarcode,
     this.stateHint,
     this.catalogSearchTerm,
     this.searchTerms = const [],
     this.packagedProductEvidence,
+    this.nutritionPer100g,
     this.repairItemIndex,
   });
 
   factory AiSuggestedItem.fromJson(Map<String, dynamic> json) {
     return AiSuggestedItem(
       name: json['name'] as String? ?? 'Unknown',
-      estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ??
+      estimatedGrams:
+          (json['estimatedGrams'] as num?)?.toInt() ??
           (json['grams'] as num?)?.toInt() ??
           (json['servedGrams'] as num?)?.toInt() ??
           100,
-      servedGrams: (json['servedGrams'] as num?)?.toInt() ??
+      servedGrams:
+          (json['servedGrams'] as num?)?.toInt() ??
           (json['estimatedGrams'] as num?)?.toInt() ??
           (json['grams'] as num?)?.toInt(),
+      isFluid: json['isFluid'] == true,
       confidence:
           (json['confidence'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
       matchedBarcode: json['matchedBarcode'] as String?,
       stateHint: json['stateHint'] as String?,
       catalogSearchTerm: json['catalogSearchTerm'] as String?,
       packagedProductEvidence: json['packagedProductEvidence'] as String?,
-      repairItemIndex:
-          json['itemIndex'] is int ? json['itemIndex'] as int : null,
-      searchTerms: (json['searchTerms'] as List?)
+      nutritionPer100g: (json['nutritionPer100g'] as Map?)?.map(
+        (key, value) =>
+            MapEntry(key.toString(), value is num ? value.toDouble() : null),
+      ),
+      repairItemIndex: json['itemIndex'] is int
+          ? json['itemIndex'] as int
+          : null,
+      searchTerms:
+          (json['searchTerms'] as List?)
               ?.whereType<String>()
               .map((term) => term.trim())
               .where((term) => term.isNotEmpty)
@@ -291,17 +309,19 @@ class AiSuggestedItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'estimatedGrams': estimatedGrams,
-        if (servedGrams != null) 'servedGrams': servedGrams,
-        'confidence': confidence,
-        if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
-        if (stateHint != null) 'stateHint': stateHint,
-        if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
-        if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
-        if (packagedProductEvidence != null)
-          'packagedProductEvidence': packagedProductEvidence,
-      };
+    'name': name,
+    'estimatedGrams': estimatedGrams,
+    if (servedGrams != null) 'servedGrams': servedGrams,
+    if (isFluid) 'isFluid': true,
+    'confidence': confidence,
+    if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
+    if (stateHint != null) 'stateHint': stateHint,
+    if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
+    if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
+    if (packagedProductEvidence != null)
+      'packagedProductEvidence': packagedProductEvidence,
+    if (nutritionPer100g != null) 'nutritionPer100g': nutritionPer100g,
+  };
 }
 
 /// Base exception for AI service errors.
@@ -314,7 +334,7 @@ sealed class AiServiceException implements Exception {
 
 class AiKeyMissingException extends AiServiceException {
   const AiKeyMissingException()
-      : super('No API key configured for the selected provider.');
+    : super('No API key configured for the selected provider.');
 }
 
 class AiAuthException extends AiServiceException {
@@ -344,20 +364,21 @@ class AiRateLimitException extends AiServiceException {
 }
 
 class AiUnsupportedFeatureException extends AiServiceException {
-  const AiUnsupportedFeatureException(
-      [super.message = 'Feature not supported.']);
+  const AiUnsupportedFeatureException([
+    super.message = 'Feature not supported.',
+  ]);
 }
 
 /// Fixed telemetry vocabulary; provider error text is never transmitted.
 String aiServiceErrorCode(AiServiceException error) => switch (error) {
-      AiKeyMissingException() => 'key_missing',
-      AiAuthException() => 'auth',
-      AiNetworkException() => 'network',
-      AiTimeoutException() => 'timeout',
-      AiParseException() => 'parse',
-      AiRateLimitException() => 'rate_limit',
-      AiUnsupportedFeatureException() => 'unsupported',
-    };
+  AiKeyMissingException() => 'key_missing',
+  AiAuthException() => 'auth',
+  AiNetworkException() => 'network',
+  AiTimeoutException() => 'timeout',
+  AiParseException() => 'parse',
+  AiRateLimitException() => 'rate_limit',
+  AiUnsupportedFeatureException() => 'unsupported',
+};
 
 /// One bullet of a tidied dictation transcript.
 class VoiceTranscriptBullet {
@@ -372,9 +393,9 @@ class VoiceTranscriptBullet {
   const VoiceTranscriptBullet({required this.text, this.notes = const []});
 
   Map<String, dynamic> toJson() => {
-        'text': text,
-        if (notes.isNotEmpty) 'notes': notes,
-      };
+    'text': text,
+    if (notes.isNotEmpty) 'notes': notes,
+  };
 }
 
 /// A dictation transcript turned into readable bullets.

@@ -31,6 +31,9 @@ class FluidEntry {
   /// Optional identifier linking this fluid entry to a food entry.
   final int? linkedFoodEntryId; // *** New ***
 
+  /// UUID of the macro-only diary entry that owns this drink, if any.
+  final String? linkedMacroEntryId;
+
   /// Last modification timestamp from persistence when available.
   final DateTime? updatedAt;
 
@@ -45,6 +48,7 @@ class FluidEntry {
     this.carbsPer100ml,
     this.caffeinePer100ml,
     this.linkedFoodEntryId, // *** New ***
+    this.linkedMacroEntryId,
     this.updatedAt,
   });
 
@@ -60,6 +64,7 @@ class FluidEntry {
       'carbs_per_100ml': carbsPer100ml,
       'caffeine_per_100ml': caffeinePer100ml,
       'linked_food_entry_id': linkedFoodEntryId, // *** New ***
+      'linked_macro_entry_id': linkedMacroEntryId,
     };
   }
 
@@ -75,6 +80,7 @@ class FluidEntry {
       carbsPer100ml: map['carbs_per_100ml'],
       caffeinePer100ml: map['caffeine_per_100ml'],
       linkedFoodEntryId: map['linked_food_entry_id'], // *** New ***
+      linkedMacroEntryId: map['linked_macro_entry_id'] as String?,
     );
   }
 
@@ -89,6 +95,7 @@ class FluidEntry {
     double? carbsPer100ml,
     double? caffeinePer100ml,
     int? linkedFoodEntryId,
+    String? linkedMacroEntryId,
     DateTime? updatedAt,
   }) {
     return FluidEntry(
@@ -101,6 +108,7 @@ class FluidEntry {
       carbsPer100ml: carbsPer100ml ?? this.carbsPer100ml,
       caffeinePer100ml: caffeinePer100ml ?? this.caffeinePer100ml,
       linkedFoodEntryId: linkedFoodEntryId ?? this.linkedFoodEntryId,
+      linkedMacroEntryId: linkedMacroEntryId ?? this.linkedMacroEntryId,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }

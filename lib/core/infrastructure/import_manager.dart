@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:csv/csv.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:excel_community/excel_community.dart' as xl;
@@ -9,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../data/drift_database.dart' as db;
 import '../../features/workout/domain/models/set_log.dart';
@@ -65,7 +67,7 @@ class ImportManager {
     String? defaultWorkoutTitle,
     String? defaultExerciseName,
     Future<bool> Function(List<WorkoutImportData> workouts, int duplicateCount)?
-        confirmImport,
+    confirmImport,
   }) async {
     try {
       // 1. Select file
@@ -100,9 +102,9 @@ class ImportManager {
       final workoutHelper = WorkoutLocalDataSource.instance;
       final database = await workoutHelper.database;
 
-      final existingLogs = await (database.select(database.workoutLogs)
-            ..where((tbl) => tbl.status.equals('completed')))
-          .get();
+      final existingLogs = await (database.select(
+        database.workoutLogs,
+      )..where((tbl) => tbl.status.equals('completed'))).get();
 
       final existingSignatures = <String>{
         for (final log in existingLogs)
@@ -134,8 +136,9 @@ class ImportManager {
           .toSet();
 
       for (final exName in uniqueExerciseNames) {
-        exerciseCache[exName] =
-            await workoutHelper.getExactExerciseByName(exName);
+        exerciseCache[exName] = await workoutHelper.getExactExerciseByName(
+          exName,
+        );
       }
 
       await database.transaction(() async {
@@ -146,14 +149,16 @@ class ImportManager {
 
           if (newLog.id == null) continue;
 
-          await (database.update(database.workoutLogs)
-                ..where((tbl) => tbl.localId.equals(newLog.id!)))
-              .write(db.WorkoutLogsCompanion(
-            startTime: drift.Value(workoutData.startTime),
-            endTime: drift.Value(workoutData.endTime),
-            status: const drift.Value('completed'),
-            notes: drift.Value(workoutData.notes),
-          ));
+          await (database.update(
+            database.workoutLogs,
+          )..where((tbl) => tbl.localId.equals(newLog.id!))).write(
+            db.WorkoutLogsCompanion(
+              startTime: drift.Value(workoutData.startTime),
+              endTime: drift.Value(workoutData.endTime),
+              status: const drift.Value('completed'),
+              notes: drift.Value(workoutData.notes),
+            ),
+          );
 
           for (var set in workoutData.sets) {
             final cachedExercise = exerciseCache[set.exerciseName];
@@ -190,10 +195,11 @@ class ImportManager {
     SetLog setLog,
     Exercise? cachedExercise,
   ) async {
-    final workoutLogUuid = await (database.select(database.workoutLogs)
-          ..where((tbl) => tbl.localId.equals(setLog.workoutLogId))
-          ..limit(1))
-        .getSingleOrNull();
+    final workoutLogUuid =
+        await (database.select(database.workoutLogs)
+              ..where((tbl) => tbl.localId.equals(setLog.workoutLogId))
+              ..limit(1))
+            .getSingleOrNull();
 
     if (workoutLogUuid == null) return;
 
@@ -268,12 +274,14 @@ class ImportManager {
 
     // Map header and normalize
     final rawHeader = rows.first
-        .map((e) => e
-            .toString()
-            .replaceFirst('\uFEFF', '')
-            .trim()
-            .toLowerCase()
-            .replaceAll(RegExp(r'[ -]+'), '_'))
+        .map(
+          (e) => e
+              .toString()
+              .replaceFirst('\uFEFF', '')
+              .trim()
+              .toLowerCase()
+              .replaceAll(RegExp(r'[ -]+'), '_'),
+        )
         .toList();
     final sourceProfile = _detectProfile(rawHeader);
     final headerMap = _mapHeader(rawHeader, sourceProfile);
@@ -299,10 +307,11 @@ class ImportManager {
       rowData['weight_is_lbs'] = headerMap.containsKey('weight_is_lbs');
       rowData['weight_has_explicit_unit'] =
           headerMap.containsKey('weight_is_lbs') ||
-              headerMap.containsKey('weight_is_kg');
+          headerMap.containsKey('weight_is_kg');
       rowData['distance_is_miles'] = headerMap.containsKey('distance_is_miles');
-      rowData['distance_is_meters'] =
-          headerMap.containsKey('distance_is_meters');
+      rowData['distance_is_meters'] = headerMap.containsKey(
+        'distance_is_meters',
+      );
 
       final title = rowData['title']?.toString() ?? params.defaultWorkoutTitle;
       final startTimeRaw = rowData['start_time']?.toString() ?? '';
@@ -324,9 +333,11 @@ class ImportManager {
       final notes = firstRow['description']?.toString();
       final startTime = _parseDate(firstRow['start_time']);
       if (startTime == null) continue;
-      final exportedWorkoutDuration =
-          _parseDurationSeconds(firstRow['workout_duration']);
-      final endTime = _parseDate(firstRow['end_time']) ??
+      final exportedWorkoutDuration = _parseDurationSeconds(
+        firstRow['workout_duration'],
+      );
+      final endTime =
+          _parseDate(firstRow['end_time']) ??
           (exportedWorkoutDuration == null
               ? null
               : startTime.add(Duration(seconds: exportedWorkoutDuration)));
@@ -342,16 +353,18 @@ class ImportManager {
         if (rawSetType == 'rest' || rawSetType == 'ruhezeit') {
           final restTimeSeconds = _parseDurationSeconds(row['duration']);
           if (sets.isNotEmpty && restTimeSeconds != null) {
-            sets[sets.length - 1] =
-                sets.last.copyWith(restTimeSeconds: restTimeSeconds);
+            sets[sets.length - 1] = sets.last.copyWith(
+              restTimeSeconds: restTimeSeconds,
+            );
           }
           continue;
         }
 
         final rawExerciseName =
             row['exercise']?.toString() ?? params.defaultExerciseName;
-        final explicitBlock =
-            int.tryParse(row['exercise_block']?.toString() ?? '');
+        final explicitBlock = int.tryParse(
+          row['exercise_block']?.toString() ?? '',
+        );
         if (explicitBlock == null && rawExerciseName != previousExercise) {
           contiguousBlock = nextBlock++;
         }
@@ -366,9 +379,12 @@ class ImportManager {
         }
 
         double? weight = _parseNumber(row['weight']);
-        final explicitWeightUnit =
-            row['weight_unit']?.toString().trim().toLowerCase();
-        final hasWeightUnit = explicitWeightUnit != null &&
+        final explicitWeightUnit = row['weight_unit']
+            ?.toString()
+            .trim()
+            .toLowerCase();
+        final hasWeightUnit =
+            explicitWeightUnit != null &&
             explicitWeightUnit.isNotEmpty &&
             (explicitWeightUnit == 'lb' ||
                 explicitWeightUnit == 'lbs' ||
@@ -378,7 +394,8 @@ class ImportManager {
                 explicitWeightUnit == 'kgs' ||
                 explicitWeightUnit == 'kilogram' ||
                 explicitWeightUnit == 'kilograms');
-        final weightIsImperial = row['weight_is_lbs'] == true ||
+        final weightIsImperial =
+            row['weight_is_lbs'] == true ||
             explicitWeightUnit == 'lb' ||
             explicitWeightUnit == 'lbs' ||
             explicitWeightUnit == 'pound' ||
@@ -391,13 +408,16 @@ class ImportManager {
         }
 
         var distance = _parseNumber(row['distance']);
-        final explicitDistanceUnit =
-            row['distance_unit']?.toString().toLowerCase();
-        final distanceIsMiles = row['distance_is_miles'] == true ||
+        final explicitDistanceUnit = row['distance_unit']
+            ?.toString()
+            .toLowerCase();
+        final distanceIsMiles =
+            row['distance_is_miles'] == true ||
             explicitDistanceUnit == 'mi' ||
             explicitDistanceUnit == 'mile' ||
             explicitDistanceUnit == 'miles';
-        final distanceIsMeters = row['distance_is_meters'] == true ||
+        final distanceIsMeters =
+            row['distance_is_meters'] == true ||
             explicitDistanceUnit == 'm' ||
             explicitDistanceUnit == 'meter' ||
             explicitDistanceUnit == 'meters';
@@ -409,33 +429,37 @@ class ImportManager {
 
         final duration = _parseDurationSeconds(row['duration']);
 
-        sets.add(SetLog(
-          workoutLogId: 0,
-          exerciseName: rawExerciseName,
-          setType: _mapSetType(row['set_type']),
-          weightKg: weight,
-          reps: _parseNumber(row['reps'])?.round(),
-          distanceKm: distance,
-          durationSeconds: duration,
-          rpe: _parseNumber(row['rpe'])?.round(),
-          rir: _parseNumber(row['rir'])?.round(),
-          logOrder: setOrder++,
-          exerciseBlock: exerciseBlock,
-          notes: row['set_notes']?.toString(),
-          isCompleted: true,
-        ));
+        sets.add(
+          SetLog(
+            workoutLogId: 0,
+            exerciseName: rawExerciseName,
+            setType: _mapSetType(row['set_type']),
+            weightKg: weight,
+            reps: _parseNumber(row['reps'])?.round(),
+            distanceKm: distance,
+            durationSeconds: duration,
+            rpe: _parseNumber(row['rpe'])?.round(),
+            rir: _parseNumber(row['rir'])?.round(),
+            logOrder: setOrder++,
+            exerciseBlock: exerciseBlock,
+            notes: row['set_notes']?.toString(),
+            isCompleted: true,
+          ),
+        );
       }
 
-      result.add(WorkoutImportData(
-        title: title,
-        notes: notes,
-        startTime: startTime,
-        endTime: endTime,
-        sets: sets,
-        exerciseNotesByBlock: exerciseNotesByBlock,
-        sourceProfile: sourceProfile,
-        skippedInvalidRows: skippedInvalidRows,
-      ));
+      result.add(
+        WorkoutImportData(
+          title: title,
+          notes: notes,
+          startTime: startTime,
+          endTime: endTime,
+          sets: sets,
+          exerciseNotesByBlock: exerciseNotesByBlock,
+          sourceProfile: sourceProfile,
+          skippedInvalidRows: skippedInvalidRows,
+        ),
+      );
     }
 
     return result;
@@ -454,8 +478,13 @@ class ImportManager {
       // Workout Meta
       if (['title', 'routine', 'workout', 'name', 'workout_name'].contains(h)) {
         map['title'] = i;
-      } else if (['start_time', 'start', 'datum', 'date', 'workout_date']
-          .contains(h)) {
+      } else if ([
+        'start_time',
+        'start',
+        'datum',
+        'date',
+        'workout_date',
+      ].contains(h)) {
         map['start_time'] = i;
       } else if (['end_time', 'end'].contains(h)) {
         map['end_time'] = i;
@@ -470,14 +499,24 @@ class ImportManager {
         'exercise',
         'übung',
         'exercise_name',
-        'name_der_übung'
+        'name_der_übung',
       ].contains(h)) {
         map['exercise'] = i;
-      } else if (['set_type', 'type', 'typ', 'reihenfolge_festlegen']
-          .contains(h)) {
+      } else if ([
+        'set_type',
+        'type',
+        'typ',
+        'reihenfolge_festlegen',
+      ].contains(h)) {
         map['set_type'] = i;
-      } else if (['weight_kg', 'weight_lbs', 'weight', 'gewicht', 'mass', 'lbs']
-          .contains(h)) {
+      } else if ([
+        'weight_kg',
+        'weight_lbs',
+        'weight',
+        'gewicht',
+        'mass',
+        'lbs',
+      ].contains(h)) {
         map['weight'] = i;
         if (h == 'weight_lbs' || h == 'lbs') map['weight_is_lbs'] = i;
         if (h == 'weight_kg') map['weight_is_kg'] = i;
@@ -489,7 +528,7 @@ class ImportManager {
         'wiederholungen.',
         'wiederh.',
         'repetitionen',
-        'repetition'
+        'repetition',
       ].contains(h)) {
         map['reps'] = i;
       } else if ([
@@ -500,7 +539,7 @@ class ImportManager {
         'distance_m',
         'distance',
         'distanz',
-        'entfernung'
+        'entfernung',
       ].contains(h)) {
         map['distance'] = i;
         if (h == 'distance_miles' || h == 'distance_mi') {
@@ -514,14 +553,7 @@ class ImportManager {
       } else if (profile == WorkoutImportProfile.strong &&
           ['duration', 'dauer'].contains(h)) {
         map['workout_duration'] = i;
-      } else if ([
-        'duration_seconds',
-        'seconds',
-        'sekunden',
-        'duration',
-        'dauer',
-        'zeit'
-      ].contains(h)) {
+      } else if (['duration_seconds', 'seconds', 'sekunden', 'duration', 'dauer', 'zeit'].contains(h)) {
         map['duration'] = i;
       } else if (['rpe'].contains(h)) {
         map['rpe'] = i;
@@ -541,10 +573,8 @@ class ImportManager {
   }
 
   static String _mapSetType(dynamic rawType) {
-    final t = rawType?.toString().toLowerCase().replaceAll(
-              RegExp(r'[ _-]'),
-              '',
-            ) ??
+    final t =
+        rawType?.toString().toLowerCase().replaceAll(RegExp(r'[ _-]'), '') ??
         '';
     if (t.contains('warmup') || t == 'w') return 'warmup';
     if (t.contains('failure') || t == 'f') return 'failure';
@@ -679,12 +709,18 @@ class ImportManager {
       if (parts.length == 2) return numbers[0]! * 60 + numbers[1]!;
       return numbers[0]! * 3600 + numbers[1]! * 60 + numbers[2]!;
     }
-    final hours =
-        RegExp(r'(\d+)\s*h', caseSensitive: false).firstMatch(value)?.group(1);
-    final minutes =
-        RegExp(r'(\d+)\s*m', caseSensitive: false).firstMatch(value)?.group(1);
-    final remainingSeconds =
-        RegExp(r'(\d+)\s*s', caseSensitive: false).firstMatch(value)?.group(1);
+    final hours = RegExp(
+      r'(\d+)\s*h',
+      caseSensitive: false,
+    ).firstMatch(value)?.group(1);
+    final minutes = RegExp(
+      r'(\d+)\s*m',
+      caseSensitive: false,
+    ).firstMatch(value)?.group(1);
+    final remainingSeconds = RegExp(
+      r'(\d+)\s*s',
+      caseSensitive: false,
+    ).firstMatch(value)?.group(1);
     if (hours != null || minutes != null || remainingSeconds != null) {
       return (int.tryParse(hours ?? '') ?? 0) * 3600 +
           (int.tryParse(minutes ?? '') ?? 0) * 60 +

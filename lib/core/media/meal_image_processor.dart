@@ -33,8 +33,9 @@ class MealImageProcessor {
   MealImageProcessor._();
 
   @visibleForTesting
-  static const MethodChannel channel =
-      MethodChannel('com.trainlibre.app/image_ops');
+  static const MethodChannel channel = MethodChannel(
+    'com.trainlibre.app/image_ops',
+  );
 
   /// Long edge sent to the AI provider. Above this the models downscale
   /// themselves, so the extra pixels only cost latency and mobile data.

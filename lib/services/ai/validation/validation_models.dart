@@ -66,11 +66,18 @@ class AiMealCandidateItem {
   /// Portion visible to the user (for example cooked rice on a plate). Kept
   /// separate from [grams] so validation can reason about both bases.
   final int? servedGrams;
+
+  /// True when the item is a drink and [grams] represents millilitres.
+  final bool isFluid;
   final double? confidence;
   final String? matchedBarcode;
   final String? stateHint;
   final String? catalogSearchTerm;
   final List<String> searchTerms;
+
+  /// AI-estimated nutrient values per 100 g. Present only for the direct
+  /// estimate engine; the local catalog engine leaves this null.
+  final Map<String, double?>? nutritionPer100g;
 
   /// Evidence from the original input, never inferred from a catalog result.
   final String? packagedProductEvidence;
@@ -87,11 +94,13 @@ class AiMealCandidateItem {
     required this.name,
     required this.grams,
     this.servedGrams,
+    this.isFluid = false,
     this.confidence,
     this.matchedBarcode,
     this.stateHint,
     this.catalogSearchTerm,
     this.searchTerms = const [],
+    this.nutritionPer100g,
     this.packagedProductEvidence,
     this.allowOffFallback = false,
     this.selectedFood,
@@ -101,11 +110,13 @@ class AiMealCandidateItem {
     String? name,
     int? grams,
     int? servedGrams,
+    bool? isFluid,
     double? confidence,
     Object? matchedBarcode = _unchangedSelection,
     String? stateHint,
     Object? catalogSearchTerm = _unchangedSelection,
     List<String>? searchTerms,
+    Object? nutritionPer100g = _unchangedSelection,
     Object? packagedProductEvidence = _unchangedSelection,
     bool? allowOffFallback,
     Object? selectedFood = _unchangedSelection,
@@ -114,6 +125,7 @@ class AiMealCandidateItem {
       name: name ?? this.name,
       grams: grams ?? this.grams,
       servedGrams: servedGrams ?? this.servedGrams,
+      isFluid: isFluid ?? this.isFluid,
       confidence: confidence ?? this.confidence,
       matchedBarcode: identical(matchedBarcode, _unchangedSelection)
           ? this.matchedBarcode
@@ -123,10 +135,13 @@ class AiMealCandidateItem {
           ? this.catalogSearchTerm
           : catalogSearchTerm as String?,
       searchTerms: searchTerms ?? this.searchTerms,
+      nutritionPer100g: identical(nutritionPer100g, _unchangedSelection)
+          ? this.nutritionPer100g
+          : nutritionPer100g as Map<String, double?>?,
       packagedProductEvidence:
           identical(packagedProductEvidence, _unchangedSelection)
-              ? this.packagedProductEvidence
-              : packagedProductEvidence as String?,
+          ? this.packagedProductEvidence
+          : packagedProductEvidence as String?,
       allowOffFallback: allowOffFallback ?? this.allowOffFallback,
       selectedFood: identical(selectedFood, _unchangedSelection)
           ? this.selectedFood
@@ -139,6 +154,7 @@ class AiMealCandidateItem {
       'name': name,
       'grams': grams,
       if (servedGrams != null) 'servedGrams': servedGrams,
+      if (isFluid) 'isFluid': true,
       if (confidence != null) 'confidence': confidence,
       if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
       if (stateHint != null) 'stateHint': stateHint,
@@ -146,6 +162,7 @@ class AiMealCandidateItem {
       if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
       if (packagedProductEvidence != null)
         'packagedProductEvidence': packagedProductEvidence,
+      if (nutritionPer100g != null) 'nutritionPer100g': nutritionPer100g,
     };
   }
 }
@@ -163,12 +180,7 @@ class AiNutritionTotals {
     required this.fat,
   });
 
-  static const zero = AiNutritionTotals(
-    kcal: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-  );
+  static const zero = AiNutritionTotals(kcal: 0, protein: 0, carbs: 0, fat: 0);
 
   factory AiNutritionTotals.fromFood(FoodItem food, int grams) {
     final factor = grams / 100.0;
@@ -227,12 +239,7 @@ class AiMacroTargetContext {
   }
 
   Map<String, int> toMap() {
-    return {
-      'kcal': kcal,
-      'protein': protein,
-      'carbs': carbs,
-      'fat': fat,
-    };
+    return {'kcal': kcal, 'protein': protein, 'carbs': carbs, 'fat': fat};
   }
 
   bool get isEffectivelyEmpty =>
@@ -336,12 +343,14 @@ class AiValidatedMealItem {
       match.quality == AiMatchQuality.weak ||
       match.quality == AiMatchQuality.partial ||
       match.isAmbiguous ||
-      issues.any((issue) => const {
-            'state_mismatch',
-            'zero_nutrition_match',
-            'implausible_food_density',
-            'macro_energy_mismatch',
-          }.contains(issue.code));
+      issues.any(
+        (issue) => const {
+          'state_mismatch',
+          'zero_nutrition_match',
+          'implausible_food_density',
+          'macro_energy_mismatch',
+        }.contains(issue.code),
+      );
 
   /// Exactly the foods offered to the repair model for this item.
   List<FoodItem> get repairFoods => needsCatalogRepair
@@ -384,10 +393,7 @@ class AiValidationResult {
   });
 
   List<AiValidationIssue> get allIssues {
-    return [
-      ...issues,
-      for (final item in items) ...item.issues,
-    ];
+    return [...issues, for (final item in items) ...item.issues];
   }
 
   List<AiValidationIssue> get errors => allIssues
@@ -404,9 +410,8 @@ class AiValidationResult {
   /// A local search found materially different nutrition candidates without a
   /// verified candidate id. This is safe to save only after a semantic repair
   /// selects one of the real database products.
-  bool get needsSemanticSelection => allIssues.any(
-        (issue) => issue.code == 'ambiguous_nutrition_match',
-      );
+  bool get needsSemanticSelection =>
+      allIssues.any((issue) => issue.code == 'ambiguous_nutrition_match');
 
   AiValidationResult copyWithRepairMetadata({
     required int repairPassesUsed,
@@ -484,7 +489,8 @@ class AiValidationResult {
         ..writeln('')
         ..writeln('CANDIDATES for itemIndex $i ("${item.candidate.name}"):')
         ..writeln(
-            'Choose the EXACT name from one of these real database entries:');
+          'Choose the EXACT name from one of these real database entries:',
+        );
       for (final candidate in candidates) {
         buffer.writeln(candidate.toPromptLine());
       }
@@ -541,10 +547,7 @@ class AiDiarySavePlan {
         matched.add(item);
       }
     }
-    return AiDiarySavePlan(
-      matchedItems: matched,
-      unmatchedItems: unmatched,
-    );
+    return AiDiarySavePlan(matchedItems: matched, unmatchedItems: unmatched);
   }
 
   bool get canSaveAny => matchedItems.isNotEmpty;
@@ -555,18 +558,12 @@ class _NormalizedCandidate {
   final AiMealCandidate candidate;
   final List<AiValidationIssue> issues;
 
-  const _NormalizedCandidate({
-    required this.candidate,
-    required this.issues,
-  });
+  const _NormalizedCandidate({required this.candidate, required this.issues});
 }
 
 class _ScoredFood {
   final FoodItem food;
   final double score;
 
-  const _ScoredFood({
-    required this.food,
-    required this.score,
-  });
+  const _ScoredFood({required this.food, required this.score});
 }

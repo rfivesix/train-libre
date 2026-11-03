@@ -84,42 +84,42 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
       builder: (context, snapshot) {
         final summary = snapshot.data;
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
-              margin: EdgeInsets.zero,
-              padding: EdgeInsets.zero,
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.all(DesignConstants.spacingL),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          margin: EdgeInsets.zero,
+          padding: EdgeInsets.zero,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.statisticsMicronutrientsTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                    Expanded(
+                      child: Text(
+                        l10n.statisticsMicronutrientsTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        Icon(
-                          LucideIcons.chevron_right,
-                          size: 18,
-                          color: theme.colorScheme.outline,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXS),
-                    Text(
-                      l10n.statisticsMicronutrientsPreviewSubtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
                       ),
+                    ),
+                    Icon(
+                      LucideIcons.chevron_right,
+                      size: 18,
+                      color: theme.colorScheme.outline,
                     ),
                   ],
                 ),
-              ),
-            );
+                const SizedBox(height: DesignConstants.spacingXS),
+                Text(
+                  l10n.statisticsMicronutrientsPreviewSubtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
 
         return MorphSourceScope(
           builder: (context, setHidden) => Builder(
@@ -146,18 +146,17 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
 }
 
 class _NutrientValueRow extends StatelessWidget {
-  const _NutrientValueRow({
-    required this.nutrient,
-    required this.localeName,
-  });
+  const _NutrientValueRow({required this.nutrient, required this.localeName});
 
   final MicronutrientAverage nutrient;
   final String localeName;
 
   @override
   Widget build(BuildContext context) {
-    final number =
-        NumberFormat('0.##', localeName).format(nutrient.averagePerLoggedDay);
+    final number = NumberFormat(
+      '0.##',
+      localeName,
+    ).format(nutrient.averagePerLoggedDay);
     final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,10 +170,13 @@ class _NutrientValueRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: DesignConstants.spacingM),
-        Text('$number ${nutrient.unit}',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
-            textAlign: TextAlign.end),
+        Text(
+          '$number ${nutrient.unit}',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.end,
+        ),
       ],
     );
   }
@@ -222,8 +224,9 @@ class _MicronutrientStatisticsScreenState
   @override
   void initState() {
     super.initState();
-    _block =
-        widget.initialDay != null ? TimeframeBlock.day : widget.initialBlock;
+    _block = widget.initialDay != null
+        ? TimeframeBlock.day
+        : widget.initialBlock;
     _anchor = widget.initialDay ?? widget.initialAnchorDate ?? DateTime.now();
     _rolling = widget.initialDay == null && widget.initialIsRolling;
     _load(initialSummary: widget.summary);
@@ -272,10 +275,11 @@ class _MicronutrientStatisticsScreenState
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
-        context: context,
-        initialDate: _anchor,
-        firstDate: DateTime(2020),
-        lastDate: DateTime.now());
+      context: context,
+      initialDate: _anchor,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
     if (picked == null || !mounted) return;
     setState(() {
       _block = TimeframeBlock.day;
@@ -293,49 +297,52 @@ class _MicronutrientStatisticsScreenState
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-          title: l10n.statisticsMicronutrientsTitle,
-          actions: [
-            IconButton(
-              tooltip: l10n.shareAsText,
-              onPressed: _share,
-              icon: Icon(DesignConstants.adaptiveShareIcon),
-            ),
+        title: l10n.statisticsMicronutrientsTitle,
+        actions: [
+          IconButton(
+            tooltip: l10n.shareAsText,
+            onPressed: _share,
+            icon: Icon(DesignConstants.adaptiveShareIcon),
+          ),
+        ],
+        bottom: TimeRangeFilter(
+          ranges: [
+            l10n.filter1DayShort,
+            l10n.filter7DaysShort,
+            l10n.filter1MonthShort,
+            l10n.filter3MonthsShort,
+            l10n.filter6MonthsShort,
+            l10n.filter1YearShort,
+            l10n.filterMax,
           ],
-          bottom: TimeRangeFilter(
-            ranges: [
-              l10n.filter1DayShort,
-              l10n.filter7DaysShort,
-              l10n.filter1MonthShort,
-              l10n.filter3MonthsShort,
-              l10n.filter6MonthsShort,
-              l10n.filter1YearShort,
-              l10n.filterMax
-            ],
-            selectedIndex: _blocks.indexOf(_block),
-            onSelected: _setBlock,
-            displayDate: _block == TimeframeBlock.day
-                ? dateFormat.format(_anchor)
-                : (_rolling
+          selectedIndex: _blocks.indexOf(_block),
+          onSelected: _setBlock,
+          displayDate: _block == TimeframeBlock.day
+              ? dateFormat.format(_anchor)
+              : (_rolling
                     ? TimeframeLabelFormatter.formatRolling(_block, l10n)
                     : TimeframeLabelFormatter.format(_block, _anchor, l10n)),
-            onPrevious: _block == TimeframeBlock.maxBlock
-                ? null
-                : () => setState(() {
-                      _rolling = false;
-                      _anchor = _block.shift(_anchor, -1);
-                      _load();
-                    }),
-            onNext: _block == TimeframeBlock.maxBlock ||
-                    _anchor.isAfter(
-                        DateTime.now().subtract(const Duration(days: 1)))
-                ? null
-                : () => setState(() {
-                      _anchor = _block.shift(_anchor, 1);
-                      _load();
-                    }),
-            onTapDateDisplay: _pickDate,
-            showDateNavigation: _block != TimeframeBlock.maxBlock,
-          )),
+          onPrevious: _block == TimeframeBlock.maxBlock
+              ? null
+              : () => setState(() {
+                  _rolling = false;
+                  _anchor = _block.shift(_anchor, -1);
+                  _load();
+                }),
+          onNext:
+              _block == TimeframeBlock.maxBlock ||
+                  _anchor.isAfter(
+                    DateTime.now().subtract(const Duration(days: 1)),
+                  )
+              ? null
+              : () => setState(() {
+                  _anchor = _block.shift(_anchor, 1);
+                  _load();
+                }),
+          onTapDateDisplay: _pickDate,
+          showDateNavigation: _block != TimeframeBlock.maxBlock,
+        ),
+      ),
       body: FutureBuilder<MicronutrientPeriodSummary>(
         future: _future,
         builder: (context, snapshot) {
@@ -357,29 +364,33 @@ class _MicronutrientStatisticsScreenState
             child: ListView(
               controller: _scrollController,
               padding: EdgeInsets.fromLTRB(
-                  DesignConstants.cardPaddingInternal,
-                  MediaQuery.paddingOf(context).top +
-                      DesignConstants.cardPadding.top,
-                  DesignConstants.cardPaddingInternal,
-                  DesignConstants.cardPadding.bottom),
+                DesignConstants.cardPaddingInternal,
+                MediaQuery.paddingOf(context).top +
+                    DesignConstants.cardPadding.top,
+                DesignConstants.cardPaddingInternal,
+                DesignConstants.cardPadding.bottom,
+              ),
               children: [
                 Text(
-                    isDay
-                        ? dateFormat.format(_anchor)
-                        : '${l10n.statisticsAveragePerLoggedDay} · ${summary.blsLoggedDays} ${l10n.statisticsMicronutrientsLoggedDays}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                  isDay
+                      ? dateFormat.format(_anchor)
+                      : '${l10n.statisticsAveragePerLoggedDay} · ${summary.blsLoggedDays} ${l10n.statisticsMicronutrientsLoggedDays}',
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: DesignConstants.spacingXS),
-                Text(l10n.statisticsMicronutrientsCoverage,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline)),
+                Text(
+                  l10n.statisticsMicronutrientsCoverage,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
                 const SizedBox(height: DesignConstants.spacingS),
                 if (summary.nutrients.isEmpty)
-                  Text(summary.catalogAvailable
-                      ? l10n.statisticsMicronutrientsNoData
-                      : l10n.blsNutrientsUnavailable),
+                  Text(
+                    summary.catalogAvailable
+                        ? l10n.statisticsMicronutrientsNoData
+                        : l10n.blsNutrientsUnavailable,
+                  ),
                 for (final entry in grouped.entries) ...[
                   AppSectionHeader(
                     title: entry.key,
@@ -416,8 +427,8 @@ class _MicronutrientStatisticsScreenState
     final rangeLabel = _block == TimeframeBlock.day
         ? dateFormat.format(_anchor)
         : (_rolling
-            ? TimeframeLabelFormatter.formatRolling(_block, l10n)
-            : TimeframeLabelFormatter.format(_block, _anchor, l10n));
+              ? TimeframeLabelFormatter.formatRolling(_block, l10n)
+              : TimeframeLabelFormatter.format(_block, _anchor, l10n));
     final lines = <String>[
       l10n.statisticsMicronutrientsTitle,
       rangeLabel,

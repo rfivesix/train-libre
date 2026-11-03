@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/repositories/profile_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/measurement.dart';
@@ -12,6 +13,7 @@ import '../../../services/unit_service.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for recording new body measurements.
@@ -280,9 +282,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                   ),
                 ),
               ),
-              const SizedBox(
-                height: DesignConstants.spacingXL,
-              ),
+              const SizedBox(height: DesignConstants.spacingXL),
               Text(l10n.drawerMeasurements, style: textTheme.titleMedium),
               const SizedBox(height: DesignConstants.spacingS),
               ..._measurementTypes.keys.map((key) {
@@ -313,9 +313,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                   ),
                 );
               }),
-              const SizedBox(
-                height: DesignConstants.spacingL,
-              ),
+              const SizedBox(height: DesignConstants.spacingL),
             ],
           ),
         ),

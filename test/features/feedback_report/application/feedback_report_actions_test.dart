@@ -19,7 +19,9 @@ void main() {
       expect(body!, contains('Train Libre feedback report'));
       expect(body, contains('User note:'));
       expect(
-          body, contains('Please check recommendation drift & apply state.'));
+        body,
+        contains('Please check recommendation drift & apply state.'),
+      );
       expect(body, contains('Report:'));
       expect(body, contains('Train Libre Feedback Report'));
     });

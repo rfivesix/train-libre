@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart'; // Added for BuildContext
+
 import '../../../../core/infrastructure/caffeine_catalog_resolver.dart';
 
 enum FoodItemSource {
@@ -37,6 +38,12 @@ class FoodItem {
 
   /// The name of the food item in Japanese.
   final String nameJa;
+
+  /// The name of the food item in Spanish.
+  final String nameEs;
+
+  /// The name of the food item in Dutch.
+  final String nameNl;
 
   /// The brand or manufacturer of the food item.
   final String brand;
@@ -163,6 +170,8 @@ class FoodItem {
     this.nameFr = '',
     this.nameIt = '',
     this.nameJa = '',
+    this.nameEs = '',
+    this.nameNl = '',
     this.brand = '',
     required this.calories,
     required this.protein,
@@ -209,6 +218,8 @@ class FoodItem {
       'fr' => nameFr,
       'it' => nameIt,
       'ja' => nameJa,
+      'es' => nameEs,
+      'nl' => nameNl,
       _ => '',
     };
 
@@ -220,6 +231,8 @@ class FoodItem {
     if (nameFr.isNotEmpty) return nameFr;
     if (nameIt.isNotEmpty) return nameIt;
     if (nameJa.isNotEmpty) return nameJa;
+    if (nameEs.isNotEmpty) return nameEs;
+    if (nameNl.isNotEmpty) return nameNl;
     return name;
   }
 
@@ -230,9 +243,11 @@ class FoodItem {
     Map<String, dynamic> map, {
     required FoodItemSource source,
   }) {
-    final rawCaffeine100ml = _toDoubleOrNull(map['caffeine_mg_per_100ml']) ??
+    final rawCaffeine100ml =
+        _toDoubleOrNull(map['caffeine_mg_per_100ml']) ??
         _toDoubleOrNull(map['caffeine']);
-    final rawCaffeine100g = _toDoubleOrNull(map['caffeine_mg_per_100g']) ??
+    final rawCaffeine100g =
+        _toDoubleOrNull(map['caffeine_mg_per_100g']) ??
         _toDoubleOrNull(map['caffeine_mg_per100g']);
     final parsedIsFluid = _readBool(map['is_fluid']) ?? false;
     final parsedIsLiquid = _readBool(map['is_liquid']);
@@ -242,13 +257,13 @@ class FoodItem {
       map['barcode']?.toString(),
       (map['name_de'] ?? map['name'])?.toString(),
     );
-    final finalCaffeine100ml = rawCaffeine100ml ??
+    final finalCaffeine100ml =
+        rawCaffeine100ml ??
         (isDrink ? rawCaffeine100g : null) ??
         rawCaffeine100g ??
         resolvedFallback;
-    final finalCaffeine100g = rawCaffeine100g ??
-        rawCaffeine100ml ??
-        resolvedFallback;
+    final finalCaffeine100g =
+        rawCaffeine100g ?? rawCaffeine100ml ?? resolvedFallback;
 
     final item = FoodItem(
       id: map['id']?.toString(),
@@ -260,6 +275,8 @@ class FoodItem {
       nameFr: map['name_fr'] ?? map['nameFr'] ?? map['name'] ?? '',
       nameIt: map['name_it'] ?? map['nameIt'] ?? map['name'] ?? '',
       nameJa: map['name_ja'] ?? map['nameJa'] ?? map['name'] ?? '',
+      nameEs: map['name_es'] ?? map['nameEs'] ?? '',
+      nameNl: map['name_nl'] ?? map['nameNl'] ?? '',
       brand: map['brand'] ?? '',
       calories: (map['calories_100g'] as num?)?.round() ?? 0,
       protein: (map['protein_100g'] as num?)?.toDouble() ?? 0.0,
@@ -303,6 +320,8 @@ class FoodItem {
       'name_fr': nameFr,
       'name_it': nameIt,
       'name_ja': nameJa,
+      'name_es': nameEs,
+      'name_nl': nameNl,
       'brand': brand,
       'calories_100g': calories,
       'protein_100g': protein,
@@ -385,6 +404,8 @@ class FoodItem {
     String? nameFr,
     String? nameIt,
     String? nameJa,
+    String? nameEs,
+    String? nameNl,
   }) {
     return FoodItem(
       id: id,
@@ -395,6 +416,8 @@ class FoodItem {
       nameFr: nameFr ?? this.nameFr,
       nameIt: nameIt ?? this.nameIt,
       nameJa: nameJa ?? this.nameJa,
+      nameEs: nameEs ?? this.nameEs,
+      nameNl: nameNl ?? this.nameNl,
       brand: brand,
       calories: calories,
       protein: protein,

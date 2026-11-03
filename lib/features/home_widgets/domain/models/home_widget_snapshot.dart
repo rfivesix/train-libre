@@ -39,22 +39,22 @@ class HomeWidgetTile {
   });
 
   Map<String, dynamic> toJson() => {
-        'slot': slot,
-        'label': label,
-        'unit': unit,
-        'value': value,
-        'target': target,
-        'colorHex': colorHex,
-      };
+    'slot': slot,
+    'label': label,
+    'unit': unit,
+    'value': value,
+    'target': target,
+    'colorHex': colorHex,
+  };
 
   factory HomeWidgetTile.fromJson(Map<String, dynamic> json) => HomeWidgetTile(
-        slot: json['slot'] as String,
-        label: json['label'] as String,
-        unit: json['unit'] as String,
-        value: (json['value'] as num).toDouble(),
-        target: (json['target'] as num).toDouble(),
-        colorHex: json['colorHex'] as String,
-      );
+    slot: json['slot'] as String,
+    label: json['label'] as String,
+    unit: json['unit'] as String,
+    value: (json['value'] as num).toDouble(),
+    target: (json['target'] as num).toDouble(),
+    colorHex: json['colorHex'] as String,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -95,12 +95,12 @@ class HomeWidgetRecoveryState {
   });
 
   Map<String, dynamic> toJson() => {
-        'state': state,
-        'label': label,
-        'count': count,
-        'percent': percent,
-        'colorHex': colorHex,
-      };
+    'state': state,
+    'label': label,
+    'count': count,
+    'percent': percent,
+    'colorHex': colorHex,
+  };
 
   factory HomeWidgetRecoveryState.fromJson(Map<String, dynamic> json) =>
       HomeWidgetRecoveryState(
@@ -144,11 +144,11 @@ class HomeWidgetRecovery {
   });
 
   Map<String, dynamic> toJson() => {
-        'hasData': hasData,
-        'headline': headline,
-        if (headlineColorHex != null) 'headlineColorHex': headlineColorHex,
-        'states': states.map((s) => s.toJson()).toList(),
-      };
+    'hasData': hasData,
+    'headline': headline,
+    if (headlineColorHex != null) 'headlineColorHex': headlineColorHex,
+    'states': states.map((s) => s.toJson()).toList(),
+  };
 
   factory HomeWidgetRecovery.fromJson(Map<String, dynamic> json) =>
       HomeWidgetRecovery(
@@ -156,8 +156,10 @@ class HomeWidgetRecovery {
         headline: json['headline'] as String,
         headlineColorHex: json['headlineColorHex'] as String?,
         states: (json['states'] as List<dynamic>)
-            .map((e) =>
-                HomeWidgetRecoveryState.fromJson(e as Map<String, dynamic>))
+            .map(
+              (e) =>
+                  HomeWidgetRecoveryState.fromJson(e as Map<String, dynamic>),
+            )
             .toList(),
       );
 
@@ -221,11 +223,11 @@ class HomeWidgetSteps {
   });
 
   Map<String, dynamic> toJson() => {
-        'isTrackingEnabled': isTrackingEnabled,
-        'todaySteps': todaySteps,
-        'dailyGoal': dailyGoal,
-        'days': days.map((d) => d.toJson()).toList(),
-      };
+    'isTrackingEnabled': isTrackingEnabled,
+    'todaySteps': todaySteps,
+    'dailyGoal': dailyGoal,
+    'days': days.map((d) => d.toJson()).toList(),
+  };
 
   factory HomeWidgetSteps.fromJson(Map<String, dynamic> json) =>
       HomeWidgetSteps(
@@ -247,11 +249,11 @@ class HomeWidgetSteps {
 
   @override
   int get hashCode => Object.hash(
-        isTrackingEnabled,
-        todaySteps,
-        dailyGoal,
-        Object.hashAll(days),
-      );
+    isTrackingEnabled,
+    todaySteps,
+    dailyGoal,
+    Object.hashAll(days),
+  );
 }
 
 /// One point of a measurement series.
@@ -261,8 +263,10 @@ class HomeWidgetMeasurementPoint {
   /// Already converted into the user's display unit.
   final double value;
 
-  const HomeWidgetMeasurementPoint(
-      {required this.epochMs, required this.value});
+  const HomeWidgetMeasurementPoint({
+    required this.epochMs,
+    required this.value,
+  });
 
   Map<String, dynamic> toJson() => {'epochMs': epochMs, 'value': value};
 
@@ -308,11 +312,11 @@ class HomeWidgetMeasurementMetric {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'unit': unit,
-        'points': points.map((p) => p.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'unit': unit,
+    'points': points.map((p) => p.toJson()).toList(),
+  };
 
   factory HomeWidgetMeasurementMetric.fromJson(Map<String, dynamic> json) =>
       HomeWidgetMeasurementMetric(
@@ -320,8 +324,11 @@ class HomeWidgetMeasurementMetric {
         name: json['name'] as String,
         unit: json['unit'] as String,
         points: (json['points'] as List<dynamic>)
-            .map((e) =>
-                HomeWidgetMeasurementPoint.fromJson(e as Map<String, dynamic>))
+            .map(
+              (e) => HomeWidgetMeasurementPoint.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
             .toList(),
       );
 
@@ -368,16 +375,16 @@ class HomeWidgetLastWorkout {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'completedAtEpochMs': completedAtEpochMs,
-        'durationSeconds': durationSeconds,
-        if (totalVolume != null) 'totalVolume': totalVolume,
-        'volumeUnit': volumeUnit,
-        'totalReps': totalReps,
-        'totalSets': totalSets,
-        if (heatmapImageName != null) 'heatmapImageName': heatmapImageName,
-      };
+    'id': id,
+    'title': title,
+    'completedAtEpochMs': completedAtEpochMs,
+    'durationSeconds': durationSeconds,
+    if (totalVolume != null) 'totalVolume': totalVolume,
+    'volumeUnit': volumeUnit,
+    'totalReps': totalReps,
+    'totalSets': totalSets,
+    if (heatmapImageName != null) 'heatmapImageName': heatmapImageName,
+  };
 
   factory HomeWidgetLastWorkout.fromJson(Map<String, dynamic> json) =>
       HomeWidgetLastWorkout(
@@ -407,16 +414,16 @@ class HomeWidgetLastWorkout {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        title,
-        completedAtEpochMs,
-        durationSeconds,
-        totalVolume,
-        volumeUnit,
-        totalReps,
-        totalSets,
-        heatmapImageName,
-      );
+    id,
+    title,
+    completedAtEpochMs,
+    durationSeconds,
+    totalVolume,
+    volumeUnit,
+    totalReps,
+    totalSets,
+    heatmapImageName,
+  );
 }
 
 bool _listEquals<T>(List<T> a, List<T> b) {
@@ -475,45 +482,48 @@ class HomeWidgetSnapshot {
   });
 
   Map<String, dynamic> toJson() => {
-        'schemaVersion': schemaVersion,
-        'generatedAtEpochMs': generatedAtEpochMs,
-        'logicalDayKey': logicalDayKey,
-        'rolloverHour': rolloverHour,
-        'isAiEnabled': isAiEnabled,
-        'tiles': tiles.map((t) => t.toJson()).toList(),
-        if (recovery != null) 'recovery': recovery!.toJson(),
-        if (steps != null) 'steps': steps!.toJson(),
-        if (measurements.isNotEmpty)
-          'measurements': measurements.map((m) => m.toJson()).toList(),
-        if (lastWorkout != null) 'lastWorkout': lastWorkout!.toJson(),
-      };
+    'schemaVersion': schemaVersion,
+    'generatedAtEpochMs': generatedAtEpochMs,
+    'logicalDayKey': logicalDayKey,
+    'rolloverHour': rolloverHour,
+    'isAiEnabled': isAiEnabled,
+    'tiles': tiles.map((t) => t.toJson()).toList(),
+    if (recovery != null) 'recovery': recovery!.toJson(),
+    if (steps != null) 'steps': steps!.toJson(),
+    if (measurements.isNotEmpty)
+      'measurements': measurements.map((m) => m.toJson()).toList(),
+    if (lastWorkout != null) 'lastWorkout': lastWorkout!.toJson(),
+  };
 
-  factory HomeWidgetSnapshot.fromJson(Map<String, dynamic> json) =>
-      HomeWidgetSnapshot(
-        schemaVersion: json['schemaVersion'] as int,
-        generatedAtEpochMs: (json['generatedAtEpochMs'] as num).toDouble(),
-        logicalDayKey: json['logicalDayKey'] as String,
-        rolloverHour: json['rolloverHour'] as int,
-        isAiEnabled: json['isAiEnabled'] as bool,
-        tiles: (json['tiles'] as List<dynamic>)
-            .map((e) => HomeWidgetTile.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        recovery: json['recovery'] == null
-            ? null
-            : HomeWidgetRecovery.fromJson(
-                json['recovery'] as Map<String, dynamic>),
-        steps: json['steps'] == null
-            ? null
-            : HomeWidgetSteps.fromJson(json['steps'] as Map<String, dynamic>),
-        measurements: (json['measurements'] as List<dynamic>? ?? const [])
-            .map((e) =>
-                HomeWidgetMeasurementMetric.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        lastWorkout: json['lastWorkout'] == null
-            ? null
-            : HomeWidgetLastWorkout.fromJson(
-                json['lastWorkout'] as Map<String, dynamic>),
-      );
+  factory HomeWidgetSnapshot.fromJson(
+    Map<String, dynamic> json,
+  ) => HomeWidgetSnapshot(
+    schemaVersion: json['schemaVersion'] as int,
+    generatedAtEpochMs: (json['generatedAtEpochMs'] as num).toDouble(),
+    logicalDayKey: json['logicalDayKey'] as String,
+    rolloverHour: json['rolloverHour'] as int,
+    isAiEnabled: json['isAiEnabled'] as bool,
+    tiles: (json['tiles'] as List<dynamic>)
+        .map((e) => HomeWidgetTile.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    recovery: json['recovery'] == null
+        ? null
+        : HomeWidgetRecovery.fromJson(json['recovery'] as Map<String, dynamic>),
+    steps: json['steps'] == null
+        ? null
+        : HomeWidgetSteps.fromJson(json['steps'] as Map<String, dynamic>),
+    measurements: (json['measurements'] as List<dynamic>? ?? const [])
+        .map(
+          (e) =>
+              HomeWidgetMeasurementMetric.fromJson(e as Map<String, dynamic>),
+        )
+        .toList(),
+    lastWorkout: json['lastWorkout'] == null
+        ? null
+        : HomeWidgetLastWorkout.fromJson(
+            json['lastWorkout'] as Map<String, dynamic>,
+          ),
+  );
 
   String encode() => jsonEncode(toJson());
 

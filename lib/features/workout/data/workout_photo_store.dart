@@ -58,11 +58,9 @@ class WorkoutPhotoStore {
       AppMediaStore.thumbPathFor(photoPath);
 
   /// Deletes every file in the photo folder that no workout log refers to.
-  Future<int> pruneOrphans(Set<String> referencedPaths) =>
-      AppMediaStore.instance.pruneOrphans(
-        domain: _domain,
-        referencedPaths: referencedPaths,
-      );
+  Future<int> pruneOrphans(Set<String> referencedPaths) => AppMediaStore
+      .instance
+      .pruneOrphans(domain: _domain, referencedPaths: referencedPaths);
 
   /// Best-effort removal of every file behind a workout log.
   ///

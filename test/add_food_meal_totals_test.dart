@@ -6,18 +6,9 @@ void main() {
   test('calculateMealCardNutritionTotals batches product data by barcode', () {
     final totals = calculateMealCardNutritionTotals(
       items: const [
-        {
-          'barcode': 'oats',
-          'quantity_in_grams': 50,
-        },
-        {
-          'barcode': 'milk',
-          'quantity_in_grams': 200,
-        },
-        {
-          'barcode': 'missing',
-          'quantity_in_grams': 25,
-        },
+        {'barcode': 'oats', 'quantity_in_grams': 50},
+        {'barcode': 'milk', 'quantity_in_grams': 200},
+        {'barcode': 'missing', 'quantity_in_grams': 25},
       ],
       productsByBarcode: {
         'oats': FoodItem(

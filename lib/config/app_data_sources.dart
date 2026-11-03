@@ -31,7 +31,7 @@ class AppDataSources {
   /// Raise this only together with an importer that understands the new
   /// schema, and only once that release is broadly installed. A device that
   /// raises it early accepts a catalog it then fails to read.
-  static const int supportedCatalogSchemaVersion = 2;
+  static const int supportedCatalogSchemaVersion = 3;
 
   static const String blsFoodCatalogReleaseBaseUrl =
       'https://github.com/rfivesix/train-libre-bls-catalog/releases/download/bls-foods-stable/';
@@ -52,8 +52,7 @@ class AppDataSources {
     enabled: true,
     sourceId: 'wger_catalog',
     channel: 'stable',
-    baseUrl:
-        'https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/',
+    baseUrl: 'https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/',
     manifestPath: 'catalog_manifest.json',
     defaultDbPath: 'openexercisedb.db',
     // The new release publishes one database under one name. These paths are
@@ -84,19 +83,21 @@ class AppDataSources {
     OffCatalogCountry.it,
     OffCatalogCountry.jp,
     OffCatalogCountry.at,
+    OffCatalogCountry.nl,
+    OffCatalogCountry.es,
+    OffCatalogCountry.au,
   ];
 
   /// OFF release-channel/manifest expectations per supported country.
   static const Map<OffCatalogCountry, OffCatalogRemoteSourceConfig>
-      offCatalogs = {
+  offCatalogs = {
     OffCatalogCountry.de: OffCatalogRemoteSourceConfig(
       enabled: true,
       sourceId: 'off_food_catalog',
       countryCode: 'de',
       channel: 'stable',
       releaseTag: 'off-foods-de-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-de-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-de-stable/',
       manifestPath: 'off_catalog_manifest_de.json',
       defaultDbPath: 'train_libre_off_de.db',
       legacyDefaultDbPath: 'hypertrack_off_de.db',
@@ -121,8 +122,7 @@ class AppDataSources {
       countryCode: 'ch',
       channel: 'stable',
       releaseTag: 'off-foods-ch-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-ch-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-ch-stable/',
       manifestPath: 'off_catalog_manifest_ch.json',
       defaultDbPath: 'train_libre_off_ch.db',
       legacyDefaultDbPath: null,
@@ -144,8 +144,7 @@ class AppDataSources {
       countryCode: 'us',
       channel: 'stable',
       releaseTag: 'off-foods-us-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-us-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-us-stable/',
       manifestPath: 'off_catalog_manifest_us.json',
       defaultDbPath: 'train_libre_off_us.db',
       legacyDefaultDbPath: 'hypertrack_off_us.db',
@@ -167,8 +166,7 @@ class AppDataSources {
       countryCode: 'uk',
       channel: 'stable',
       releaseTag: 'off-foods-uk-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-uk-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-uk-stable/',
       manifestPath: 'off_catalog_manifest_uk.json',
       defaultDbPath: 'train_libre_off_uk.db',
       legacyDefaultDbPath: 'hypertrack_off_uk.db',
@@ -190,8 +188,7 @@ class AppDataSources {
       countryCode: 'fr',
       channel: 'stable',
       releaseTag: 'off-foods-fr-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-fr-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-fr-stable/',
       manifestPath: 'off_catalog_manifest_fr.json',
       defaultDbPath: 'train_libre_off_fr.db',
       legacyDefaultDbPath: null,
@@ -213,8 +210,7 @@ class AppDataSources {
       countryCode: 'it',
       channel: 'stable',
       releaseTag: 'off-foods-it-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-it-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-it-stable/',
       manifestPath: 'off_catalog_manifest_it.json',
       defaultDbPath: 'train_libre_off_it.db',
       legacyDefaultDbPath: null,
@@ -236,8 +232,7 @@ class AppDataSources {
       countryCode: 'jp',
       channel: 'stable',
       releaseTag: 'off-foods-jp-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-jp-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-jp-stable/',
       manifestPath: 'off_catalog_manifest_jp.json',
       defaultDbPath: 'train_libre_off_jp.db',
       legacyDefaultDbPath: null,
@@ -259,8 +254,7 @@ class AppDataSources {
       countryCode: 'at',
       channel: 'stable',
       releaseTag: 'off-foods-at-stable',
-      baseUrl:
-          'https://github.com/rfivesix/train-libre/releases/download/off-foods-at-stable/',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-at-stable/',
       manifestPath: 'off_catalog_manifest_at.json',
       defaultDbPath: 'train_libre_off_at.db',
       legacyDefaultDbPath: null,
@@ -275,6 +269,72 @@ class AppDataSources {
       localCacheDbFileName: 'train_libre_off_at_remote.db',
       legacyLocalCacheDbFileName: null,
       localManifestFileName: 'off_catalog_manifest_at_cached.json',
+    ),
+    OffCatalogCountry.nl: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'nl',
+      channel: 'stable',
+      releaseTag: 'off-foods-nl-stable',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-nl-stable/',
+      manifestPath: 'off_catalog_manifest_nl.json',
+      defaultDbPath: 'train_libre_off_nl.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_nl.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_nl.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_nl_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_nl_cached.json',
+    ),
+    OffCatalogCountry.es: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'es',
+      channel: 'stable',
+      releaseTag: 'off-foods-es-stable',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-es-stable/',
+      manifestPath: 'off_catalog_manifest_es.json',
+      defaultDbPath: 'train_libre_off_es.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_es.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_es.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_es_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_es_cached.json',
+    ),
+    OffCatalogCountry.au: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'au',
+      channel: 'stable',
+      releaseTag: 'off-foods-au-stable',
+      baseUrl: 'https://github.com/rfivesix/train-libre/releases/download/off-foods-au-stable/',
+      manifestPath: 'off_catalog_manifest_au.json',
+      defaultDbPath: 'train_libre_off_au.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_au.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_au.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_au_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_au_cached.json',
     ),
   };
 
@@ -336,28 +396,22 @@ class ExerciseCatalogRemoteSourceConfig {
   Duration get minCheckInterval => Duration(hours: minCheckIntervalHours);
 }
 
-enum OffCatalogCountry {
-  de,
-  ch,
-  us,
-  uk,
-  fr,
-  it,
-  jp,
-  at,
-}
+enum OffCatalogCountry { de, ch, us, uk, fr, it, jp, at, nl, es, au }
 
 extension OffCatalogCountryX on OffCatalogCountry {
   String get code => switch (this) {
-        OffCatalogCountry.de => 'de',
-        OffCatalogCountry.ch => 'ch',
-        OffCatalogCountry.us => 'us',
-        OffCatalogCountry.uk => 'uk',
-        OffCatalogCountry.fr => 'fr',
-        OffCatalogCountry.it => 'it',
-        OffCatalogCountry.jp => 'jp',
-        OffCatalogCountry.at => 'at',
-      };
+    OffCatalogCountry.de => 'de',
+    OffCatalogCountry.ch => 'ch',
+    OffCatalogCountry.us => 'us',
+    OffCatalogCountry.uk => 'uk',
+    OffCatalogCountry.fr => 'fr',
+    OffCatalogCountry.it => 'it',
+    OffCatalogCountry.jp => 'jp',
+    OffCatalogCountry.at => 'at',
+    OffCatalogCountry.nl => 'nl',
+    OffCatalogCountry.es => 'es',
+    OffCatalogCountry.au => 'au',
+  };
 
   String get upperCode => code.toUpperCase();
 }

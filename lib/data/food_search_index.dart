@@ -13,7 +13,7 @@ abstract final class FoodSearchIndex {
     'name_en',
     'name_fr',
     'name_it',
-    'name_ja'
+    'name_ja',
   ];
 
   static String literal(String value) => "'${value.replaceAll("'", "''")}'";
@@ -63,7 +63,7 @@ abstract final class FoodSearchIndex {
       '{',
       '}',
       '=',
-      '*'
+      '*',
     ]) {
       sql = 'REPLACE($sql, ${literal(separator)}, \' \')';
     }
@@ -83,22 +83,24 @@ abstract final class FoodSearchIndex {
     if (tables.contains(products) && tables.contains(aliases)) return;
     await db.transaction(() async {
       if (!tables.contains(products)) {
-        await db.customStatement('CREATE VIRTUAL TABLE $products USING fts5('
-            '${names.join(', ')}, brand, compact, tokenize="unicode61 remove_diacritics 2", prefix="2 3 4")');
+        await db.customStatement(
+          'CREATE VIRTUAL TABLE $products USING fts5('
+          '${names.join(', ')}, brand, compact, tokenize="unicode61 remove_diacritics 2", prefix="2 3 4")',
+        );
         // The view keeps import, override and initial-build normalization equal.
-        await db.customStatement('CREATE VIEW food_search_content_v1 AS SELECT '
-            'p.local_id AS rowid, '
-            '${names.map((name) {
-          final raw = 'COALESCE(o.name, p.$name)';
-          final previous = names.take(names.indexOf(name));
-          final normalized = normalizeSql(raw);
-          // OFF imports often repeat the same name in every language.
-          return previous.isEmpty
-              ? '$normalized AS $name'
-              : "CASE WHEN $raw IS NULL OR $raw IN (${previous.map((n) => 'COALESCE(o.name, p.$n)').join(', ')}) THEN '' ELSE $normalized END AS $name";
-        }).join(', ')}, '
-            '${normalizeSql('COALESCE(o.brand, p.brand)')} AS brand, p.source '
-            "FROM products p LEFT JOIN user_food_overrides o ON o.barcode = p.barcode WHERE p.source IN ('base', 'user', 'off') AND p.deleted_at IS NULL");
+        await db.customStatement(
+          'CREATE VIEW food_search_content_v1 AS SELECT '
+          'p.local_id AS rowid, '
+          '${names.map((name) {
+            final raw = 'COALESCE(o.name, p.$name)';
+            final previous = names.take(names.indexOf(name));
+            final normalized = normalizeSql(raw);
+            // OFF imports often repeat the same name in every language.
+            return previous.isEmpty ? '$normalized AS $name' : "CASE WHEN $raw IS NULL OR $raw IN (${previous.map((n) => 'COALESCE(o.name, p.$n)').join(', ')}) THEN '' ELSE $normalized END AS $name";
+          }).join(', ')}, '
+          '${normalizeSql('COALESCE(o.brand, p.brand)')} AS brand, p.source '
+          "FROM products p LEFT JOIN user_food_overrides o ON o.barcode = p.barcode WHERE p.source IN ('base', 'user', 'off') AND p.deleted_at IS NULL",
+        );
         String insert(String condition) =>
             'INSERT INTO $products(rowid, ${names.join(', ')}, brand, compact) '
             'SELECT rowid, ${names.join(', ')}, brand, '
@@ -106,41 +108,50 @@ abstract final class FoodSearchIndex {
             'FROM food_search_content_v1 WHERE $condition;';
         await db.customStatement(insert('1'));
         await db.customStatement(
-            'CREATE TRIGGER food_search_insert_v1 AFTER INSERT ON products BEGIN '
-            '${insert('rowid = new.local_id')} END');
+          'CREATE TRIGGER food_search_insert_v1 AFTER INSERT ON products BEGIN '
+          '${insert('rowid = new.local_id')} END',
+        );
         await db.customStatement(
-            'CREATE TRIGGER food_search_update_v1 AFTER UPDATE OF ${names.join(', ')}, brand, source, barcode, deleted_at ON products BEGIN '
-            'DELETE FROM $products WHERE rowid = old.local_id; ${insert('rowid = new.local_id')} END');
+          'CREATE TRIGGER food_search_update_v1 AFTER UPDATE OF ${names.join(', ')}, brand, source, barcode, deleted_at ON products BEGIN '
+          'DELETE FROM $products WHERE rowid = old.local_id; ${insert('rowid = new.local_id')} END',
+        );
         await db.customStatement(
-            'CREATE TRIGGER food_search_delete_v1 AFTER DELETE ON products BEGIN '
-            'DELETE FROM $products WHERE rowid = old.local_id; END');
+          'CREATE TRIGGER food_search_delete_v1 AFTER DELETE ON products BEGIN '
+          'DELETE FROM $products WHERE rowid = old.local_id; END',
+        );
         for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
           final barcode = event == 'DELETE' ? 'old.barcode' : 'new.barcode';
           final condition =
               'rowid IN (SELECT local_id FROM products WHERE barcode = $barcode'
               '${event == 'UPDATE' ? ' OR barcode = old.barcode' : ''})';
           await db.customStatement(
-              'CREATE TRIGGER food_search_override_${event.toLowerCase()}_v1 AFTER $event ON user_food_overrides BEGIN '
-              'DELETE FROM $products WHERE $condition; ${insert(condition)} END');
+            'CREATE TRIGGER food_search_override_${event.toLowerCase()}_v1 AFTER $event ON user_food_overrides BEGIN '
+            'DELETE FROM $products WHERE $condition; ${insert(condition)} END',
+          );
         }
       }
       if (!tables.contains(aliases)) {
-        await db.customStatement('CREATE VIRTUAL TABLE $aliases USING fts5('
-            'name, compact, tokenize="unicode61 remove_diacritics 2", prefix="2 3 4")');
+        await db.customStatement(
+          'CREATE VIRTUAL TABLE $aliases USING fts5('
+          'name, compact, tokenize="unicode61 remove_diacritics 2", prefix="2 3 4")',
+        );
         String insert(String condition) =>
             'INSERT INTO $aliases(rowid, name, compact) '
             'SELECT rowid, ${normalizeSql('alias')}, REPLACE(${normalizeSql('alias')}, \' \', \'\') '
             'FROM bls_food_alias_index WHERE $condition;';
         await db.customStatement(insert('1'));
         await db.customStatement(
-            'CREATE TRIGGER food_alias_insert_v1 AFTER INSERT ON bls_food_alias_index BEGIN '
-            '${insert('rowid = new.rowid')} END');
+          'CREATE TRIGGER food_alias_insert_v1 AFTER INSERT ON bls_food_alias_index BEGIN '
+          '${insert('rowid = new.rowid')} END',
+        );
         await db.customStatement(
-            'CREATE TRIGGER food_alias_update_v1 AFTER UPDATE ON bls_food_alias_index BEGIN '
-            'DELETE FROM $aliases WHERE rowid = old.rowid; ${insert('rowid = new.rowid')} END');
+          'CREATE TRIGGER food_alias_update_v1 AFTER UPDATE ON bls_food_alias_index BEGIN '
+          'DELETE FROM $aliases WHERE rowid = old.rowid; ${insert('rowid = new.rowid')} END',
+        );
         await db.customStatement(
-            'CREATE TRIGGER food_alias_delete_v1 AFTER DELETE ON bls_food_alias_index BEGIN '
-            'DELETE FROM $aliases WHERE rowid = old.rowid; END');
+          'CREATE TRIGGER food_alias_delete_v1 AFTER DELETE ON bls_food_alias_index BEGIN '
+          'DELETE FROM $aliases WHERE rowid = old.rowid; END',
+        );
       }
     });
   }

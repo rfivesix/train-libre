@@ -4,8 +4,9 @@ import 'package:train_libre/features/diary/presentation/widgets/meal_ingredients
 import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
-  testWidgets('shows compact ingredient cards and opens editing explicitly',
-      (tester) async {
+  testWidgets('shows compact ingredient cards and opens editing explicitly', (
+    tester,
+  ) async {
     var editRequested = false;
     int? openedIngredient;
 
@@ -19,7 +20,10 @@ void main() {
             ingredients: const [
               MealIngredientSummaryItem(name: 'Reis', grams: 180, kcal: 234),
               MealIngredientSummaryItem(
-                  name: 'Hähnchen', grams: 150, kcal: 248),
+                name: 'Hähnchen',
+                grams: 150,
+                kcal: 248,
+              ),
               MealIngredientSummaryItem(name: 'Brokkoli', grams: 100, kcal: 34),
               MealIngredientSummaryItem(name: 'Öl', grams: 10, kcal: 90),
             ],

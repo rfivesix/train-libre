@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
@@ -21,8 +23,10 @@ import 'widgets/meal_item_card.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../sharing/share_service.dart';
@@ -48,8 +52,11 @@ class _MealsScreenState extends State<MealsScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.mealList));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.mealList,
+      ),
+    );
     _reloadMeals();
   }
 
@@ -80,14 +87,12 @@ class _MealsScreenState extends State<MealsScreen> {
       if (!mounted) return;
       await _reloadMeals();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.shareImportSuccess)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportSuccess)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(l10n.shareImportInvalid),
-      ));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportInvalid)));
     }
   }
 
@@ -106,8 +111,8 @@ class _MealsScreenState extends State<MealsScreen> {
         .whereType<String>()
         .toSet()
         .toList();
-    final products =
-        await ProductLocalDataSource.instance.getProductsByBarcodes(barcodes);
+    final products = await ProductLocalDataSource.instance
+        .getProductsByBarcodes(barcodes);
     return {for (final product in products) product.barcode: product};
   }
 
@@ -143,8 +148,8 @@ class _MealsScreenState extends State<MealsScreen> {
           mealName: meal['name'] as String,
           rawItems: rawItems,
           products: products,
-          recipeCookedWeightInGrams:
-              (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+          recipeCookedWeightInGrams: (meal['cooked_weight_in_grams'] as num?)
+              ?.toInt(),
           recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
           initialDate: DateTime.now(),
           initialMealType: 'mealtypeBreakfast',
@@ -156,20 +161,21 @@ class _MealsScreenState extends State<MealsScreen> {
                 timestamp: date,
                 quantityInGrams:
                     quantities[item['id']?.toString() ?? barcode] ??
-                        (item['quantity_in_grams'] as int),
+                    (item['quantity_in_grams'] as int),
                 mealType: mealType,
               );
             }).toList();
-            final foodEntryIds =
-                await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
-                    MealEntry(
-                      id: const Uuid().v4(),
-                      title: meal['name'] as String,
-                      consumedAt: date,
-                      mealType: mealType,
-                      source: 'template',
-                    ),
-                    foodEntries);
+            final foodEntryIds = await DatabaseHelper.instance
+                .insertMealEntryWithFoodEntries(
+                  MealEntry(
+                    id: const Uuid().v4(),
+                    title: meal['name'] as String,
+                    consumedAt: date,
+                    mealType: mealType,
+                    source: 'template',
+                  ),
+                  foodEntries,
+                );
             for (var i = 0; i < foodEntries.length; i++) {
               final bc = foodEntries[i].barcode;
               final qty = foodEntries[i].quantityInGrams;
@@ -186,9 +192,7 @@ class _MealsScreenState extends State<MealsScreen> {
 
             if (mounted) {
               HapticFeedbackService.instance.confirmationFeedback();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(l10n.mealAddedToDiarySuccess)),
               );
             }
@@ -218,7 +222,8 @@ class _MealsScreenState extends State<MealsScreen> {
       ),
     );
 
-    final caffeineId = caffeine.id ??
+    final caffeineId =
+        caffeine.id ??
         (await DatabaseHelper.instance.insertSupplement(caffeine));
 
     await DatabaseHelper.instance.insertSupplementLog(
@@ -249,9 +254,8 @@ class _MealsScreenState extends State<MealsScreen> {
     _mealTotalsFutureCache.remove(mealId);
     await _reloadMeals();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.mealDeleted)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.mealDeleted)));
     }
   }
 
@@ -328,141 +332,134 @@ class _MealsScreenState extends State<MealsScreen> {
           _loading
               ? const Center(child: CircularProgressIndicator())
               : _meals.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          24,
-                          topPadding + 24,
-                          24,
-                          96,
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(24, topPadding + 24, 24, 96),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Icon in a circular accent background container
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Theme.of(context).colorScheme.primary
+                                .withValues(alpha: 0.12),
+                          ),
+                          child: Icon(
+                            LucideIcons.utensils,
+                            size: 40,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Icon in a circular accent background container
-                            Container(
-                              width: 88,
-                              height: 88,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                        const SizedBox(height: DesignConstants.spacingL),
+                        // Bold headline
+                        Text(
+                          l10n.mealsEmptyTitle,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: DesignConstants.spacingS),
+                        // Low-opacity instructional subtext
+                        Text(
+                          l10n.mealsEmptyBodyWithShortcut,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.12),
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.75),
+                                height: 1.45,
                               ),
-                              child: Icon(
-                                LucideIcons.utensils,
-                                size: 40,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(height: DesignConstants.spacingL),
-                            // Bold headline
-                            Text(
-                              l10n.mealsEmptyTitle,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            // Low-opacity instructional subtext
-                            Text(
-                              l10n.mealsEmptyBodyWithShortcut,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant
-                                        .withValues(alpha: 0.75),
-                                    height: 1.45,
-                                  ),
-                            ),
-                            const SizedBox(height: DesignConstants.spacingL),
-                            // Outlined CTA to build a template from scratch
-                            AppButton.secondary(
-                              onPressed: () => _createMealAndOpenEditor(l10n),
-                              label: l10n.mealsCreateManually,
-                              tooltip: l10n.mealsCreateManually,
-                              icon: LucideIcons.plus,
-                            ),
-                          ],
                         ),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _reloadMeals,
-                      child: ListView.builder(
-                        padding: EdgeInsets.fromLTRB(
-                          DesignConstants.screenPaddingHorizontal,
-                          12.0 + topPadding,
-                          DesignConstants.screenPaddingHorizontal,
-                          96.0,
+                        const SizedBox(height: DesignConstants.spacingL),
+                        // Outlined CTA to build a template from scratch
+                        AppButton.secondary(
+                          onPressed: () => _createMealAndOpenEditor(l10n),
+                          label: l10n.mealsCreateManually,
+                          tooltip: l10n.mealsCreateManually,
+                          icon: LucideIcons.plus,
                         ),
-                        itemCount: _meals.length,
-                        itemBuilder: (context, i) {
-                          final meal = _meals[i];
-                          final mealId = meal['id'] as int;
-
-                          return MorphSourceScope(
-                            builder: (context, setHidden) => Builder(
-                              builder: (cardCtx) {
-                                // The card is what the container grows out of, so
-                                // it also has to be the copy drawn inside it while
-                                // the meal screen dissolves in over the top.
-                                late final Widget card;
-                                card = MealItemCard(
-                                  meal: meal,
-                                  mealTotalsFuture: _getMealTotals(mealId),
-                                  ingredientCount:
-                                      _mealItemsCache[mealId]?.length ?? 0,
-                                  onAdd: () => _confirmAndLogMeal(meal, l10n),
-                                  onShare: () => const ShareService()
-                                      .showRecipeShareSheet(
-                                          context: context, meal: meal),
-                                  onEdit: () async {
-                                    await Navigator.of(context).push(
-                                      CardMorphRoute(
-                                        sourceContext: cardCtx,
-                                        sourceBuilder: (_) => card,
-                                        onSourceVisibilityChanged: setHidden,
-                                        builder: (_) => MealScreen(
-                                            meal: meal, startInEdit: true),
-                                      ),
-                                    );
-                                    await _reloadMeals();
-                                  },
-                                  onDuplicate: () async {
-                                    await DatabaseHelper.instance.duplicateMeal(
-                                      mealId,
-                                      copySuffix: l10n.mealCopySuffix,
-                                    );
-                                    await _reloadMeals();
-                                  },
-                                  onDelete: () => _deleteMeal(meal, l10n),
-                                  onTap: () async {
-                                    await Navigator.of(context).push(
-                                      CardMorphRoute(
-                                        sourceContext: cardCtx,
-                                        sourceBuilder: (_) => card,
-                                        onSourceVisibilityChanged: setHidden,
-                                        builder: (_) => MealScreen(meal: meal),
-                                      ),
-                                    );
-                                    await _reloadMeals();
-                                  },
-                                );
-                                return card;
-                              },
-                            ),
-                          );
-                        },
-                      ),
+                      ],
                     ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _reloadMeals,
+                  child: ListView.builder(
+                    padding: EdgeInsets.fromLTRB(
+                      DesignConstants.screenPaddingHorizontal,
+                      12.0 + topPadding,
+                      DesignConstants.screenPaddingHorizontal,
+                      96.0,
+                    ),
+                    itemCount: _meals.length,
+                    itemBuilder: (context, i) {
+                      final meal = _meals[i];
+                      final mealId = meal['id'] as int;
+
+                      return MorphSourceScope(
+                        builder: (context, setHidden) => Builder(
+                          builder: (cardCtx) {
+                            // The card is what the container grows out of, so
+                            // it also has to be the copy drawn inside it while
+                            // the meal screen dissolves in over the top.
+                            late final Widget card;
+                            card = MealItemCard(
+                              meal: meal,
+                              mealTotalsFuture: _getMealTotals(mealId),
+                              ingredientCount:
+                                  _mealItemsCache[mealId]?.length ?? 0,
+                              onAdd: () => _confirmAndLogMeal(meal, l10n),
+                              onShare: () =>
+                                  const ShareService().showRecipeShareSheet(
+                                    context: context,
+                                    meal: meal,
+                                  ),
+                              onEdit: () async {
+                                await Navigator.of(context).push(
+                                  CardMorphRoute(
+                                    sourceContext: cardCtx,
+                                    sourceBuilder: (_) => card,
+                                    onSourceVisibilityChanged: setHidden,
+                                    builder: (_) => MealScreen(
+                                      meal: meal,
+                                      startInEdit: true,
+                                    ),
+                                  ),
+                                );
+                                await _reloadMeals();
+                              },
+                              onDuplicate: () async {
+                                await DatabaseHelper.instance.duplicateMeal(
+                                  mealId,
+                                  copySuffix: l10n.mealCopySuffix,
+                                );
+                                await _reloadMeals();
+                              },
+                              onDelete: () => _deleteMeal(meal, l10n),
+                              onTap: () async {
+                                await Navigator.of(context).push(
+                                  CardMorphRoute(
+                                    sourceContext: cardCtx,
+                                    sourceBuilder: (_) => card,
+                                    onSourceVisibilityChanged: setHidden,
+                                    builder: (_) => MealScreen(meal: meal),
+                                  ),
+                                );
+                                await _reloadMeals();
+                              },
+                            );
+                            return card;
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -487,9 +484,9 @@ class _MealsScreenState extends State<MealsScreen> {
           child: Builder(
             builder: (fabCtx) {
               Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                    label: l10n.mealsCreate,
-                    onPressed: onPressed ?? () {},
-                  );
+                label: l10n.mealsCreate,
+                onPressed: onPressed ?? () {},
+              );
 
               return GlassFab(
                 label: l10n.mealsCreate,

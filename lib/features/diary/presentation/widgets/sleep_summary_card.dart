@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../sleep/data/sleep_day_repository.dart';
 import '../../../sleep/presentation/sleep_navigation.dart';
 import '../diary_view_model.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepSummaryCard extends StatelessWidget {
@@ -24,13 +27,14 @@ class SleepSummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<
-        DiaryViewModel,
-        ({
-          bool isSleepWidgetLoading,
-          SleepDayOverviewData? sleepOverview,
-          DateTime selectedDate,
-          bool showSkeleton,
-        })>(
+      DiaryViewModel,
+      ({
+        bool isSleepWidgetLoading,
+        SleepDayOverviewData? sleepOverview,
+        DateTime selectedDate,
+        bool showSkeleton,
+      })
+    >(
       selector: (context, vm) => (
         isSleepWidgetLoading: vm.isSleepWidgetLoading,
         sleepOverview: vm.sleepOverview,
@@ -42,8 +46,9 @@ class SleepSummaryCard extends StatelessWidget {
         if (data.isSleepWidgetLoading && !showSkeleton) {
           return SummaryCard(
             padding: EdgeInsets.zero,
-            margin:
-                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: DesignConstants.spacingM,
@@ -83,8 +88,9 @@ class SleepSummaryCard extends StatelessWidget {
         return RepaintBoundary(
           child: SummaryCard(
             padding: EdgeInsets.zero,
-            margin:
-                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
             child: ListTile(
               onTap: () =>
                   SleepNavigation.openDayForDate(context, data.selectedDate),

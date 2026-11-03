@@ -1,6 +1,7 @@
 // lib/widgets/global_app_bar.dart
 
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 /// A standardized AppBar for the application with a frosted glass background.
@@ -47,9 +48,9 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.bottom,
     this.bottomHeight = 56,
   }) : assert(
-          title == null || titleWidget == null,
-          'Cannot provide both a title and a titleWidget',
-        );
+         title == null || titleWidget == null,
+         'Cannot provide both a title and a titleWidget',
+       );
 
   @override
   Size get preferredSize =>
@@ -72,12 +73,12 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,
       titleSpacing: titleSpacing,
-      title: titleWidget ??
+      title:
+          titleWidget ??
           Text(
             title ?? '',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
       actions: actions,
     );
@@ -91,7 +92,8 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
     // Scaffold reserves the toolbar height separately from the system inset.
     // Include that inset in the painted area so SafeArea still has room for
     // the toolbar and optional extension below it.
-    final glassHeight = MediaQuery.paddingOf(context).top +
+    final glassHeight =
+        MediaQuery.paddingOf(context).top +
         kToolbarHeight +
         (bottom == null ? 0 : bottomHeight);
 

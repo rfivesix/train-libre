@@ -71,16 +71,17 @@ class HomeWidgetSyncService {
     RecoveryAnalyticsFetcher? fetchRecoveryAnalytics,
     WorkoutHeatmapPublisher heatmapPublisher = const WorkoutHeatmapPublisher(),
     HomeWidgetChannel channel = const HomeWidgetChannel(),
-  })  : _diaryRepo = diaryRepo,
-        _supplementRepo = supplementRepo,
-        _profileRepo = profileRepo,
-        _workoutRepo = workoutRepo,
-        _stepsRepo = stepsRepo ?? HealthStepsAggregationRepository(),
-        _fetchRecoveryAnalytics = fetchRecoveryAnalytics ??
-            (() => WorkoutLocalDataSource.instance.getRecoveryAnalytics()),
-        _heatmapPublisher = heatmapPublisher,
-        _unitService = unitService,
-        _channel = channel;
+  }) : _diaryRepo = diaryRepo,
+       _supplementRepo = supplementRepo,
+       _profileRepo = profileRepo,
+       _workoutRepo = workoutRepo,
+       _stepsRepo = stepsRepo ?? HealthStepsAggregationRepository(),
+       _fetchRecoveryAnalytics =
+           fetchRecoveryAnalytics ??
+           (() => WorkoutLocalDataSource.instance.getRecoveryAnalytics()),
+       _heatmapPublisher = heatmapPublisher,
+       _unitService = unitService,
+       _channel = channel;
 
   Timer? _debounce;
   bool _isRunning = false;
@@ -147,6 +148,7 @@ class HomeWidgetSyncService {
 
       final goals = await _diaryRepo.watchGoalsForDate(day).first;
       final foodEntries = await _diaryRepo.watchEntriesForDate(day).first;
+      final macroEntries = await _diaryRepo.watchMacroEntriesForDate(day).first;
       final fluidEntries = await _diaryRepo.watchFluidEntriesForDate(day).first;
 
       final archiveIds = <int>{};
@@ -179,6 +181,7 @@ class HomeWidgetSyncService {
         targetSalt: await _prefsRepo.getTargetSalt() ?? 6,
         targetCaffeine: await _prefsRepo.getTargetCaffeine() ?? 400,
         foodEntries: foodEntries,
+        macroEntries: macroEntries,
         fluidEntries: fluidEntries,
         foodProductsByBarcode: legacyProducts,
         foodProductsByArchiveLocalId: archiveProducts,
@@ -187,11 +190,13 @@ class HomeWidgetSyncService {
         // feed `summary` is loaded above; supplements are included because they
         // populate `summary.caffeine`.
         workoutLogs: const [],
-        supplementsForDate:
-            await _supplementRepo.watchSupplementsForDate(day).first,
+        supplementsForDate: await _supplementRepo
+            .watchSupplementsForDate(day)
+            .first,
         allSupplements: await _supplementRepo.getAllSupplements(),
-        todaysSupplementLogs:
-            await _supplementRepo.watchSupplementLogsForDate(day).first,
+        todaysSupplementLogs: await _supplementRepo
+            .watchSupplementLogsForDate(day)
+            .first,
       );
 
       final statistics = await _resolveStatistics(

@@ -11,7 +11,9 @@ import '../../../util/permission_dialogs.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/permissions/sleep_permission_models.dart';
 import '../../sleep/platform/permissions/healthkit_sleep_permissions_service.dart';
@@ -35,11 +37,15 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _permissionController = SleepPermissionController(Platform.isIOS
-        ? const HealthKitSleepPermissionsService(
-            HealthKitSleepMethodChannelBridge())
-        : const HealthConnectSleepPermissionsService(
-            HealthConnectSleepMethodChannelBridge()));
+    _permissionController = SleepPermissionController(
+      Platform.isIOS
+          ? const HealthKitSleepPermissionsService(
+              HealthKitSleepMethodChannelBridge(),
+            )
+          : const HealthConnectSleepPermissionsService(
+              HealthConnectSleepMethodChannelBridge(),
+            ),
+    );
     _loadStepsSettings();
   }
 
@@ -140,20 +146,20 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                         Text(
                           permission.state == SleepPermissionState.ready
                               ? (Platform.isIOS
-                                  ? l10n.sleepDataStatusSubtitleIos
-                                  : l10n.sleepDataStatusSubtitle)
+                                    ? l10n.sleepDataStatusSubtitleIos
+                                    : l10n.sleepDataStatusSubtitle)
                               : (permission.state ==
-                                          SleepPermissionState.denied ||
-                                      permission.state ==
-                                          SleepPermissionState.partial
-                                  ? l10n.sleepNoPermissionSubtitle
-                                  : l10n.sleepFeatureUnavailableSubtitle),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                                            SleepPermissionState.denied ||
+                                        permission.state ==
+                                            SleepPermissionState.partial
+                                    ? l10n.sleepNoPermissionSubtitle
+                                    : l10n.sleepFeatureUnavailableSubtitle),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
@@ -167,14 +173,15 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                             permission.state == SleepPermissionState.ready
                                 ? LucideIcons.circle_check
                                 : (permission.state ==
-                                            SleepPermissionState.denied ||
-                                        permission.state ==
-                                            SleepPermissionState.partial
-                                    ? LucideIcons.chevron_right
-                                    : _statusIcon(permission.state)),
+                                              SleepPermissionState.denied ||
+                                          permission.state ==
+                                              SleepPermissionState.partial
+                                      ? LucideIcons.chevron_right
+                                      : _statusIcon(permission.state)),
                             color: _statusColor(context, permission.state),
                           ),
-                    onTap: (_requesting ||
+                    onTap:
+                        (_requesting ||
                             permission.state == SleepPermissionState.ready)
                         ? null
                         : _requestAccess,

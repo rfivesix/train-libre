@@ -4,8 +4,10 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A standard premium info button that triggers a detailed bottom sheet about
@@ -226,8 +228,8 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       ),
                     ),
                     IconButton(
-                      tooltip:
-                          MaterialLocalizations.of(context).closeButtonTooltip,
+                      tooltip: MaterialLocalizations.of(context)
+                          .closeButtonTooltip,
                       icon: const Icon(LucideIcons.x),
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -255,14 +257,17 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                     const SizedBox(height: DesignConstants.spacingL),
 
                     // Bullet Points Key Features
-                    ...widget.keyPoints
-                        .where((p) => p.trim().isNotEmpty)
-                        .map((point) {
-                      final cleanPoint =
-                          point.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '');
+                    ...widget.keyPoints.where((p) => p.trim().isNotEmpty).map((
+                      point,
+                    ) {
+                      final cleanPoint = point.trim().replaceFirst(
+                        RegExp(r'^[•\-\*]\s*'),
+                        '',
+                      );
                       return Padding(
                         padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingS),
+                          bottom: DesignConstants.spacingS,
+                        ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -298,7 +303,8 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                             ? const Color(0xFF262626)
                             : cs.surfaceContainerHighest.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
+                          DesignConstants.borderRadiusM,
+                        ),
                         border: Border.all(
                           color: cs.onSurface.withValues(alpha: 0.08),
                         ),
@@ -315,10 +321,12 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                               }
                             },
                             borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusM),
+                              DesignConstants.borderRadiusM,
+                            ),
                             child: Padding(
                               padding: const EdgeInsets.all(
-                                  DesignConstants.spacingL),
+                                DesignConstants.spacingL,
+                              ),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -332,16 +340,17 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                                           color: cs.primary,
                                         ),
                                         const SizedBox(
-                                            width: DesignConstants.spacingS),
+                                          width: DesignConstants.spacingS,
+                                        ),
                                         Expanded(
                                           child: Text(
                                             widget.technicalTitle,
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                              color: cs.onSurface,
-                                            ),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: cs.onSurface,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -361,56 +370,67 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                             const Divider(height: 1),
                             Padding(
                               padding: const EdgeInsets.all(
-                                  DesignConstants.spacingL),
+                                DesignConstants.spacingL,
+                              ),
                               child: _isLoading
                                   ? const Center(
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(
-                                            vertical: DesignConstants.spacingL),
+                                          vertical: DesignConstants.spacingL,
+                                        ),
                                         child: CircularProgressIndicator(),
                                       ),
                                     )
                                   : MarkdownBody(
-                                      data: _loadedMarkdown ??
+                                      data:
+                                          _loadedMarkdown ??
                                           widget.technicalExplanation,
                                       selectable: true,
                                       styleSheet:
-                                          MarkdownStyleSheet.fromTheme(theme)
-                                              .copyWith(
-                                        p: theme.textTheme.bodySmall?.copyWith(
-                                          fontSize: 13,
-                                          height: 1.5,
-                                          color: cs.onSurface
-                                              .withValues(alpha: 0.85),
-                                        ),
-                                        code:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          fontSize: 12,
-                                          fontFamily: 'monospace',
-                                          backgroundColor: isDark
-                                              ? const Color(0xFF1E1E1E)
-                                              : cs.surfaceContainerHighest
-                                                  .withValues(alpha: 0.3),
-                                          color: cs.primary,
-                                        ),
-                                      ),
+                                          MarkdownStyleSheet.fromTheme(
+                                            theme,
+                                          ).copyWith(
+                                            p: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  fontSize: 13,
+                                                  height: 1.5,
+                                                  color: cs.onSurface
+                                                      .withValues(alpha: 0.85),
+                                                ),
+                                            code: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  fontSize: 12,
+                                                  fontFamily: 'monospace',
+                                                  backgroundColor: isDark
+                                                      ? const Color(0xFF1E1E1E)
+                                                      : cs.surfaceContainerHighest
+                                                            .withValues(
+                                                              alpha: 0.3,
+                                                            ),
+                                                  color: cs.primary,
+                                                ),
+                                          ),
                                       builders: {
                                         'latex': LatexElementBuilder(
                                           textStyle: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                            fontSize: 13,
-                                            color: cs.primary,
-                                          ),
+                                                fontSize: 13,
+                                                color: cs.primary,
+                                              ),
                                         ),
                                       },
                                       extensionSet: md.ExtensionSet(
                                         [
-                                          ...md.ExtensionSet.gitHubFlavored
+                                          ...md
+                                              .ExtensionSet
+                                              .gitHubFlavored
                                               .blockSyntaxes,
                                           LatexBlockSyntax(),
                                         ],
                                         [
-                                          ...md.ExtensionSet.gitHubFlavored
+                                          ...md
+                                              .ExtensionSet
+                                              .gitHubFlavored
                                               .inlineSyntaxes,
                                           LatexInlineSyntax(),
                                         ],
@@ -440,13 +460,17 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                           mode: LaunchMode.externalApplication,
                         ),
                         borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusS),
+                          DesignConstants.borderRadiusS,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
-                              Icon(LucideIcons.external_link,
-                                  size: 16, color: cs.primary),
+                              Icon(
+                                LucideIcons.external_link,
+                                size: 16,
+                                color: cs.primary,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(

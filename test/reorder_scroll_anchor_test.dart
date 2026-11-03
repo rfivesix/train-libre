@@ -20,22 +20,17 @@ class _TestWorkoutReorderList extends StatefulWidget {
 class _TestWorkoutReorderListState extends State<_TestWorkoutReorderList> {
   bool _isDragging = false;
   final List<String> _items = List.generate(15, (i) => 'Exercise $i');
-  late final ReorderScrollAnchor _anchor =
-      ReorderScrollAnchor(widget.controller);
+  late final ReorderScrollAnchor _anchor = ReorderScrollAnchor(
+    widget.controller,
+  );
 
   void startReorder(Object anchorId) {
     if (!widget.isEditMode) return;
-    _anchor.pin(
-      anchorId,
-      () => setState(() => _isDragging = true),
-    );
+    _anchor.pin(anchorId, () => setState(() => _isDragging = true));
   }
 
   void endReorder(Object anchorId) {
-    _anchor.pin(
-      anchorId,
-      () => setState(() => _isDragging = false),
-    );
+    _anchor.pin(anchorId, () => setState(() => _isDragging = false));
   }
 
   @override
@@ -77,44 +72,41 @@ void main() {
   tearDown(() => controller.dispose());
 
   testWidgets(
-      'ReorderScrollAnchor pins items and bounds strictly without empty headroom',
-      (tester) async {
-    await tester.pumpWidget(
-      _TestWorkoutReorderList(
-        controller: controller,
-        isEditMode: true,
-      ),
-    );
-    final state = tester.state<_TestWorkoutReorderListState>(
-        find.byType(_TestWorkoutReorderList));
+    'ReorderScrollAnchor pins items and bounds strictly without empty headroom',
+    (tester) async {
+      await tester.pumpWidget(
+        _TestWorkoutReorderList(controller: controller, isEditMode: true),
+      );
+      final state = tester.state<_TestWorkoutReorderListState>(
+        find.byType(_TestWorkoutReorderList),
+      );
 
-    // Scroll to offset 600
-    controller.jumpTo(600.0);
-    await tester.pump();
+      // Scroll to offset 600
+      controller.jumpTo(600.0);
+      await tester.pump();
 
-    final initialY = tester.getTopLeft(find.text('Exercise 6')).dy;
+      final initialY = tester.getTopLeft(find.text('Exercise 6')).dy;
 
-    // Trigger reorder pinned on Exercise 6
-    state.startReorder('Exercise 6');
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pumpAndSettle();
+      // Trigger reorder pinned on Exercise 6
+      state.startReorder('Exercise 6');
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
 
-    // After collapse, Exercise 6 remains pinned at its Y position and minScrollExtent is strictly 0.0
-    final afterCollapseY = tester.getTopLeft(find.text('Exercise 6')).dy;
-    expect((afterCollapseY - initialY).abs(), lessThan(5.0));
-    expect(controller.position.minScrollExtent, 0.0);
-  });
+      // After collapse, Exercise 6 remains pinned at its Y position and minScrollExtent is strictly 0.0
+      final afterCollapseY = tester.getTopLeft(find.text('Exercise 6')).dy;
+      expect((afterCollapseY - initialY).abs(), lessThan(5.0));
+      expect(controller.position.minScrollExtent, 0.0);
+    },
+  );
 
   testWidgets('non-edit mode ignores reorder start', (tester) async {
     await tester.pumpWidget(
-      _TestWorkoutReorderList(
-        controller: controller,
-        isEditMode: false,
-      ),
+      _TestWorkoutReorderList(controller: controller, isEditMode: false),
     );
     final state = tester.state<_TestWorkoutReorderListState>(
-        find.byType(_TestWorkoutReorderList));
+      find.byType(_TestWorkoutReorderList),
+    );
 
     final initialY = tester.getTopLeft(find.text('Exercise 3')).dy;
     state.startReorder('Exercise 3');
@@ -124,16 +116,15 @@ void main() {
     expect(tester.getTopLeft(find.text('Exercise 3')).dy, initialY);
   });
 
-  testWidgets('calculateDynamicReorderHeadroom calculates exact needed gap',
-      (tester) async {
+  testWidgets('calculateDynamicReorderHeadroom calculates exact needed gap', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: ListView(
             controller: controller,
-            children: const [
-              SizedBox(height: 50, child: Text('Header')),
-            ],
+            children: const [SizedBox(height: 50, child: Text('Header'))],
           ),
         ),
       ),
@@ -172,8 +163,9 @@ void main() {
     expect(headroom5, 0.0);
   });
 
-  testWidgets('ReorderHapticFeedback lifecycle and boundary tracking',
-      (tester) async {
+  testWidgets('ReorderHapticFeedback lifecycle and boundary tracking', (
+    tester,
+  ) async {
     final anchor = ReorderScrollAnchor(controller);
     final itemIds = ['ex_0', 'ex_1', 'ex_2'];
 

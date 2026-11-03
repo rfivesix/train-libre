@@ -52,21 +52,26 @@ void main() {
       await database.close();
     });
 
-    test('legacy provider and source preferences use automatic defaults',
-        () async {
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.setString(StepsSyncService.providerFilterKey, 'apple');
-      await preferences.setString(
-        StepsSyncService.sourcePolicyKey,
-        'max_per_hour',
-      );
-      final service = StepsSyncService(
-        stepsDb: StepsLocalDataSource(database),
-      );
+    test(
+      'legacy provider and source preferences use automatic defaults',
+      () async {
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.setString(
+          StepsSyncService.providerFilterKey,
+          'apple',
+        );
+        await preferences.setString(
+          StepsSyncService.sourcePolicyKey,
+          'max_per_hour',
+        );
+        final service = StepsSyncService(
+          stepsDb: StepsLocalDataSource(database),
+        );
 
-      expect(await service.getProviderFilter(), StepsProviderFilter.all);
-      expect(await service.getSourcePolicy(), StepsSourcePolicy.autoDominant);
-    });
+        expect(await service.getProviderFilter(), StepsProviderFilter.all);
+        expect(await service.getSourcePolicy(), StepsSourcePolicy.autoDominant);
+      },
+    );
 
     test(
       're-enable sync with overlapping range does not inflate totals',
@@ -179,10 +184,9 @@ void main() {
       final hourly = await dbHelper.getHourlyStepsTotalsForDay(
         dayLocal: dayLocal,
       );
-      final hourlyTotals = hourly
-          .map((row) => row['totalSteps'] as int)
-          .toList(growable: false)
-        ..sort();
+      final hourlyTotals =
+          hourly.map((row) => row['totalSteps'] as int).toList(growable: false)
+            ..sort();
       expect(hourlyTotals, <int>[500, 1000]);
 
       final range = await dbHelper.getDailyStepsTotalsForRange(
@@ -244,10 +248,9 @@ void main() {
         dayLocal: dayLocal,
         sourcePolicy: 'max_per_hour',
       );
-      final hourlyTotals = hourly
-          .map((row) => row['totalSteps'] as int)
-          .toList(growable: false)
-        ..sort();
+      final hourlyTotals =
+          hourly.map((row) => row['totalSteps'] as int).toList(growable: false)
+            ..sort();
       expect(hourlyTotals, <int>[500, 1200]);
 
       final range = await dbHelper.getDailyStepsTotalsForRange(

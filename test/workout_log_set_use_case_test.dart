@@ -16,10 +16,7 @@ void main() {
         rir: null,
       );
 
-      final result = useCase.execute(
-        oldLog: oldLog,
-        rir: null,
-      );
+      final result = useCase.execute(oldLog: oldLog, rir: null);
 
       expect(result.updatedSet.rir, isNull);
     });
@@ -33,10 +30,7 @@ void main() {
         rir: null,
       );
 
-      final resultWithRir = useCase.execute(
-        oldLog: oldLog,
-        rir: 3,
-      );
+      final resultWithRir = useCase.execute(oldLog: oldLog, rir: 3);
       expect(resultWithRir.updatedSet.rir, equals(3));
 
       final resultCleared = useCase.execute(
@@ -75,64 +69,68 @@ void main() {
       expect(result.updatedSet.rir, 0);
     });
 
-    test('Rep range average fallback parses hyphen range and rounds correctly',
-        () {
-      final oldLog = SetLog(
-        id: 1,
-        workoutLogId: 10,
-        exerciseName: 'Bench Press',
-        setType: 'normal',
-        reps: null,
-        weightKg: null,
-        isCompleted: false,
-      );
+    test(
+      'Rep range average fallback parses hyphen range and rounds correctly',
+      () {
+        final oldLog = SetLog(
+          id: 1,
+          workoutLogId: 10,
+          exerciseName: 'Bench Press',
+          setType: 'normal',
+          reps: null,
+          weightKg: null,
+          isCompleted: false,
+        );
 
-      final template = SetTemplate(
-        id: 100,
-        setType: 'normal',
-        targetReps: '8-12',
-        targetWeight: 60.0,
-      );
+        final template = SetTemplate(
+          id: 100,
+          setType: 'normal',
+          targetReps: '8-12',
+          targetWeight: 60.0,
+        );
 
-      // Complete the set without manually entered reps/weight
-      final result = useCase.execute(
-        oldLog: oldLog,
-        template: template,
-        isCompleted: true,
-      );
+        // Complete the set without manually entered reps/weight
+        final result = useCase.execute(
+          oldLog: oldLog,
+          template: template,
+          isCompleted: true,
+        );
 
-      // Average of 8 and 12 is 10
-      expect(result.updatedSet.reps, equals(10));
-      expect(result.updatedSet.weightKg, equals(60.0));
-      expect(result.updatedSet.isCompleted, isTrue);
-    });
+        // Average of 8 and 12 is 10
+        expect(result.updatedSet.reps, equals(10));
+        expect(result.updatedSet.weightKg, equals(60.0));
+        expect(result.updatedSet.isCompleted, isTrue);
+      },
+    );
 
-    test('Rep range average fallback handles odd range and rounds correctly',
-        () {
-      final oldLog = SetLog(
-        id: 1,
-        workoutLogId: 10,
-        exerciseName: 'Squat',
-        setType: 'normal',
-        reps: null,
-        weightKg: null,
-        isCompleted: false,
-      );
+    test(
+      'Rep range average fallback handles odd range and rounds correctly',
+      () {
+        final oldLog = SetLog(
+          id: 1,
+          workoutLogId: 10,
+          exerciseName: 'Squat',
+          setType: 'normal',
+          reps: null,
+          weightKg: null,
+          isCompleted: false,
+        );
 
-      final template = SetTemplate(
-        id: 100,
-        setType: 'normal',
-        targetReps: '8-11', // (8 + 11) / 2 = 9.5 -> rounds to 10
-      );
+        final template = SetTemplate(
+          id: 100,
+          setType: 'normal',
+          targetReps: '8-11', // (8 + 11) / 2 = 9.5 -> rounds to 10
+        );
 
-      final result = useCase.execute(
-        oldLog: oldLog,
-        template: template,
-        isCompleted: true,
-      );
+        final result = useCase.execute(
+          oldLog: oldLog,
+          template: template,
+          isCompleted: true,
+        );
 
-      expect(result.updatedSet.reps, equals(10));
-    });
+        expect(result.updatedSet.reps, equals(10));
+      },
+    );
 
     test('Rep range average fallback handles whitespace around hyphen', () {
       final oldLog = SetLog(

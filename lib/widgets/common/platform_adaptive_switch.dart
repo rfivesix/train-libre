@@ -19,12 +19,14 @@ class PlatformAdaptiveSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final platform = Theme.of(context).platform;
     final isIOS = platform == TargetPlatform.iOS;
+    final effectiveActiveColor =
+        activeColor ?? Theme.of(context).colorScheme.primary;
 
     if (isIOS) {
       return GlassSwitch(
         value: value,
         onChanged: onChanged ?? (val) {},
-        activeColor: activeColor,
+        activeColor: effectiveActiveColor,
         inactiveColor: inactiveColor,
       );
     } else {

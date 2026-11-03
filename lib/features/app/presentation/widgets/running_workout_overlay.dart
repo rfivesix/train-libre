@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 
@@ -55,7 +56,8 @@ class RunningWorkoutOverlay extends StatelessWidget {
             useOwnLayer: true,
             height: DesignConstants.workoutOverlayHeight,
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.floatingBarPillInset),
+              horizontal: DesignConstants.floatingBarPillInset,
+            ),
             alignment: Alignment.center,
             shape: const LiquidRoundedSuperellipse(
               borderRadius: DesignConstants.workoutOverlayRadius,
@@ -153,7 +155,8 @@ class _RunningWorkoutRow extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(
-                                width: DesignConstants.spacingXS + 2),
+                              width: DesignConstants.spacingXS + 2,
+                            ),
                             Flexible(
                               child: Text.rich(
                                 TextSpan(
@@ -164,7 +167,7 @@ class _RunningWorkoutRow extends StatelessWidget {
                                       style: TextStyle(
                                         color: timerColor,
                                         fontFeatures: const [
-                                          FontFeature.tabularFigures()
+                                          FontFeature.tabularFigures(),
                                         ],
                                       ),
                                     ),
@@ -174,9 +177,9 @@ class _RunningWorkoutRow extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: DesignConstants.floatingBarStatusStyle
                                     .copyWith(
-                                  color: onSurface,
-                                  decoration: TextDecoration.none,
-                                ),
+                                      color: onSurface,
+                                      decoration: TextDecoration.none,
+                                    ),
                               ),
                             ),
                           ],
@@ -187,12 +190,12 @@ class _RunningWorkoutRow extends StatelessWidget {
                             subtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style:
-                                DesignConstants.floatingBarLabelStyle.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color: onSurface.withValues(alpha: 0.55),
-                              decoration: TextDecoration.none,
-                            ),
+                            style: DesignConstants.floatingBarLabelStyle
+                                .copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: onSurface.withValues(alpha: 0.55),
+                                  decoration: TextDecoration.none,
+                                ),
                           ),
                         ],
                       ],
@@ -247,10 +250,7 @@ class _CircleAffordance extends StatelessWidget {
       width: DesignConstants.floatingBarPillSize,
       height: DesignConstants.floatingBarPillSize,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: backgroundColor,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: backgroundColor),
       child: Icon(icon, size: DesignConstants.iconSizeL, color: iconColor),
     );
   }

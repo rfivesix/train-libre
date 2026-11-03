@@ -84,11 +84,11 @@ class StartupRun {
   }
 
   Map<String, Object?> toJson() => {
-        'k': kind.name,
-        'at': at.toUtc().millisecondsSinceEpoch,
-        'f': toFirstFrameMs,
-        'p': phases.map((phase) => phase.toJson()).toList(),
-      };
+    'k': kind.name,
+    'at': at.toUtc().millisecondsSinceEpoch,
+    'f': toFirstFrameMs,
+    'p': phases.map((phase) => phase.toJson()).toList(),
+  };
 
   static StartupRun? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -162,10 +162,10 @@ class StartupSnapshot {
 /// visible, but not falsely attributed to app code.
 class StartupTrace {
   StartupTrace._({int Function()? clock, int Function()? wallClock})
-      : _clock = clock ?? _defaultClock(),
-        _wallClock = wallClock ?? _defaultWallClock,
-        _runStartedAtMs = 0,
-        _runStartedAtWallMicros = 0;
+    : _clock = clock ?? _defaultClock(),
+      _wallClock = wallClock ?? _defaultWallClock,
+      _runStartedAtMs = 0,
+      _runStartedAtWallMicros = 0;
 
   static final StartupTrace instance = StartupTrace._();
 
@@ -178,8 +178,7 @@ class StartupTrace {
   static StartupTrace createForTest({
     required int Function() clock,
     int Function()? wallClock,
-  }) =>
-      StartupTrace._(clock: clock, wallClock: wallClock);
+  }) => StartupTrace._(clock: clock, wallClock: wallClock);
 
   static int Function() _defaultClock() {
     final stopwatch = Stopwatch()..start();
@@ -244,11 +243,13 @@ class StartupTrace {
   void endPhase(String name) {
     final startedAt = _openPhases.remove(name);
     if (startedAt == null) return;
-    _phases.add(StartupPhase(
-      name: name,
-      startMs: startedAt - _runStartedAtMs,
-      durationMs: _clock() - startedAt,
-    ));
+    _phases.add(
+      StartupPhase(
+        name: name,
+        startMs: startedAt - _runStartedAtMs,
+        durationMs: _clock() - startedAt,
+      ),
+    );
   }
 
   /// Runs [body] as a measured phase.
@@ -321,9 +322,8 @@ class StartupTrace {
     return byFrame;
   }
 
-  StartupSnapshot snapshot() => StartupSnapshot(
-        runs: List<StartupRun>.unmodifiable(_runs),
-      );
+  StartupSnapshot snapshot() =>
+      StartupSnapshot(runs: List<StartupRun>.unmodifiable(_runs));
 
   Future<void> reset() async {
     _runs.clear();

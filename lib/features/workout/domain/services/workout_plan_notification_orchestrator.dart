@@ -17,10 +17,10 @@ class WorkoutPlanNotificationOrchestrator {
     WorkoutPlanNotificationScheduler? scheduler,
     WorkoutPlanPreferencesLoader? preferencesLoader,
     DateTime Function()? clock,
-  })  : _repository = repository ?? ManualTrainingPlanRepository(),
-        _scheduler = scheduler ?? LocalNotificationService.instance,
-        _preferencesLoader = preferencesLoader ?? SharedPreferences.getInstance,
-        _clock = clock ?? DateTime.now;
+  }) : _repository = repository ?? ManualTrainingPlanRepository(),
+       _scheduler = scheduler ?? LocalNotificationService.instance,
+       _preferencesLoader = preferencesLoader ?? SharedPreferences.getInstance,
+       _clock = clock ?? DateTime.now;
 
   static const enabledPreference = 'notify_workout_plan';
   static const hourPreference = 'notify_workout_plan_hour';
@@ -50,10 +50,12 @@ class WorkoutPlanNotificationOrchestrator {
     final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
     final through = DateTime(today.year, today.month, today.day + horizonDays);
-    final hour =
-        (preferences.getInt(hourPreference) ?? defaultHour).clamp(0, 23);
-    final minute =
-        (preferences.getInt(minutePreference) ?? defaultMinute).clamp(0, 59);
+    final hour = (preferences.getInt(hourPreference) ?? defaultHour).clamp(
+      0,
+      23,
+    );
+    final minute = (preferences.getInt(minutePreference) ?? defaultMinute)
+        .clamp(0, 59);
     final days = await _repository.calendar(plan.id, today, through);
     final reminders = <WorkoutPlanReminder>[];
 
@@ -67,12 +69,14 @@ class WorkoutPlanNotificationOrchestrator {
         minute,
       );
       if (!scheduledAt.isAfter(now)) continue;
-      reminders.add(WorkoutPlanReminder(
-        planId: plan.id,
-        planName: plan.name,
-        routineName: day.day.routineName ?? plan.name,
-        scheduledAt: scheduledAt,
-      ));
+      reminders.add(
+        WorkoutPlanReminder(
+          planId: plan.id,
+          planName: plan.name,
+          routineName: day.day.routineName ?? plan.name,
+          scheduledAt: scheduledAt,
+        ),
+      );
     }
 
     await _scheduler.replaceWorkoutPlanReminders(reminders);

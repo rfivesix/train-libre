@@ -59,8 +59,9 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
         files.add(file);
         continue;
       }
-      final thumb = WorkoutPhotoStore.instance
-          .resolveSync(WorkoutPhotoStore.thumbPathFor(path));
+      final thumb = WorkoutPhotoStore.instance.resolveSync(
+        WorkoutPhotoStore.thumbPathFor(path),
+      );
       if (thumb != null && thumb.existsSync()) {
         files.add(thumb);
       }
@@ -237,7 +238,8 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
     }
 
     final hasMultiple = files.length > 1;
-    final canAddMore = widget.isEditable &&
+    final canAddMore =
+        widget.isEditable &&
         widget.photoPaths.length < WorkoutPhotoStore.maxPhotos;
     final isDark = theme.brightness == Brightness.dark;
 
@@ -374,7 +376,7 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
                           height: 6,
                           decoration: BoxDecoration(
                             color: isActive
-                                ? DesignConstants.brandAccentColor
+                                ? Theme.of(context).colorScheme.primary
                                 : Colors.white.withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(3),
                             boxShadow: [

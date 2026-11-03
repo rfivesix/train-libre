@@ -10,9 +10,8 @@ abstract class PulseTrackingSettingsService {
 }
 
 class PulseTrackingService implements PulseTrackingSettingsService {
-  PulseTrackingService({
-    HealthPlatformHeartRate? platform,
-  }) : _platform = platform ?? const HealthPlatformHeartRate();
+  PulseTrackingService({HealthPlatformHeartRate? platform})
+    : _platform = platform ?? const HealthPlatformHeartRate();
 
   static const String trackingEnabledKey = 'pulse_tracking_enabled';
   static final ValueNotifier<bool?> trackingEnabledListenable =

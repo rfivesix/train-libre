@@ -103,9 +103,7 @@ void main() {
       expect(adapter, isNotNull);
     });
 
-    test(
-        'fetchSummary treats FluidEntry.kcal as total calories without duplicate scaling',
-        () async {
+    test('fetchSummary treats FluidEntry.kcal as total calories without duplicate scaling', () async {
       final db = AppDatabase(NativeDatabase.memory());
       final dbHelper = DatabaseHelper.forTesting(db);
       final adapter = MacroAnalyticsDataAdapter(databaseHelper: dbHelper);

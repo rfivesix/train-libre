@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path/path.dart' as p;
@@ -10,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../data/database_helper.dart';
 import '../../features/diary/domain/models/food_entry.dart';
 import '../../features/diary/domain/models/food_item.dart';
+import '../../features/diary/domain/models/macro_entry.dart';
 import '../../features/workout/domain/models/set_log.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/sleep/data/repository/sleep_query_repository.dart';
@@ -28,8 +30,9 @@ class ShareService {
   /// Captures a [RepaintBoundary] identified by [boundaryKey], encodes it as a PNG,
   /// saves it to a temporary file, and triggers the native share sheet.
   Future<void> shareWidgetAsImage(GlobalKey boundaryKey) async {
-    final boundary = boundaryKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+    final boundary =
+        boundaryKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
     if (boundary == null) {
       throw StateError('Share boundary was not found or not rendered yet.');
     }
@@ -61,16 +64,26 @@ class ShareService {
 
   /// Queries all local DAOs/repositories for the selected date, compiles the data into
   /// a clean human-and-LLM-readable Markdown string, and shares it via the native share sheet.
-  Future<void> shareDailyLogAsText(DateTime date,
-      {AppLocalizations? l10n, required UnitService unitService}) async {
+  Future<void> shareDailyLogAsText(
+    DateTime date, {
+    AppLocalizations? l10n,
+    required UnitService unitService,
+  }) async {
     final dbHelper = DatabaseHelper.instance;
     final targetDate = date.dateOnly;
     final start = DateTime(targetDate.year, targetDate.month, targetDate.day);
-    final end =
-        DateTime(targetDate.year, targetDate.month, targetDate.day, 23, 59, 59);
+    final end = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+      23,
+      59,
+      59,
+    );
 
     // 1. Fetch Food Entries and map them to Food Items
     final foodEntries = await dbHelper.getEntriesForDate(targetDate);
+    final macroEntries = await dbHelper.getMacroEntriesForDateRange(start, end);
 
     // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
     final Set<int> archiveIdsSet = {};
@@ -96,24 +109,25 @@ class ShareService {
 
     if (barcodesSet.isNotEmpty) {
       final barcodes = barcodesSet.toList();
-      final legacyProducts =
-          await dbHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
+      final legacyProducts = await dbHelper.productLocalDataSource
+          .getProductsByBarcodes(barcodes);
       for (final p in legacyProducts) {
         legacyProductsMap[p.barcode] = p;
       }
     }
 
     // 2. Fetch Fluids
-    final fluidEntries =
-        await dbHelper.diaryLocalDataSource.getFluidEntriesForDate(targetDate);
+    final fluidEntries = await dbHelper.diaryLocalDataSource
+        .getFluidEntriesForDate(targetDate);
 
     // 3. Fetch Supplements (definitions valid for the day + logged intake)
     final supplementLogs = await dbHelper.supplementLocalDataSource
         .getSupplementLogsForDate(targetDate);
     final supplementsForDate = supplementLogs.isEmpty
         ? const <Supplement>[]
-        : await dbHelper.supplementLocalDataSource
-            .getSupplementsForDate(targetDate);
+        : await dbHelper.supplementLocalDataSource.getSupplementsForDate(
+            targetDate,
+          );
     final supplementsById = <int, Supplement>{
       for (final s in supplementsForDate)
         if (s.id != null) s.id!: s,
@@ -128,10 +142,11 @@ class ShareService {
     final sleepAnalysis = await sleepRepo.getNightlyAnalysisByDate(targetDate);
 
     // 6. Fetch Measurements (Metrics)
-    final sessions =
-        await dbHelper.profileLocalDataSource.getMeasurementSessions();
-    final dailySessions =
-        sessions.where((s) => s.timestamp.isSameDate(targetDate)).toList();
+    final sessions = await dbHelper.profileLocalDataSource
+        .getMeasurementSessions();
+    final dailySessions = sessions
+        .where((s) => s.timestamp.isSameDate(targetDate))
+        .toList();
 
     // 7. Fetch Goals
     final goalsData = await dbHelper.getGoalsForDate(targetDate);
@@ -201,7 +216,7 @@ class ShareService {
 
     // Section: Nutrition
     buffer.writeln('## $headerNutrition');
-    if (foodEntries.isEmpty && fluidEntries.isEmpty) {
+    if (foodEntries.isEmpty && macroEntries.isEmpty && fluidEntries.isEmpty) {
       final labelNoNutrition =
           l10n?.nothingTrackedYet ?? '[l10n:nothingTrackedYet]';
       buffer.writeln('$labelNoNutrition\n');
@@ -217,12 +232,24 @@ class ShareService {
       for (final entry in foodEntries) {
         mealGroups.putIfAbsent(entry.mealType, () => []).add(entry);
       }
+      final macroMealGroups = <String, List<MacroEntry>>{};
+      for (final entry in macroEntries) {
+        macroMealGroups.putIfAbsent(entry.mealType, () => []).add(entry);
+      }
 
-      final mealOrder = [
+      final mealOrder = <String>[
         'mealtypeBreakfast',
         'mealtypeLunch',
         'mealtypeDinner',
-        'mealtypeSnack'
+        'mealtypeSnack',
+        ...{...mealGroups.keys, ...macroMealGroups.keys}.where(
+          (key) => !const {
+            'mealtypeBreakfast',
+            'mealtypeLunch',
+            'mealtypeDinner',
+            'mealtypeSnack',
+          }.contains(key),
+        ),
       ];
       double totalKcal = 0;
       double totalProtein = 0;
@@ -236,7 +263,8 @@ class ShareService {
 
       for (final mealKey in mealOrder) {
         final entries = mealGroups[mealKey] ?? [];
-        if (entries.isEmpty) continue;
+        final macros = macroMealGroups[mealKey] ?? [];
+        if (entries.isEmpty && macros.isEmpty) continue;
 
         final groupTitle = _getMealName(mealKey, l10n);
         buffer.writeln('### $groupTitle');
@@ -246,8 +274,10 @@ class ShareService {
               : legacyProductsMap[entry.barcode];
           final grams = entry.quantityInGrams;
           if (item != null) {
-            final name =
-                item.getLocalizedName(null, languageCode: l10n?.localeName);
+            final name = item.getLocalizedName(
+              null,
+              languageCode: l10n?.localeName,
+            );
             final ratio = grams / 100.0;
             final kcal = (item.calories * ratio).round();
             final pStr = (item.protein * ratio).toStringAsFixed(1);
@@ -258,7 +288,8 @@ class ShareService {
             final fiberStr = ((item.fiber ?? 0.0) * ratio).toStringAsFixed(1);
 
             buffer.writeln(
-                '- $name: $grams$unitG - $kcal $unitKcal ($labelProtein: $pStr$unitG, $labelCarbs: $cStr$unitG, $labelFat: $fStr$unitG, $labelSugar: $sugarStr$unitG, $labelSalt: $saltStr$unitG, $labelFiber: $fiberStr$unitG)');
+              '- $name: $grams$unitG - $kcal $unitKcal ($labelProtein: $pStr$unitG, $labelCarbs: $cStr$unitG, $labelFat: $fStr$unitG, $labelSugar: $sugarStr$unitG, $labelSalt: $saltStr$unitG, $labelFiber: $fiberStr$unitG)',
+            );
 
             totalKcal += item.calories * ratio;
             totalProtein += item.protein * ratio;
@@ -272,6 +303,31 @@ class ShareService {
             buffer.writeln('- $name: $grams$unitG');
           }
         }
+        for (final entry in macros) {
+          final name = entry.name?.trim().isNotEmpty == true
+              ? entry.name!.trim()
+              : (l10n?.meal_label ?? 'Meal entry');
+          final amountLabel = entry.amount == null
+              ? ''
+              : ' · ${entry.amount!.toStringAsFixed(entry.amount! % 1 == 0 ? 0 : 1)} ${entry.amountUnit ?? unitG}';
+          final kcal = entry.totalCalories.round();
+          final protein = entry.totalProtein;
+          final carbs = entry.totalCarbs;
+          final fat = entry.totalFat;
+          final sugar = entry.totalSugar ?? 0;
+          final salt = entry.totalSalt ?? 0;
+          final fiber = entry.totalFiber ?? 0;
+          buffer.writeln(
+            '- $name$amountLabel: $kcal $unitKcal ($labelProtein: ${protein.toStringAsFixed(1)}$unitG, $labelCarbs: ${carbs.toStringAsFixed(1)}$unitG, $labelFat: ${fat.toStringAsFixed(1)}$unitG, $labelSugar: ${sugar.toStringAsFixed(1)}$unitG, $labelSalt: ${salt.toStringAsFixed(1)}$unitG, $labelFiber: ${fiber.toStringAsFixed(1)}$unitG)',
+          );
+          totalKcal += kcal;
+          totalProtein += protein.round();
+          totalCarbs += carbs.round();
+          totalFat += fat.round();
+          totalSugar += sugar;
+          totalSalt += salt;
+          totalFiber += fiber;
+        }
         buffer.writeln();
       }
 
@@ -280,20 +336,25 @@ class ShareService {
       if (fluidEntries.isNotEmpty) {
         buffer.writeln('### $labelFluids');
         for (final entry in fluidEntries) {
-          final name =
-              entry.name.isNotEmpty ? entry.name : (l10n?.water ?? 'Drink');
+          final name = entry.name.isNotEmpty
+              ? entry.name
+              : (l10n?.water ?? 'Drink');
           final ml = entry.quantityInMl;
           totalWater += ml;
 
           // Deduplication: Only add calories/macros if not already counted via FoodEntry.
           // This mirrors the logic in lib/features/diary/domain/calculate_daily_nutrition_use_case.dart
-          final isLinked = entry.linkedFoodEntryId != null;
+          final isLinked =
+              entry.linkedFoodEntryId != null ||
+              entry.linkedMacroEntryId != null;
           final isDuplicateOfFood = foodEntries.any((food) {
             if (isLinked) return entry.linkedFoodEntryId == food.id;
 
             // Heuristic match if not explicitly linked (same time and similar quantity)
-            final timeDiff =
-                entry.timestamp.difference(food.timestamp).inSeconds.abs();
+            final timeDiff = entry.timestamp
+                .difference(food.timestamp)
+                .inSeconds
+                .abs();
             return timeDiff < 2 && entry.quantityInMl == food.quantityInGrams;
           });
 
@@ -321,18 +382,24 @@ class ShareService {
 
       buffer.writeln('**$labelSummary:**');
       buffer.writeln(
-          '- $labelCalories: ${totalKcal.round()}${targetKcal != null ? ' / $targetKcal' : ''} $unitKcal');
+        '- $labelCalories: ${totalKcal.round()}${targetKcal != null ? ' / $targetKcal' : ''} $unitKcal',
+      );
       buffer.writeln(
-          '- $labelProtein: ${totalProtein.toStringAsFixed(1)}${targetProtein != null ? ' / $targetProtein' : ''}$unitG');
+        '- $labelProtein: ${totalProtein.toStringAsFixed(1)}${targetProtein != null ? ' / $targetProtein' : ''}$unitG',
+      );
       buffer.writeln(
-          '- $labelCarbs: ${totalCarbs.toStringAsFixed(1)}${targetCarbs != null ? ' / $targetCarbs' : ''}$unitG');
+        '- $labelCarbs: ${totalCarbs.toStringAsFixed(1)}${targetCarbs != null ? ' / $targetCarbs' : ''}$unitG',
+      );
       buffer.writeln(
-          '- $labelFat: ${totalFat.toStringAsFixed(1)}${targetFat != null ? ' / $targetFat' : ''}$unitG');
+        '- $labelFat: ${totalFat.toStringAsFixed(1)}${targetFat != null ? ' / $targetFat' : ''}$unitG',
+      );
       buffer.writeln(
-          '- $labelSugar: ${totalSugar.toStringAsFixed(1)} / $targetSugar$unitG');
+        '- $labelSugar: ${totalSugar.toStringAsFixed(1)} / $targetSugar$unitG',
+      );
       final targetWater = goalsData?.targetWater ?? 3000;
       buffer.writeln(
-          '- $labelWater: ${totalWater.round()} / $targetWater $unitMl\n');
+        '- $labelWater: ${totalWater.round()} / $targetWater $unitMl\n',
+      );
     }
 
     // Section: Supplements
@@ -357,8 +424,10 @@ class ShareService {
       }
 
       final supplementIds = logsBySupplement.keys.toList()
-        ..sort((a, b) =>
-            nameFor(a).toLowerCase().compareTo(nameFor(b).toLowerCase()));
+        ..sort(
+          (a, b) =>
+              nameFor(a).toLowerCase().compareTo(nameFor(b).toLowerCase()),
+        );
 
       for (final supplementId in supplementIds) {
         final logs = logsBySupplement[supplementId]!
@@ -377,11 +446,13 @@ class ShareService {
             : (limit != null ? ' ($labelDailyLimit)' : '');
 
         buffer.writeln(
-            '- ${nameFor(supplementId)}: ${_formatDose(total)}$targetStr $unit$targetLabel');
+          '- ${nameFor(supplementId)}: ${_formatDose(total)}$targetStr $unit$targetLabel',
+        );
         if (logs.length > 1) {
           for (final log in logs) {
             buffer.writeln(
-                '  - ${_formatTime(log.timestamp)}: ${_formatDose(log.dose)} ${log.unit}');
+              '  - ${_formatTime(log.timestamp)}: ${_formatDose(log.dose)} ${log.unit}',
+            );
           }
         }
       }
@@ -431,13 +502,17 @@ class ShareService {
             String detailStr = '';
             if (set.weightKg != null && set.reps != null) {
               final dispW = unitService.convertDisplayValue(
-                  set.weightKg!, UnitDimension.weight);
+                set.weightKg!,
+                UnitDimension.weight,
+              );
               detailStr =
                   '${dispW.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')} $labelWeight x ${set.reps} $labelReps';
             } else if (set.distanceKm != null && set.durationSeconds != null) {
               final durStr = _formatDurationSeconds(set.durationSeconds!);
               final dispD = unitService.convertDisplayValue(
-                  set.distanceKm!, UnitDimension.distance);
+                set.distanceKm!,
+                UnitDimension.distance,
+              );
               final distSuffix = unitService.suffixFor(UnitDimension.distance);
               detailStr =
                   '${dispD.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '')} $distSuffix in $durStr';
@@ -456,7 +531,8 @@ class ShareService {
                 ? l10n.shareSetNumber(i + 1)
                 : '[l10n:shareSetNumber(${i + 1})]';
             buffer.writeln(
-                '- $labelSet: $typePrefix$detailStr$rpeRirStr [$completedStr]');
+              '- $labelSet: $typePrefix$detailStr$rpeRirStr [$completedStr]',
+            );
           }
           buffer.writeln();
         }
@@ -476,8 +552,9 @@ class ShareService {
       final endTimeStr = endLocal != null ? _formatTime(endLocal) : 'N/A';
 
       final segmentsDao = SleepCanonicalStageSegmentsDao(dbHelper.dbInstance);
-      final segments =
-          await segmentsDao.findBySessionId(sleepAnalysis.sessionId);
+      final segments = await segmentsDao.findBySessionId(
+        sleepAnalysis.sessionId,
+      );
 
       double deepMinutes = 0.0;
       double lightMinutes = 0.0;
@@ -514,13 +591,16 @@ class ShareService {
 
       buffer.writeln('- $labelSleepStart: $startTimeStr');
       buffer.writeln('- $labelSleepEnd: $endTimeStr');
-      buffer
-          .writeln('- $labelSleepDeep: ${deepMinutes.toStringAsFixed(1)} min');
       buffer.writeln(
-          '- $labelSleepLight: ${lightMinutes.toStringAsFixed(1)} min');
+        '- $labelSleepDeep: ${deepMinutes.toStringAsFixed(1)} min',
+      );
+      buffer.writeln(
+        '- $labelSleepLight: ${lightMinutes.toStringAsFixed(1)} min',
+      );
       buffer.writeln('- $labelSleepRem: ${remMinutes.toStringAsFixed(1)} min');
       buffer.writeln(
-          '- $labelSleepAwake: ${awakeMinutes.toStringAsFixed(1)} min');
+        '- $labelSleepAwake: ${awakeMinutes.toStringAsFixed(1)} min',
+      );
       buffer.writeln('- $labelSleepDuration: $duration');
       buffer.writeln('- $labelSleepScore: $scoreStr');
       buffer.writeln('- $labelSleepEfficiency: $efficiencyStr');
@@ -546,7 +626,8 @@ class ShareService {
     // Trigger share
     await SharePlus.instance.share(
       ShareParams(
-        text: '${buffer.toString().trim()}\n\n'
+        text:
+            '${buffer.toString().trim()}\n\n'
             '${l10n?.sharedWithTrainLibre ?? 'Shared with Train Libre'}\n'
             'https://trainlibre.com',
         subject: '$titleDailyLog $dateStr',

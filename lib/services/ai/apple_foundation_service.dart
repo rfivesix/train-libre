@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -7,8 +8,9 @@ class AppleFoundationService {
   AppleFoundationService._();
   static final AppleFoundationService instance = AppleFoundationService._();
 
-  static const MethodChannel _channel =
-      MethodChannel('trainlibre.ai/apple_foundation');
+  static const MethodChannel _channel = MethodChannel(
+    'trainlibre.ai/apple_foundation',
+  );
 
   bool? _cachedAvailability;
 
@@ -50,6 +52,19 @@ class AppleFoundationService {
     }
   }
 
+  /// Whether this OS build can actually consume image attachments. Older
+  /// FoundationModels builds accepted the field but silently ignored images.
+  Future<bool> supportsImageInput() async {
+    if (!kIsWeb && !Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('supportsImageInput') ?? false;
+    } on MissingPluginException {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Sends a structured prompt (and optional base64 images) to Apple's on-device Foundation Model.
   /// [systemPrompt] specifies the model instructions separately from the user [prompt].
   Future<String> generateMealJson({
@@ -63,22 +78,17 @@ class AppleFoundationService {
       );
     }
     try {
-      final response = await _channel.invokeMethod<String>(
-        'generateMealJson',
-        {
-          'prompt': prompt,
-          if (systemPrompt != null) 'systemPrompt': systemPrompt,
-          'images': imagesBase64 ?? const <String>[],
-        },
-      );
+      final response = await _channel.invokeMethod<String>('generateMealJson', {
+        'prompt': prompt,
+        if (systemPrompt != null) 'systemPrompt': systemPrompt,
+        'images': imagesBase64 ?? const <String>[],
+      });
       if (response == null || response.trim().isEmpty) {
         throw StateError('Apple Foundation Model returned an empty response.');
       }
       return response;
     } on PlatformException catch (e) {
-      throw StateError(
-        'Apple Foundation Model failed: ${e.message ?? e.code}',
-      );
+      throw StateError('Apple Foundation Model failed: ${e.message ?? e.code}');
     }
   }
 }

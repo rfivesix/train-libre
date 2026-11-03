@@ -1,8 +1,12 @@
 import 'dart:async';
+
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../services/telemetry/telemetry_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/database_helper.dart';
 import '../../domain/models/measurement.dart';
@@ -16,22 +20,26 @@ class ProfileLocalDataSource {
       DatabaseHelper.instance.profileLocalDataSource;
 
   Future<db.Profile?> getUserProfile() async {
-    final list = await (dbInstance.select(dbInstance.profiles)
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.localId, mode: drift.OrderingMode.desc)
-          ]))
-        .get();
+    final list =
+        await (dbInstance.select(dbInstance.profiles)..orderBy([
+              (t) => drift.OrderingTerm(
+                expression: t.localId,
+                mode: drift.OrderingMode.desc,
+              ),
+            ]))
+            .get();
     return list.isEmpty ? null : list.first;
   }
 
   Future<db.AppSetting?> getAppSettings() async {
-    final list = await (dbInstance.select(dbInstance.appSettings)
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.localId, mode: drift.OrderingMode.desc)
-          ]))
-        .get();
+    final list =
+        await (dbInstance.select(dbInstance.appSettings)..orderBy([
+              (t) => drift.OrderingTerm(
+                expression: t.localId,
+                mode: drift.OrderingMode.desc,
+              ),
+            ]))
+            .get();
     return list.isEmpty ? null : list.first;
   }
 
@@ -45,29 +53,35 @@ class ProfileLocalDataSource {
     String? goal,
     DateTime? birthday,
   }) async {
-    final finalBirthday = birthday ??
+    final finalBirthday =
+        birthday ??
         (age != null
             ? DateTime.now().subtract(Duration(days: age * 365))
             : null);
     await dbInstance
         .into(dbInstance.profiles)
-        .insertOnConflictUpdate(db.ProfilesCompanion.insert(
-          username: drift.Value(name ?? 'User'),
-          height: drift.Value((height ?? 175.0).toInt()),
-          birthday: drift.Value(finalBirthday ?? DateTime(1990, 1, 1)),
-          gender: drift.Value(gender ?? 'other'),
-          visibility: const drift.Value('private'),
-          updatedAt: drift.Value(DateTime.now()),
-        ));
-    if (weight != null) {
-      await dbInstance.into(dbInstance.measurements).insert(
-          db.MeasurementsCompanion.insert(
-            type: 'weight',
-            value: weight,
-            unit: 'kg',
-            date: DateTime.now(),
+        .insertOnConflictUpdate(
+          db.ProfilesCompanion.insert(
+            username: drift.Value(name ?? 'User'),
+            height: drift.Value((height ?? 175.0).toInt()),
+            birthday: drift.Value(finalBirthday ?? DateTime(1990, 1, 1)),
+            gender: drift.Value(gender ?? 'other'),
+            visibility: const drift.Value('private'),
+            updatedAt: drift.Value(DateTime.now()),
           ),
-          mode: drift.InsertMode.insertOrReplace);
+        );
+    if (weight != null) {
+      await dbInstance
+          .into(dbInstance.measurements)
+          .insert(
+            db.MeasurementsCompanion.insert(
+              type: 'weight',
+              value: weight,
+              unit: 'kg',
+              date: DateTime.now(),
+            ),
+            mode: drift.InsertMode.insertOrReplace,
+          );
     }
   }
 
@@ -76,8 +90,9 @@ class ProfileLocalDataSource {
     return sessions.isEmpty ? null : sessions.last.timestamp;
   }
 
-  Future<List<MeasurementSession>> getMeasurementSessions(
-      {DateTime? updatedSince}) async {
+  Future<List<MeasurementSession>> getMeasurementSessions({
+    DateTime? updatedSince,
+  }) async {
     final rows = await dbInstance.select(dbInstance.measurements).get();
     final Map<int, List<Measurement>> sessionsMap = {};
     final Map<int, DateTime> sessionsTimeMap = {};
@@ -86,31 +101,36 @@ class ProfileLocalDataSource {
       final sessionId = row.legacySessionId ?? row.date.millisecondsSinceEpoch;
       sessionsMap.putIfAbsent(sessionId, () => []);
       sessionsTimeMap.putIfAbsent(sessionId, () => row.date);
-      sessionsMap[sessionId]!.add(Measurement(
-        id: row.localId,
-        sessionId: sessionId,
-        type: row.type,
-        value: row.value,
-        unit: row.unit,
-        updatedAt: row.updatedAt,
-      ));
+      sessionsMap[sessionId]!.add(
+        Measurement(
+          id: row.localId,
+          sessionId: sessionId,
+          type: row.type,
+          value: row.value,
+          unit: row.unit,
+          updatedAt: row.updatedAt,
+        ),
+      );
       final currentMaxUpdate = sessionsUpdateMap[sessionId];
       if (currentMaxUpdate == null || row.updatedAt.isAfter(currentMaxUpdate)) {
         sessionsUpdateMap[sessionId] = row.updatedAt;
       }
     }
     var result = sessionsMap.entries
-        .map((e) => MeasurementSession(
-              id: e.key,
-              timestamp: sessionsTimeMap[e.key]!,
-              measurements: e.value,
-              updatedAt: sessionsUpdateMap[e.key],
-            ))
+        .map(
+          (e) => MeasurementSession(
+            id: e.key,
+            timestamp: sessionsTimeMap[e.key]!,
+            measurements: e.value,
+            updatedAt: sessionsUpdateMap[e.key],
+          ),
+        )
         .toList();
     if (updatedSince != null) {
       result = result
-          .where((s) =>
-              s.updatedAt != null && !s.updatedAt!.isBefore(updatedSince))
+          .where(
+            (s) => s.updatedAt != null && !s.updatedAt!.isBefore(updatedSince),
+          )
           .toList();
     }
     result.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -118,8 +138,10 @@ class ProfileLocalDataSource {
   }
 
   Future<List<Map<String, dynamic>>> getChartDataForTypeAndRange(
-      String type, dynamic rangeOrStart,
-      [DateTime? end]) async {
+    String type,
+    dynamic rangeOrStart, [
+    DateTime? end,
+  ]) async {
     DateTime s, e;
     if (rangeOrStart is DateTimeRange) {
       s = rangeOrStart.start;
@@ -130,26 +152,34 @@ class ProfileLocalDataSource {
     } else {
       throw ArgumentError('Invalid arguments');
     }
-    final rows = await (dbInstance.select(dbInstance.measurements)
-          ..where(
-              (tbl) => tbl.type.equals(type) & tbl.date.isBetweenValues(s, e))
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.date, mode: drift.OrderingMode.asc)
-          ]))
-        .get();
+    final rows =
+        await (dbInstance.select(dbInstance.measurements)
+              ..where(
+                (tbl) => tbl.type.equals(type) & tbl.date.isBetweenValues(s, e),
+              )
+              ..orderBy([
+                (t) => drift.OrderingTerm(
+                  expression: t.date,
+                  mode: drift.OrderingMode.asc,
+                ),
+              ]))
+            .get();
     return rows
-        .map((row) => {
-              'value': row.value,
-              'timestamp': row.date.millisecondsSinceEpoch,
-              'date': row.date
-            })
+        .map(
+          (row) => {
+            'value': row.value,
+            'timestamp': row.date.millisecondsSinceEpoch,
+            'date': row.date,
+          },
+        )
         .toList();
   }
 
   Stream<List<Map<String, dynamic>>> watchChartDataForTypeAndRange(
-      String type, dynamic rangeOrStart,
-      [DateTime? end]) {
+    String type,
+    dynamic rangeOrStart, [
+    DateTime? end,
+  ]) {
     DateTime s, e;
     if (rangeOrStart is DateTimeRange) {
       s = rangeOrStart.start;
@@ -163,47 +193,59 @@ class ProfileLocalDataSource {
     final query = dbInstance.select(dbInstance.measurements)
       ..where((tbl) => tbl.type.equals(type) & tbl.date.isBetweenValues(s, e))
       ..orderBy([
-        (t) =>
-            drift.OrderingTerm(expression: t.date, mode: drift.OrderingMode.asc)
+        (t) => drift.OrderingTerm(
+          expression: t.date,
+          mode: drift.OrderingMode.asc,
+        ),
       ]);
     return query.watch().map((rows) {
       return rows
-          .map((row) => {
-                'value': row.value,
-                'timestamp': row.date.millisecondsSinceEpoch,
-                'date': row.date
-              })
+          .map(
+            (row) => {
+              'value': row.value,
+              'timestamp': row.date.millisecondsSinceEpoch,
+              'date': row.date,
+            },
+          )
           .toList();
     });
   }
 
-  Future<void> saveUserGoals(
-      {required int calories,
-      required int protein,
-      required int carbs,
-      required int fat,
-      required int water,
-      required int steps}) async {
+  Future<void> saveUserGoals({
+    required int calories,
+    required int protein,
+    required int carbs,
+    required int fat,
+    required int water,
+    required int steps,
+  }) async {
     // 1. Check if settings already exist
-    final existingSettings = await (dbInstance.select(dbInstance.appSettings)
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.localId, mode: drift.OrderingMode.desc)
-          ]))
-        .get()
-        .then((list) => list.isEmpty ? null : list.first);
+    final existingSettings =
+        await (dbInstance.select(dbInstance.appSettings)..orderBy([
+              (t) => drift.OrderingTerm(
+                expression: t.localId,
+                mode: drift.OrderingMode.desc,
+              ),
+            ]))
+            .get()
+            .then((list) => list.isEmpty ? null : list.first);
 
     // IMPORTANT: Ensure a historical baseline exists before the old goals are overwritten.
     if (existingSettings != null) {
-      final baseline = await (dbInstance.select(dbInstance.dailyGoalsHistory)
-            ..where(
-                (t) => t.createdAt.isSmallerOrEqualValue(DateTime(2010, 1, 1)))
-            ..limit(1))
-          .getSingleOrNull();
+      final baseline =
+          await (dbInstance.select(dbInstance.dailyGoalsHistory)
+                ..where(
+                  (t) =>
+                      t.createdAt.isSmallerOrEqualValue(DateTime(2010, 1, 1)),
+                )
+                ..limit(1))
+              .getSingleOrNull();
 
       if (baseline == null) {
         final existingSteps = existingSettings.targetSteps;
-        await dbInstance.into(dbInstance.dailyGoalsHistory).insertReturning(
+        await dbInstance
+            .into(dbInstance.dailyGoalsHistory)
+            .insertReturning(
               db.DailyGoalsHistoryCompanion(
                 targetCalories: drift.Value(existingSettings.targetCalories),
                 targetProtein: drift.Value(existingSettings.targetProtein),
@@ -224,9 +266,9 @@ class ProfileLocalDataSource {
 
     if (existingSettings != null) {
       // UPDATE
-      await (dbInstance.update(dbInstance.appSettings)
-            ..where((t) => t.id.equals(existingSettings.id)))
-          .write(
+      await (dbInstance.update(
+        dbInstance.appSettings,
+      )..where((t) => t.id.equals(existingSettings.id))).write(
         db.AppSettingsCompanion(
           targetCalories: drift.Value(calories),
           targetProtein: drift.Value(protein),
@@ -243,7 +285,9 @@ class ProfileLocalDataSource {
       final profile = await getUserProfile();
       if (profile == null) return;
 
-      await dbInstance.into(dbInstance.appSettings).insert(
+      await dbInstance
+          .into(dbInstance.appSettings)
+          .insert(
             db.AppSettingsCompanion(
               userId: drift.Value(profile.id),
               targetCalories: drift.Value(calories),
@@ -260,7 +304,9 @@ class ProfileLocalDataSource {
     }
 
     // 2. Add historical entry
-    await dbInstance.into(dbInstance.dailyGoalsHistory).insertReturning(
+    await dbInstance
+        .into(dbInstance.dailyGoalsHistory)
+        .insertReturning(
           db.DailyGoalsHistoryCompanion(
             targetCalories: drift.Value(calories),
             targetProtein: drift.Value(protein),
@@ -277,37 +323,52 @@ class ProfileLocalDataSource {
       (await getAppSettings())?.targetSteps ?? 8000;
 
   Future<double?> getLatestBodyFatPercentageBefore(DateTime before) async {
-    final row = await (dbInstance.select(dbInstance.measurements)
-          ..where((tbl) =>
-              tbl.type.equals('body_fat') & tbl.date.isSmallerThanValue(before))
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.date, mode: drift.OrderingMode.desc)
-          ])
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (dbInstance.select(dbInstance.measurements)
+              ..where(
+                (tbl) =>
+                    tbl.type.equals('body_fat') &
+                    tbl.date.isSmallerThanValue(before),
+              )
+              ..orderBy([
+                (t) => drift.OrderingTerm(
+                  expression: t.date,
+                  mode: drift.OrderingMode.desc,
+                ),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
     return row?.value;
   }
 
   Future<double?> getLatestWeightBefore(DateTime before) async {
-    final row = await (dbInstance.select(dbInstance.measurements)
-          ..where((tbl) =>
-              tbl.type.equals('weight') &
-              tbl.date.isSmallerOrEqualValue(before))
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.date, mode: drift.OrderingMode.desc),
-            (t) => drift.OrderingTerm(
-                expression: t.localId, mode: drift.OrderingMode.desc),
-          ])
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (dbInstance.select(dbInstance.measurements)
+              ..where(
+                (tbl) =>
+                    tbl.type.equals('weight') &
+                    tbl.date.isSmallerOrEqualValue(before),
+              )
+              ..orderBy([
+                (t) => drift.OrderingTerm(
+                  expression: t.date,
+                  mode: drift.OrderingMode.desc,
+                ),
+                (t) => drift.OrderingTerm(
+                  expression: t.localId,
+                  mode: drift.OrderingMode.desc,
+                ),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
     return row?.value;
   }
 
   Future<void> saveInitialWeight(double weightKg) async {
     final now = DateTime.now();
-    await dbInstance.into(dbInstance.measurements).insert(
+    await dbInstance
+        .into(dbInstance.measurements)
+        .insert(
           db.MeasurementsCompanion(
             type: const drift.Value('weight'),
             value: drift.Value(weightKg),
@@ -323,8 +384,9 @@ class ProfileLocalDataSource {
   /// made from the measurements screen. Future measurements are excluded.
   Stream<db.Measurement?> watchLatestWeightBefore(DateTime before) {
     return (dbInstance.select(dbInstance.measurements)
-          ..where((t) =>
-              t.type.equals('weight') & t.date.isSmallerThanValue(before))
+          ..where(
+            (t) => t.type.equals('weight') & t.date.isSmallerThanValue(before),
+          )
           ..orderBy([
             (t) => drift.OrderingTerm.desc(t.date),
             (t) => drift.OrderingTerm.desc(t.localId),
@@ -340,13 +402,18 @@ class ProfileLocalDataSource {
     if (!weightKg.isFinite || weightKg <= 0) {
       throw ArgumentError.value(weightKg, 'weightKg');
     }
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.bodyMeasurementLogged));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.bodyMeasurementLogged,
+      ),
+    );
     await dbInstance.transaction(() async {
-      await (dbInstance.delete(dbInstance.measurements)
-            ..where((t) => t.type.equals('weight') & t.date.equals(date)))
-          .go();
-      await dbInstance.into(dbInstance.measurements).insert(
+      await (dbInstance.delete(
+        dbInstance.measurements,
+      )..where((t) => t.type.equals('weight') & t.date.equals(date))).go();
+      await dbInstance
+          .into(dbInstance.measurements)
+          .insert(
             db.MeasurementsCompanion.insert(
               type: 'weight',
               value: weightKg,
@@ -360,7 +427,9 @@ class ProfileLocalDataSource {
 
   Future<void> saveInitialBodyFatPercentage(double bodyFat) async {
     final now = DateTime.now();
-    await dbInstance.into(dbInstance.measurements).insert(
+    await dbInstance
+        .into(dbInstance.measurements)
+        .insert(
           db.MeasurementsCompanion(
             type: const drift.Value('body_fat'),
             value: drift.Value(bodyFat),
@@ -373,27 +442,33 @@ class ProfileLocalDataSource {
   }
 
   Future<void> deleteMeasurementSession(int sessionId) async {
-    await (dbInstance.delete(dbInstance.measurements)
-          ..where((tbl) =>
+    await (dbInstance.delete(dbInstance.measurements)..where(
+          (tbl) =>
               tbl.legacySessionId.equals(sessionId) |
-              tbl.date.equals(DateTime.fromMillisecondsSinceEpoch(sessionId))))
+              tbl.date.equals(DateTime.fromMillisecondsSinceEpoch(sessionId)),
+        ))
         .go();
   }
 
   Future<int> insertMeasurementSession(MeasurementSession session) async {
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.bodyMeasurementLogged));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.bodyMeasurementLogged,
+      ),
+    );
     await dbInstance.batch((batch) {
       for (final m in session.measurements) {
         batch.insert(
-            dbInstance.measurements,
-            db.MeasurementsCompanion.insert(
-                type: m.type,
-                value: m.value,
-                unit: m.unit,
-                date: session.timestamp,
-                legacySessionId: drift.Value(session.id)),
-            mode: drift.InsertMode.insertOrReplace);
+          dbInstance.measurements,
+          db.MeasurementsCompanion.insert(
+            type: m.type,
+            value: m.value,
+            unit: m.unit,
+            date: session.timestamp,
+            legacySessionId: drift.Value(session.id),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
       }
     });
     return session.id ?? DateTime.now().millisecondsSinceEpoch;

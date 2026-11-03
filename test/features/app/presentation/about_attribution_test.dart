@@ -13,11 +13,11 @@ import 'package:train_libre/widgets/common/app_link_row.dart';
 /// screen that still credits only wger.de is not a stale label, it is the
 /// wrong attribution for the data actually shipped.
 Widget _wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: child,
-    );
+  locale: locale,
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: child,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,8 +41,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('names OpenExerciseDB as the source of the exercise data',
-      (tester) async {
+  testWidgets('names OpenExerciseDB as the source of the exercise data', (
+    tester,
+  ) async {
     await pumpAbout(tester);
 
     expect(find.text('Exercise data from OpenExerciseDB'), findsOneWidget);
@@ -56,8 +57,9 @@ void main() {
     expect(find.text('CC BY-SA 4.0'), findsOneWidget);
   });
 
-  testWidgets('keeps wger visible as the upstream it derives from',
-      (tester) async {
+  testWidgets('keeps wger visible as the upstream it derives from', (
+    tester,
+  ) async {
     // Dropping wger would be the easy mistake. The data is derived from it,
     // and per-record upstream authors are still credited downstream, so the
     // credit is owed whether or not the app fetches from wger any more.
@@ -83,10 +85,7 @@ void main() {
       'Derived in part from wger',
     ]) {
       final row = tester.widget<AppLinkRow>(
-        find.ancestor(
-          of: find.text(title),
-          matching: find.byType(AppLinkRow),
-        ),
+        find.ancestor(of: find.text(title), matching: find.byType(AppLinkRow)),
       );
       expect(row.onTap, isNotNull, reason: '$title has no destination');
     }

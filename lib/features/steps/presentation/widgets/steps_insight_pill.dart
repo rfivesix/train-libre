@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class StepsInsightPill extends StatelessWidget {
-  const StepsInsightPill({
-    super.key,
-    required this.label,
-    required this.value,
-  });
+  const StepsInsightPill({super.key, required this.label, required this.value});
 
   final String label;
   final String value;
@@ -23,16 +19,15 @@ class StepsInsightPill extends StatelessWidget {
           children: [
             TextSpan(
               text: '$label: ',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
             TextSpan(
               text: value,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ],
         ),

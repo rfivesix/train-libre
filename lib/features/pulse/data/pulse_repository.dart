@@ -27,11 +27,11 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     AppDatabase? database,
     PulseAggregateStore? aggregateStore,
     this.queryPadding = const Duration(hours: 24),
-  })  : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
-        _trackingService = trackingService ?? PulseTrackingService(),
-        _engine = engine,
-        _database = database,
-        _aggregateStore = aggregateStore;
+  }) : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
+       _trackingService = trackingService ?? PulseTrackingService(),
+       _engine = engine,
+       _database = database,
+       _aggregateStore = aggregateStore;
 
   final HealthHeartRateDataSource _dataSource;
   final PulseTrackingSettingsService _trackingService;
@@ -109,11 +109,13 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
         final cachedBuckets = await store.readBuckets(window);
         if (decision == _PulseCacheCoverageDecision.trailingMissing) {
           trailingBackgroundRefreshRan = true;
-          unawaited(_refreshTrailingAggregatesInBackground(
-            store: store,
-            window: window,
-            coverage: coverage,
-          ));
+          unawaited(
+            _refreshTrailingAggregatesInBackground(
+              store: store,
+              window: window,
+              coverage: coverage,
+            ),
+          );
           _logCoverageDecision(
             window: window,
             coverage: coverage,
@@ -389,8 +391,12 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
 
         points.add(
           PulseSamplePoint(
-            sampledAtUtc:
-                DateTime(dayKey.year, dayKey.month, dayKey.day, 12).toUtc(),
+            sampledAtUtc: DateTime(
+              dayKey.year,
+              dayKey.month,
+              dayKey.day,
+              12,
+            ).toUtc(),
             bpm: restingBpm,
           ),
         );
@@ -418,8 +424,9 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       var sampleCount = 0;
       var sumBpm = 0.0;
       DateTime? firstBucketStart;
-      final end =
-          (i + groupSize < buckets.length) ? i + groupSize : buckets.length;
+      final end = (i + groupSize < buckets.length)
+          ? i + groupSize
+          : buckets.length;
       for (var j = i; j < end; j++) {
         final bucket = buckets[j];
         firstBucketStart ??= bucket.bucketStartUtc;

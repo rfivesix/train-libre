@@ -2,30 +2,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/config/app_data_sources.dart';
 
 void main() {
-  test('runtime data-source config uses Train Libre DB filenames by default',
-      () {
-    expect(AppDataSources.trainingDbFileName, 'train_libre_training.db');
-    expect(
-      AppDataSources.trainingAssetDbPath,
-      'assets/db/train_libre_training.db',
-    );
-    expect(AppDataSources.baseFoodsDbFileName, 'train_libre_base_foods.db');
-    // The remote asset is named by the data repository, the local cache file
-    // by this app. Only the first of the two moved when the catalog did.
-    expect(AppDataSources.exerciseCatalog.defaultDbPath, 'openexercisedb.db');
-    expect(AppDataSources.exerciseCatalog.localCacheDbFileName,
-        'train_libre_training_remote.db');
+  test(
+    'runtime data-source config uses Train Libre DB filenames by default',
+    () {
+      expect(AppDataSources.trainingDbFileName, 'train_libre_training.db');
+      expect(
+        AppDataSources.trainingAssetDbPath,
+        'assets/db/train_libre_training.db',
+      );
+      expect(AppDataSources.baseFoodsDbFileName, 'train_libre_base_foods.db');
+      // The remote asset is named by the data repository, the local cache file
+      // by this app. Only the first of the two moved when the catalog did.
+      expect(AppDataSources.exerciseCatalog.defaultDbPath, 'openexercisedb.db');
+      expect(
+        AppDataSources.exerciseCatalog.localCacheDbFileName,
+        'train_libre_training_remote.db',
+      );
 
-    final us = AppDataSources.offCatalogForCountry(OffCatalogCountry.us);
-    expect(us.defaultDbPath, 'train_libre_off_us.db');
-    expect(us.bundledAssetDbPath, 'assets/db/train_libre_prep_us.db');
-    expect(us.localCacheDbFileName, 'train_libre_off_us_remote.db');
+      final us = AppDataSources.offCatalogForCountry(OffCatalogCountry.us);
+      expect(us.defaultDbPath, 'train_libre_off_us.db');
+      expect(us.bundledAssetDbPath, 'assets/db/train_libre_prep_us.db');
+      expect(us.localCacheDbFileName, 'train_libre_off_us_remote.db');
 
-    final at = AppDataSources.offCatalogForCountry(OffCatalogCountry.at);
-    expect(at.defaultDbPath, 'train_libre_off_at.db');
-    expect(at.bundledAssetDbPath, 'assets/db/train_libre_prep_at.db');
-    expect(at.localCacheDbFileName, 'train_libre_off_at_remote.db');
-  });
+      final at = AppDataSources.offCatalogForCountry(OffCatalogCountry.at);
+      expect(at.defaultDbPath, 'train_libre_off_at.db');
+      expect(at.bundledAssetDbPath, 'assets/db/train_libre_prep_at.db');
+      expect(at.localCacheDbFileName, 'train_libre_off_at_remote.db');
+    },
+  );
 
   test('legacy Hypertrack DB filenames remain explicit fallbacks', () {
     expect(AppDataSources.legacyTrainingDbFileName, 'hypertrack_training.db');

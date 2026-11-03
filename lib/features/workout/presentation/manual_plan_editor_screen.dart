@@ -46,8 +46,11 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.trainingPlanEditor));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.trainingPlanEditor,
+      ),
+    );
     final plan = widget.plan;
     if (plan != null) {
       _name.text = plan.name;
@@ -101,8 +104,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
       title: ManualPlanText(context).get('chooseRoutine'),
       expandToFullHeight: routines.length > 7,
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -113,7 +117,8 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
                 children: [
                   if (!_days[index].isRest)
                     AppLinkRow(
-                      title: _days[index].routineName ??
+                      title:
+                          _days[index].routineName ??
                           ManualPlanText(context).get('editRoutine'),
                       subtitle: ManualPlanText(context).get('editRoutine'),
                       trailingIcon: LucideIcons.pencil,
@@ -124,8 +129,8 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
                     ),
                   AppLinkRow(
                     title: ManualPlanText(context).get('rest'),
-                    subtitle:
-                        ManualPlanText(context).get('restPickerDescription'),
+                    subtitle: ManualPlanText(context)
+                        .get('restPickerDescription'),
                     trailingIcon: LucideIcons.moon,
                     onTap: () {
                       close();
@@ -173,9 +178,14 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
     final matches = routines.where((routine) => routine.id == id);
     if (matches.isEmpty || !mounted) return;
     final before = jsonEncode(_days[index].routineSnapshot);
-    await Navigator.of(context).push(MaterialPageRoute(
+    await Navigator.of(context).push(
+      MaterialPageRoute(
         builder: (_) => EditRoutineScreen(
-            routine: matches.first, offerPlanUpdateOnSave: false)));
+          routine: matches.first,
+          offerPlanUpdateOnSave: false,
+        ),
+      ),
+    );
     if (!mounted) return;
     final updated = await _repository.dayFromRoutine(matches.first);
     if (!mounted) return;
@@ -184,22 +194,28 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
       context: context,
       title: ManualPlanText(context).get('routineChanged'),
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          AppLinkRow(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLinkRow(
               title: ManualPlanText(context).get('routineOnly'),
               onTap: () {
                 close();
                 Navigator.pop(context, false);
-              }),
-          AppLinkRow(
+              },
+            ),
+            AppLinkRow(
               title: ManualPlanText(context).get('updatePlan'),
               onTap: () {
                 close();
                 Navigator.pop(context, true);
-              }),
-        ]),
+              },
+            ),
+          ],
+        ),
       ),
     );
     if (include != true || !mounted) return;
@@ -221,22 +237,28 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
         context: context,
         title: ManualPlanText(context).get('applyWhen'),
         contentBuilder: (context, close) => Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            AppLinkRow(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingS,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppLinkRow(
                 title: ManualPlanText(context).get('fromToday'),
                 onTap: () {
                   close();
                   Navigator.pop(context, false);
-                }),
-            AppLinkRow(
+                },
+              ),
+              AppLinkRow(
                 title: ManualPlanText(context).get('nextCycle'),
                 onTap: () {
                   close();
                   Navigator.pop(context, true);
-                }),
-          ]),
+                },
+              ),
+            ],
+          ),
         ),
       );
       if (choice == null) return;
@@ -256,27 +278,32 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
           days: _days,
           activate: !_importedPlanDraft,
         );
-        unawaited(TelemetryService.instance.trackTrainingPlanCreated(
-          kind: _kind.name,
-          dayCount: _days.length,
-          workoutDaysCount: workoutDaysCount,
-          restDaysCount: restDaysCount,
-          isActive: !_importedPlanDraft,
-        ));
+        unawaited(
+          TelemetryService.instance.trackTrainingPlanCreated(
+            kind: _kind.name,
+            dayCount: _days.length,
+            workoutDaysCount: workoutDaysCount,
+            restDaysCount: restDaysCount,
+            isActive: !_importedPlanDraft,
+          ),
+        );
       } else {
         await _repository.revisePlan(
-            planId: widget.plan!.id,
-            name: _name.text,
-            kind: _kind,
-            days: _days,
-            nextCycle: nextCycle);
-        unawaited(TelemetryService.instance.trackTrainingPlanUpdated(
-          kind: _kind.name,
-          dayCount: _days.length,
-          workoutDaysCount: workoutDaysCount,
-          restDaysCount: restDaysCount,
-          effectiveTiming: nextCycle ? 'next_cycle' : 'from_today',
-        ));
+          planId: widget.plan!.id,
+          name: _name.text,
+          kind: _kind,
+          days: _days,
+          nextCycle: nextCycle,
+        );
+        unawaited(
+          TelemetryService.instance.trackTrainingPlanUpdated(
+            kind: _kind.name,
+            dayCount: _days.length,
+            workoutDaysCount: workoutDaysCount,
+            restDaysCount: restDaysCount,
+            effectiveTiming: nextCycle ? 'next_cycle' : 'from_today',
+          ),
+        );
       }
       await WorkoutPlanNotificationOrchestrator().synchronize();
       if (mounted) Navigator.pop(context, true);
@@ -300,8 +327,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
           payload.data['kind'] != widget.plan!.kind.name) {
         throw const FormatException('Plan kind cannot be changed');
       }
-      final imported =
-          await const ShareLinkRepository().decodePlanForEditor(payload);
+      final imported = await const ShareLinkRepository().decodePlanForEditor(
+        payload,
+      );
       setState(() {
         _name.text = payload.name;
         _kind = imported.kind;
@@ -312,9 +340,8 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
       });
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(l10n.shareImportInvalid),
-      ));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportInvalid)));
     }
   }
 
@@ -324,9 +351,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
     final locale = Localizations.localeOf(context).toString();
     final topPadding = MediaQuery.paddingOf(context).top + kToolbarHeight;
     final weekdayNames = List.generate(
-        7,
-        (index) =>
-            DateFormat.EEEE(locale).format(DateTime(2026, 9, 21 + index)));
+      7,
+      (index) => DateFormat.EEEE(locale).format(DateTime(2026, 9, 21 + index)),
+    );
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
@@ -349,22 +376,25 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
         children: [
           AppSectionHeader(title: text.get('basics'), isFirst: true),
           SummaryCard(
-              child: TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              labelText: text.get('name'),
-              border: InputBorder.none,
+            child: TextField(
+              controller: _name,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                labelText: text.get('name'),
+                border: InputBorder.none,
+              ),
             ),
-          )),
+          ),
           if (widget.plan == null) ...[
             const SizedBox(height: DesignConstants.spacingM),
             _PlanKindSelector(
               value: _kind,
               onChanged: (kind) => setState(() {
                 _kind = kind;
-                _days = List.filled(kind == TrainingPlanKind.week ? 7 : 3,
-                    const TrainingPlanDay());
+                _days = List.filled(
+                  kind == TrainingPlanKind.week ? 7 : 3,
+                  const TrainingPlanDay(),
+                );
                 _dayKeys = List.generate(_days.length, (_) => UniqueKey());
               }),
             ),
@@ -376,8 +406,8 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
                 ? Text(
                     '${_days.length}/14 ${text.get('days')}',
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   )
                 : null,
           ),
@@ -386,11 +416,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
             child: Text(
               text.get('editorScheduleHint'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.68),
-                  ),
+                color: Theme.of(context).colorScheme.onSurface
+                    .withValues(alpha: 0.68),
+              ),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
@@ -409,8 +437,10 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.all(DesignConstants.spacingM),
-              child: Text(_error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
         ],
       ),
@@ -516,8 +546,9 @@ class _PlanEditorDayRow extends StatelessWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: day.isRest
-                            ? theme.colorScheme.onSurface
-                                .withValues(alpha: 0.06)
+                            ? theme.colorScheme.onSurface.withValues(
+                                alpha: 0.06,
+                              )
                             : theme.colorScheme.primary.withValues(alpha: 0.11),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -537,8 +568,9 @@ class _PlanEditorDayRow extends StatelessWidget {
                           Text(
                             label,
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.6),
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -557,8 +589,9 @@ class _PlanEditorDayRow extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ),
                           ],

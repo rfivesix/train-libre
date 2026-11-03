@@ -1,5 +1,6 @@
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
+
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 
@@ -36,11 +37,13 @@ class AppSegmentedControl<T> extends StatelessWidget {
     final keys = children.keys.toList();
     final selectedIndex = keys.indexOf(groupValue);
 
-    final containerBg =
-        isDark ? const Color(0xFF171719) : const Color(0xFFE3E3E8);
+    final containerBg = isDark
+        ? const Color(0xFF171719)
+        : const Color(0xFFE3E3E8);
 
     final indicatorBg = isDark
-        ? DesignConstants.summaryCardSecondaryDarkMode // #2C2C2E
+        ? DesignConstants
+              .summaryCardSecondaryDarkMode // #2C2C2E
         : Colors.white;
 
     final squircleRadius = SmoothBorderRadius(
@@ -52,10 +55,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
     return Container(
       height: height,
       padding: const EdgeInsets.all(2.0),
-      decoration: ShapeDecoration(
-        color: containerBg,
-        shape: squircle,
-      ),
+      decoration: ShapeDecoration(color: containerBg, shape: squircle),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final totalSegments = keys.length;
@@ -124,12 +124,14 @@ class AppSegmentedControl<T> extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight:
-                                  isSelected ? FontWeight.bold : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
                               color: isSelected
                                   ? theme.colorScheme.onSurface
-                                  : theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.60),
+                                  : theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.60,
+                                    ),
                             ),
                           ),
                         ),

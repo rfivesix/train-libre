@@ -141,8 +141,9 @@ class AdaptiveReviewCard extends StatelessWidget {
         : assessment?.overallStatus ?? review?.trajectoryStatus;
     final statusColor = _statusColor(primaryStatus, theme);
     final statusLabel = _statusLabel(context, primaryStatus);
-    final recommendedCalories =
-        hasInsufficientData ? null : review?.recommendedCalories;
+    final recommendedCalories = hasInsufficientData
+        ? null
+        : review?.recommendedCalories;
     final currentCalories = assessment?.currentCalories;
     final hasCalories = currentCalories != null || recommendedCalories != null;
     final locale = Localizations.localeOf(context).toString();
@@ -243,10 +244,7 @@ class AdaptiveReviewCard extends StatelessWidget {
                 label: l10n.weeklyReviewCardRecentLabel,
                 value: assessment == null
                     ? l10n.reviewMomentumUnclear
-                    : _momentumLabel(
-                        context,
-                        assessment.recentMomentumStatus,
-                      ),
+                    : _momentumLabel(context, assessment.recentMomentumStatus),
               ),
             if (assessment == null && review?.explanation != null) ...[
               const SizedBox(height: DesignConstants.spacingS),
@@ -292,10 +290,7 @@ class _ReviewFactRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _ReviewFactRow({
-    required this.label,
-    required this.value,
-  });
+  const _ReviewFactRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

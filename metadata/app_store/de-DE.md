@@ -13,58 +13,60 @@ kalorienzähler,kalorientracker,abnehm app,ernährungstracker,trainingstagebuch,
 Workouts, Kalorien und Makros offline tracken. Ohne Werbung, ohne Konto, ohne kommerzielles Tracking. Nutzungsstatistiken sind optional und standardmäßig aus.
 
 ## Description (Full App Store Description)
-Train Libre ist ein privater, quelloffener (Open-Source) Workout- und Ernährungstracker für alle, die die volle Kontrolle über ihre Daten behalten wollen. Die App ist Offline-First: ohne Konto, ohne Social Feeds, ohne Gamification, ohne Werbung und ohne kommerzielles Tracking oder Datenverkauf.
+Train Libre ist ein privater, quelloffener Trainings- und Ernährungstracker für alle, die ihre Daten selbst unter Kontrolle behalten wollen. Die App ist offline-first: Workouts und Mahlzeiten kannst du ohne Konto und ohne Internetverbindung erfassen. Deine Daten werden sicher auf deinem Gerät gespeichert.
 
-Tracke deine Workouts, Kalorien, dein Körpergewicht und deine Muskelregeneration in einer fokussierten App – mit sicherem lokalem Speicher und optionaler Apple-Health-Integration.
+Tracke Workouts, Mahlzeiten, Kalorien, Körpergewicht und Regeneration in einer App – mit optionaler Synchronisierung mit Apple Health oder Health Connect.
 
 WARUM TRAIN LIBRE ANDERS IST:
-• Offline-First: Kein Konto und keine Internetverbindung nötig. Deine Trainings- und Ernährungsdaten bleiben in der geschützten Sandbox deines Geräts.
-• Datenschutz by Design: Keine Werbung, keine Werbe-Tracker, keine Session-Aufzeichnung, keine Nutzerprofile. Nutzungsstatistiken sind optional und standardmäßig aus – sie enthalten keine Gesundheitsdaten, speichern niemals deine IP-Adresse und lassen sich jederzeit deaktivieren und löschen.
-• Strukturiertes Krafttraining: Entwickelt für progressive Überlastung und präzise Protokollierung – nicht für süchtig machende Gamification.
-• Transparente Analysen: Verstehe deine körperlichen Trends langfristig durch klare, mathematisch fundierte Einblicke.
+• Offline-first: Erfasse Training und Mahlzeiten ohne Konto und Internetverbindung. Deine Daten bleiben auf deinem Gerät.
+• Datenschutz by Design: Keine Werbung, Werbe-Tracker, Session-Aufzeichnung, Nutzerprofile oder Datenverkäufe. Optionale Nutzungsstatistiken sind standardmäßig ausgeschaltet und enthalten keine Gesundheitsdaten.
+• Strukturiertes Krafttraining: Trainiere mit dem Ziel progressiver Überlastung und halte deine Leistungen präzise fest – ohne Gamification und Social Feeds.
+• Verständliche Analysen: Verfolge deine Entwicklung bei Training, Ernährung und Regeneration mit klaren Auswertungen.
+
+KI-FUNKTIONEN (OPTIONAL):
+• Mahlzeiten erfassen: Fotografiere dein Essen, scanne den Barcode eines verpackten Produkts oder beschreibe die Mahlzeit per Sprache oder Text.
+• Apple Intelligence: Auf unterstützten iPhones kann Apple Intelligence Mahlzeiten direkt auf dem Gerät analysieren. Alternativ kannst du einen KI-Anbieter mit deinem eigenen API-Schlüssel verbinden.
+• Vorschläge prüfen: Kontrolliere und ändere erkannte Lebensmittel und Portionsmengen, bevor du sie speicherst. Auf iPhones mit LiDAR können Tiefendaten die Portionsschätzung unterstützen.
+• KI-Chat: Stelle Fragen zu Training und Ernährung. Lass Entwürfe für Routinen, Trainingspläne, Rezepte oder Mahlzeiten erstellen und prüfe sie, bevor du sie übernimmst.
+• Deine Daten bleiben in deiner Hand: Persönliche App-Daten werden im KI-Chat erst nach deiner Zustimmung freigegeben.
 
 KERN-FEATURES:
 
 1. ERWEITERTES TRAININGSTAGEBUCH
-• Protokolliere deine Workouts Satz für Satz – inklusive Aufwärmsätzen, Arbeitssätzen, Sätzen bis zum Muskelversagen und Dropsets.
-• Erfasse präzise Metriken: Wiederholungen, Gewicht und RPE / RIR (subjektive Anstrengung / Wiederholungen in Reserve).
-• Erstelle wiederverwendbare Routinen und eigene Übungen und analysiere deine gesamte Trainingshistorie.
-• Halte jede Einheit mit bis zu 4 Fotos fest – aufgenommen mit der Kamera oder aus deiner Mediathek – und behalte sie auch im Backup.
+• Protokolliere Workouts Satz für Satz – mit Aufwärmsätzen, Arbeitssätzen, Sätzen bis zum Muskelversagen und Dropsets.
+• Erfasse Wiederholungen, Gewicht und RPE / RIR (subjektive Anstrengung / Wiederholungen in Reserve).
+• Erstelle Routinen und Trainingspläne, ergänze eigene Übungen und behalte deine Trainingshistorie im Blick.
+• Füge jeder Einheit bis zu vier Fotos hinzu und sichere sie mit deinen Backups.
 
-2. WISSENSCHAFTLICH FUNDIERTE ERNÄHRUNG & TDEE
-• Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeitszufuhr, Koffein, Kreatin und eigene Supplemente.
-• Adaptiver Energieverbrauch: Ein auf Kalman-Filtern basierender Bayesian-TDEE-Schätzer berechnet deinen tatsächlichen Erhaltungsbedarf dynamisch aus deinem realen Körpergewicht und deinen Ernährungsdaten.
+2. ERNÄHRUNG UND ADAPTIVE ZIELE
+• Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeit, Koffein, Kreatin und eigene Supplemente.
+• Verfolge Körpergewicht und Ernährung. Adaptive Schätzungen helfen dir, deinen ungefähren Energiebedarf besser einzuordnen.
+• Lege deine Tagesziele selbst fest. Empfehlungen ändern deine aktiven Ziele erst, wenn du sie übernimmst.
 
 3. REGENERATIONS-TRACKING
-• Visuelle Muskel-Heatmap: Überwache die Bereitschaft deiner Muskelgruppen anhand von Trainingsvolumen, Intensität und jüngster Belastung.
-• Umfassende Statistiken zu Bestleistungen (PRs), Gesamtvolumen, Kontinuität, Körpermaßen und Vitalwerten.
+• Sieh auf einer Muskel-Heatmap, wie Trainingsvolumen, Intensität und jüngste Belastung mit der Erholung deiner Muskelgruppen zusammenhängen.
+• Verfolge Bestleistungen, Gesamtvolumen, Trainingskontinuität, Körpermaße und weitere Statistiken.
 
-4. NATIVE HEALTH-SYNCHRONISATION
-• Optionale Integration zum Auslesen physischer Metriken (Schritte, Schlaf, Puls), die in dein lokales Regenerations-Tracking einfließen.
-• Vollständig lokal, sicher und von dir gesteuert.
-
-5. KI-MAHLZEITEN-ERFASSUNG (Optional)
-• Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
-• Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR werden Tiefendaten erfasst, um die Portionsschätzung zu unterstützen.
-• Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives“-System nutzt Open Food Facts, um passende Treffer zu finden. Jedes Ergebnis bleibt vor dem Speichern vollständig prüfbar.
-• 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
+4. HEALTH-SYNCHRONISIERUNG
+• Synchronisiere Kalorien und Makronährstoffe optional mit Apple Health oder Health Connect.
+• Schritte, Schlaf und Puls können mit deiner Zustimmung in dein lokales Regenerations-Tracking einfließen.
 
 RECHTLICHER HINWEIS:
-Train Libre ist keine medizinische Anwendung. Die algorithmische Regenerations-Auswertung, das Schlaf-Tracking und physische Vitalparameter dienen ausschließlich der persönlichen sportlichen Orientierung und Trainingssteuerung. Sie stellen keine medizinische Diagnose oder Behandlung dar und ersetzen diese nicht.
+Train Libre ist keine medizinische Anwendung. Angaben zu Regeneration, Schlaf und Vitalwerten dienen deiner persönlichen sportlichen Orientierung. Sie stellen keine medizinische Diagnose oder Behandlung dar und ersetzen keine medizinische Beratung.
 
-OPEN SOURCE & OFFENE DATEN:
-Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
+OPEN SOURCE UND OFFENE DATEN:
+Train Libre nutzt die Community-Kataloge Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – so kannst du unsere Datenschutzversprechen selbst überprüfen.
 
 ## Release Notes (What's New / Release Notes in this version)
-Verbesserte KI-Mahlzeitenerfassung: Die Analyse ist schneller und findet passende Lebensmittel zuverlässiger. Auf unterstützten iPhones kannst du Apple Intelligence direkt auf dem Gerät nutzen oder weiterhin einen Anbieter mit eigenem API-Schlüssel verbinden. Jeden Vorschlag kannst du vor dem Speichern prüfen und ändern.
+Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
 
-Mehr Details zu Lebensmitteln: Lade den BLS-4.0-Katalog mit übersetzten Namen für generische Lebensmittel und Nährwerten einschließlich Mikronährstoffen herunter. Danach kannst du ihn offline durchsuchen; Markenprodukte findest du weiter über Open Food Facts.
+Hallo, Spanien! Hallo, Niederlande!: Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.
 
-Trainingsverlauf übernehmen: Importiere Workouts aus Hevy, Strong oder CSV. Die Vorschau zeigt mögliche Duplikate und ungültige Datumsangaben. Finde bereits trainierte Übungen leichter und hinterlege Notizen zu Übungen, Routinen oder einzelnen Workouts.
+Verbesserte Mahlzeitenerkennung: Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.
 
-Inhalte teilen und wiederverwenden: Teile Routinen, Pläne und Rezepte per Link, Text oder JSON; exportiere abgeschlossene Workouts als Text oder JSON. Prüfe unterstützte Importe vor dem Übernehmen. Gespeicherte Rezepte kannst du nach Portionen oder gekochtem Gewicht erfassen.
+Ernährung mit Health synchronisieren: Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.
 
-Mehr Überblick und Feinschliff: Gestalte deine Statistikübersicht selbst, entdecke Ernährungs- und Regenerationsanalysen und finde Gesundheitsimporte und -exporte an einem Ort. Dazu kommen Verbesserungen bei der Backup-Wiederherstellung, Bedienungshilfen und Darstellung auf kleinen Bildschirmen.
+Mehr Personalisierung: Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

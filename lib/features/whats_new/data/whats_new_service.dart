@@ -85,7 +85,20 @@ class WhatsNewService {
       final current = AppVersion.parse(version);
 
       if (lastSeen == null) {
-        return releases.where((r) => r.version == version).toList();
+        final exact = releases.where((r) => r.version == version).toList();
+        if (exact.isNotEmpty || current.suffix.isNotEmpty) return exact;
+        // iOS requires a numeric marketing version, even for TestFlight builds.
+        // Use the latest pre-release notes for that same version if needed.
+        return releases
+            .where((r) {
+              final candidate = AppVersion.parse(r.version);
+              return candidate.major == current.major &&
+                  candidate.minor == current.minor &&
+                  candidate.patch == current.patch &&
+                  candidate.suffix.isNotEmpty;
+            })
+            .take(1)
+            .toList();
       }
       if (lastSeen == version) return const [];
 

@@ -5,7 +5,9 @@ void main() {
   group('diary link', () {
     test('parses the scheme form iOS delivers', () {
       expect(
-          parseHomeWidgetDeepLink('trainlibre://diary'), isA<OpenDiaryLink>());
+        parseHomeWidgetDeepLink('trainlibre://diary'),
+        isA<OpenDiaryLink>(),
+      );
     });
 
     test('parses the path form Flutter sometimes reports', () {
@@ -95,7 +97,9 @@ void main() {
 
     test('the steps widget opens the steps module', () {
       expect(
-          parseHomeWidgetDeepLink('trainlibre://steps'), const OpenStepsLink());
+        parseHomeWidgetDeepLink('trainlibre://steps'),
+        const OpenStepsLink(),
+      );
     });
 
     test('the measurements widget carries its configuration', () {
@@ -107,25 +111,29 @@ void main() {
       );
     });
 
-    test('a measurements link without a configuration still opens the screen',
-        () {
-      expect(
-        parseHomeWidgetDeepLink('trainlibre://measurements'),
-        const OpenMeasurementsLink(),
-      );
-    });
+    test(
+      'a measurements link without a configuration still opens the screen',
+      () {
+        expect(
+          parseHomeWidgetDeepLink('trainlibre://measurements'),
+          const OpenMeasurementsLink(),
+        );
+      },
+    );
 
-    test('an unknown period is dropped rather than taking the metric with it',
-        () {
-      // The screen has its own default timeframe; the metric is still worth
-      // honouring.
-      expect(
-        parseHomeWidgetDeepLink(
-          'trainlibre://measurements?metric=weight&period=2y',
-        ),
-        const OpenMeasurementsLink(metricId: 'weight'),
-      );
-    });
+    test(
+      'an unknown period is dropped rather than taking the metric with it',
+      () {
+        // The screen has its own default timeframe; the metric is still worth
+        // honouring.
+        expect(
+          parseHomeWidgetDeepLink(
+            'trainlibre://measurements?metric=weight&period=2y',
+          ),
+          const OpenMeasurementsLink(metricId: 'weight'),
+        );
+      },
+    );
 
     test('the last workout widget opens that workout', () {
       expect(

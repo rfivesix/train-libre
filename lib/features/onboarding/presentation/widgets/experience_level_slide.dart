@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/experience_level_service.dart';
 import '../../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'springy_scale.dart';
 
 class ExperienceLevelSlide extends StatelessWidget {
@@ -30,8 +33,9 @@ class ExperienceLevelSlide extends StatelessWidget {
             const SizedBox(height: DesignConstants.spacingXL),
             Text(
               l10n.onboardingExperienceLevelTitle,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Text(

@@ -2,7 +2,7 @@
 
 Create a reusable exercise template, set targets and rest times, then start a workout from it.
 
-You can also prepare a routine with an AI assistant using the [AI routine guide](ai_workout_routines.md). It uses the same JSON import format as shared routines and the [OpenExerciseDB exercise search](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and [machine-readable catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) for exact exercise IDs.
+You can also create or revise routines with the built-in AI assistant. It can use the approved local exercise catalog and shows a draft for review before saving. For an external AI assistant, follow the [AI routine guide](ai_workout_routines.md); it explains the JSON import format and how to find exact exercise IDs in [OpenExerciseDB](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html).
 
 ## Create a routine
 

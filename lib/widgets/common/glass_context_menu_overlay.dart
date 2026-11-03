@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 
@@ -62,7 +64,8 @@ Future<void> showGlassContextMenu({
         targetRect: targetRect,
         targetWidget: targetWidget,
         actions: actions,
-        borderRadius: borderRadius ??
+        borderRadius:
+            borderRadius ??
             BorderRadius.circular(DesignConstants.borderRadiusL),
         animation: animation,
       );
@@ -112,7 +115,8 @@ class _GlassContextMenuOverlay extends StatelessWidget {
     // Check if menu should be placed above or below target
     final double spaceBelow =
         screenSize.height - targetRect.bottom - bottomPadding;
-    final bool showAbove = spaceBelow < (estimatedMenuHeight + 20) &&
+    final bool showAbove =
+        spaceBelow < (estimatedMenuHeight + 20) &&
         targetRect.top > estimatedMenuHeight;
 
     // Constrain card positioning to visible bounds
@@ -122,14 +126,18 @@ class _GlassContextMenuOverlay extends StatelessWidget {
     );
 
     final double cardLeft = math.max(16.0, targetRect.left);
-    final double cardWidth =
-        math.min(targetRect.width, screenSize.width - 32.0);
+    final double cardWidth = math.min(
+      targetRect.width,
+      screenSize.width - 32.0,
+    );
 
     // Context menu position
     final double menuTop = showAbove
         ? math.max(topPadding + 10, cardTop - estimatedMenuHeight - menuSpacing)
-        : math.min(screenSize.height - bottomPadding - estimatedMenuHeight - 10,
-            cardTop + targetRect.height + menuSpacing);
+        : math.min(
+            screenSize.height - bottomPadding - estimatedMenuHeight - 10,
+            cardTop + targetRect.height + menuSpacing,
+          );
 
     final CurvedAnimation easeAnimation = CurvedAnimation(
       parent: animation,
@@ -152,13 +160,8 @@ class _GlassContextMenuOverlay extends StatelessWidget {
                 onTap: () => Navigator.of(context).pop(),
                 behavior: HitTestBehavior.opaque,
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 12.0,
-                    sigmaY: 12.0,
-                  ),
-                  child: Container(
-                    color: Colors.transparent,
-                  ),
+                  filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+                  child: Container(color: Colors.transparent),
                 ),
               ),
 
@@ -173,14 +176,13 @@ class _GlassContextMenuOverlay extends StatelessWidget {
                   child: Material(
                     color: Colors.transparent,
                     elevation: 8 * progress,
-                    shadowColor: cs.shadow
-                        .withValues(alpha: (isDark ? 0.4 : 0.2) * progress),
+                    shadowColor: cs.shadow.withValues(
+                      alpha: (isDark ? 0.4 : 0.2) * progress,
+                    ),
                     borderRadius: borderRadius,
                     child: ClipRRect(
                       borderRadius: borderRadius,
-                      child: IgnorePointer(
-                        child: targetWidget,
-                      ),
+                      child: IgnorePointer(child: targetWidget),
                     ),
                   ),
                 ),
@@ -192,10 +194,13 @@ class _GlassContextMenuOverlay extends StatelessWidget {
                 left: cardLeft,
                 width: math.min(cardWidth, 320.0),
                 child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.94, end: 1.0)
-                      .animate(easeAnimation),
-                  alignment:
-                      showAbove ? Alignment.bottomLeft : Alignment.topLeft,
+                  scale: Tween<double>(
+                    begin: 0.94,
+                    end: 1.0,
+                  ).animate(easeAnimation),
+                  alignment: showAbove
+                      ? Alignment.bottomLeft
+                      : Alignment.topLeft,
                   child: _buildGlassMenuCard(context, isDark, cs),
                 ),
               ),
@@ -207,126 +212,124 @@ class _GlassContextMenuOverlay extends StatelessWidget {
   }
 
   Widget _buildGlassMenuCard(
-      BuildContext context, bool isDark, ColorScheme cs) {
+    BuildContext context,
+    bool isDark,
+    ColorScheme cs,
+  ) {
     final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
 
     return Container(
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Container(
-              decoration: BoxDecoration(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.88)
+                  : cs.surface.withValues(alpha: 0.92),
+              borderRadius: radius,
+              border: Border.all(
                 color: isDark
-                    ? DesignConstants.summaryCardDarkMode
-                        .withValues(alpha: 0.88)
-                    : cs.surface.withValues(alpha: 0.92),
-                borderRadius: radius,
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.15)
-                      : cs.onSurface.withValues(alpha: 0.1),
-                  width: 0.5,
-                ),
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : cs.onSurface.withValues(alpha: 0.1),
+                width: 0.5,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(actions.length, (index) {
-                  final action = actions[index];
-                  final isLast = index == actions.length - 1;
-                  final Color actionColor = action.isDestructive
-                      ? DesignConstants.brandRedColor
-                      : cs.onSurface;
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(actions.length, (index) {
+                final action = actions[index];
+                final isLast = index == actions.length - 1;
+                final Color actionColor = action.isDestructive
+                    ? DesignConstants.brandRedColor
+                    : cs.onSurface;
 
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            unawaited(HapticFeedbackService.selectionClick());
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              action.onTap();
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18.0,
-                              vertical: 14.0,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  action.icon,
-                                  size: 20,
-                                  color: actionColor,
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          unawaited(HapticFeedbackService.selectionClick());
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            action.onTap();
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18.0,
+                            vertical: 14.0,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(action.icon, size: 20, color: actionColor),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      action.label,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: actionColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    if (action.subtitle != null) ...[
+                                      const SizedBox(height: 2),
                                       Text(
-                                        action.label,
+                                        action.subtitle!,
                                         style: Theme.of(context)
                                             .textTheme
-                                            .titleMedium
+                                            .bodySmall
                                             ?.copyWith(
-                                              color: actionColor,
-                                              fontWeight: FontWeight.w600,
+                                              color: cs.onSurfaceVariant,
                                             ),
                                       ),
-                                      if (action.subtitle != null) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          action.subtitle!,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: cs.onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
                                     ],
-                                  ),
+                                  ],
                                 ),
-                                if (action.isDestructive)
-                                  Icon(
-                                    LucideIcons.chevron_right,
-                                    size: 16,
-                                    color: actionColor.withValues(alpha: 0.6),
-                                  ),
-                              ],
-                            ),
+                              ),
+                              if (action.isDestructive)
+                                Icon(
+                                  LucideIcons.chevron_right,
+                                  size: 16,
+                                  color: actionColor.withValues(alpha: 0.6),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                      if (!isLast)
-                        Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: cs.onSurface.withValues(alpha: 0.08),
-                        ),
-                    ],
-                  );
-                }),
-              ),
+                    ),
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: cs.onSurface.withValues(alpha: 0.08),
+                      ),
+                  ],
+                );
+              }),
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

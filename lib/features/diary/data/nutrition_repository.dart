@@ -6,20 +6,23 @@ import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/meal_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/macro_entry.dart';
 import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/models/supplement_log.dart';
+
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../data/drift_database.dart' as db;
 import '../../../../services/telemetry/telemetry_service.dart';
+
 import 'dart:async';
 
 /// Concrete implementation of [IDiaryRepository] implementing database transaction logic.
 class NutritionRepository implements IDiaryRepository {
   final DiaryLocalDataSource _localDataSource;
 
-  NutritionRepository({
-    required DiaryLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+  NutritionRepository({required DiaryLocalDataSource localDataSource})
+    : _localDataSource = localDataSource;
 
   @override
   Stream<DailyGoal?> watchGoalsForDate(DateTime date) {
@@ -40,6 +43,10 @@ class NutritionRepository implements IDiaryRepository {
   @override
   Stream<List<FoodEntry>> watchEntriesForDate(DateTime date) =>
       _localDataSource.watchEntriesForDate(date);
+
+  @override
+  Stream<List<MacroEntry>> watchMacroEntriesForDate(DateTime date) =>
+      _localDataSource.watchMacroEntriesForDate(date);
 
   @override
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date) =>
@@ -94,6 +101,10 @@ class NutritionRepository implements IDiaryRepository {
   Future<void> deleteFoodEntry(int id) => _localDataSource.deleteFoodEntry(id);
 
   @override
+  Future<void> deleteMacroEntry(String id) =>
+      _localDataSource.deleteMacroEntry(id);
+
+  @override
   Future<void> deleteFluidEntry(int id) =>
       _localDataSource.deleteFluidEntry(id);
 
@@ -110,6 +121,10 @@ class NutritionRepository implements IDiaryRepository {
       _localDataSource.updateFoodEntry(entry);
 
   @override
+  Future<void> updateMacroEntry(MacroEntry entry) =>
+      _localDataSource.updateMacroEntry(entry);
+
+  @override
   Future<int> insertFluidEntry(FluidEntry entry) =>
       _localDataSource.insertFluidEntry(entry);
 
@@ -119,6 +134,10 @@ class NutritionRepository implements IDiaryRepository {
     String telemetrySource = FoodLogSource.manualSearch,
   }) =>
       _localDataSource.insertFoodEntry(entry, telemetrySource: telemetrySource);
+
+  @override
+  Future<void> insertMacroEntry(MacroEntry entry) =>
+      _localDataSource.insertMacroEntry(entry);
 
   @override
   Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date) =>
@@ -131,6 +150,12 @@ class NutritionRepository implements IDiaryRepository {
   @override
   Future<String> insertMealEntry(MealEntry entry) =>
       _localDataSource.insertMealEntry(entry);
+
+  @override
+  Future<void> insertMealEntryWithMacroEntries(
+    MealEntry entry,
+    List<MacroEntry> macroEntries,
+  ) => _localDataSource.insertMealEntryWithMacroEntries(entry, macroEntries);
 
   @override
   Future<void> updateMealEntry(MealEntry entry) =>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -48,9 +49,9 @@ class RecoverySectionCard extends StatelessWidget {
 
     final recoveryHeadline =
         StatisticsPresentationFormatter.recoveryOverallLabel(
-      l10n,
-      overallState,
-    );
+          l10n,
+          overallState,
+        );
 
     final iconColor = StatisticsPresentationFormatter.recoveryOverallColor(
       context,
@@ -76,10 +77,8 @@ class RecoverySectionCard extends StatelessWidget {
               ),
               Text(
                 recoveryHeadline,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: iconColor,
-                    ),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold, color: iconColor),
               ),
               const SizedBox(height: DesignConstants.spacingL),
               if (hasData)
@@ -113,9 +112,8 @@ class RecoverySectionCard extends StatelessWidget {
               else
                 Text(
                   l10n.recoveryHubNoDataSummary,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
                 ),
             ],
           ),
@@ -131,8 +129,10 @@ class RecoverySectionCard extends StatelessWidget {
     required int count,
     required int total,
   }) {
-    final color =
-        StatisticsPresentationFormatter.recoveryStateColor(context, state);
+    final color = StatisticsPresentationFormatter.recoveryStateColor(
+      context,
+      state,
+    );
     final percent = total > 0 ? (count / total * 100).round() : 0;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -144,9 +144,7 @@ class RecoverySectionCard extends StatelessWidget {
 
     return Expanded(
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: radius,
-        ),
+        decoration: BoxDecoration(borderRadius: radius),
         child: ClipRRect(
           borderRadius: radius,
           child: Container(
@@ -181,7 +179,9 @@ class RecoverySectionCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   StatisticsPresentationFormatter.recoveryStateLabel(
-                      l10n, state),
+                    l10n,
+                    state,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(

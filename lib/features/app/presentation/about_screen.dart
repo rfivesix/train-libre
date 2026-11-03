@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_link_row.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../whats_new/data/whats_new_service.dart';
 import '../../whats_new/presentation/whats_new_sheet.dart';
@@ -26,8 +30,11 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.aboutApp));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.aboutApp,
+      ),
+    );
   }
 
   @override
@@ -69,9 +76,7 @@ class _AboutScreenState extends State<AboutScreen> {
                           const SizedBox(height: DesignConstants.spacingL),
                           Text(
                             l10n.appTitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
+                            style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
@@ -109,9 +114,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       ),
                       AppLinkRow(
                         title: l10n.project_website,
-                        onTap: () => _launchURL(
-                          'https://trainlibre.com/',
-                        ),
+                        onTap: () => _launchURL('https://trainlibre.com/'),
                       ),
                       AppLinkRow(
                         title: l10n.github_repository,
@@ -203,9 +206,8 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   void _openUsedPackages(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const _UsedPackagesScreen()));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const _UsedPackagesScreen()));
   }
 
   void _launchURL(String url) async {
@@ -261,9 +263,8 @@ class _UsedPackagesScreen extends StatelessWidget {
                     child: ListTile(
                       title: Text(
                         package.name,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
                         '${package.entries.length} ${title.toLowerCase()}',
@@ -288,13 +289,14 @@ class _UsedPackagesScreen extends StatelessWidget {
       }
     }
 
-    final bundles = licensesByPackage.entries
-        .map(
-          (entry) =>
-              _PackageLicenseBundle(name: entry.key, entries: entry.value),
-        )
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final bundles =
+        licensesByPackage.entries
+            .map(
+              (entry) =>
+                  _PackageLicenseBundle(name: entry.key, entries: entry.value),
+            )
+            .toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
     return bundles;
   }
 }

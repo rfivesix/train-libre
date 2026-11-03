@@ -24,12 +24,12 @@ class AppNotificationPayload {
   });
 
   String encode() => jsonEncode({
-        'v': 1,
-        'type': type.name,
-        if (goalId != null) 'goalId': goalId,
-        if (reviewId != null) 'reviewId': reviewId,
-        if (planId != null) 'planId': planId,
-      });
+    'v': 1,
+    'type': type.name,
+    if (goalId != null) 'goalId': goalId,
+    if (reviewId != null) 'reviewId': reviewId,
+    if (planId != null) 'planId': planId,
+  });
 
   static AppNotificationPayload? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;

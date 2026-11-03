@@ -60,8 +60,7 @@ class _FakeHealthKitDataSource implements HealthKitDataSource {
   Future<SleepRawIngestionBatch> readSleepAndHeartRate({
     required DateTime fromUtc,
     required DateTime toUtc,
-  }) async =>
-      batch;
+  }) async => batch;
 }
 
 class _ThrowingHealthKitDataSource implements HealthKitDataSource {
@@ -82,8 +81,7 @@ class _FakeHealthConnectDataSource implements HealthConnectDataSource {
   Future<SleepRawIngestionBatch> readSleepAndHeartRate({
     required DateTime fromUtc,
     required DateTime toUtc,
-  }) async =>
-      batch;
+  }) async => batch;
 }
 
 class _SequencedHealthConnectDataSource implements HealthConnectDataSource {
@@ -116,18 +114,18 @@ class _StaticPermissionService implements SleepPermissionsService {
 }
 
 SleepRawIngestionBatch _sampleBatch() => SleepRawIngestionBatch(
-      sessions: [
-        SleepIngestionSession(
-          recordId: 's',
-          startAtUtc: DateTime.utc(2026, 1, 1, 22),
-          endAtUtc: DateTime.utc(2026, 1, 2, 6),
-          platformSessionType: 'sleep',
-          sourcePlatform: 'test',
-        ),
-      ],
-      stageSegments: const [],
-      heartRateSamples: const [],
-    );
+  sessions: [
+    SleepIngestionSession(
+      recordId: 's',
+      startAtUtc: DateTime.utc(2026, 1, 1, 22),
+      endAtUtc: DateTime.utc(2026, 1, 2, 6),
+      platformSessionType: 'sleep',
+      sourcePlatform: 'test',
+    ),
+  ],
+  stageSegments: const [],
+  heartRateSamples: const [],
+);
 
 void main() {
   group('HealthKitSleepPermissionsService', () {
@@ -302,112 +300,99 @@ void main() {
       expect(success.batch?.sessions.length, 1);
     });
 
-    test(
-      'Health Connect adapter retries with padded window when sleep HR is missing',
-      () async {
-        final strict = _sampleBatch();
-        final session = strict.sessions.single;
-        final fallback = SleepRawIngestionBatch(
-          sessions: strict.sessions,
-          stageSegments: strict.stageSegments,
-          heartRateSamples: [
-            SleepIngestionHeartRateSample(
-              recordId: 'outside',
-              sessionRecordId: session.recordId,
-              sampledAtUtc: session.startAtUtc.subtract(
-                const Duration(minutes: 5),
-              ),
-              bpm: 60,
-              sourcePlatform: 'test',
+    test('Health Connect adapter retries with padded window when sleep HR is missing', () async {
+      final strict = _sampleBatch();
+      final session = strict.sessions.single;
+      final fallback = SleepRawIngestionBatch(
+        sessions: strict.sessions,
+        stageSegments: strict.stageSegments,
+        heartRateSamples: [
+          SleepIngestionHeartRateSample(
+            recordId: 'outside',
+            sessionRecordId: session.recordId,
+            sampledAtUtc: session.startAtUtc.subtract(
+              const Duration(minutes: 5),
             ),
-            SleepIngestionHeartRateSample(
-              recordId: 'inside',
-              sessionRecordId: session.recordId,
-              sampledAtUtc: session.startAtUtc.add(
-                const Duration(minutes: 20),
-              ),
-              bpm: 55,
-              sourcePlatform: 'test',
-            ),
-          ],
-        );
-        final source = _SequencedHealthConnectDataSource([strict, fallback]);
-        final adapter = HealthConnectSleepAdapter(
-          permissionsService: const _StaticPermissionService(
-            SleepPermissionOutcome.ready(),
+            bpm: 60,
+            sourcePlatform: 'test',
           ),
-          dataSource: source,
-        );
-        final from = DateTime.utc(2026, 1, 1);
-        final to = DateTime.utc(2026, 1, 2);
-
-        final result = await adapter.importRange(fromUtc: from, toUtc: to);
-
-        expect(result.isSuccess, isTrue);
-        expect(source.requests.length, 2);
-        expect(source.requests.first, (from, to));
-        expect(
-          source.requests.last,
-          (
-            from.subtract(const Duration(hours: 24)),
-            to.add(const Duration(hours: 24)),
+          SleepIngestionHeartRateSample(
+            recordId: 'inside',
+            sessionRecordId: session.recordId,
+            sampledAtUtc: session.startAtUtc.add(const Duration(minutes: 20)),
+            bpm: 55,
+            sourcePlatform: 'test',
           ),
-        );
-        expect(result.batch?.heartRateSamples.single.recordId, 'inside');
-      },
-    );
+        ],
+      );
+      final source = _SequencedHealthConnectDataSource([strict, fallback]);
+      final adapter = HealthConnectSleepAdapter(
+        permissionsService: const _StaticPermissionService(
+          SleepPermissionOutcome.ready(),
+        ),
+        dataSource: source,
+      );
+      final from = DateTime.utc(2026, 1, 1);
+      final to = DateTime.utc(2026, 1, 2);
 
-    test(
-      'Health Connect adapter derives sleep HR from general stream by sleep window',
-      () async {
-        final strict = _sampleBatch();
-        final session = strict.sessions.single;
-        final fallback = SleepRawIngestionBatch(
-          sessions: strict.sessions,
-          stageSegments: strict.stageSegments,
-          heartRateSamples: [
-            SleepIngestionHeartRateSample(
-              recordId: 'outside-window',
-              sessionRecordId: 'general-stream',
-              sampledAtUtc: session.startAtUtc.subtract(
-                const Duration(minutes: 5),
-              ),
-              bpm: 60,
-              sourcePlatform: 'test',
+      final result = await adapter.importRange(fromUtc: from, toUtc: to);
+
+      expect(result.isSuccess, isTrue);
+      expect(source.requests.length, 2);
+      expect(source.requests.first, (from, to));
+      expect(source.requests.last, (
+        from.subtract(const Duration(hours: 24)),
+        to.add(const Duration(hours: 24)),
+      ));
+      expect(result.batch?.heartRateSamples.single.recordId, 'inside');
+    });
+
+    test('Health Connect adapter derives sleep HR from general stream by sleep window', () async {
+      final strict = _sampleBatch();
+      final session = strict.sessions.single;
+      final fallback = SleepRawIngestionBatch(
+        sessions: strict.sessions,
+        stageSegments: strict.stageSegments,
+        heartRateSamples: [
+          SleepIngestionHeartRateSample(
+            recordId: 'outside-window',
+            sessionRecordId: 'general-stream',
+            sampledAtUtc: session.startAtUtc.subtract(
+              const Duration(minutes: 5),
             ),
-            SleepIngestionHeartRateSample(
-              recordId: 'inside-window',
-              sessionRecordId: 'general-stream',
-              sampledAtUtc: session.startAtUtc.add(
-                const Duration(minutes: 20),
-              ),
-              bpm: 55,
-              sourcePlatform: 'test',
-            ),
-          ],
-        );
-        final source = _SequencedHealthConnectDataSource([strict, fallback]);
-        final adapter = HealthConnectSleepAdapter(
-          permissionsService: const _StaticPermissionService(
-            SleepPermissionOutcome.ready(),
+            bpm: 60,
+            sourcePlatform: 'test',
           ),
-          dataSource: source,
-        );
+          SleepIngestionHeartRateSample(
+            recordId: 'inside-window',
+            sessionRecordId: 'general-stream',
+            sampledAtUtc: session.startAtUtc.add(const Duration(minutes: 20)),
+            bpm: 55,
+            sourcePlatform: 'test',
+          ),
+        ],
+      );
+      final source = _SequencedHealthConnectDataSource([strict, fallback]);
+      final adapter = HealthConnectSleepAdapter(
+        permissionsService: const _StaticPermissionService(
+          SleepPermissionOutcome.ready(),
+        ),
+        dataSource: source,
+      );
 
-        final result = await adapter.importRange(
-          fromUtc: DateTime.utc(2026, 1, 1),
-          toUtc: DateTime.utc(2026, 1, 2),
-        );
+      final result = await adapter.importRange(
+        fromUtc: DateTime.utc(2026, 1, 1),
+        toUtc: DateTime.utc(2026, 1, 2),
+      );
 
-        expect(result.isSuccess, isTrue);
-        expect(result.batch?.heartRateSamples.length, 1);
-        expect(result.batch?.heartRateSamples.single.recordId, 'inside-window');
-        expect(
-          result.batch?.heartRateSamples.single.sessionRecordId,
-          session.recordId,
-        );
-      },
-    );
+      expect(result.isSuccess, isTrue);
+      expect(result.batch?.heartRateSamples.length, 1);
+      expect(result.batch?.heartRateSamples.single.recordId, 'inside-window');
+      expect(
+        result.batch?.heartRateSamples.single.sessionRecordId,
+        session.recordId,
+      );
+    });
 
     test('HealthKit adapter keeps not-installed distinct', () async {
       final adapter = HealthKitSleepAdapter(

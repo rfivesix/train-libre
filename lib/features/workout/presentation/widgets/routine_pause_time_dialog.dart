@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_button.dart';
@@ -31,12 +32,9 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
     super.initState();
     final seconds =
         (widget.initialPauseSeconds != null && widget.initialPauseSeconds! > 0)
-            ? widget.initialPauseSeconds!
-            : 0;
-    _selectedDuration = Duration(
-      minutes: seconds ~/ 60,
-      seconds: seconds % 60,
-    );
+        ? widget.initialPauseSeconds!
+        : 0;
+    _selectedDuration = Duration(minutes: seconds ~/ 60, seconds: seconds % 60);
   }
 
   @override

@@ -79,33 +79,35 @@ void main() {
       );
     });
 
-    test('stableWindowEndDayForDueWeek stays fixed within the same due week',
-        () {
-      expect(
-        RecommendationScheduler.stableWindowEndDayForDueWeek(
-          DateTime(2026, 4, 6, 0, 1),
-        ),
-        DateTime(2026, 4, 5),
-      );
-      expect(
-        RecommendationScheduler.stableWindowEndDayForDueWeek(
-          DateTime(2026, 4, 8, 18, 30),
-        ),
-        DateTime(2026, 4, 5),
-      );
-      expect(
-        RecommendationScheduler.stableWindowEndDayForDueWeek(
-          DateTime(2026, 4, 12, 23, 59),
-        ),
-        DateTime(2026, 4, 5),
-      );
-      expect(
-        RecommendationScheduler.stableWindowEndDayForDueWeek(
-          DateTime(2026, 4, 13, 0, 1),
-        ),
-        DateTime(2026, 4, 12),
-      );
-    });
+    test(
+      'stableWindowEndDayForDueWeek stays fixed within the same due week',
+      () {
+        expect(
+          RecommendationScheduler.stableWindowEndDayForDueWeek(
+            DateTime(2026, 4, 6, 0, 1),
+          ),
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          RecommendationScheduler.stableWindowEndDayForDueWeek(
+            DateTime(2026, 4, 8, 18, 30),
+          ),
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          RecommendationScheduler.stableWindowEndDayForDueWeek(
+            DateTime(2026, 4, 12, 23, 59),
+          ),
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          RecommendationScheduler.stableWindowEndDayForDueWeek(
+            DateTime(2026, 4, 13, 0, 1),
+          ),
+          DateTime(2026, 4, 12),
+        );
+      },
+    );
 
     test('supports dynamic checkInWeekday (e.g. Thursday or Sunday)', () {
       // 2026-04-09 is a Thursday

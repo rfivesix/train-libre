@@ -6,12 +6,7 @@ class AppSkeleton extends StatefulWidget {
   final double? height;
   final BorderRadiusGeometry? borderRadius;
 
-  const AppSkeleton({
-    super.key,
-    this.width,
-    this.height,
-    this.borderRadius,
-  });
+  const AppSkeleton({super.key, this.width, this.height, this.borderRadius});
 
   @override
   State<AppSkeleton> createState() => _AppSkeletonState();
@@ -37,10 +32,12 @@ class _AppSkeletonState extends State<AppSkeleton>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final baseColor =
-        theme.colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.04);
-    final highlightColor =
-        theme.colorScheme.onSurface.withValues(alpha: isDark ? 0.12 : 0.08);
+    final baseColor = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.05 : 0.04,
+    );
+    final highlightColor = theme.colorScheme.onSurface.withValues(
+      alpha: isDark ? 0.12 : 0.08,
+    );
 
     _colorAnimation = ColorTween(
       begin: baseColor,

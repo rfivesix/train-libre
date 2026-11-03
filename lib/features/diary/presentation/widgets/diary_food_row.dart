@@ -78,10 +78,7 @@ class DiaryFoodRow extends StatelessWidget {
             ),
           ),
           if (extraColumns != null)
-            for (final col in extraColumns!) ...[
-              const SizedBox(width: 8),
-              col,
-            ],
+            for (final col in extraColumns!) ...[const SizedBox(width: 8), col],
           const SizedBox(width: 8),
           SizedBox(
             width: kDiaryAmountColumnWidth,
@@ -101,8 +98,9 @@ class DiaryFoodRow extends StatelessWidget {
                 fontWeight: isNested ? FontWeight.w600 : FontWeight.w700,
                 // Explicit: `labelLarge` inherits a muted colour in the light
                 // theme, which made every energy value look disabled.
-                color:
-                    isNested ? theme.textTheme.bodyMedium?.color : energyColor,
+                color: isNested
+                    ? theme.textTheme.bodyMedium?.color
+                    : energyColor,
               ),
               maxLines: 1,
             ),

@@ -76,8 +76,9 @@ class LogWorkoutSetUseCase {
     double volumeDelta = 0.0;
     if (finalWeight != null || finalReps != null || clearWeight || clearReps) {
       final oldVol = (oldLog.weightKg ?? 0) * (oldLog.reps ?? 0);
-      final newWeight =
-          clearWeight ? 0.0 : (finalWeight ?? oldLog.weightKg ?? 0.0);
+      final newWeight = clearWeight
+          ? 0.0
+          : (finalWeight ?? oldLog.weightKg ?? 0.0);
       final newReps = clearReps ? 0 : (finalReps ?? oldLog.reps ?? 0);
       volumeDelta = (newWeight * newReps) - oldVol;
     }

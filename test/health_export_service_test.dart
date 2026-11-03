@@ -35,7 +35,7 @@ class _FakeAdapter implements HealthExportAdapter {
   final bool denyPermissionRequest;
   int? failMeasurementAtWriteCount;
   final Future<void> Function(ExportMeasurementRecord record)?
-      onMeasurementWrite;
+  onMeasurementWrite;
 
   int measurementWrites = 0;
   int nutritionWrites = 0;
@@ -191,37 +191,39 @@ void main() {
       expect(enabledAfter, isTrue);
     });
 
-    test('turns a native permission-request failure into recoverable status',
-        () async {
-      final service = HealthExportService(
-        adapters: [
-          _FakeAdapter(
-            HealthExportPlatform.appleHealth,
-            denyPermissionRequest: true,
-          ),
-        ],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
-      );
+    test(
+      'turns a native permission-request failure into recoverable status',
+      () async {
+        final service = HealthExportService(
+          adapters: [
+            _FakeAdapter(
+              HealthExportPlatform.appleHealth,
+              denyPermissionRequest: true,
+            ),
+          ],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+        );
 
-      final permission = await service.requestPermissions(
-        HealthExportPlatform.appleHealth,
-      );
+        final permission = await service.requestPermissions(
+          HealthExportPlatform.appleHealth,
+        );
 
-      expect(permission.success, isFalse);
-      expect(permission.message, 'Permission denied');
-      expect(
-        await service.isPlatformEnabled(HealthExportPlatform.appleHealth),
-        isFalse,
-      );
-      final statuses = await service.getStatuses();
-      expect(
-        statuses[HealthExportPlatform.appleHealth]!
-            .byDomain[HealthExportDomain.measurements]!
-            .state,
-        HealthExportState.permissionRequired,
-      );
-    });
+        expect(permission.success, isFalse);
+        expect(permission.message, 'Permission denied');
+        expect(
+          await service.isPlatformEnabled(HealthExportPlatform.appleHealth),
+          isFalse,
+        );
+        final statuses = await service.getStatuses();
+        expect(
+          statuses[HealthExportPlatform.appleHealth]!
+              .byDomain[HealthExportDomain.measurements]!
+              .state,
+          HealthExportState.permissionRequired,
+        );
+      },
+    );
 
     test('persists successful status and idempotent retries', () async {
       final adapter = _FakeAdapter(HealthExportPlatform.appleHealth);
@@ -270,161 +272,174 @@ void main() {
       }
     });
 
-    test('exports an edited record with the same UUID and next revision',
-        () async {
-      final adapter = _FakeAdapter(HealthExportPlatform.appleHealth);
-      final service = HealthExportService(
-        adapters: [adapter],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
-        identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
-      );
+    test(
+      'exports an edited record with the same UUID and next revision',
+      () async {
+        final adapter = _FakeAdapter(HealthExportPlatform.appleHealth);
+        final service = HealthExportService(
+          adapters: [adapter],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+          identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
+        );
 
-      await service.requestPermissions(HealthExportPlatform.appleHealth);
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isTrue,
-      );
-      final first = adapter.measurementRecords.single;
-      expect(
+        await service.requestPermissions(HealthExportPlatform.appleHealth);
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isTrue,
+        );
+        final first = adapter.measurementRecords.single;
+        expect(
           first.externalId,
-          matches(RegExp(
-            r'^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
-          )));
-      expect(first.exportRevision, 0);
-
-      final measurement = await db.select(db.measurements).getSingle();
-      await (db.update(db.measurements)
-            ..where((row) => row.localId.equals(measurement.localId)))
-          .write(
-        MeasurementsCompanion(
-          value: const drift.Value(81),
-          updatedAt: drift.Value(
-            DateTime.now().toUtc().add(const Duration(seconds: 1)),
-          ),
-        ),
-      );
-
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isTrue,
-      );
-      final edited = adapter.measurementRecords.last;
-      expect(edited.externalId, first.externalId);
-      expect(edited.exportRevision, 1);
-      expect(edited.value, 81);
-    });
-
-    test('does not skip a mutation that arrives during a native export',
-        () async {
-      var mutated = false;
-      final adapter = _FakeAdapter(
-        HealthExportPlatform.appleHealth,
-        onMeasurementWrite: (_) async {
-          if (mutated) return;
-          mutated = true;
-          final measurement = await db.select(db.measurements).getSingle();
-          await (db.update(db.measurements)
-                ..where((row) => row.localId.equals(measurement.localId)))
-              .write(
-            MeasurementsCompanion(
-              value: const drift.Value(82),
-              updatedAt: drift.Value(DateTime.now().toUtc()),
+          matches(
+            RegExp(
+              r'^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             ),
-          );
-        },
-      );
-      final service = HealthExportService(
-        adapters: [adapter],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
-        identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
-      );
+          ),
+        );
+        expect(first.exportRevision, 0);
 
-      await service.requestPermissions(HealthExportPlatform.appleHealth);
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isTrue,
-      );
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isTrue,
-      );
+        final measurement = await db.select(db.measurements).getSingle();
+        await (db.update(
+          db.measurements,
+        )..where((row) => row.localId.equals(measurement.localId))).write(
+          MeasurementsCompanion(
+            value: const drift.Value(81),
+            updatedAt: drift.Value(
+              DateTime.now().toUtc().add(const Duration(seconds: 1)),
+            ),
+          ),
+        );
 
-      expect(adapter.measurementRecords, hasLength(2));
-      expect(adapter.measurementRecords.last.value, 82);
-      expect(adapter.measurementRecords.last.exportRevision, 1);
-    });
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isTrue,
+        );
+        final edited = adapter.measurementRecords.last;
+        expect(edited.externalId, first.externalId);
+        expect(edited.exportRevision, 1);
+        expect(edited.value, 81);
+      },
+    );
 
-    test('does not advance a revision until its native write succeeds',
-        () async {
-      final adapter = _FakeAdapter(
-        HealthExportPlatform.appleHealth,
-        failMeasurementAtWriteCount: 1,
-      );
-      final service = HealthExportService(
-        adapters: [adapter],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
-        identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
-      );
+    test(
+      'does not skip a mutation that arrives during a native export',
+      () async {
+        var mutated = false;
+        final adapter = _FakeAdapter(
+          HealthExportPlatform.appleHealth,
+          onMeasurementWrite: (_) async {
+            if (mutated) return;
+            mutated = true;
+            final measurement = await db.select(db.measurements).getSingle();
+            await (db.update(
+              db.measurements,
+            )..where((row) => row.localId.equals(measurement.localId))).write(
+              MeasurementsCompanion(
+                value: const drift.Value(82),
+                updatedAt: drift.Value(DateTime.now().toUtc()),
+              ),
+            );
+          },
+        );
+        final service = HealthExportService(
+          adapters: [adapter],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+          identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
+        );
 
-      await service.requestPermissions(HealthExportPlatform.appleHealth);
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isFalse,
-      );
-      final failed = adapter.measurementRecords.single;
-      adapter.failMeasurementAtWriteCount = null;
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isTrue,
-      );
-      final retried = adapter.measurementRecords.last;
-      expect(retried.externalId, failed.externalId);
-      expect(retried.exportRevision, failed.exportRevision);
-    });
+        await service.requestPermissions(HealthExportPlatform.appleHealth);
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isTrue,
+        );
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isTrue,
+        );
 
-    test('continues legacy native identity at revision one after migration',
-        () async {
-      final measurement = await db.select(db.measurements).getSingle();
-      final sourceKey = 'measurement:${measurement.localId}';
-      await db.customStatement(
-        '''INSERT INTO health_export_records
+        expect(adapter.measurementRecords, hasLength(2));
+        expect(adapter.measurementRecords.last.value, 82);
+        expect(adapter.measurementRecords.last.exportRevision, 1);
+      },
+    );
+
+    test(
+      'does not advance a revision until its native write succeeds',
+      () async {
+        final adapter = _FakeAdapter(
+          HealthExportPlatform.appleHealth,
+          failMeasurementAtWriteCount: 1,
+        );
+        final service = HealthExportService(
+          adapters: [adapter],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+          identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
+        );
+
+        await service.requestPermissions(HealthExportPlatform.appleHealth);
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isFalse,
+        );
+        final failed = adapter.measurementRecords.single;
+        adapter.failMeasurementAtWriteCount = null;
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isTrue,
+        );
+        final retried = adapter.measurementRecords.last;
+        expect(retried.externalId, failed.externalId);
+        expect(retried.exportRevision, failed.exportRevision);
+      },
+    );
+
+    test(
+      'continues legacy native identity at revision one after migration',
+      () async {
+        final measurement = await db.select(db.measurements).getSingle();
+        final sourceKey = 'measurement:${measurement.localId}';
+        await db.customStatement(
+          '''INSERT INTO health_export_records
            (id, platform, domain, idempotency_key, exported_at)
            VALUES (?, ?, ?, ?, ?)''',
-        [
-          'legacy-health-record',
-          HealthExportPlatform.appleHealth.name,
-          HealthExportDomain.measurements.name,
-          sourceKey,
-          DateTime.now().toUtc().millisecondsSinceEpoch,
-        ],
-      );
-      final adapter = _FakeAdapter(HealthExportPlatform.appleHealth);
-      final service = HealthExportService(
-        adapters: [adapter],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
-        identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
-      );
+          [
+            'legacy-health-record',
+            HealthExportPlatform.appleHealth.name,
+            HealthExportDomain.measurements.name,
+            sourceKey,
+            DateTime.now().toUtc().millisecondsSinceEpoch,
+          ],
+        );
+        final adapter = _FakeAdapter(HealthExportPlatform.appleHealth);
+        final service = HealthExportService(
+          adapters: [adapter],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+          identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
+        );
 
-      await service.requestPermissions(HealthExportPlatform.appleHealth);
-      expect(
-        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
-        isTrue,
-      );
+        await service.requestPermissions(HealthExportPlatform.appleHealth);
+        expect(
+          (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+          isTrue,
+        );
 
-      final migrated = adapter.measurementRecords.single;
-      expect(migrated.externalId, sourceKey);
-      expect(migrated.exportRevision, 1);
-    });
+        final migrated = adapter.measurementRecords.single;
+        expect(migrated.externalId, sourceKey);
+        expect(migrated.exportRevision, 1);
+      },
+    );
 
     test('manual export defaults to full-history backfill', () async {
       final oldTimestamp = DateTime.now().toUtc().subtract(
-            const Duration(days: 120),
-          );
-      await db.into(db.measurements).insert(
+        const Duration(days: 120),
+      );
+      await db
+          .into(db.measurements)
+          .insert(
             MeasurementsCompanion(
               date: drift.Value(oldTimestamp),
               type: const drift.Value('weight'),
@@ -449,114 +464,119 @@ void main() {
     });
 
     test(
-        'Health Connect segment backfill preserves identity and retries safely',
-        () async {
-      final workoutRow = await db.select(db.workoutLogs).getSingle();
-      final historicalStart =
-          DateTime.now().toUtc().subtract(const Duration(days: 400));
-      await (db.update(db.workoutLogs)
-            ..where((tbl) => tbl.id.equals(workoutRow.id)))
-          .write(
-        WorkoutLogsCompanion(
-          startTime: drift.Value(historicalStart),
-          endTime:
-              drift.Value(historicalStart.add(const Duration(minutes: 45))),
-        ),
-      );
-      await db.into(db.setLogs).insert(
-            SetLogsCompanion(
-              workoutLogId: drift.Value(workoutRow.id),
-              exerciseNameSnapshot: const drift.Value('Bench Press'),
-              weight: const drift.Value(50),
-              reps: const drift.Value(8),
-              isCompleted: const drift.Value(true),
-              logOrder: const drift.Value(0),
+      'Health Connect segment backfill preserves identity and retries safely',
+      () async {
+        final workoutRow = await db.select(db.workoutLogs).getSingle();
+        final historicalStart = DateTime.now().toUtc().subtract(
+          const Duration(days: 400),
+        );
+        await (db.update(
+          db.workoutLogs,
+        )..where((tbl) => tbl.id.equals(workoutRow.id))).write(
+          WorkoutLogsCompanion(
+            startTime: drift.Value(historicalStart),
+            endTime: drift.Value(
+              historicalStart.add(const Duration(minutes: 45)),
             ),
-          );
-      final sourceKey = 'workout_session:${workoutRow.localId}';
-      await db.customStatement(
-        '''INSERT INTO health_export_records
+          ),
+        );
+        await db
+            .into(db.setLogs)
+            .insert(
+              SetLogsCompanion(
+                workoutLogId: drift.Value(workoutRow.id),
+                exerciseNameSnapshot: const drift.Value('Bench Press'),
+                weight: const drift.Value(50),
+                reps: const drift.Value(8),
+                isCompleted: const drift.Value(true),
+                logOrder: const drift.Value(0),
+              ),
+            );
+        final sourceKey = 'workout_session:${workoutRow.localId}';
+        await db.customStatement(
+          '''INSERT INTO health_export_records
            (id, platform, domain, idempotency_key, exported_at)
            VALUES (?, ?, ?, ?, ?)''',
-        [
-          'legacy-health-connect-workout',
-          HealthExportPlatform.healthConnect.name,
-          HealthExportDomain.workouts.name,
-          sourceKey,
-          DateTime.now().toUtc().millisecondsSinceEpoch,
-        ],
-      );
+          [
+            'legacy-health-connect-workout',
+            HealthExportPlatform.healthConnect.name,
+            HealthExportDomain.workouts.name,
+            sourceKey,
+            DateTime.now().toUtc().millisecondsSinceEpoch,
+          ],
+        );
 
-      final statusStore = HealthExportStatusStore(databaseHelper: dbHelper);
-      final adapter = _FakeAdapter(
-        HealthExportPlatform.healthConnect,
-        failWorkout: true,
-      );
-      final service = HealthExportService(
-        adapters: [adapter],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: statusStore,
-        identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
-      );
+        final statusStore = HealthExportStatusStore(databaseHelper: dbHelper);
+        final adapter = _FakeAdapter(
+          HealthExportPlatform.healthConnect,
+          failWorkout: true,
+        );
+        final service = HealthExportService(
+          adapters: [adapter],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: statusStore,
+          identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
+        );
 
-      await service.requestPermissions(HealthExportPlatform.healthConnect);
-      await statusStore.markDomainState(
-        platform: HealthExportPlatform.healthConnect,
-        domain: HealthExportDomain.workouts,
-        state: HealthExportState.success,
-        lastSuccessUtc: DateTime.now().toUtc(),
-      );
+        await service.requestPermissions(HealthExportPlatform.healthConnect);
+        await statusStore.markDomainState(
+          platform: HealthExportPlatform.healthConnect,
+          domain: HealthExportDomain.workouts,
+          state: HealthExportState.success,
+          lastSuccessUtc: DateTime.now().toUtc(),
+        );
 
-      final failed = await service.exportNow(
-        HealthExportPlatform.healthConnect,
-        lookbackDays: 1,
-      );
-      expect(failed.success, isFalse);
-      expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 0);
-      final firstAttempt = adapter.workoutRecords.single;
-      expect(firstAttempt.externalId, sourceKey);
-      expect(firstAttempt.exportRevision, 1);
-      expect(firstAttempt.segments, hasLength(1));
+        final failed = await service.exportNow(
+          HealthExportPlatform.healthConnect,
+          lookbackDays: 1,
+        );
+        expect(failed.success, isFalse);
+        expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 0);
+        final firstAttempt = adapter.workoutRecords.single;
+        expect(firstAttempt.externalId, sourceKey);
+        expect(firstAttempt.exportRevision, 1);
+        expect(firstAttempt.segments, hasLength(1));
 
-      adapter.failWorkout = false;
-      adapter.denyWorkoutPermission = true;
-      final permissionFailed = await service.exportNow(
-        HealthExportPlatform.healthConnect,
-        lookbackDays: 1,
-      );
-      expect(permissionFailed.success, isFalse);
-      expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 0);
-      expect(adapter.workoutRecords.last.externalId, firstAttempt.externalId);
-      expect(
-        adapter.workoutRecords.last.exportRevision,
-        firstAttempt.exportRevision,
-      );
+        adapter.failWorkout = false;
+        adapter.denyWorkoutPermission = true;
+        final permissionFailed = await service.exportNow(
+          HealthExportPlatform.healthConnect,
+          lookbackDays: 1,
+        );
+        expect(permissionFailed.success, isFalse);
+        expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 0);
+        expect(adapter.workoutRecords.last.externalId, firstAttempt.externalId);
+        expect(
+          adapter.workoutRecords.last.exportRevision,
+          firstAttempt.exportRevision,
+        );
 
-      adapter.denyWorkoutPermission = false;
-      final retried = await service.exportNow(
-        HealthExportPlatform.healthConnect,
-        lookbackDays: 1,
-      );
-      expect(retried.success, isTrue);
-      expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 1);
-      final retryAttempt = adapter.workoutRecords.last;
-      expect(retryAttempt.externalId, firstAttempt.externalId);
-      expect(retryAttempt.exportRevision, firstAttempt.exportRevision);
+        adapter.denyWorkoutPermission = false;
+        final retried = await service.exportNow(
+          HealthExportPlatform.healthConnect,
+          lookbackDays: 1,
+        );
+        expect(retried.success, isTrue);
+        expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 1);
+        final retryAttempt = adapter.workoutRecords.last;
+        expect(retryAttempt.externalId, firstAttempt.externalId);
+        expect(retryAttempt.exportRevision, firstAttempt.exportRevision);
 
-      final workoutWritesAfterRetry = adapter.workoutWrites;
-      await statusStore.markDomainState(
-        platform: HealthExportPlatform.healthConnect,
-        domain: HealthExportDomain.workouts,
-        state: HealthExportState.success,
-        lastSuccessUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      );
-      final repeated = await service.exportNow(
-        HealthExportPlatform.healthConnect,
-        lookbackDays: null,
-      );
-      expect(repeated.success, isTrue);
-      expect(adapter.workoutWrites, workoutWritesAfterRetry);
-    });
+        final workoutWritesAfterRetry = adapter.workoutWrites;
+        await statusStore.markDomainState(
+          platform: HealthExportPlatform.healthConnect,
+          domain: HealthExportDomain.workouts,
+          state: HealthExportState.success,
+          lastSuccessUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        );
+        final repeated = await service.exportNow(
+          HealthExportPlatform.healthConnect,
+          lookbackDays: null,
+        );
+        expect(repeated.success, isTrue);
+        expect(adapter.workoutWrites, workoutWritesAfterRetry);
+      },
+    );
 
     test(
       'after initial backfill, later export is incremental for new records',
@@ -577,7 +597,9 @@ void main() {
         // resolution is 1 second.
         await Future.delayed(const Duration(milliseconds: 1100));
 
-        await db.into(db.measurements).insert(
+        await db
+            .into(db.measurements)
+            .insert(
               MeasurementsCompanion(
                 date: drift.Value(DateTime.now().toUtc()),
                 type: const drift.Value('weight'),
@@ -601,7 +623,9 @@ void main() {
       () async {
         final now = DateTime.now().toUtc();
         for (var i = 0; i < 1500; i++) {
-          await db.into(db.measurements).insert(
+          await db
+              .into(db.measurements)
+              .insert(
                 MeasurementsCompanion(
                   date: drift.Value(now.subtract(Duration(minutes: i))),
                   type: const drift.Value('weight'),
@@ -636,8 +660,7 @@ void main() {
         expect(
           adapter.measurementBatchWrites,
           3,
-          reason:
-              'First attempt splits into 2 chunks (1000 + partial failing chunk), retry flushes the remaining 501 records in 1 chunk',
+          reason: 'First attempt splits into 2 chunks (1000 + partial failing chunk), retry flushes the remaining 501 records in 1 chunk',
         );
       },
     );
@@ -715,30 +738,33 @@ void main() {
       },
     );
 
-    test('surfaces a native permission revocation without fallback retries',
-        () async {
-      final adapter = _FakeAdapter(
-        HealthExportPlatform.healthConnect,
-        denyNutritionPermission: true,
-      );
-      final service = HealthExportService(
-        adapters: [adapter],
-        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
-        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
-      );
+    test(
+      'surfaces a native permission revocation without fallback retries',
+      () async {
+        final adapter = _FakeAdapter(
+          HealthExportPlatform.healthConnect,
+          denyNutritionPermission: true,
+        );
+        final service = HealthExportService(
+          adapters: [adapter],
+          dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+          statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+        );
 
-      await service.requestPermissions(HealthExportPlatform.healthConnect);
-      final result =
-          await service.exportNow(HealthExportPlatform.healthConnect);
-      final status =
-          (await service.getStatuses())[HealthExportPlatform.healthConnect]!
-              .statusFor(HealthExportDomain.nutritionHydration);
+        await service.requestPermissions(HealthExportPlatform.healthConnect);
+        final result = await service.exportNow(
+          HealthExportPlatform.healthConnect,
+        );
+        final status =
+            (await service.getStatuses())[HealthExportPlatform.healthConnect]!
+                .statusFor(HealthExportDomain.nutritionHydration);
 
-      expect(result.success, isFalse);
-      expect(status.state, HealthExportState.permissionRequired);
-      expect(adapter.nutritionWrites, 1);
-      expect(adapter.hydrationWrites, 0);
-    });
+        expect(result.success, isFalse);
+        expect(status.state, HealthExportState.permissionRequired);
+        expect(adapter.nutritionWrites, 1);
+        expect(adapter.hydrationWrites, 0);
+      },
+    );
 
     test(
       'split diagnostics keep truthful counts for opposite failure direction',
@@ -831,7 +857,9 @@ void main() {
 
     test('skips BMI writes for Health Connect measurement export', () async {
       final now = DateTime.now().toUtc();
-      await db.into(db.measurements).insert(
+      await db
+          .into(db.measurements)
+          .insert(
             MeasurementsCompanion(
               date: drift.Value(now.subtract(const Duration(hours: 3))),
               type: const drift.Value('bmi'),
@@ -868,7 +896,9 @@ Future<void> _seedExportData(AppDatabase db) async {
   final workoutStart = now.subtract(const Duration(hours: 1));
   final workoutEnd = now.subtract(const Duration(minutes: 15));
 
-  await db.into(db.products).insert(
+  await db
+      .into(db.products)
+      .insert(
         const ProductsCompanion(
           barcode: drift.Value('export-product-1'),
           name: drift.Value('Export Product'),
@@ -883,7 +913,9 @@ Future<void> _seedExportData(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.nutritionLogs).insert(
+  await db
+      .into(db.nutritionLogs)
+      .insert(
         NutritionLogsCompanion(
           consumedAt: drift.Value(nutritionAt),
           amount: const drift.Value(150),
@@ -892,7 +924,9 @@ Future<void> _seedExportData(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.fluidLogs).insert(
+  await db
+      .into(db.fluidLogs)
+      .insert(
         FluidLogsCompanion(
           consumedAt: drift.Value(hydrationAt),
           amountMl: const drift.Value(500),
@@ -900,7 +934,9 @@ Future<void> _seedExportData(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.measurements).insert(
+  await db
+      .into(db.measurements)
+      .insert(
         MeasurementsCompanion(
           date: drift.Value(measurementAt),
           type: const drift.Value('weight'),
@@ -910,7 +946,9 @@ Future<void> _seedExportData(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.workoutLogs).insert(
+  await db
+      .into(db.workoutLogs)
+      .insert(
         WorkoutLogsCompanion(
           startTime: drift.Value(workoutStart),
           endTime: drift.Value(workoutEnd),

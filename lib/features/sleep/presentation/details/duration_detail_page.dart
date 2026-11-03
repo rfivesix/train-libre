@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -42,8 +43,9 @@ class DurationDetailPage extends StatelessWidget {
       value: formatDuration(duration),
       statusLabel: status,
       subtitle: l10n.sleepDurationSubtitle,
-      statusColor:
-          SleepDurationThresholds.getColorForHours(duration.inMinutes / 60.0),
+      statusColor: SleepDurationThresholds.getColorForHours(
+        duration.inMinutes / 60.0,
+      ),
       children: [
         SleepBenchmarkBar(
           min: min,
@@ -73,10 +75,7 @@ class DurationDetailPage extends StatelessWidget {
               label:
                   '${SleepDurationThresholds.criticalUpperHours.toStringAsFixed(1).replaceAll('.0', '')}h',
             ),
-            BenchmarkSegment(
-              limit: max,
-              color: Colors.red,
-            ),
+            BenchmarkSegment(limit: max, color: Colors.red),
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),

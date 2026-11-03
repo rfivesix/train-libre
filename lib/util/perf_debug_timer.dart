@@ -61,7 +61,8 @@ class PerfDebugTimer {
   }) {
     if (area != 'db') return true;
     if (elapsed.inMilliseconds >= _dbLogThresholdMs) return true;
-    return fields.values
-        .any((value) => value is num && value >= _dbRowThreshold);
+    return fields.values.any(
+      (value) => value is num && value >= _dbRowThreshold,
+    );
   }
 }

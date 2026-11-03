@@ -38,7 +38,8 @@ class _PendingReviewDiaryCardState extends State<PendingReviewDiaryCard> {
   void initState() {
     super.initState();
     _goalRepository = widget.goalRepository ?? GoalRepositoryImpl();
-    _recommendationService = widget.recommendationService ??
+    _recommendationService =
+        widget.recommendationService ??
         AdaptiveNutritionRecommendationService();
     _load();
   }

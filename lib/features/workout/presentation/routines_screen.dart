@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
 import '../../sharing/share_import_sheet.dart';
@@ -18,9 +19,13 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that displays a list of all saved [Routine] templates.
@@ -45,10 +50,15 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.routineList));
-    _routinesStream = Provider.of<IWorkoutRepository>(context, listen: false)
-        .watchAllRoutines();
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.routineList,
+      ),
+    );
+    _routinesStream = Provider.of<IWorkoutRepository>(
+      context,
+      listen: false,
+    ).watchAllRoutines();
   }
 
   Future<bool> _checkAndHandleOngoingWorkout() async {
@@ -91,21 +101,21 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     try {
       await const ShareLinkRepository().importRoutine(payload);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.shareImportSuccess)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportSuccess)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(l10n.shareImportInvalid),
-      ));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportInvalid)));
     }
   }
 
-  void _startWorkout(Routine routine,
-      {BuildContext? sourceContext,
-      WidgetBuilder? sourceBuilder,
-      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
+  void _startWorkout(
+    Routine routine, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -185,8 +195,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   }
 
   Future<void> _shareRoutine(Routine routine) async {
-    final fullRoutine =
-        await WorkoutLocalDataSource.instance.getRoutineById(routine.id!);
+    final fullRoutine = await WorkoutLocalDataSource.instance.getRoutineById(
+      routine.id!,
+    );
     if (!mounted || fullRoutine == null) return;
     await _shareService.showRoutineShareSheet(
       context: context,
@@ -291,61 +302,59 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     Widget buildCardBody({
                       VoidCallback? onStart,
                       bool interactive = false,
-                    }) =>
-                        SummaryCard(
-                          child: ListTile(
-                            leading: AppButton.primary(
-                              onPressed: onStart ?? () {},
-                              label: l10n.startButton,
-                              tooltip: l10n.startButton,
-                              size: AppButtonSize.small,
-                            ),
-                            title: Text(
-                              routine.name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(l10n.editRoutineSubtitle),
-                            trailing: interactive
-                                ? PlatformAdaptivePopupMenu<String>(
-                                    icon: Icon(
-                                      LucideIcons.ellipsis_vertical,
-                                      color: textTheme.bodyMedium?.color,
-                                    ),
-                                    onSelected: (value) {
-                                      if (value == 'duplicate') {
-                                        _duplicateRoutine(routine.id!);
-                                      } else if (value == 'share') {
-                                        _shareRoutine(routine);
-                                      } else if (value == 'delete') {
-                                        _deleteRoutine(context, routine);
-                                      }
-                                    },
-                                    items: [
-                                      PlatformAdaptivePopupMenuItem<String>(
-                                        value: 'duplicate',
-                                        label: l10n.duplicate,
-                                        icon: LucideIcons.copy,
-                                      ),
-                                      PlatformAdaptivePopupMenuItem<String>(
-                                        value: 'share',
-                                        label: l10n.share,
-                                        icon: DesignConstants.adaptiveShareIcon,
-                                      ),
-                                      PlatformAdaptivePopupMenuItem<String>(
-                                        value: 'delete',
-                                        label: l10n.delete,
-                                        icon: LucideIcons.trash,
-                                        isDestructive: true,
-                                      ),
-                                    ],
-                                  )
-                                : Icon(
-                                    LucideIcons.ellipsis_vertical,
-                                    color: textTheme.bodyMedium?.color,
+                    }) => SummaryCard(
+                      child: ListTile(
+                        leading: AppButton.primary(
+                          onPressed: onStart ?? () {},
+                          label: l10n.startButton,
+                          tooltip: l10n.startButton,
+                          size: AppButtonSize.small,
+                        ),
+                        title: Text(
+                          routine.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.editRoutineSubtitle),
+                        trailing: interactive
+                            ? PlatformAdaptivePopupMenu<String>(
+                                icon: Icon(
+                                  LucideIcons.ellipsis_vertical,
+                                  color: textTheme.bodyMedium?.color,
+                                ),
+                                onSelected: (value) {
+                                  if (value == 'duplicate') {
+                                    _duplicateRoutine(routine.id!);
+                                  } else if (value == 'share') {
+                                    _shareRoutine(routine);
+                                  } else if (value == 'delete') {
+                                    _deleteRoutine(context, routine);
+                                  }
+                                },
+                                items: [
+                                  PlatformAdaptivePopupMenuItem<String>(
+                                    value: 'duplicate',
+                                    label: l10n.duplicate,
+                                    icon: LucideIcons.copy,
                                   ),
-                          ),
-                        );
+                                  PlatformAdaptivePopupMenuItem<String>(
+                                    value: 'share',
+                                    label: l10n.share,
+                                    icon: DesignConstants.adaptiveShareIcon,
+                                  ),
+                                  PlatformAdaptivePopupMenuItem<String>(
+                                    value: 'delete',
+                                    label: l10n.delete,
+                                    icon: LucideIcons.trash,
+                                    isDestructive: true,
+                                  ),
+                                ],
+                              )
+                            : Icon(
+                                LucideIcons.ellipsis_vertical,
+                                color: textTheme.bodyMedium?.color,
+                              ),
+                      ),
+                    );
 
                     return GlassActionableCard(
                       dismissibleKey: Key('routine_${routine.id}'),
@@ -363,8 +372,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                       confirmDelete: () async {
                         return await showDeleteConfirmation(
                           context,
-                          content:
-                              l10n.deleteRoutineConfirmContent(routine.name),
+                          content: l10n.deleteRoutineConfirmContent(
+                            routine.name,
+                          ),
                         );
                       },
                       onDelete: () {
@@ -422,9 +432,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           child: Builder(
             builder: (fabCtx) {
               Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                    label: l10n.addRoutineButton,
-                    onPressed: onPressed ?? () {},
-                  );
+                label: l10n.addRoutineButton,
+                onPressed: onPressed ?? () {},
+              );
 
               return GlassFab(
                 label: l10n.addRoutineButton,
@@ -456,19 +466,20 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           // workout screen dissolves out of this card rather than being the
           // only thing on screen while it grows.
           Widget buildCardBody({VoidCallback? onTap}) => SummaryCard(
-                child: ListTile(
-                  leading: const Icon(LucideIcons.circle_play),
-                  title: Text(
-                    l10n.startEmptyWorkoutButton,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  onTap: onTap,
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusM),
-                  ),
+            child: ListTile(
+              leading: const Icon(LucideIcons.circle_play),
+              title: Text(
+                l10n.startEmptyWorkoutButton,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: onTap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
                 ),
-              );
+              ),
+            ),
+          );
 
           return buildCardBody(
             onTap: () => _startEmptyWorkout(

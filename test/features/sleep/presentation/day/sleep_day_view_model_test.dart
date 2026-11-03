@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/sleep/data/sleep_day_repository.dart';
 import 'package:train_libre/features/sleep/domain/sleep_domain.dart';
@@ -133,9 +134,7 @@ void main() {
       expect(vm.selectedScopeIndex, SleepPeriodScope.day.index);
     });
 
-    test(
-        'load sets isLoading, watches repository overview, handles data stream emission, and triggers background sync',
-        () async {
+    test('load sets isLoading, watches repository overview, handles data stream emission, and triggers background sync', () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,
@@ -203,9 +202,7 @@ void main() {
       expect(mockRepository.watchCount, 1);
     });
 
-    test(
-        'setScopeIndex transitions scope indices and handles non-day scopes cleanly',
-        () async {
+    test('setScopeIndex transitions scope indices and handles non-day scopes cleanly', () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,
@@ -257,37 +254,36 @@ void main() {
     });
 
     test(
-        'importNow triggers sync, loads on success, and handles failure cleanly',
-        () async {
-      final vm = SleepDayViewModel(
-        repository: mockRepository,
-        syncService: mockSyncService,
-        selectedDay: testDate,
-      );
+      'importNow triggers sync, loads on success, and handles failure cleanly',
+      () async {
+        final vm = SleepDayViewModel(
+          repository: mockRepository,
+          syncService: mockSyncService,
+          selectedDay: testDate,
+        );
 
-      // Test Success Path
-      final success = await vm.importNow();
-      expect(success, isTrue);
-      expect(mockSyncService.importRecentCalls, 1);
-      // importNow reloads by calling load() which watches the stream exactly once.
-      expect(mockRepository.watchCount, 1);
+        // Test Success Path
+        final success = await vm.importNow();
+        expect(success, isTrue);
+        expect(mockSyncService.importRecentCalls, 1);
+        // importNow reloads by calling load() which watches the stream exactly once.
+        expect(mockRepository.watchCount, 1);
 
-      // Test Failure Path
-      mockSyncService.mockSyncResult = const SleepSyncResult(
-        success: false,
-        permissionState: SleepPermissionState.denied,
-        importedSessions: 0,
-      );
+        // Test Failure Path
+        mockSyncService.mockSyncResult = const SleepSyncResult(
+          success: false,
+          permissionState: SleepPermissionState.denied,
+          importedSessions: 0,
+        );
 
-      final failed = await vm.importNow();
-      expect(failed, isFalse);
-      expect(mockSyncService.importRecentCalls, 2);
-      expect(vm.isLoading, isFalse);
-    });
+        final failed = await vm.importNow();
+        expect(failed, isFalse);
+        expect(mockSyncService.importRecentCalls, 2);
+        expect(vm.isLoading, isFalse);
+      },
+    );
 
-    test(
-        'dispose cancels active stream subscription and disposes repositories & services',
-        () async {
+    test('dispose cancels active stream subscription and disposes repositories & services', () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,

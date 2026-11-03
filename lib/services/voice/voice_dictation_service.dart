@@ -51,8 +51,9 @@ class VoiceDictationService {
 
   /// Native probe for what the platform speech recognizer can actually do.
   /// See `SpeechCapabilityPlugin` for why this cannot be asked of the plugin.
-  static const MethodChannel _capabilityChannel =
-      MethodChannel('trainlibre.speech/capability');
+  static const MethodChannel _capabilityChannel = MethodChannel(
+    'trainlibre.speech/capability',
+  );
 
   bool _initialized = false;
   bool _onDeviceAvailable = false;
@@ -100,8 +101,14 @@ class VoiceDictationService {
 
     try {
       final available = await _speech.initialize(
-        onError: (error) =>
-            debugPrint('[VoiceDictation] error: ${error.errorMsg}'),
+        onError: (error) {
+          debugPrint('[VoiceDictation] error: ${error.errorMsg}');
+          // Platform recognizers can end a timed-out or interrupted session
+          // through the error callback without a final status callback. Let
+          // the active owner commit its latest partial transcript instead of
+          // leaving it stranded in the recording UI.
+          _notifyListeningStopped();
+        },
         onStatus: _handleStatus,
         debugLogging: false,
       );
@@ -134,8 +141,14 @@ class VoiceDictationService {
   void _handleStatus(String status) {
     debugPrint('[VoiceDictation] status: $status');
     if (status == 'done' || status == 'notListening') {
-      _onListeningStopped?.call();
+      _notifyListeningStopped();
     }
+  }
+
+  void _notifyListeningStopped() {
+    final callback = _onListeningStopped;
+    _onListeningStopped = null;
+    callback?.call();
   }
 
   /// Every locale the platform recognizer offers, sorted by display name.
@@ -147,10 +160,13 @@ class VoiceDictationService {
     if (!availability.available) return const [];
     try {
       final locales = await _speech.locales();
-      final mapped = locales
-          .map((l) => (id: l.localeId, name: l.name))
-          .toList(growable: false)
-        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      final mapped =
+          locales
+              .map((l) => (id: l.localeId, name: l.name))
+              .toList(growable: false)
+            ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
       return mapped;
     } catch (e) {
       debugPrint('[VoiceDictation] locales failed: $e');

@@ -1,6 +1,8 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+
 import '../../../util/design_constants.dart';
 
 class CardEmptyStateOverlay extends StatelessWidget {
@@ -21,12 +23,7 @@ class CardEmptyStateOverlay extends StatelessWidget {
 
     return Stack(
       children: [
-        Skeletonizer(
-          enabled: true,
-          child: IgnorePointer(
-            child: child,
-          ),
-        ),
+        Skeletonizer(enabled: true, child: IgnorePointer(child: child)),
         Positioned.fill(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
@@ -52,7 +49,8 @@ class CardEmptyStateOverlay extends StatelessWidget {
                             ? Colors.black.withValues(alpha: 0.6)
                             : Colors.white.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
+                          DesignConstants.borderRadiusM,
+                        ),
                         border: Border.all(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.white.withValues(alpha: 0.1)
@@ -62,12 +60,11 @@ class CardEmptyStateOverlay extends StatelessWidget {
                       child: Text(
                         message,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.white70
-                                  : Colors.black87,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white70
+                              : Colors.black87,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),

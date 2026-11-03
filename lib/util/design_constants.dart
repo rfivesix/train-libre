@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -124,11 +125,11 @@ class DesignConstants {
   /// truth for both the overlay's own [Positioned] and the morph transition
   /// that grows the live workout screen out of it.
   static Rect workoutOverlayRect(Size screen) => Rect.fromLTWH(
-        floatingBarHorizontalInset,
-        screen.height - workoutOverlayBottomInset - workoutOverlayHeight,
-        screen.width - floatingBarHorizontalInset * 2,
-        workoutOverlayHeight,
-      );
+    floatingBarHorizontalInset,
+    screen.height - workoutOverlayBottomInset - workoutOverlayHeight,
+    screen.width - floatingBarHorizontalInset * 2,
+    workoutOverlayHeight,
+  );
 
   /// Inset of the pills inside the floating bottom bars — the selected-tab
   /// indicator in the bottom navigation and the circular affordances in the
@@ -346,10 +347,12 @@ class ShadowOuterClipper extends CustomClipper<Path> {
     if (isOval) {
       inner.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
     } else {
-      inner.addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        Radius.circular(borderRadius),
-      ));
+      inner.addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Radius.circular(borderRadius),
+        ),
+      );
     }
     return Path.combine(PathOperation.difference, outer, inner);
   }

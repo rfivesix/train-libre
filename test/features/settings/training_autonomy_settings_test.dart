@@ -10,6 +10,7 @@ import 'package:train_libre/features/sleep/platform/permissions/sleep_permission
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/features/workout/domain/models/prescription_enums.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/training_autonomy_service.dart';
 import 'package:train_libre/services/unit_service.dart';
@@ -118,8 +119,9 @@ void main() {
   });
 
   group('SettingsScreen progression widget test', () {
-    testWidgets('renders training progression entry and title in German',
-        (tester) async {
+    testWidgets('renders training progression entry and title in German', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(900, 2200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -131,12 +133,17 @@ void main() {
         buildSignature: '',
       );
 
-      final sleepController =
-          SleepPermissionController(const _StubPermissionService());
-      final sleepService =
-          _FakeSleepSettingsService(controller: sleepController);
+      final sleepController = SleepPermissionController(
+        const _StubPermissionService(),
+      );
+      final sleepService = _FakeSleepSettingsService(
+        controller: sleepController,
+      );
       final autonomyService = TrainingAutonomyService();
       await autonomyService.initialize();
+      final experienceService = ExperienceLevelService();
+      await experienceService.reload();
+      await experienceService.setLevel(ExperienceLevel.advanced);
 
       await tester.pumpWidget(
         MultiProvider(
@@ -144,6 +151,7 @@ void main() {
             ChangeNotifierProvider(create: (_) => ThemeService()),
             ChangeNotifierProvider(create: (_) => UnitService()),
             ChangeNotifierProvider.value(value: autonomyService),
+            ChangeNotifierProvider.value(value: experienceService),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -159,15 +167,26 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('settings_training_progression_entry')),
-          findsOneWidget);
+      expect(
+        find.byKey(const Key('settings_training_progression_entry')),
+        findsOneWidget,
+      );
       expect(find.text('Trainingsprogression'), findsOneWidget);
       expect(find.textContaining('Aus'), findsOneWidget);
 
-      expect(find.byKey(const Key('settings_training_experience_entry')),
-          findsOneWidget);
+      expect(
+        find.byKey(const Key('settings_training_experience_entry')),
+        findsOneWidget,
+      );
       expect(find.text('Trainingserfahrung'), findsOneWidget);
-      expect(find.textContaining('Profi'), findsOneWidget);
+      expect(find.textContaining('Fortgeschritten'), findsOneWidget);
+
+      await tester
+          .tap(find.byKey(const Key('settings_training_experience_entry')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Anfänger').last);
+      await tester.pumpAndSettle();
+      expect(experienceService.level, ExperienceLevel.beginner);
     });
   });
 }

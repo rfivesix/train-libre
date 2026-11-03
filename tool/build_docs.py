@@ -16,6 +16,7 @@ import re
 import sys
 from xml.sax.saxutils import escape as xml_escape
 from pathlib import Path
+from build_comparison import read_data as read_comparison_data, render_matrix as render_comparison_matrix
 
 # Base paths
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -50,6 +51,15 @@ DOCS_STRUCTURE = [
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "overview",
                 "url": "/docs/features/overview/",
                 "desc": "Feature behavior, optional data flows, and app telemetry boundaries."
+            },
+            {
+                "id": "features-app-comparison",
+                "title": "Fitness App Feature Comparison",
+                "slug": "app-comparison",
+                "src_file": SRC_DOC_DIR / "features" / "app_comparison.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "app-comparison",
+                "url": "/docs/features/app-comparison/",
+                "desc": "A sourced comparison of Train Libre and 19 fitness and nutrition apps across iOS and Android."
             },
             {
                 "id": "features-sleep",
@@ -151,6 +161,24 @@ DOCS_STRUCTURE = [
                 "desc": "Selected-provider requests, catalog matching, heuristic validation, and up to three repair requests."
             },
             {
+                "id": "features-ai-assistant-data-access",
+                "title": "AI Assistant Data Access & Change Proposals",
+                "slug": "ai-assistant-data-access",
+                "src_file": SRC_DOC_DIR / "features" / "ai_assistant_data_access.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "ai-assistant-data-access",
+                "url": "/docs/features/ai-assistant-data-access/",
+                "desc": "Approval boundaries for local data reads and reviewed assistant-created records."
+            },
+            {
+                "id": "features-ai-assistant-meals",
+                "title": "AI Assistant Meal Logging",
+                "slug": "ai-assistant-meal-logging",
+                "src_file": SRC_DOC_DIR / "features" / "ai_assistant_meal_logging.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "ai-assistant-meal-logging",
+                "url": "/docs/features/ai-assistant-meal-logging/",
+                "desc": "Reviewed macro-only meal proposals, validation, photo persistence, and estimate boundaries."
+            },
+            {
                 "id": "features-depth",
                 "title": "Depth Scale Hint",
                 "slug": "depth-scale-hint",
@@ -237,6 +265,15 @@ DOCS_STRUCTURE = [
                 "desc": "Create reusable workout routines, organize exercises, and update saved templates."
             },
             {
+                "id": "user-guide-ai-chat",
+                "title": "Use the AI assistant",
+                "slug": "ai-chat",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_chat.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-chat",
+                "url": "/docs/user-guide/ai-chat/",
+                "desc": "Set up AI chat, ask about app data, review permissions, images, and proposed changes."
+            },
+            {
                 "id": "user-guide-ai-workout-routines",
                 "title": "Create a workout routine with an AI assistant",
                 "slug": "ai-workout-routines",
@@ -307,6 +344,15 @@ DOCS_STRUCTURE = [
                 "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-meal-capture",
                 "url": "/docs/user-guide/ai-meal-capture/",
                 "desc": "Configure a provider and review photo, voice, text, or barcode meal captures."
+            },
+            {
+                "id": "user-guide-ai-chat-food-logging",
+                "title": "Log food with the AI chat",
+                "slug": "ai-chat-food-logging",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_chat_food_logging.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-chat-food-logging",
+                "url": "/docs/user-guide/ai-chat-food-logging/",
+                "desc": "Create, review, and save a macro-only meal from chat text or attached photos."
             },
             {
                 "id": "user-guide-water-drinks",
@@ -1152,7 +1198,9 @@ def write_sitemap(all_items: list[dict]) -> None:
         "/",
         "/about.html",
         "/privacy.html",
+        *[f"/privacy-{language}.html" for language in ("de", "fr", "it", "ja")],
         "/terms.html",
+        *[f"/terms-{language}.html" for language in ("de", "fr", "it", "ja")],
         "/support.html",
         "/impressum.html",
     ] + [item["url"] for item in all_items]
@@ -1190,6 +1238,12 @@ def main():
         raw_md = src_file.read_text(encoding="utf-8")
         parser = MarkdownParser(current_out_dir=out_dir)
         content_html = parser.parse(raw_md)
+        if item["id"] == "features-app-comparison":
+            token = "<p>[APP_COMPARISON_MATRIX]</p>"
+            if content_html.count(token) != 1:
+                raise ValueError("App comparison page must contain exactly one matrix placeholder")
+            matrix = render_comparison_matrix(read_comparison_data(), include_sources=True, standalone=True)
+            content_html = content_html.replace(token, matrix)
 
         prev_item = all_items[idx - 1] if idx > 0 else None
         next_item = all_items[idx + 1] if idx < len(all_items) - 1 else None

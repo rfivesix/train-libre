@@ -38,14 +38,20 @@ class WaterPeriodSummary {
 class WaterAnalyticsDataAdapter {
   const WaterAnalyticsDataAdapter();
 
-  Future<WaterPeriodSummary> fetchSummary(
-      {required DateTimeRange range}) async {
-    final start =
-        DateTime(range.start.year, range.start.month, range.start.day);
+  Future<WaterPeriodSummary> fetchSummary({
+    required DateTimeRange range,
+  }) async {
+    final start = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    final entries = await DatabaseHelper.instance
-        .getFluidEntriesForDateRange(start, endOfDay);
+    final entries = await DatabaseHelper.instance.getFluidEntriesForDateRange(
+      start,
+      endOfDay,
+    );
     final totals = <DateTime, int>{};
     for (final FluidEntry entry in entries) {
       final day = DateTime(
@@ -53,20 +59,27 @@ class WaterAnalyticsDataAdapter {
         entry.timestamp.month,
         entry.timestamp.day,
       );
-      totals.update(day, (value) => value + entry.quantityInMl,
-          ifAbsent: () => entry.quantityInMl);
+      totals.update(
+        day,
+        (value) => value + entry.quantityInMl,
+        ifAbsent: () => entry.quantityInMl,
+      );
     }
 
     final days = <WaterDayIntake>[];
-    for (var day = start;
-        !day.isAfter(end);
-        day = DateTime(day.year, day.month, day.day + 1)) {
+    for (
+      var day = start;
+      !day.isAfter(end);
+      day = DateTime(day.year, day.month, day.day + 1)
+    ) {
       final amount = totals[day];
-      days.add(WaterDayIntake(
-        date: day,
-        milliliters: amount ?? 0,
-        isTracked: amount != null,
-      ));
+      days.add(
+        WaterDayIntake(
+          date: day,
+          milliliters: amount ?? 0,
+          isTracked: amount != null,
+        ),
+      );
     }
     final trackedDays = totals.length;
     final total = totals.values.fold<int>(0, (sum, value) => sum + value);

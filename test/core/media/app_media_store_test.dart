@@ -21,18 +21,18 @@ void main() {
     // folder is pointed at a real temporary directory instead.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (call) async => supportDir.path,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => supportDir.path,
+        );
     AppMediaStore.instance.resetForTesting();
   });
 
   tearDown(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      null,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
     AppMediaStore.instance.resetForTesting();
     if (await supportDir.exists()) await supportDir.delete(recursive: true);
   });
@@ -57,8 +57,9 @@ void main() {
       expect(dir.existsSync(), isTrue);
       expect(dir.path, p.join(supportDir.path, 'media', 'meals'));
 
-      final workoutDir =
-          await AppMediaStore.instance.directoryOf(MediaDomain.workouts);
+      final workoutDir = await AppMediaStore.instance.directoryOf(
+        MediaDomain.workouts,
+      );
       expect(workoutDir.existsSync(), isTrue);
       expect(workoutDir.path, p.join(supportDir.path, 'media', 'workouts'));
     });
@@ -121,18 +122,24 @@ void main() {
       );
 
       expect(removed, 2);
-      expect(File(p.join(supportDir.path, 'media/meals/keep.jpg')).existsSync(),
-          isTrue);
       expect(
-          File(p.join(supportDir.path, 'media/meals/keep_thumb.jpg'))
-              .existsSync(),
-          isTrue);
-      expect(File(p.join(supportDir.path, 'media/meals/drop.jpg')).existsSync(),
-          isFalse);
+        File(p.join(supportDir.path, 'media/meals/keep.jpg')).existsSync(),
+        isTrue,
+      );
       expect(
-          File(p.join(supportDir.path, 'media/meals/drop_thumb.jpg'))
-              .existsSync(),
-          isFalse);
+        File(p.join(supportDir.path, 'media/meals/keep_thumb.jpg'))
+            .existsSync(),
+        isTrue,
+      );
+      expect(
+        File(p.join(supportDir.path, 'media/meals/drop.jpg')).existsSync(),
+        isFalse,
+      );
+      expect(
+        File(p.join(supportDir.path, 'media/meals/drop_thumb.jpg'))
+            .existsSync(),
+        isFalse,
+      );
     });
 
     test('sweeps the legacy folder too', () async {
@@ -152,22 +159,26 @@ void main() {
       );
     });
 
-    test('matches referenced files by name regardless of folder path',
-        () async {
-      // Row references `meal_photos/abc.jpg` (legacy), but the actual file
-      // sits in `media/meals/abc.jpg` — must not be pruned.
-      await AppMediaStore.instance.ensureInitialized();
-      write('media/meals/abc.jpg', [1]);
+    test(
+      'matches referenced files by name regardless of folder path',
+      () async {
+        // Row references `meal_photos/abc.jpg` (legacy), but the actual file
+        // sits in `media/meals/abc.jpg` — must not be pruned.
+        await AppMediaStore.instance.ensureInitialized();
+        write('media/meals/abc.jpg', [1]);
 
-      final removed = await AppMediaStore.instance.pruneOrphans(
-        domain: MediaDomain.meals,
-        referencedPaths: {'meal_photos/abc.jpg'},
-      );
+        final removed = await AppMediaStore.instance.pruneOrphans(
+          domain: MediaDomain.meals,
+          referencedPaths: {'meal_photos/abc.jpg'},
+        );
 
-      expect(removed, 0);
-      expect(File(p.join(supportDir.path, 'media/meals/abc.jpg')).existsSync(),
-          isTrue);
-    });
+        expect(removed, 0);
+        expect(
+          File(p.join(supportDir.path, 'media/meals/abc.jpg')).existsSync(),
+          isTrue,
+        );
+      },
+    );
 
     test('has nothing to do when the folders are missing', () async {
       expect(
@@ -208,10 +219,7 @@ void main() {
 
     test('sends a preview to the folder its row names', () async {
       final db = await mealDb([
-        {
-          'photo': 'meal_photos/abc.jpg',
-          'thumb': 'meal_photos/abc_thumb.jpg',
-        },
+        {'photo': 'meal_photos/abc.jpg', 'thumb': 'meal_photos/abc_thumb.jpg'},
       ]);
 
       final placement = await AppMediaStore.instance.mealThumbPlacement(db);
@@ -230,23 +238,29 @@ void main() {
 
       final placement = await AppMediaStore.instance.mealThumbPlacement(db);
 
-      expect(placement.directoryFor('old_thumb.jpg').path,
-          p.join(supportDir.path, 'meal_photos'));
-      expect(placement.directoryFor('new_thumb.jpg').path,
-          p.join(supportDir.path, 'media', 'meals'));
-    });
-
-    test('falls back to this feature folder for a preview no row claims',
-        () async {
-      final db = await mealDb(const []);
-
-      final placement = await AppMediaStore.instance.mealThumbPlacement(db);
-
       expect(
-        placement.directoryFor('orphan_thumb.jpg').path,
+        placement.directoryFor('old_thumb.jpg').path,
+        p.join(supportDir.path, 'meal_photos'),
+      );
+      expect(
+        placement.directoryFor('new_thumb.jpg').path,
         p.join(supportDir.path, 'media', 'meals'),
       );
     });
+
+    test(
+      'falls back to this feature folder for a preview no row claims',
+      () async {
+        final db = await mealDb(const []);
+
+        final placement = await AppMediaStore.instance.mealThumbPlacement(db);
+
+        expect(
+          placement.directoryFor('orphan_thumb.jpg').path,
+          p.join(supportDir.path, 'media', 'meals'),
+        );
+      },
+    );
 
     test('finds the preview of a row that only stores its photo', () async {
       // Written before previews were stored as their own column, and the
@@ -257,8 +271,10 @@ void main() {
 
       final placement = await AppMediaStore.instance.mealThumbPlacement(db);
 
-      expect(placement.directoryFor('abc_thumb.jpg').path,
-          p.join(supportDir.path, 'meal_photos'));
+      expect(
+        placement.directoryFor('abc_thumb.jpg').path,
+        p.join(supportDir.path, 'meal_photos'),
+      );
     });
   });
 
@@ -285,32 +301,38 @@ void main() {
       return db;
     }
 
-    test('sends a preview to the folder its row names and finds extras',
-        () async {
-      final db = await workoutDb([
-        {
-          'photo': 'media/workouts/w1.jpg',
-          'thumb': 'media/workouts/w1_thumb.jpg',
-          'extras':
-              jsonEncode(['media/workouts/w2.jpg', 'media/workouts/w3.jpg']),
-        },
-      ]);
+    test(
+      'sends a preview to the folder its row names and finds extras',
+      () async {
+        final db = await workoutDb([
+          {
+            'photo': 'media/workouts/w1.jpg',
+            'thumb': 'media/workouts/w1_thumb.jpg',
+            'extras': jsonEncode([
+              'media/workouts/w2.jpg',
+              'media/workouts/w3.jpg',
+            ]),
+          },
+        ]);
 
-      final placement = await AppMediaStore.instance.workoutThumbPlacement(db);
+        final placement = await AppMediaStore.instance.workoutThumbPlacement(
+          db,
+        );
 
-      expect(
-        placement.directoryFor('w1_thumb.jpg').path,
-        p.join(supportDir.path, 'media', 'workouts'),
-      );
-      expect(
-        placement.directoryFor('w2_thumb.jpg').path,
-        p.join(supportDir.path, 'media', 'workouts'),
-      );
-      expect(
-        placement.directoryFor('w3_thumb.jpg').path,
-        p.join(supportDir.path, 'media', 'workouts'),
-      );
-    });
+        expect(
+          placement.directoryFor('w1_thumb.jpg').path,
+          p.join(supportDir.path, 'media', 'workouts'),
+        );
+        expect(
+          placement.directoryFor('w2_thumb.jpg').path,
+          p.join(supportDir.path, 'media', 'workouts'),
+        );
+        expect(
+          placement.directoryFor('w3_thumb.jpg').path,
+          p.join(supportDir.path, 'media', 'workouts'),
+        );
+      },
+    );
 
     test('referencedWorkoutPaths collects photoPath and extraPaths', () async {
       final db = await workoutDb([
@@ -319,11 +341,7 @@ void main() {
           'thumb': 'media/workouts/w1_thumb.jpg',
           'extras': jsonEncode(['media/workouts/w2.jpg']),
         },
-        {
-          'photo': null,
-          'thumb': null,
-          'extras': null,
-        },
+        {'photo': null, 'thumb': null, 'extras': null},
       ]);
 
       final paths = await AppMediaStore.referencedWorkoutPaths(db);

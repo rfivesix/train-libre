@@ -1,5 +1,6 @@
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
+
 import '../../util/design_constants.dart';
 
 /// Model for an item within the [GlassMenu].
@@ -136,9 +137,7 @@ class _GlassMenuState extends State<GlassMenu>
                                 ),
                                 Text(
                                   item.label,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
+                                  style: Theme.of(context).textTheme.titleLarge
                                       ?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,

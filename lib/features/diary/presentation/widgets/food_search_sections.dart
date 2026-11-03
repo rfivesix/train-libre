@@ -24,8 +24,11 @@ class FoodSearchSections {
   int get length => _rows.length;
   bool get isEmpty => _rows.isEmpty;
 
-  Widget buildRow(int index, AppLocalizations l10n,
-      Widget Function(FoodItem) itemBuilder) {
+  Widget buildRow(
+    int index,
+    AppLocalizations l10n,
+    Widget Function(FoodItem) itemBuilder,
+  ) {
     final row = _rows[index];
     if (row.food case final food?) return itemBuilder(food);
     return AppSectionHeader(

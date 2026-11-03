@@ -24,7 +24,8 @@ abstract class IExerciseCatalogRepository {
   /// Equipment that is the load-bearing implement of at least one live
   /// exercise, named in [languageCode].
   Future<List<({String id, String name})>> getPrimaryEquipment(
-      String languageCode);
+    String languageCode,
+  );
 
   /// The usage tags in use: warmup, accessory, main_lift, and so on.
   Future<List<String>> getUsageTags();
@@ -32,11 +33,13 @@ abstract class IExerciseCatalogRepository {
   /// The values each classification axis actually takes on live exercises,
   /// each in its own vocabulary order rather than alphabetically.
   Future<
-      ({
-        List<String> difficulties,
-        List<String> mechanics,
-        List<String> lateralities,
-      })> getClassificationAxes();
+    ({
+      List<String> difficulties,
+      List<String> mechanics,
+      List<String> lateralities,
+    })
+  >
+  getClassificationAxes();
   Future<Exercise?> getExerciseByName(String name);
   Future<Exercise?> getExerciseByUuid(String exerciseUuid);
   Future<Exercise> insertExercise(Exercise exercise);

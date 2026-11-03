@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/ai_meal_validation.dart';
 import '../../../../util/ai_validation_localization.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
 import '../../domain/models/food_item.dart';
 import 'meal_review_macros_bar.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A card representing an AI suggested meal item compared against database matches.
@@ -16,6 +20,8 @@ class MealReviewComparisonCard extends StatelessWidget {
   final Key dismissibleKey;
   final String name;
   final int estimatedGrams;
+  final int? servedGrams;
+  final bool isFluid;
   final double confidence;
 
   /// Optional badge shown before the name — the numbered pin that matches the
@@ -29,11 +35,15 @@ class MealReviewComparisonCard extends StatelessWidget {
   final VoidCallback onReplace;
   final VoidCallback onEditQuantity;
   final ValueChanged<int>? onQuickAdjustQuantity;
+  final bool isAiEstimate;
+  final bool showReplace;
 
   const MealReviewComparisonCard({
     required this.dismissibleKey,
     required this.name,
     required this.estimatedGrams,
+    this.servedGrams,
+    this.isFluid = false,
     required this.confidence,
     this.leading,
     required this.matchedFood,
@@ -44,6 +54,8 @@ class MealReviewComparisonCard extends StatelessWidget {
     required this.onReplace,
     required this.onEditQuantity,
     this.onQuickAdjustQuantity,
+    this.isAiEstimate = false,
+    this.showReplace = true,
     super.key,
   });
 
@@ -91,7 +103,9 @@ class MealReviewComparisonCard extends StatelessWidget {
                   if (leading != null) ...[
                     Padding(
                       padding: const EdgeInsets.only(
-                          top: 2, right: DesignConstants.spacingM),
+                        top: 2,
+                        right: DesignConstants.spacingM,
+                      ),
                       child: leading!,
                     ),
                   ],
@@ -107,11 +121,19 @@ class MealReviewComparisonCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: DesignConstants.spacingXS),
-                        if (hasMatch)
+                        if (isAiEstimate)
+                          Text(
+                            '${l10n.aiDirectEstimateLabel} · ${nutrition.kcal == 0 ? matchedFood?.calories ?? 0 : (nutrition.kcal * 100 / estimatedGrams).round()} kcal/100${isFluid ? 'ml' : 'g'}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          )
+                        else if (hasMatch)
                           Builder(
                             builder: (context) {
-                              final themeService =
-                                  Provider.of<ThemeService>(context);
+                              final themeService = Provider.of<ThemeService>(
+                                context,
+                              );
                               final baseFoodLang =
                                   BaseFoodLanguageService.resolveLanguageCode(
                                 choice: themeService.baseFoodLanguage,
@@ -119,8 +141,10 @@ class MealReviewComparisonCard extends StatelessWidget {
                               );
                               final matchName =
                                   matchedFood!.source == FoodItemSource.base
-                                      ? matchedFood!.getLocalizedName(context,
-                                          languageCode: baseFoodLang)
+                                      ? matchedFood!.getLocalizedName(
+                                          context,
+                                          languageCode: baseFoodLang,
+                                        )
                                       : matchedFood!.getLocalizedName(context);
                               // Only name the database entry when it differs —
                               // printing the same word twice tells the user
@@ -164,11 +188,13 @@ class MealReviewComparisonCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: confidenceColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusM),
+                                DesignConstants.borderRadiusM,
+                              ),
                             ),
                             child: Text(
                               l10n.aiReviewUncertain(
-                                  (confidence * 100).round()),
+                                (confidence * 100).round(),
+                              ),
                               style: TextStyle(
                                 color: confidenceColor,
                                 fontSize: 12,
@@ -216,28 +242,30 @@ class MealReviewComparisonCard extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: Icon(
-                              LucideIcons.arrow_left_right,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
+                          if (showReplace)
+                            IconButton(
+                              icon: Icon(
+                                LucideIcons.arrow_left_right,
+                                size: 16,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              tooltip: l10n.aiReviewReplaceItem,
+                              onPressed: onReplace,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              padding: EdgeInsets.zero,
                             ),
-                            tooltip: l10n.aiReviewReplaceItem,
-                            onPressed: onReplace,
-                            visualDensity: VisualDensity.compact,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
                           const SizedBox(width: 2),
                           IconButton(
                             icon: Icon(
                               LucideIcons.trash,
                               size: 16,
-                              color: theme.colorScheme.error
-                                  .withValues(alpha: 0.8),
+                              color: theme.colorScheme.error.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                             tooltip: l10n.delete,
                             onPressed: onDismissed,
@@ -255,7 +283,8 @@ class MealReviewComparisonCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(
-                              DesignConstants.borderRadiusS),
+                            DesignConstants.borderRadiusS,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -265,13 +294,17 @@ class MealReviewComparisonCard extends StatelessWidget {
                                 onTap: () => onQuickAdjustQuantity!(-25),
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(
-                                      DesignConstants.borderRadiusS),
+                                    DesignConstants.borderRadiusS,
+                                  ),
                                   bottomLeft: Radius.circular(
-                                      DesignConstants.borderRadiusS),
+                                    DesignConstants.borderRadiusS,
+                                  ),
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 6),
+                                    horizontal: 6,
+                                    vertical: 6,
+                                  ),
                                   child: Icon(LucideIcons.minus, size: 14),
                                 ),
                               ),
@@ -282,11 +315,24 @@ class MealReviewComparisonCard extends StatelessWidget {
                                   horizontal: DesignConstants.spacingS,
                                   vertical: 4,
                                 ),
-                                child: Text(
-                                  '${estimatedGrams}g',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      servedGrams != null &&
+                                              servedGrams != estimatedGrams
+                                          ? '${l10n.aiMealRawEquivalent}: $estimatedGrams g'
+                                          : '$estimatedGrams${isFluid ? 'ml' : 'g'}',
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (servedGrams != null &&
+                                        servedGrams != estimatedGrams)
+                                      Text(
+                                          '${l10n.aiMealServed}: $servedGrams g',
+                                          style: theme.textTheme.bodySmall),
+                                  ],
                                 ),
                               ),
                             ),
@@ -295,13 +341,17 @@ class MealReviewComparisonCard extends StatelessWidget {
                                 onTap: () => onQuickAdjustQuantity!(25),
                                 borderRadius: const BorderRadius.only(
                                   topRight: Radius.circular(
-                                      DesignConstants.borderRadiusS),
+                                    DesignConstants.borderRadiusS,
+                                  ),
                                   bottomRight: Radius.circular(
-                                      DesignConstants.borderRadiusS),
+                                    DesignConstants.borderRadiusS,
+                                  ),
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 6),
+                                    horizontal: 6,
+                                    vertical: 6,
+                                  ),
                                   child: Icon(LucideIcons.plus, size: 14),
                                 ),
                               ),

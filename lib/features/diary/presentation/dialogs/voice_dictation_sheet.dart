@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -137,10 +138,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     });
   }
 
-  String _labelFor(
-    String? id,
-    List<({String id, String name})> locales,
-  ) {
+  String _labelFor(String? id, List<({String id, String name})> locales) {
     if (id == null) return '';
     for (final locale in locales) {
       if (locale.id.toLowerCase() == id.toLowerCase()) return locale.name;
@@ -205,13 +203,15 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     if (!mounted) return;
     if (!started) {
       _recordingStopwatch.stop();
-      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
-        durationBucket: '<5s',
-        aiTidyUpEnabled: false,
-        surface: 'ai_meal_capture',
-        success: false,
-        errorCode: 'start_failed',
-      ));
+      unawaited(
+        TelemetryService.instance.trackVoiceDictationCompleted(
+          durationBucket: '<5s',
+          aiTidyUpEnabled: false,
+          surface: 'ai_meal_capture',
+          success: false,
+          errorCode: 'start_failed',
+        ),
+      );
       setState(() => _phase = _DictationPhase.idle);
       return;
     }
@@ -242,11 +242,14 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
   Future<void> _stop() async {
     _recordingStopwatch.stop();
-    final durationBucket =
-        TelemetryBuckets.getVoiceDurationBucket(_recordingStopwatch.elapsed);
-    unawaited(TelemetryService.instance.trackFeatureUsed(
-      featureKey: FeatureKey.voiceDictationUsed,
-    ));
+    final durationBucket = TelemetryBuckets.getVoiceDurationBucket(
+      _recordingStopwatch.elapsed,
+    );
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.voiceDictationUsed,
+      ),
+    );
 
     setState(() {
       _phase = _DictationPhase.tidying;
@@ -271,12 +274,14 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     });
 
     if (cleaned.isEmpty) {
-      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
-        durationBucket: durationBucket,
-        aiTidyUpEnabled: false,
-        surface: 'ai_meal_capture',
-        success: true,
-      ));
+      unawaited(
+        TelemetryService.instance.trackVoiceDictationCompleted(
+          durationBucket: durationBucket,
+          aiTidyUpEnabled: false,
+          surface: 'ai_meal_capture',
+          success: true,
+        ),
+      );
       setState(() => _phase = _DictationPhase.done);
       HapticFeedbackService.instance.confirmationFeedback();
       return;
@@ -287,12 +292,14 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     final tidyEnabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
     if (!mounted) return;
     if (!tidyEnabled) {
-      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
-        durationBucket: durationBucket,
-        aiTidyUpEnabled: false,
-        surface: 'ai_meal_capture',
-        success: true,
-      ));
+      unawaited(
+        TelemetryService.instance.trackVoiceDictationCompleted(
+          durationBucket: durationBucket,
+          aiTidyUpEnabled: false,
+          surface: 'ai_meal_capture',
+          success: true,
+        ),
+      );
       setState(() => _phase = _DictationPhase.done);
       HapticFeedbackService.instance.confirmationFeedback();
       return;
@@ -301,12 +308,14 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     final summary = await AiService.instance.tidyVoiceTranscript(cleaned);
     if (!mounted) return;
 
-    unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
-      durationBucket: durationBucket,
-      aiTidyUpEnabled: true,
-      surface: 'ai_meal_capture',
-      success: true,
-    ));
+    unawaited(
+      TelemetryService.instance.trackVoiceDictationCompleted(
+        durationBucket: durationBucket,
+        aiTidyUpEnabled: true,
+        surface: 'ai_meal_capture',
+        success: true,
+      ),
+    );
 
     setState(() {
       _summary = summary;
@@ -330,9 +339,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                bottom: DesignConstants.spacingM,
-              ),
+              padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
               child: Text(
                 l10n.voiceLanguageHint,
                 textAlign: TextAlign.center,
@@ -374,15 +381,13 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
   Widget _languageTile(BuildContext ctx, String? id, String label) {
     final isSelected = id == null ? _localeId == null : _localeId == id;
-    final isDark = Theme.of(ctx).brightness == Brightness.dark;
-    final accent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accent = Theme.of(ctx).colorScheme.primary;
     return ListTile(
       dense: true,
       title: Text(label),
-      trailing:
-          isSelected ? Icon(LucideIcons.check, size: 18, color: accent) : null,
+      trailing: isSelected
+          ? Icon(LucideIcons.check, size: 18, color: accent)
+          : null,
       onTap: () => Navigator.of(ctx).pop(id ?? _systemSentinel),
     );
   }
@@ -486,7 +491,8 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
         // Shown so the wait can be judged rather than guessed at.
         Text(
           l10n.voiceTidiedIn(
-              (summary.elapsed.inMilliseconds / 1000).toStringAsFixed(1)),
+            (summary.elapsed.inMilliseconds / 1000).toStringAsFixed(1),
+          ),
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
@@ -499,20 +505,22 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
   Future<void> _finish({required bool analyzeNow}) async {
     final text = (_editing ? _editController.text : _liveTranscript).trim();
+    _editFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
     await VoiceDictationService.instance.cancel();
     if (!mounted) return;
-    Navigator.of(context).pop(
-      VoiceDictationResult(text: text, analyzeNow: analyzeNow),
-    );
+    Navigator.of(context)
+        .pop(VoiceDictationResult(text: text, analyzeNow: analyzeNow));
   }
 
   String _statusFor(AppLocalizations l10n) => switch (_phase) {
-        _DictationPhase.idle => l10n.voiceTapToRecord,
-        _DictationPhase.starting => l10n.voiceStarting,
-        _DictationPhase.listening => l10n.voiceTapToFinish,
-        _DictationPhase.tidying => l10n.voiceTidyingUp,
-        _DictationPhase.done => l10n.voiceRetake,
-      };
+    _DictationPhase.idle => l10n.voiceTapToRecord,
+    _DictationPhase.starting => l10n.voiceStarting,
+    _DictationPhase.listening => l10n.voiceTapToFinish,
+    _DictationPhase.tidying => l10n.voiceTidyingUp,
+    _DictationPhase.done => l10n.voiceRetake,
+  };
 
   Widget _buildRecordingControls(
     BuildContext context,
@@ -526,8 +534,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
       return KeyedSubtree(
         key: const ValueKey('editing_compact_controls'),
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+          padding: const EdgeInsets.symmetric(
+            vertical: DesignConstants.spacingS,
+          ),
           child: Align(
             alignment: Alignment.centerRight,
             child: TextButton(
@@ -710,9 +719,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     final isDark = theme.brightness == Brightness.dark;
     final ink = isDark ? Colors.white : const Color(0xFF12120F);
     final muted = ink.withValues(alpha: 0.6);
-    final accentColor = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accentColor = Theme.of(context).colorScheme.primary;
 
     final isListening = _phase == _DictationPhase.listening;
     final hasText = _liveTranscript.trim().isNotEmpty;
@@ -747,8 +754,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
               color: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.black.withValues(alpha: 0.04),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusL,
+              ),
               border: Border.all(
                 color: isListening
                     ? DesignConstants.brandRedColor.withValues(alpha: 0.6)
@@ -766,13 +774,16 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                             style: TextButton.styleFrom(
                               foregroundColor: ink,
                               visualDensity: VisualDensity.compact,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                             ),
                             child: Text(
                               l10n.doneButtonLabel,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w700, fontSize: 13),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                         ],
@@ -787,8 +798,11 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                           textAlignVertical: TextAlignVertical.top,
                           keyboardType: TextInputType.multiline,
                           textCapitalization: TextCapitalization.sentences,
-                          style:
-                              TextStyle(fontSize: 17, height: 1.4, color: ink),
+                          style: TextStyle(
+                            fontSize: 17,
+                            height: 1.4,
+                            color: ink,
+                          ),
                           decoration: InputDecoration.collapsed(
                             hintText: l10n.voiceTranscriptHint,
                             hintStyle: TextStyle(color: muted),
@@ -803,9 +817,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                     child: GestureDetector(
                       onTap: hasText
                           ? () => setState(() {
-                                _editController.text = _liveTranscript;
-                                _editing = true;
-                              })
+                              _editController.text = _liveTranscript;
+                              _editing = true;
+                            })
                           : null,
                       behavior: HitTestBehavior.opaque,
                       child: _summary != null
@@ -822,8 +836,10 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                                 fontWeight: FontWeight.w600,
                                 color: ink,
                               ),
-                              placeholderStyle:
-                                  TextStyle(fontSize: 15, color: muted),
+                              placeholderStyle: TextStyle(
+                                fontSize: 15,
+                                color: muted,
+                              ),
                             ),
                     ),
                   ),

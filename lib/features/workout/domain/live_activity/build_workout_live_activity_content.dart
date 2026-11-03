@@ -77,10 +77,12 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
         : WorkoutLiveActivityPhase.setPending,
     restEndsAt: restEndsAt,
     restStartedAt: restStartedAt,
-    setTimerStartedAt:
-        setTimerTemplateId == next.templateId ? setTimerStartedAt : null,
+    setTimerStartedAt: setTimerTemplateId == next.templateId
+        ? setTimerStartedAt
+        : null,
     setTimerDeadline: null,
-    setTimerTemplateId: isDurationBased &&
+    setTimerTemplateId:
+        isDurationBased &&
             (setTimerTemplateId == null ||
                 setTimerTemplateId == next.templateId)
         ? next.templateId
@@ -90,8 +92,10 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
     labelStopTimer: labelStopTimer,
     labelTimerRunning: labelTimerRunning,
     exerciseName: next.localizedName(_languageCode(localeName)),
-    setPosition:
-        strings.setPosition(next.indexInExercise, next.totalInExercise),
+    setPosition: strings.setPosition(
+      next.indexInExercise,
+      next.totalInExercise,
+    ),
     // Cardio sends no badge — the metrics line starts at the leading edge and
     // the compact leading zone falls back to the app icon.
     badgeText: isDurationBased ? '' : _badgeText(next),
@@ -133,22 +137,27 @@ List<WorkoutLiveActivitySetSnapshot> _upcomingSetSnapshots({
     final metrics = mask.logsDuration
         ? _durationMetrics(next, mask, unitService, strings, localeName)
         : _strengthMetrics(next, unitService, strings, localeName);
-    upcoming.add(WorkoutLiveActivitySetSnapshot(
-      exerciseName: next.localizedName(_languageCode(localeName)),
-      setPosition:
-          strings.setPosition(next.indexInExercise, next.totalInExercise),
-      badgeText: mask.logsDuration ? '' : _badgeText(next),
-      badgeColorHex:
-          mask.logsDuration ? _colorNeutral : _badgeColor(next.setType),
-      metricPrimary: metrics.primary,
-      metricSecondary: metrics.secondary,
-      metricTertiary: metrics.tertiary,
-      metricSeparator: metrics.separator,
-      compactPrimary: metrics.compactPrimary,
-      compactSecondary: metrics.compactSecondary,
-      setTimerTemplateId: mask.logsDuration ? next.templateId : null,
-      canCompleteSet: metrics.complete,
-    ));
+    upcoming.add(
+      WorkoutLiveActivitySetSnapshot(
+        exerciseName: next.localizedName(_languageCode(localeName)),
+        setPosition: strings.setPosition(
+          next.indexInExercise,
+          next.totalInExercise,
+        ),
+        badgeText: mask.logsDuration ? '' : _badgeText(next),
+        badgeColorHex: mask.logsDuration
+            ? _colorNeutral
+            : _badgeColor(next.setType),
+        metricPrimary: metrics.primary,
+        metricSecondary: metrics.secondary,
+        metricTertiary: metrics.tertiary,
+        metricSeparator: metrics.separator,
+        compactPrimary: metrics.compactPrimary,
+        compactSecondary: metrics.compactSecondary,
+        setTimerTemplateId: mask.logsDuration ? next.templateId : null,
+        canCompleteSet: metrics.complete,
+      ),
+    );
     simulatedLogs[next.templateId] = next.log.copyWith(isCompleted: true);
   }
   return upcoming;
@@ -252,19 +261,19 @@ _MetricLine _durationMetrics(
   final primaryText = mask.logsWeight
       ? weightText
       : durationText.isEmpty
-          ? distanceText
-          : durationText;
+      ? distanceText
+      : durationText;
   final secondaryText = mask.logsWeight
       ? durationText
       : durationText.isEmpty
-          ? ''
-          : distanceText;
+      ? ''
+      : distanceText;
 
   final complete = mask.logsWeight
       ? weightText.isNotEmpty && durationText.isNotEmpty
       : mask.logsDistance
-          ? durationText.isNotEmpty || distanceText.isNotEmpty
-          : durationText.isNotEmpty;
+      ? durationText.isNotEmpty || distanceText.isNotEmpty
+      : durationText.isNotEmpty;
 
   return _MetricLine(
     primary: primaryText.isEmpty ? _unknownValue : primaryText,
@@ -279,8 +288,9 @@ _MetricLine _durationMetrics(
 
 String _formatDecimal(double value, String localeName, {int decimals = 1}) {
   final rounded = double.parse(value.toStringAsFixed(decimals));
-  final pattern =
-      rounded == rounded.roundToDouble() ? '#,##0' : '#,##0.${'#' * decimals}';
+  final pattern = rounded == rounded.roundToDouble()
+      ? '#,##0'
+      : '#,##0.${'#' * decimals}';
   return NumberFormat(pattern, localeName).format(rounded);
 }
 
@@ -291,23 +301,23 @@ String _formatClock(int seconds) {
 }
 
 String _badgeText(_NextSet next) => switch (next.setType) {
-      'warmup' => 'W',
-      'failure' => 'F',
-      'dropset' => 'D',
-      'superset' => 'S',
-      'other' => 'O',
-      // Normal sets show `N`, not the set number — the position is already
-      // spelled out as "Set x of y" on the same card, so repeating it as a
-      // digit added nothing.
-      _ => 'N',
-    };
+  'warmup' => 'W',
+  'failure' => 'F',
+  'dropset' => 'D',
+  'superset' => 'S',
+  'other' => 'O',
+  // Normal sets show `N`, not the set number — the position is already
+  // spelled out as "Set x of y" on the same card, so repeating it as a
+  // digit added nothing.
+  _ => 'N',
+};
 
 String _badgeColor(String setType) => switch (setType) {
-      'warmup' => _colorWarmup,
-      'failure' => _colorFailure,
-      'dropset' => _colorDropset,
-      _ => _colorNeutral,
-    };
+  'warmup' => _colorWarmup,
+  'failure' => _colorFailure,
+  'dropset' => _colorDropset,
+  _ => _colorNeutral,
+};
 
 class _NextSet {
   final int templateId;

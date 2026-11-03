@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
+
 import '../domain/steps_models.dart';
 import '../../../widgets/common/summary_card.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StatisticsStepsCard extends StatelessWidget {
@@ -102,8 +105,9 @@ class StatisticsStepsCard extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding:
-                        const EdgeInsets.only(right: DesignConstants.spacingS),
+                    padding: const EdgeInsets.only(
+                      right: DesignConstants.spacingS,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -172,7 +176,7 @@ class StatisticsStepsCard extends StatelessWidget {
     final goalRatio = (dailyGoal / maxValue).clamp(0.0, 1.0);
     final averageSteps =
         chartBuckets.fold<int>(0, (sum, bucket) => sum + bucket.steps) ~/
-            chartBuckets.length;
+        chartBuckets.length;
     final averageRatio = (averageSteps / maxValue).clamp(0.0, 1.0);
     final showAverageLine =
         showWeekDecorations && averageSteps > 0 && (averageSteps != dailyGoal);
@@ -315,8 +319,9 @@ class StatisticsStepsCard extends StatelessWidget {
                 final barColor = bucket.steps <= 0
                     ? theme.colorScheme.outlineVariant
                     : primaryColor;
-                final barWidth =
-                    singlePoint ? 12.0 : (isSevenDays ? 14.0 : 5.0);
+                final barWidth = singlePoint
+                    ? 12.0
+                    : (isSevenDays ? 14.0 : 5.0);
 
                 return Expanded(
                   child: Padding(
@@ -398,8 +403,9 @@ class StatisticsStepsCard extends StatelessWidget {
                               color: isToday
                                   ? theme.colorScheme.onSurface
                                   : theme.colorScheme.onSurfaceVariant,
-                              fontWeight:
-                                  isToday ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: isToday
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                           ),
                         ],
@@ -464,8 +470,7 @@ class StatisticsStepsCard extends StatelessWidget {
         final count = e.value.length;
         final avg = count > 0 ? e.value.fold(0, (s, v) => s + v) ~/ count : 0;
         return StepsBucket(start: e.key, steps: avg);
-      }).toList()
-        ..sort((a, b) => a.start.compareTo(b.start));
+      }).toList()..sort((a, b) => a.start.compareTo(b.start));
       return buckets.length > _maxAggregatedBars
           ? buckets.sublist(buckets.length - _maxAggregatedBars)
           : buckets;
@@ -481,8 +486,7 @@ class StatisticsStepsCard extends StatelessWidget {
       final count = e.value.length;
       final avg = count > 0 ? e.value.fold(0, (s, v) => s + v) ~/ count : 0;
       return StepsBucket(start: e.key, steps: avg);
-    }).toList()
-      ..sort((a, b) => a.start.compareTo(b.start));
+    }).toList()..sort((a, b) => a.start.compareTo(b.start));
     return buckets.length > _maxAggregatedBars
         ? buckets.sublist(buckets.length - _maxAggregatedBars)
         : buckets;

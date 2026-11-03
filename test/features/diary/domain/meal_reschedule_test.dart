@@ -9,31 +9,31 @@ import 'package:train_libre/features/diary/domain/models/tracked_food_item.dart'
 
 void main() {
   MealEntry mealAt(DateTime consumedAt) => MealEntry(
-        id: 'meal-1',
-        consumedAt: consumedAt,
-        mealType: 'mealtypeLunch',
-        title: 'Test meal',
-        source: 'aiPhoto',
-      );
+    id: 'meal-1',
+    consumedAt: consumedAt,
+    mealType: 'mealtypeLunch',
+    title: 'Test meal',
+    source: 'aiPhoto',
+  );
 
   TrackedFoodItem itemAt(DateTime timestamp, {int? id}) => TrackedFoodItem(
-        item: FoodItem(
-          barcode: '1001',
-          name: 'Reis',
-          calories: 200,
-          protein: 10,
-          carbs: 20,
-          fat: 5,
-        ),
-        entry: FoodEntry(
-          id: id,
-          barcode: '1001',
-          timestamp: timestamp,
-          quantityInGrams: 150,
-          mealType: 'mealtypeLunch',
-          mealEntryId: 'meal-1',
-        ),
-      );
+    item: FoodItem(
+      barcode: '1001',
+      name: 'Reis',
+      calories: 200,
+      protein: 10,
+      carbs: 20,
+      fat: 5,
+    ),
+    entry: FoodEntry(
+      id: id,
+      barcode: '1001',
+      timestamp: timestamp,
+      quantityInGrams: 150,
+      mealType: 'mealtypeLunch',
+      mealEntryId: 'meal-1',
+    ),
+  );
 
   group('rescheduleMeal', () {
     test('moves the meal and its items to the new day', () {
@@ -47,8 +47,7 @@ void main() {
       expect(result.items.single.entry.timestamp, DateTime(2026, 3, 12, 19, 0));
     });
 
-    test(
-        'items keep their offset from the meal, matching what the database '
+    test('items keep their offset from the meal, matching what the database '
         'writes', () {
       final result = rescheduleMeal(
         entry: mealAt(DateTime(2026, 3, 10, 12, 30)),
@@ -101,7 +100,9 @@ void main() {
 
       expect(result.entry.consumedAt, DateTime(2026, 3, 10, 12, 30));
       expect(
-          result.items.single.entry.timestamp, DateTime(2026, 3, 10, 12, 30));
+        result.items.single.entry.timestamp,
+        DateTime(2026, 3, 10, 12, 30),
+      );
     });
 
     test('a meal with no items is handled', () {

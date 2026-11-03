@@ -131,10 +131,11 @@ class DepthMapRenderer {
       final f = scaled - low;
       return List.generate(
         3,
-        (c) => (viridisAnchors[low][c] +
-                (viridisAnchors[high][c] - viridisAnchors[low][c]) * f)
-            .round()
-            .clamp(0, 255),
+        (c) =>
+            (viridisAnchors[low][c] +
+                    (viridisAnchors[high][c] - viridisAnchors[low][c]) * f)
+                .round()
+                .clamp(0, 255),
       );
     });
   }
@@ -154,9 +155,10 @@ class DepthMapRenderer {
 
     valid.sort();
     final lowIndex = (valid.length * _autoClipPercentile).floor();
-    final highIndex = (valid.length * (1 - _autoClipPercentile))
-        .ceil()
-        .clamp(0, valid.length - 1);
+    final highIndex = (valid.length * (1 - _autoClipPercentile)).ceil().clamp(
+      0,
+      valid.length - 1,
+    );
 
     var minCm = valid[lowIndex];
     var maxCm = valid[highIndex];
@@ -253,16 +255,15 @@ class DepthMapRenderer {
     double? maxDistanceCm,
     int bandCount = defaultBandCount,
     bool useViridis = true,
-  }) =>
-      renderBands(
-        depthBuffer: depthBuffer,
-        width: width,
-        height: height,
-        minDistanceCm: minDistanceCm,
-        maxDistanceCm: maxDistanceCm,
-        bandCount: bandCount,
-        useViridis: useViridis,
-      ).rgba;
+  }) => renderBands(
+    depthBuffer: depthBuffer,
+    width: width,
+    height: height,
+    minDistanceCm: minDistanceCm,
+    maxDistanceCm: maxDistanceCm,
+    bandCount: bandCount,
+    useViridis: useViridis,
+  ).rgba;
 
   /// Converts the depth buffer into a [ui.Image] plus the scale it was drawn at.
   static Future<({ui.Image image, DepthBandRender render})> createUiImage({

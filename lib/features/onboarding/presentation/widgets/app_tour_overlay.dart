@@ -1,5 +1,7 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 
@@ -32,9 +34,7 @@ class AppTourOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accentColor = theme.colorScheme.primary;
 
     final List<RRect> baseHoles = [];
     if (targetRect != null) {
@@ -43,27 +43,14 @@ class AppTourOverlay extends StatelessWidget {
           (rect.width - rect.height).abs() <= 6 && rect.width >= 48;
       if (isCircular) {
         baseHoles.add(
-          RRect.fromRectAndRadius(
-            rect,
-            Radius.circular(rect.width / 2),
-          ),
+          RRect.fromRectAndRadius(rect, Radius.circular(rect.width / 2)),
         );
       } else if (rect.width > 160) {
         // Navigation bar capsule
-        baseHoles.add(
-          RRect.fromRectAndRadius(
-            rect,
-            const Radius.circular(26),
-          ),
-        );
+        baseHoles.add(RRect.fromRectAndRadius(rect, const Radius.circular(26)));
       } else {
         // Tabs, chips, and squircle buttons
-        baseHoles.add(
-          RRect.fromRectAndRadius(
-            rect,
-            const Radius.circular(22),
-          ),
-        );
+        baseHoles.add(RRect.fromRectAndRadius(rect, const Radius.circular(22)));
       }
     }
 
@@ -94,8 +81,12 @@ class AppTourOverlay extends StatelessWidget {
                 child: ClipPath(
                   clipper: _InvertedHolesClipper(
                     holes: baseHoles
-                        .map((h) => _inflateRRect(
-                            h, (blurTiers - 1 - i) * stepDistance))
+                        .map(
+                          (h) => _inflateRRect(
+                            h,
+                            (blurTiers - 1 - i) * stepDistance,
+                          ),
+                        )
                         .toList(),
                   ),
                   child: BackdropFilter(
@@ -125,8 +116,10 @@ class AppTourOverlay extends StatelessWidget {
                 final safeBottom =
                     mediaQuery.padding.bottom + bottomNavClearance;
                 final availableWidth =
-                    (constraints.maxWidth - horizontalPadding * 2)
-                        .clamp(0.0, panelMaxWidth);
+                    (constraints.maxWidth - horizontalPadding * 2).clamp(
+                      0.0,
+                      panelMaxWidth,
+                    );
 
                 final cardWidget = Card(
                   elevation: 14,
@@ -160,9 +153,7 @@ class AppTourOverlay extends StatelessWidget {
                                   fontFamily: 'Inter',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? DesignConstants.brandAccentColor
-                                      : const Color(0xFF5B6B00),
+                                  color: accentColor,
                                 ),
                               ),
                             ),
@@ -196,8 +187,9 @@ class AppTourOverlay extends StatelessWidget {
                               child: Text(
                                 skipLabel,
                                 style: TextStyle(
-                                  color:
-                                      isDark ? Colors.white54 : Colors.black54,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black54,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -223,9 +215,12 @@ class AppTourOverlay extends StatelessWidget {
                     final bottomPos =
                         (constraints.maxHeight - targetRect!.top + spotlightGap)
                             .clamp(
+                              safeBottom,
+                              (constraints.maxHeight - safeTop - 220).clamp(
                                 safeBottom,
-                                (constraints.maxHeight - safeTop - 220)
-                                    .clamp(safeBottom, double.infinity));
+                                double.infinity,
+                              ),
+                            );
                     return Stack(
                       children: [
                         Positioned(
@@ -249,9 +244,12 @@ class AppTourOverlay extends StatelessWidget {
                     if (topPos != null)
                       Positioned(
                         top: topPos.clamp(
+                          safeTop,
+                          (constraints.maxHeight - safeBottom - 220).clamp(
                             safeTop,
-                            (constraints.maxHeight - safeBottom - 220)
-                                .clamp(safeTop, double.infinity)),
+                            double.infinity,
+                          ),
+                        ),
                         left: (constraints.maxWidth - availableWidth) / 2,
                         width: availableWidth,
                         child: cardWidget,

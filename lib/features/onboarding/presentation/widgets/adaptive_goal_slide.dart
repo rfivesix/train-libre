@@ -1,6 +1,8 @@
 import '../../../../services/unit_service.dart';
+
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -47,23 +49,26 @@ class AdaptiveGoalSlide extends StatelessWidget {
           Text(
             l10n.onboardingAdaptiveGoalTitle,
             textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingAdaptiveGoalSubtitle,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 16),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           PlatformAdaptiveDropdownFormField<BodyweightGoal>(
             initialValue: selectedGoal,
             decoration: InputDecoration(
               labelText: l10n.adaptiveGoalDirectionLabel,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             items: BodyweightGoal.values
                 .map(
@@ -83,8 +88,9 @@ class AdaptiveGoalSlide extends StatelessWidget {
             initialValue: selectedPriorActivityLevel,
             decoration: InputDecoration(
               labelText: l10n.adaptivePriorActivityLabel,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             items: PriorActivityLevel.values
                 .map(
@@ -109,8 +115,9 @@ class AdaptiveGoalSlide extends StatelessWidget {
             initialValue: selectedExtraCardioHoursOption,
             decoration: InputDecoration(
               labelText: l10n.adaptiveExtraCardioLabel,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             items: ExtraCardioHoursCatalog.supportedOptions
                 .map(
@@ -125,55 +132,64 @@ class AdaptiveGoalSlide extends StatelessWidget {
             },
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.adaptiveExtraCardioHelp,
-            style: theme.textTheme.bodySmall,
-          ),
+          Text(l10n.adaptiveExtraCardioHelp, style: theme.textTheme.bodySmall),
           const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.adaptiveRatePerWeekLabel,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: WeeklyTargetRateCatalog.optionsForGoal(
-                    selectedGoal, context.read<UnitService>())
-                .map((option) {
-              final isSelected =
-                  option.kgPerWeek == selectedTargetRateKgPerWeek;
-              return SpringyScale(
-                isSelected: isSelected,
-                onTap: () => onTargetRateKgPerWeekChanged(option.kgPerWeek),
-                child: ChoiceChip(
-                  label: Text(
-                    _rateLabel(context, l10n, option.kgPerWeek),
-                    style: TextStyle(
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  selected: isSelected,
-                  onSelected: (_) =>
-                      onTargetRateKgPerWeekChanged(option.kgPerWeek),
-                  selectedColor: theme.colorScheme.primary,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  showCheckmark: false,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingM,
-                      vertical: DesignConstants.spacingS),
-                  shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM)),
-                ),
-              );
-            }).toList(growable: false),
+            children:
+                WeeklyTargetRateCatalog.optionsForGoal(
+                      selectedGoal,
+                      context.read<UnitService>(),
+                    )
+                    .map((option) {
+                      final isSelected =
+                          option.kgPerWeek == selectedTargetRateKgPerWeek;
+                      return SpringyScale(
+                        isSelected: isSelected,
+                        onTap: () =>
+                            onTargetRateKgPerWeekChanged(option.kgPerWeek),
+                        child: ChoiceChip(
+                          label: Text(
+                            _rateLabel(context, l10n, option.kgPerWeek),
+                            style: TextStyle(
+                              color: isSelected
+                                  ? theme.colorScheme.onPrimary
+                                  : theme.colorScheme.onSurface,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (_) =>
+                              onTargetRateKgPerWeekChanged(option.kgPerWeek),
+                          selectedColor: theme.colorScheme.primary,
+                          backgroundColor: theme
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          showCheckmark: false,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingM,
+                            vertical: DesignConstants.spacingS,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM,
+                            ),
+                          ),
+                        ),
+                      );
+                    })
+                    .toList(growable: false),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
         ],
@@ -193,23 +209,27 @@ class AdaptiveGoalSlide extends StatelessWidget {
   }
 
   String _rateLabel(
-      BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+    BuildContext context,
+    AppLocalizations l10n,
+    double kgPerWeek,
+  ) {
     final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    final displayValue =
-        unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final displayValue = unitService.convertDisplayValue(
+      kgPerWeek.abs(),
+      UnitDimension.weight,
+    );
     final valStr = displayValue
         .toStringAsFixed(2)
         .replaceAll(RegExp(r'0*$'), '')
         .replaceAll(RegExp(r'\.$'), '');
     return l10n.adaptiveRatePerWeek(
-        '$sign$valStr', unitService.suffixFor(UnitDimension.weight));
+      '$sign$valStr',
+      unitService.suffixFor(UnitDimension.weight),
+    );
   }
 
-  String _priorActivityLabel(
-    AppLocalizations l10n,
-    PriorActivityLevel level,
-  ) {
+  String _priorActivityLabel(AppLocalizations l10n, PriorActivityLevel level) {
     switch (level) {
       case PriorActivityLevel.low:
         return l10n.adaptivePriorActivityLow;

@@ -9,6 +9,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
 import 'package:train_libre/features/diary/domain/models/food_item.dart';
@@ -35,7 +36,9 @@ class _RecordingDiaryRepo implements IDiaryRepository {
 
   @override
   Future<void> moveMealEntryTo(
-      String mealEntryId, DateTime newConsumedAt) async {
+    String mealEntryId,
+    DateTime newConsumedAt,
+  ) async {
     moves.add((id: mealEntryId, to: newConsumedAt));
   }
 
@@ -50,8 +53,10 @@ class _RecordingDiaryRepo implements IDiaryRepository {
   }
 
   @override
-  Future<int> insertFoodEntry(FoodEntry entry,
-      {String telemetrySource = 'manual_search'}) async {
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = 'manual_search',
+  }) async {
     insertedFoodEntries.add(entry);
     return 99;
   }
@@ -73,8 +78,13 @@ void main() {
   // Anchored a few days back so the meal is never "today" (which would hide the
   // date from the subtitle) and always well inside the picker's bounds.
   final now = DateTime.now();
-  final originalMoment = DateTime(now.year, now.month, now.day, 12, 30)
-      .subtract(const Duration(days: 5));
+  final originalMoment = DateTime(
+    now.year,
+    now.month,
+    now.day,
+    12,
+    30,
+  ).subtract(const Duration(days: 5));
 
   final mealEntry = MealEntry(
     id: 'meal-1',
@@ -105,10 +115,7 @@ void main() {
     ),
   ];
 
-  Future<void> pumpScreen(
-    WidgetTester tester,
-    _RecordingDiaryRepo repo,
-  ) async {
+  Future<void> pumpScreen(WidgetTester tester, _RecordingDiaryRepo repo) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -149,7 +156,9 @@ void main() {
   }
 
   Future<void> openPicker(WidgetTester tester) async {
-    await tester.tap(find.byKey(const ValueKey('meal_entry_timestamp_button')));
+    await tester.tap(find.byIcon(LucideIcons.ellipsis));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Change date and time'));
     await tester.pumpAndSettle();
   }
 
@@ -184,8 +193,9 @@ void main() {
     expect(repo.moves, isEmpty);
   });
 
-  testWidgets('confirming the timestamp it already has is not written',
-      (tester) async {
+  testWidgets('confirming the timestamp it already has is not written', (
+    tester,
+  ) async {
     final repo = _RecordingDiaryRepo();
     await pumpScreen(tester, repo);
     await openPicker(tester);
@@ -193,12 +203,14 @@ void main() {
     await tester.tap(find.text('OK').last);
     await tester.pumpAndSettle();
 
-    expect(repo.moves, isEmpty,
-        reason: 'a confirmed no-change must not touch the diary');
+    expect(
+      repo.moves,
+      isEmpty,
+      reason: 'a confirmed no-change must not touch the diary',
+    );
   });
 
-  testWidgets(
-      'moving the meal to another day goes through moveMealEntryTo and takes '
+  testWidgets('moving the meal to another day goes through moveMealEntryTo and takes '
       'the screen\'s items with it', (tester) async {
     final repo = _RecordingDiaryRepo();
     await pumpScreen(tester, repo);
@@ -217,9 +229,13 @@ void main() {
     await tester.tap(find.text('OK').last);
     await tester.pumpAndSettle();
 
-    expect(repo.moves, hasLength(1),
-        reason: 'the move must go through the repository method that also '
-            'moves the linked nutrition, fluid and supplement rows');
+    expect(
+      repo.moves,
+      hasLength(1),
+      reason:
+          'the move must go through the repository method that also '
+          'moves the linked nutrition, fluid and supplement rows',
+    );
     final move = repo.moves.single;
     expect(move.id, 'meal-1');
     expect(
@@ -228,9 +244,13 @@ void main() {
       reason: 'dragging the date wheel must land the meal on another day',
     );
     expect(move.to.isAfter(originalMoment), isTrue);
-    expect(move.to.second, 0,
-        reason: 'a stray sub-minute component would push a 23:59 pick out of '
-            'the day it was just moved to');
+    expect(
+      move.to.second,
+      0,
+      reason:
+          'a stray sub-minute component would push a 23:59 pick out of '
+          'the day it was just moved to',
+    );
 
     final delta = move.to.difference(originalMoment);
 
@@ -252,14 +272,15 @@ void main() {
     expect(repo.updatedFoodEntries.single.id, 7);
   });
 
-  testWidgets('deleting an ingredient deletes the food entry on pop',
-      (tester) async {
+  testWidgets('deleting an ingredient deletes the food entry on pop', (
+    tester,
+  ) async {
     final repo = _RecordingDiaryRepo();
     await pumpScreen(tester, repo);
 
     // Swipe to dismiss ingredient
     await tester.drag(
-      find.byKey(const ValueKey('meal_item_7_0')),
+      find.byKey(const ValueKey('food-7')),
       const Offset(-500, 0),
     );
     await tester.pumpAndSettle();
@@ -270,62 +291,68 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    expect(repo.deletedFoodEntries, contains(7),
-        reason:
-            'deleted ingredient ID 7 must be deleted via repo.deleteFoodEntry');
+    expect(
+      repo.deletedFoodEntries,
+      contains(7),
+      reason:
+          'deleted ingredient ID 7 must be deleted via repo.deleteFoodEntry',
+    );
   });
 
   testWidgets(
-      'quick adjusting ingredient quantity updates the food entry on pop',
-      (tester) async {
-    final repo = _RecordingDiaryRepo();
-    await pumpScreen(tester, repo);
+    'quick adjusting ingredient quantity updates the food entry on pop',
+    (tester) async {
+      final repo = _RecordingDiaryRepo();
+      await pumpScreen(tester, repo);
 
-    // Tap +25g quick adjustment button
-    final plus25Finder = find.text('+25g');
-    if (plus25Finder.evaluate().isNotEmpty) {
-      await tester.tap(plus25Finder.first);
+      // Tap +25g quick adjustment button
+      final plus25Finder = find.text('+25g');
+      if (plus25Finder.evaluate().isNotEmpty) {
+        await tester.tap(plus25Finder.first);
+        await tester.pumpAndSettle();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(repo.updatedFoodEntries, isNotEmpty);
+        expect(repo.updatedFoodEntries.first.quantityInGrams, 175);
+      }
+    },
+  );
+
+  testWidgets(
+    'changing meal type updates both meal entry and linked food entries on pop',
+    (tester) async {
+      final repo = _RecordingDiaryRepo();
+      await pumpScreen(tester, repo);
+
+      // Open overflow options
+      await tester.tap(find.byTooltip('Options'));
       await tester.pumpAndSettle();
 
+      // Select Change meal type
+      await tester.tap(find.text('Change meal type'));
+      await tester.pumpAndSettle();
+
+      // Pick Dinner
+      await tester.tap(find.text('Dinner'));
+      await tester.pumpAndSettle();
+
+      // Pop screen
       await tester.pageBack();
       await tester.pumpAndSettle();
 
+      expect(repo.updatedMealEntries, isNotEmpty);
+      expect(repo.updatedMealEntries.last.mealType, 'mealtypeDinner');
+
       expect(repo.updatedFoodEntries, isNotEmpty);
-      expect(repo.updatedFoodEntries.first.quantityInGrams, 175);
-    }
-  });
+      expect(repo.updatedFoodEntries.last.mealType, 'mealtypeDinner');
+    },
+  );
 
-  testWidgets(
-      'changing meal type updates both meal entry and linked food entries on pop',
-      (tester) async {
-    final repo = _RecordingDiaryRepo();
-    await pumpScreen(tester, repo);
-
-    // Open overflow options
-    await tester.tap(find.byTooltip('Options'));
-    await tester.pumpAndSettle();
-
-    // Select Change meal type
-    await tester.tap(find.text('Change meal type'));
-    await tester.pumpAndSettle();
-
-    // Pick Dinner
-    await tester.tap(find.text('Dinner'));
-    await tester.pumpAndSettle();
-
-    // Pop screen
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-
-    expect(repo.updatedMealEntries, isNotEmpty);
-    expect(repo.updatedMealEntries.last.mealType, 'mealtypeDinner');
-
-    expect(repo.updatedFoodEntries, isNotEmpty);
-    expect(repo.updatedFoodEntries.last.mealType, 'mealtypeDinner');
-  });
-
-  testWidgets('renaming meal updates the title and persists on pop',
-      (tester) async {
+  testWidgets('renaming meal updates the title and persists on pop', (
+    tester,
+  ) async {
     final repo = _RecordingDiaryRepo();
     await pumpScreen(tester, repo);
 

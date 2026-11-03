@@ -9,10 +9,13 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../services/local_notification_service.dart';
+import '../../../services/sound_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
 import '../../workout/data/manual_training_plan_repository.dart';
 import '../../workout/domain/services/workout_plan_notification_orchestrator.dart';
+import '../../workout/domain/live_workout_notification_preferences.dart';
+import '../../workout/data/live_activity/workout_live_activity_service.dart';
 
 class GoalNotificationSettingsScreen extends StatefulWidget {
   const GoalNotificationSettingsScreen({super.key});
@@ -23,7 +26,10 @@ class GoalNotificationSettingsScreen extends StatefulWidget {
 }
 
 class _GoalNotificationSettingsScreenState
-    extends State<GoalNotificationSettingsScreen> {
+    extends State<GoalNotificationSettingsScreen>
+    with WidgetsBindingObserver {
+  bool _restNotificationsEnabled = true;
+  bool _ignoreSilentMode = true;
   bool _weeklyReviewEnabled = true;
   bool _recommendationDueEnabled = true;
   bool _targetDateReminderEnabled = false;
@@ -34,42 +40,115 @@ class _GoalNotificationSettingsScreenState
       WorkoutPlanNotificationOrchestrator.defaultMinute;
   bool _hasActiveWorkoutPlan = false;
   bool? _systemNotificationsEnabled;
+  bool? _exactAlarmsAllowed;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshExactAlarmAccess();
+  }
+
+  Future<void> _refreshExactAlarmAccess() async {
+    final allowed = await LocalNotificationService.instance
+        .canScheduleExactRestAlarms();
+    if (mounted) setState(() => _exactAlarmsAllowed = allowed);
   }
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final activePlan = await ManualTrainingPlanRepository().activePlan();
-    final notificationsEnabled =
-        await LocalNotificationService.instance.areNotificationsEnabled();
+    final notificationsEnabled = await LocalNotificationService.instance
+        .areNotificationsEnabled();
+    final exactAlarmsAllowed = await LocalNotificationService.instance
+        .canScheduleExactRestAlarms();
     if (!mounted) return;
     setState(() {
+      _restNotificationsEnabled =
+          prefs.getBool(
+            LiveWorkoutNotificationPreferences.restNotificationsKey,
+          ) ??
+          true;
+      _ignoreSilentMode =
+          prefs.getBool(
+            LiveWorkoutNotificationPreferences.ignoreSilentModeKey,
+          ) ??
+          true;
       _weeklyReviewEnabled = prefs.getBool('notify_weekly_goal_review') ?? true;
       _recommendationDueEnabled =
           prefs.getBool('notify_adaptive_recommendation') ?? true;
       _targetDateReminderEnabled =
           prefs.getBool('notify_goal_target_date') ?? false;
-      _workoutPlanReminderEnabled = prefs.getBool(
+      _workoutPlanReminderEnabled =
+          prefs.getBool(
             WorkoutPlanNotificationOrchestrator.enabledPreference,
           ) ??
           false;
-      _workoutPlanReminderHour = prefs.getInt(
-            WorkoutPlanNotificationOrchestrator.hourPreference,
-          ) ??
+      _workoutPlanReminderHour =
+          prefs.getInt(WorkoutPlanNotificationOrchestrator.hourPreference) ??
           WorkoutPlanNotificationOrchestrator.defaultHour;
-      _workoutPlanReminderMinute = prefs.getInt(
-            WorkoutPlanNotificationOrchestrator.minutePreference,
-          ) ??
+      _workoutPlanReminderMinute =
+          prefs.getInt(WorkoutPlanNotificationOrchestrator.minutePreference) ??
           WorkoutPlanNotificationOrchestrator.defaultMinute;
       _hasActiveWorkoutPlan = activePlan != null;
       _systemNotificationsEnabled = notificationsEnabled;
+      _exactAlarmsAllowed = exactAlarmsAllowed;
       _isLoading = false;
     });
+  }
+
+  Future<void> _setRestNotifications(bool value) async {
+    var enabled = value;
+    if (enabled) {
+      enabled = await LocalNotificationService.instance
+          .requestNotificationPermissions();
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(
+      LiveWorkoutNotificationPreferences.restNotificationsKey,
+      enabled,
+    );
+    await WorkoutLiveActivityService.instance.setRestNotificationsEnabled(
+      enabled,
+    );
+    if (!enabled) {
+      await LocalNotificationService.instance.cancelRestTimerNotification();
+    }
+    if (!mounted) return;
+    setState(() => _restNotificationsEnabled = enabled);
+    if (value && !enabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationPermissionDenied,
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _setIgnoreSilentMode(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(
+      LiveWorkoutNotificationPreferences.ignoreSilentModeKey,
+      value,
+    );
+    await WorkoutLiveActivityService.instance.setRestIgnoreSilentMode(value);
+    await SoundService.instance.refreshAudioContext();
+    if (mounted) setState(() => _ignoreSilentMode = value);
   }
 
   Future<void> _setWorkoutPlanReminder(bool value) async {
@@ -92,8 +171,9 @@ class _GoalNotificationSettingsScreenState
     if (!enabled && value && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(AppLocalizations.of(context)!.notificationPermissionDenied),
+          content: Text(
+            AppLocalizations.of(context)!.notificationPermissionDenied,
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -137,8 +217,9 @@ class _GoalNotificationSettingsScreenState
       return;
     }
     if (key == 'notify_weekly_goal_review' && !value && activeGoal != null) {
-      await LocalNotificationService.instance
-          .cancelWeeklyReviewNotifications(goalId: activeGoal.id);
+      await LocalNotificationService.instance.cancelWeeklyReviewNotifications(
+        goalId: activeGoal.id,
+      );
       return;
     }
     if (activeGoal != null) {
@@ -153,18 +234,56 @@ class _GoalNotificationSettingsScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: GlobalAppBar(
-        title: l10n.notificationSettingsTitle,
-      ),
+      appBar: GlobalAppBar(title: l10n.notificationSettingsTitle),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: DesignConstants.screenPadding,
               children: [
                 AppSectionHeader(
-                  title: l10n.notificationWorkoutSectionTitle,
+                  title: l10n.notificationLiveWorkoutSectionTitle,
                   isFirst: true,
                 ),
+                AppSettingsRow.switchTile(
+                  title: l10n.notificationRestTimerTitle,
+                  subtitle: l10n.notificationRestTimerSubtitle,
+                  leading: Icon(
+                    LucideIcons.bell,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
+                  value: _restNotificationsEnabled,
+                  onChanged: _setRestNotifications,
+                ),
+                AppSettingsRow.switchTile(
+                  title: l10n.notificationIgnoreSilentTitle,
+                  subtitle: l10n.notificationIgnoreSilentSubtitle,
+                  leading: Icon(
+                    LucideIcons.volume_2,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
+                  value: _ignoreSilentMode,
+                  onChanged: _setIgnoreSilentMode,
+                ),
+                if (_exactAlarmsAllowed == false)
+                  AppLinkRow(
+                    title: l10n.notificationExactAlarmTitle,
+                    subtitle: l10n.notificationExactAlarmSubtitle,
+                    leading: Icon(
+                      LucideIcons.clock_3,
+                      size: 24,
+                      color: theme.colorScheme.primary,
+                    ),
+                    trailingIcon: LucideIcons.chevron_right,
+                    onTap: () async {
+                      await LocalNotificationService.instance
+                          .requestExactRestAlarmsPermission();
+                      await _refreshExactAlarmAccess();
+                    },
+                  ),
+                const SizedBox(height: DesignConstants.spacingL),
+                AppSectionHeader(title: l10n.notificationWorkoutSectionTitle),
                 Column(
                   children: [
                     AppSettingsRow.switchTile(
@@ -190,14 +309,15 @@ class _GoalNotificationSettingsScreenState
                                   title: l10n.workoutPlanNotifyTimeTitle,
                                   subtitle: MaterialLocalizations.of(context)
                                       .formatTimeOfDay(
-                                    TimeOfDay(
-                                      hour: _workoutPlanReminderHour,
-                                      minute: _workoutPlanReminderMinute,
-                                    ),
-                                    alwaysUse24HourFormat:
-                                        MediaQuery.alwaysUse24HourFormatOf(
-                                            context),
-                                  ),
+                                        TimeOfDay(
+                                          hour: _workoutPlanReminderHour,
+                                          minute: _workoutPlanReminderMinute,
+                                        ),
+                                        alwaysUse24HourFormat:
+                                            MediaQuery.alwaysUse24HourFormatOf(
+                                              context,
+                                            ),
+                                      ),
                                   leading: Icon(
                                     LucideIcons.clock_3,
                                     size: 24,

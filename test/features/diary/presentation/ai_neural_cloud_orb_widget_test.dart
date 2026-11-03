@@ -11,11 +11,7 @@ void main() {
     testWidgets('renders properly with default parameters', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AiNeuralCloudOrbWidget(),
-            ),
-          ),
+          home: Scaffold(body: Center(child: AiNeuralCloudOrbWidget())),
         ),
       );
 
@@ -27,8 +23,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
     });
 
-    testWidgets('triggers impulse on tap and calls onTap callback',
-        (tester) async {
+    testWidgets('triggers impulse on tap and calls onTap callback', (
+      tester,
+    ) async {
       bool tapped = false;
       final key = GlobalKey<AiNeuralCloudOrbWidgetState>();
 
@@ -58,6 +55,52 @@ void main() {
       state?.triggerImpulse();
 
       await tester.pump(const Duration(milliseconds: 600));
+    });
+
+    testWidgets('pauses animation on lifecycle pause and resumes on resume', (
+      tester,
+    ) async {
+      final key = GlobalKey<AiNeuralCloudOrbWidgetState>();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(child: AiNeuralCloudOrbWidget(key: key)),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(key.currentState, isNotNull);
+
+      // Simulate app going to background
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+
+      // Simulate app returning to foreground
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+    });
+
+    testWidgets('renders properly with edgeBlurSigma and bounded layer', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AiNeuralCloudOrbWidget(
+                edgeBlurSigma: 4.0,
+                forceHighFrameRate: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AiNeuralCloudOrbWidget), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
     });
   });
 }

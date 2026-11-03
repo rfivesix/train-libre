@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../../../services/haptic_feedback_service.dart';
 
 /// Keeps a single list item visually pinned while the list relayouts around it.
@@ -233,8 +234,10 @@ class ReorderScrollAnchor {
     }
 
     final ScrollPosition position = _controller.position;
-    final double target = (position.pixels + correction)
-        .clamp(position.minScrollExtent, position.maxScrollExtent);
+    final double target = (position.pixels + correction).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
     // What the viewport will really move by, which is what the next frame has
     // to subtract back out — a clamped jump moves less than we asked for.
     _lastCorrection = target - position.pixels;
@@ -245,8 +248,8 @@ class ReorderScrollAnchor {
   }
 
   double? _globalY(Object id) {
-    final RenderObject? renderObject =
-        _itemKeys[id]?.currentContext?.findRenderObject();
+    final RenderObject? renderObject = _itemKeys[id]?.currentContext
+        ?.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
     return renderObject.localToGlobal(Offset.zero).dy;
   }
@@ -279,8 +282,10 @@ double calculateDynamicReorderHeadroom({
 }) {
   double? viewportTop;
   if (scrollController.hasClients) {
-    final renderBox = scrollController.position.context.notificationContext
-        ?.findRenderObject() as RenderBox?;
+    final renderBox =
+        scrollController.position.context.notificationContext
+                ?.findRenderObject()
+            as RenderBox?;
     if (renderBox != null && renderBox.hasSize) {
       viewportTop = renderBox.localToGlobal(Offset.zero).dy;
     }

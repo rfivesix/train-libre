@@ -44,7 +44,7 @@ The second path adds the warning reason `macro_distribution_constrained`. Each m
 
 ## Versioning and application
 
-The macro allocator is part of the recommendation algorithm identified by `AdaptiveNutritionRecommendationService.algorithmVersion`. The service compares a stored snapshot's version with the current version and regenerates when they differ. It does not check freshness through an `isFreshFor` method. Algorithm updates retain the recursive maintenance estimate and reset observation-calibration histories; the macro outputs are generated again under the new version.
+The macro allocator is part of the recommendation algorithm identified by `AdaptiveNutritionRecommendationService.algorithmVersion`. The service compares a stored snapshot's version with the current version and regenerates when they differ. The recursive maintenance estimate is retained. Observation-calibration histories are reset for observation-model upgrades, but are preserved for the confidence-only update from version 1.2 to 1.3. Macro outputs are generated again under the new version.
 
 Generation saves a recommendation snapshot. It does not change active nutrition targets automatically: applying the recommendation is a separate explicit action that writes its calorie and macro values to the user's active targets.
 

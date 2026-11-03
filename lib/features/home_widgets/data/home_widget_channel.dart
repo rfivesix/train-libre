@@ -11,8 +11,9 @@ import '../domain/models/home_widget_snapshot.dart';
 /// Group and calling `WidgetCenter.reloadTimelines` is a handful of lines, and
 /// the Live Activity already establishes the hand-rolled-channel pattern.
 class HomeWidgetChannel {
-  static const MethodChannel _channel =
-      MethodChannel('trainlibre.widgets/home_screen');
+  static const MethodChannel _channel = MethodChannel(
+    'trainlibre.widgets/home_screen',
+  );
 
   const HomeWidgetChannel();
 
@@ -38,10 +39,9 @@ class HomeWidgetChannel {
   Future<bool> writeSnapshot(HomeWidgetSnapshot snapshot) async {
     if (!await isSupported()) return false;
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'writeSnapshot',
-        {'json': snapshot.encode()},
-      );
+      final result = await _channel.invokeMethod<bool>('writeSnapshot', {
+        'json': snapshot.encode(),
+      });
       return result ?? false;
     } on PlatformException catch (e) {
       debugPrint('HomeWidgetChannel.writeSnapshot failed: ${e.message}');
@@ -67,10 +67,9 @@ class HomeWidgetChannel {
   Future<bool> sharedFileExists(String name) async {
     if (!await isSupported()) return false;
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'sharedFileExists',
-        {'name': name},
-      );
+      final result = await _channel.invokeMethod<bool>('sharedFileExists', {
+        'name': name,
+      });
       return result ?? false;
     } on PlatformException catch (e) {
       debugPrint('HomeWidgetChannel.sharedFileExists failed: ${e.message}');
@@ -86,10 +85,10 @@ class HomeWidgetChannel {
   Future<bool> writeSharedFile(String name, Uint8List? bytes) async {
     if (!await isSupported()) return false;
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'writeSharedFile',
-        {'name': name, 'bytes': bytes},
-      );
+      final result = await _channel.invokeMethod<bool>('writeSharedFile', {
+        'name': name,
+        'bytes': bytes,
+      });
       return result ?? false;
     } on PlatformException catch (e) {
       debugPrint('HomeWidgetChannel.writeSharedFile failed: ${e.message}');

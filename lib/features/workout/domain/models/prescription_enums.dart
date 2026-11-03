@@ -1,20 +1,8 @@
-enum AutonomyLevel {
-  off,
-  suggest,
-  automatic,
-}
+enum AutonomyLevel { off, suggest, automatic }
 
-enum PrescriptionOrigin {
-  none,
-  routine,
-  engine,
-}
+enum PrescriptionOrigin { none, routine, engine }
 
-enum ProgressionOutcome {
-  raise,
-  hold,
-  noSuggestion,
-}
+enum ProgressionOutcome { raise, hold, noSuggestion }
 
 enum LoadMode {
   external,

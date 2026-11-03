@@ -13,19 +13,19 @@ final _start = DateTime(2026, 9, 27);
 final _end = DateTime(2026, 10, 4);
 
 Goal _goal() => Goal(
-      id: 'sandbox-goal',
-      preset: GoalPreset.loseWeight,
-      title: 'Sandbox goal',
-      status: GoalStatus.active,
-      startDate: DateTime(2026, 1, 1),
-      targetDate: DateTime(2026, 12, 1),
-      targetMetric: 'weight',
-      targetValue: 75,
-      targetUnit: 'kg',
-      desiredWeeklyRateKg: -0.5,
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
+  id: 'sandbox-goal',
+  preset: GoalPreset.loseWeight,
+  title: 'Sandbox goal',
+  status: GoalStatus.active,
+  startDate: DateTime(2026, 1, 1),
+  targetDate: DateTime(2026, 12, 1),
+  targetMetric: 'weight',
+  targetValue: 75,
+  targetUnit: 'kg',
+  desiredWeeklyRateKg: -0.5,
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+);
 
 GoalReviewRecord _review({
   required String action,
@@ -59,8 +59,9 @@ GoalReviewRecord _review({
       weightObservationCount: weighIns,
       nutritionLoggedDays: loggedDays,
       currentCalories: currentCalories,
-      dataQuality:
-          action == 'insufficient_data' ? 'insufficient' : 'sufficient',
+      dataQuality: action == 'insufficient_data'
+          ? 'insufficient'
+          : 'sufficient',
       nutritionAction: action,
     ),
     createdAt: _end,
@@ -96,8 +97,9 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
   });
 
-  testWidgets('shows both primary outcomes; details stay collapsed',
-      (tester) async {
+  testWidgets('shows both primary outcomes; details stay collapsed', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(390, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -158,8 +160,9 @@ void main() {
     expect(find.text('Plan vs. reality'), findsOneWidget);
   });
 
-  testWidgets('insufficient data offers continue logging without applying',
-      (tester) async {
+  testWidgets('insufficient data offers continue logging without applying', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -167,10 +170,7 @@ void main() {
 
     await _pumpPreview(
       tester,
-      review: _review(
-        action: 'insufficient_data',
-        recommendedCalories: 1800,
-      ),
+      review: _review(action: 'insufficient_data', recommendedCalories: 1800),
     );
 
     expect(find.text('Continue logging'), findsOneWidget);
@@ -184,12 +184,15 @@ void main() {
     await tester.tap(find.text('Continue logging'));
     await tester.pumpAndSettle();
     expect(
-        find.text('Sandbox preview: no changes were saved.'), findsOneWidget);
+      find.text('Sandbox preview: no changes were saved.'),
+      findsOneWidget,
+    );
   });
 
   for (final scenario in CanonicalNutritionScenarios.all) {
-    testWidgets('renders ${scenario.id} with its matching decision',
-        (tester) async {
+    testWidgets('renders ${scenario.id} with its matching decision', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(900, 2400);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -230,60 +233,62 @@ void main() {
   }
 
   testWidgets(
-      'does not display weekly pace or target date cards for maintainWeight preset',
-      (tester) async {
-    tester.view.physicalSize = const Size(900, 2400);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'does not display weekly pace or target date cards for maintainWeight preset',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final maintainGoal = Goal(
-      id: 'sandbox-maintain',
-      preset: GoalPreset.maintainWeight,
-      title: 'Maintain',
-      status: GoalStatus.active,
-      startDate: DateTime(2026, 1, 1),
-      targetMetric: 'weight',
-      targetValue: 75,
-      targetUnit: 'kg',
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
+      final maintainGoal = Goal(
+        id: 'sandbox-maintain',
+        preset: GoalPreset.maintainWeight,
+        title: 'Maintain',
+        status: GoalStatus.active,
+        startDate: DateTime(2026, 1, 1),
+        targetMetric: 'weight',
+        targetValue: 75,
+        targetUnit: 'kg',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
 
-    await _pumpPreview(
-      tester,
-      goal: maintainGoal,
-      review: _review(action: 'adjust_targets', recommendedCalories: 2000),
-    );
+      await _pumpPreview(
+        tester,
+        goal: maintainGoal,
+        review: _review(action: 'adjust_targets', recommendedCalories: 2000),
+      );
 
-    expect(find.text('WEEKLY PACE'), findsNothing);
-    expect(find.text('TARGET DATE'), findsNothing);
-    expect(find.byType(ValueSummaryCard), findsNWidgets(4));
-  });
+      expect(find.text('WEEKLY PACE'), findsNothing);
+      expect(find.text('TARGET DATE'), findsNothing);
+      expect(find.byType(ValueSummaryCard), findsNWidgets(4));
+    },
+  );
 
   testWidgets(
-      'displays safe adjusted pace and on-schedule date when rate adjustment is safe',
-      (tester) async {
-    tester.view.physicalSize = const Size(900, 2400);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'displays safe adjusted pace and on-schedule date when rate adjustment is safe',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    // requiredRemainingRateKgPerWeek is -0.7 kg/week, which is safe (< 1.0 kg/week)
-    await _pumpPreview(
-      tester,
-      review: _review(
-        action: 'adjust_targets',
-        status: 'behind',
-        recommendedCalories: 1950,
-      ),
-    );
+      // requiredRemainingRateKgPerWeek is -0.7 kg/week, which is safe (< 1.0 kg/week)
+      await _pumpPreview(
+        tester,
+        review: _review(
+          action: 'adjust_targets',
+          status: 'behind',
+          recommendedCalories: 1950,
+        ),
+      );
 
-    expect(find.text('WEEKLY PACE'), findsOneWidget);
-    expect(find.text('-0.50 kg/week'), findsOneWidget); // Current
-    expect(find.text('-0.70 kg/week'), findsOneWidget); // Recommended
-    expect(find.text('-0.20 kg/week'), findsOneWidget); // Delta subtitle
-    expect(find.text('TARGET DATE'), findsOneWidget);
-    expect(find.text('On schedule'), findsOneWidget);
-  });
+      expect(find.text('WEEKLY PACE'), findsOneWidget);
+      expect(find.text('-0.50 kg/week'), findsOneWidget); // Current
+      expect(find.text('-0.70 kg/week'), findsOneWidget); // Recommended
+      expect(find.text('-0.20 kg/week'), findsOneWidget); // Delta subtitle
+      expect(find.text('TARGET DATE'), findsOneWidget);
+      expect(find.text('On schedule'), findsOneWidget);
+    },
+  );
 }

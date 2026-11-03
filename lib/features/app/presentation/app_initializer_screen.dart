@@ -1,7 +1,11 @@
 import '../../../core/performance/startup_trace.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../../../util/design_constants.dart';
 
 import '../../../core/infrastructure/backup_manager.dart';
@@ -17,15 +21,21 @@ import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/data/legacy_goal_migration.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
 import '../../workout/domain/services/workout_plan_notification_orchestrator.dart';
+
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'dart:io';
+
 import 'package:package_info_plus/package_info_plus.dart';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../onboarding/data/telemetry_consent_prompt.dart';
 import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+
 import 'package:intl/intl.dart';
+
 import '../../diary/presentation/ai_meal_review_reveal_route.dart';
 import '../../../widgets/common/operation_progress_widget.dart';
 
@@ -50,6 +60,8 @@ class AppInitializerScreen extends StatefulWidget {
 }
 
 class _AppInitializerScreenState extends State<AppInitializerScreen> {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
+  bool _cloudVisibilityLeaseTransferredToReveal = false;
   // UI state displayed while initialization is running.
   String _currentTask = '';
   String _currentDetail = '';
@@ -59,17 +71,45 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   bool _isContractingForExit = false;
   bool _isCloudHiddenForVaporExit = false;
   bool _isDownloading = false;
+  bool _catalogDownloadInProgress = false;
+  bool _startupFailed = false;
   _PendingStartupProgress? _pendingProgress;
   bool _progressFrameScheduled = false;
 
   @override
   void initState() {
     super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
     _isDownloading = widget.isModal;
     // Start initialization right after the first frame is rendered.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initialize();
+      _runInitialization();
     });
+  }
+
+  Future<void> _runInitialization() async {
+    if (mounted) {
+      setState(() {
+        _startupFailed = false;
+        _catalogDownloadInProgress = false;
+        _isDownloading = widget.isModal;
+      });
+    }
+    try {
+      await _initialize();
+    } catch (error, stackTrace) {
+      debugPrint('[Startup] Initialization failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) setState(() => _startupFailed = true);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (!_cloudVisibilityLeaseTransferredToReveal) {
+      _cloudVisibilityLease.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _initialize() async {
@@ -90,8 +130,8 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       // Cold Start first launch prompt is handled during onboarding region selection.
     }
 
-    final isOffDbInitialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+    final isOffDbInitialized = await BasisDataManager.instance
+        .isOffDatabaseInitialized();
     final skipOffDb =
         widget.skipOffDatabase || (!isOffDbInitialized && !widget.forceUpdate);
 
@@ -100,6 +140,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       force: widget.forceUpdate,
       skipOffDatabase: skipOffDb,
       onProgress: (task, detail, progress) {
+        final isDownloading = _updateCatalogDownloadState(
+          task: task,
+          detail: detail,
+        );
         _queueStartupProgress(
           task: task,
           detail: detail,
@@ -107,11 +151,15 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
               ? progress.clamp(0.0, 1.0)
               : _screenProgressFor(task, progress),
           canSkipRemoteCatalog: false,
-          isDownloading: false,
+          isDownloading: isDownloading,
         );
       },
       onRemoteProgress: (task, detail, progress, {required canSkip}) {
         if (!mounted) return;
+        final isDownloading = _updateCatalogDownloadState(
+          task: task,
+          detail: detail,
+        );
         final l10n = AppLocalizations.of(context)!;
         _queueStartupProgress(
           task: task,
@@ -120,7 +168,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
               : detail,
           progress: progress.clamp(0.0, 1.0),
           canSkipRemoteCatalog: canSkip && !_skipRemoteCatalogRequested,
-          isDownloading: true,
+          isDownloading: isDownloading,
         );
       },
       isRemoteSkipRequested: () => _skipRemoteCatalogRequested,
@@ -166,13 +214,14 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     // Existing installations may predate the downloadable BLS catalog. Ask
     // those users once the app is usable; a declined first install is prompted
     // again on a later launch because the catalog is still missing.
-    final blsCatalogInstalled =
-        await BasisDataManager.instance.isBlsFoodCatalogInitialized();
+    final blsCatalogInstalled = await BasisDataManager.instance
+        .isBlsFoodCatalogInitialized();
     if (!mounted) return;
     if (hasSeenOnboarding && !blsCatalogInstalled) {
       try {
-        await BasisDataManager.instance
-            .promptOffDatabaseDownloadIfFirstTime(context);
+        await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+          context,
+        );
       } catch (error) {
         debugPrint('[BLS catalog] Startup prompt failed safely: $error');
       }
@@ -196,8 +245,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
 
-    final targetScreen =
-        hasSeenOnboarding ? const MainScreen() : const OnboardingScreen();
+    final targetScreen = hasSeenOnboarding
+        ? const MainScreen()
+        : const OnboardingScreen();
+    _cloudVisibilityLeaseTransferredToReveal = true;
     // Use the exact, proven reveal route from the AI meal scan instead of a
     // second startup-specific implementation of the vapor transition.
     Navigator.of(context).pushReplacement(
@@ -208,9 +259,37 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         ),
         vaporCoreRadius: 42,
         duration: const Duration(milliseconds: 760),
+        onEnterComplete: _cloudVisibilityLease.dispose,
         builder: (_) => targetScreen,
       ),
     );
+    // The route callback is the primary release path. Keep an idempotent
+    // fallback so an interrupted or platform-specific route transition cannot
+    // leave the app-wide cloud suppressed for the rest of the session.
+    Future<void>.delayed(
+      const Duration(seconds: 2),
+      _cloudVisibilityLease.dispose,
+    );
+  }
+
+  bool _updateCatalogDownloadState({
+    required String task,
+    required String detail,
+  }) {
+    final status = '$task $detail'.toLowerCase();
+    final isCheckOrNoUpdate =
+        status.contains('manifest') ||
+        status.contains('kein remote-download') ||
+        status.contains('aktuell');
+    if (isCheckOrNoUpdate) {
+      _catalogDownloadInProgress = false;
+    } else if (status.contains('download') ||
+        status.contains('heruntergeladen') ||
+        status.contains('lade übungen') ||
+        status.contains('lade produktdatenbank')) {
+      _catalogDownloadInProgress = true;
+    }
+    return _catalogDownloadInProgress;
   }
 
   /// Converts each catalog's local 0–1 import progress into one continuous
@@ -309,70 +388,67 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final tasks = <Future<void>>[
       StartupTrace.instance
           .measure(
-        'standard_supplements',
-        DatabaseHelper.instance.ensureStandardSupplements,
-      )
+            'standard_supplements',
+            DatabaseHelper.instance.ensureStandardSupplements,
+          )
           .catchError((e) {
-        debugPrint("Standard supplement setup failed: $e");
-      }),
+            debugPrint("Standard supplement setup failed: $e");
+          }),
       // Counts this launch towards the telemetry follow-up's threshold, and
       // anchors installations that predate the prompt. Swallows its own
       // errors; it must never hold up a launch.
       () async {
         final isOptedIn = await TelemetryService.instance.isOptedIn();
-        await TelemetryConsentPrompt.instance
-            .registerLaunch(isOptedIn: isOptedIn);
-      }()
-          .catchError((e) {
+        await TelemetryConsentPrompt.instance.registerLaunch(
+          isOptedIn: isOptedIn,
+        );
+      }().catchError((e) {
         debugPrint("Telemetry follow-up launch registration failed: $e");
       }),
-      StartupTrace.instance.measure(
-        'notifications_init',
-        () async {
-          await LocalNotificationService.instance.initialize();
-          try {
-            await LegacyGoalMigration().run();
-            await AdaptiveNutritionRecommendationService()
-                .refreshRecommendationIfDue();
-            await GoalNotificationOrchestrator(
-              goalRepository: GoalRepositoryImpl(),
-            ).synchronize();
-            await WorkoutPlanNotificationOrchestrator().synchronize();
-          } catch (e) {
-            debugPrint("Startup goal/recommendation check failed: $e");
-          }
-        },
-      ).catchError((e) {
-        debugPrint("Local notification initialization failed: $e");
-      }),
+      StartupTrace.instance
+          .measure('notifications_init', () async {
+            await LocalNotificationService.instance.initialize();
+            try {
+              await LegacyGoalMigration().run();
+              await AdaptiveNutritionRecommendationService()
+                  .refreshRecommendationIfDue();
+              await GoalNotificationOrchestrator(
+                goalRepository: GoalRepositoryImpl(),
+              ).synchronize();
+              await WorkoutPlanNotificationOrchestrator().synchronize();
+            } catch (e) {
+              debugPrint("Startup goal/recommendation check failed: $e");
+            }
+          })
+          .catchError((e) {
+            debugPrint("Local notification initialization failed: $e");
+          }),
       if (workoutSessionManager != null)
         StartupTrace.instance
-            .measure(
-          'workout_restore',
-          workoutSessionManager.tryRestoreSession,
-        )
+            .measure('workout_restore', workoutSessionManager.tryRestoreSession)
             .catchError((e) {
-          debugPrint("Workout session restore failed: $e");
-        }),
-      StartupTrace.instance.measure(
-        'telemetry_init',
-        () async {
-          await TelemetryService.instance.init();
-          final packageInfo = await PackageInfo.fromPlatform();
-          final (localeStr, countryCode) =
-              TelemetryService.resolveSystemLocaleAndCountry();
+              debugPrint("Workout session restore failed: $e");
+            }),
+      StartupTrace.instance
+          .measure('telemetry_init', () async {
+            await TelemetryService.instance.init();
+            final packageInfo = await PackageInfo.fromPlatform();
+            final (localeStr, countryCode) =
+                TelemetryService.resolveSystemLocaleAndCountry();
 
-          unawaited(TelemetryService.instance.trackAppLaunched(
-            appVersion: packageInfo.version,
-            osVersion: Platform.operatingSystemVersion,
-            platform: Platform.operatingSystem,
-            locale: localeStr,
-            country: countryCode,
-          ));
-        },
-      ).catchError((e) {
-        debugPrint("Telemetry startup tracking failed: $e");
-      }),
+            unawaited(
+              TelemetryService.instance.trackAppLaunched(
+                appVersion: packageInfo.version,
+                osVersion: Platform.operatingSystemVersion,
+                platform: Platform.operatingSystem,
+                locale: localeStr,
+                country: countryCode,
+              ),
+            );
+          })
+          .catchError((e) {
+            debugPrint("Telemetry startup tracking failed: $e");
+          }),
     ];
 
     await Future.wait(tasks);
@@ -515,8 +591,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       final totalNum = int.tryParse(rawTotal);
       final locale = Localizations.localeOf(context).toString();
       final formatter = NumberFormat.decimalPattern(locale);
-      final processed =
-          processedNum != null ? formatter.format(processedNum) : rawProcessed;
+      final processed = processedNum != null
+          ? formatter.format(processedNum)
+          : rawProcessed;
       final total = totalNum != null ? formatter.format(totalNum) : rawTotal;
       return l10n.initEntriesProgress(processed, total);
     }
@@ -534,8 +611,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       final totalNum = int.tryParse(rawTotal);
       final locale = Localizations.localeOf(context).toString();
       final formatter = NumberFormat.decimalPattern(locale);
-      final processed =
-          processedNum != null ? formatter.format(processedNum) : rawProcessed;
+      final processed = processedNum != null
+          ? formatter.format(processedNum)
+          : rawProcessed;
       final total = totalNum != null ? formatter.format(totalNum) : rawTotal;
       return l10n.initEntriesProgress(processed, total);
     }
@@ -564,7 +642,30 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: isDownloadMode
+          child: _startupFailed
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 52,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    Text(
+                      l10n.appInitFailed,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    FilledButton(
+                      onPressed: _runInitialization,
+                      child: Text(l10n.retry),
+                    ),
+                  ],
+                )
+              : isDownloadMode
               ? Column(
                   children: [
                     Expanded(
@@ -669,7 +770,6 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         flowSpeed: 0.35,
         showAmbientGlow: false,
         showDetachedSatellite: false,
-        baseColor: theme.colorScheme.onSurfaceVariant,
         accentColor: theme.colorScheme.primary,
       ),
     );

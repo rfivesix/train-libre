@@ -11,6 +11,13 @@ Add foods to your Diary, choose the amount and meal, and check how the logged ca
 
 The app calculates logged nutrition from the selected food’s database values and the quantity you enter. Catalog values are commonly given per 100 g, so check the food and portion before saving. For a liquid, the amount is in milliliters; the **Add to water intake** option can also record its volume, with sugar and caffeine fields when applicable.
 
+## Log macros without a catalog food
+
+1. Open food search and tap **Macros**. Enter a name if useful.
+2. Enter exactly three of calories, protein, carbohydrates, and fat; the app calculates the fourth using 4/4/9 kcal per gram. Check that the result is valid.
+3. Leave **Amount** blank to enter values for the whole item. If you enter an amount, enter nutrients per 100 g, or per 100 ml for a drink. Optionally add sugar, fiber, salt, or caffeine. To also count the item as a drink, select **Also log as a drink** and enter an amount in ml.
+4. Check the date and meal and save. The entry contributes to Diary totals without creating a catalog food or favorite. Open it in the Diary to review or edit it; a linked drink and macro entry are connected when deleted.
+
 ## Create a custom food
 
 If you cannot find an item, switch to the **Custom Foods** tab and tap **Create Food**. Enter its name and nutrient values, then save it. Nutrient fields are recorded per 100 g; use the package label to enter comparable values. You can also use the calorie calculation control to derive calories from protein, carbohydrates, and fat. Custom food values affect new logs; editing the custom food does not change historical logs.

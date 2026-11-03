@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,11 +24,7 @@ class GoalDetailScreen extends StatefulWidget {
   final String goalId;
   final IGoalRepository? repository;
 
-  const GoalDetailScreen({
-    super.key,
-    required this.goalId,
-    this.repository,
-  });
+  const GoalDetailScreen({super.key, required this.goalId, this.repository});
 
   @override
   State<GoalDetailScreen> createState() => _GoalDetailScreenState();
@@ -41,8 +38,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.goalDetail));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.goalDetail,
+      ),
+    );
     _goalRepository = widget.repository ?? GoalRepositoryImpl();
     _loadData();
   }
@@ -88,28 +88,16 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final baseline = progress?.baselineValue;
     if (baseline != null) {
       if (chartPoints.isEmpty) {
-        chartPoints = [
-          ChartDataPoint(
-            date: goal.startDate,
-            value: baseline,
-          ),
-        ];
+        chartPoints = [ChartDataPoint(date: goal.startDate, value: baseline)];
       } else if (chartPoints.first.date.isAfter(goal.startDate)) {
         chartPoints.insert(
           0,
-          ChartDataPoint(
-            date: goal.startDate,
-            value: baseline,
-          ),
+          ChartDataPoint(date: goal.startDate, value: baseline),
         );
       }
     }
 
-    return {
-      'goal': goal,
-      'progress': progress,
-      'chartPoints': chartPoints,
-    };
+    return {'goal': goal, 'progress': progress, 'chartPoints': chartPoints};
   }
 
   Future<void> _openAdjustmentSheet(Goal goal, GoalProgress? progress) async {
@@ -146,9 +134,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       await GoalNotificationOrchestrator(goalRepository: _goalRepository)
           .goalBecameInactive(goal.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.goalRetiredSuccessSnack)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.goalRetiredSuccessSnack)));
         Navigator.of(context).pop(true);
       }
     }
@@ -166,16 +154,17 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     if (confirmed == true && mounted) {
       final previouslyActive = await _goalRepository.getActiveGoal();
       await _goalRepository.resumeGoal(goal.id);
-      final notifications =
-          GoalNotificationOrchestrator(goalRepository: _goalRepository);
+      final notifications = GoalNotificationOrchestrator(
+        goalRepository: _goalRepository,
+      );
       if (previouslyActive != null && previouslyActive.id != goal.id) {
         await notifications.goalBecameInactive(previouslyActive.id);
       }
       await notifications.synchronize();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.goalResumedSuccessSnack)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.goalResumedSuccessSnack)));
         _loadData();
       }
     }
@@ -186,9 +175,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: GlobalAppBar(
-        title: l10n.goalDetailScreenTitle,
-      ),
+      appBar: GlobalAppBar(title: l10n.goalDetailScreenTitle),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _dataFuture,
         builder: (context, snapshot) {
@@ -203,10 +190,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 children: [
                   Text(l10n.error),
                   const SizedBox(height: 12),
-                  AppButton.secondary(
-                    label: l10n.retry,
-                    onPressed: _loadData,
-                  ),
+                  AppButton.secondary(label: l10n.retry, onPressed: _loadData),
                 ],
               ),
             );
@@ -257,14 +241,14 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           ],
                         )
                       : (isRetired
-                          ? SizedBox(
-                              width: double.infinity,
-                              child: AppButton.primary(
-                                label: l10n.resumeGoalButton,
-                                onPressed: () => _resumeGoal(goal),
-                              ),
-                            )
-                          : null),
+                            ? SizedBox(
+                                width: double.infinity,
+                                child: AppButton.primary(
+                                  label: l10n.resumeGoalButton,
+                                  onPressed: () => _resumeGoal(goal),
+                                ),
+                              )
+                            : null),
                 ),
                 const BottomContentSpacer(),
               ],

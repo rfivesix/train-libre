@@ -14,6 +14,7 @@ class AnimatedTranscriptText extends StatefulWidget {
   /// Text shown while nothing has been recognised yet.
   final String placeholder;
   final TextStyle? placeholderStyle;
+  final bool animateWords;
 
   const AnimatedTranscriptText({
     super.key,
@@ -21,6 +22,7 @@ class AnimatedTranscriptText extends StatefulWidget {
     required this.placeholder,
     this.style,
     this.placeholderStyle,
+    this.animateWords = true,
   });
 
   @override
@@ -53,7 +55,8 @@ class _AnimatedTranscriptTextState extends State<AnimatedTranscriptText> {
 
     // A rewritten transcript — the cleanup pass, or a fresh recording — starts
     // over; an extended one keeps the timing of the words it already showed.
-    final isExtension = next.length >= _words.length &&
+    final isExtension =
+        next.length >= _words.length &&
         _words.asMap().entries.every((e) => next[e.key] == e.value);
 
     if (!isExtension) _seenAt.clear();
@@ -73,6 +76,10 @@ class _AnimatedTranscriptTextState extends State<AnimatedTranscriptText> {
         widget.placeholder,
         style: widget.placeholderStyle ?? widget.style,
       );
+    }
+
+    if (!widget.animateWords) {
+      return Text(widget.text, style: widget.style);
     }
 
     return Wrap(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_link_row.dart';
@@ -73,9 +74,6 @@ class CsvExportCard extends StatelessWidget {
     required String title,
     required VoidCallback? onTap,
   }) {
-    return AppLinkRow(
-      title: title,
-      onTap: onTap ?? () {},
-    );
+    return AppLinkRow(title: title, onTap: onTap ?? () {});
   }
 }

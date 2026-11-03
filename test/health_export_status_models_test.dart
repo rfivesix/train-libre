@@ -26,8 +26,10 @@ void main() {
       expect(decoded.keys.toSet(), HealthExportPlatform.values.toSet());
       for (final platform in HealthExportPlatform.values) {
         for (final domain in HealthExportDomain.values) {
-          expect(decoded[platform]!.statusFor(domain).state,
-              HealthExportState.idle);
+          expect(
+            decoded[platform]!.statusFor(domain).state,
+            HealthExportState.idle,
+          );
         }
       }
     });
@@ -44,15 +46,17 @@ void main() {
             ),
             HealthExportDomain.nutritionHydration:
                 const HealthExportDomainStatus(
-              state: HealthExportState.failed,
-              lastError: 'network timeout',
-            ),
+                  state: HealthExportState.failed,
+                  lastError: 'network timeout',
+                ),
             HealthExportDomain.workouts: const HealthExportDomainStatus(
-                state: HealthExportState.exporting),
+              state: HealthExportState.exporting,
+            ),
           },
         ),
         HealthExportPlatform.healthConnect: HealthExportPlatformStatus.initial(
-            HealthExportPlatform.healthConnect),
+          HealthExportPlatform.healthConnect,
+        ),
       };
 
       final encoded = encodePlatformStatusMap(statuses);

@@ -75,28 +75,21 @@ Future<List<String>> _names(
 void main() {
   testWidgets('pro keeps every head under its own name', (tester) async {
     expect(
-      await _names(
-        tester,
-        vocabulary: _shoulderVocabulary(),
-        coarse: false,
-      ),
+      await _names(tester, vocabulary: _shoulderVocabulary(), coarse: false),
       ['Front deltoid', 'Rear deltoid'],
     );
   });
 
   testWidgets('below pro the two heads become one region', (tester) async {
     expect(
-      await _names(
-        tester,
-        vocabulary: _shoulderVocabulary(),
-        coarse: true,
-      ),
+      await _names(tester, vocabulary: _shoulderVocabulary(), coarse: true),
       ['Shoulder region'],
     );
   });
 
-  testWidgets('a group the catalog has not translated still reads as a group',
-      (tester) async {
+  testWidgets('a group the catalog has not translated still reads as a group', (
+    tester,
+  ) async {
     // The group key falls through to the app's own muscle strings rather than
     // surfacing "Front_deltoid" — which is what the head's id would have done.
     expect(

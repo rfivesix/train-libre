@@ -1,13 +1,11 @@
 // lib/features/exercise_catalog/presentation/exercise_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../../data/database_helper.dart';
-import '../domain/body_slug_mapper.dart';
 import '../domain/exercise_metrics.dart';
 import '../../workout/domain/classification/exercise_log_mask.dart';
-import '../domain/exercise_classification_labels.dart';
 import '../domain/muscle_vocabulary.dart';
 import '../domain/models/exercise.dart';
 import '../../workout/domain/models/set_log.dart';
@@ -16,36 +14,46 @@ import '../../workout/presentation/widgets/exercise_notes_dialog.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/common.dart';
-import '../../../services/experience_level_service.dart';
 import '../../../services/unit_service.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
+
 import 'package:provider/provider.dart';
-import '../../../services/profile_service.dart';
+
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../services/haptic_feedback_service.dart';
 import '../../../widgets/common/app_button.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../workout/domain/models/workout_log.dart';
 import '../../workout/domain/repositories/workout_repository.dart';
 import '../../workout/presentation/workout_log_detail_screen.dart';
 import '../../workout/presentation/widgets/workout_exercise_log_card.dart';
+
 import 'package:intl/intl.dart';
+
+import 'widgets/exercise_classification_chips.dart';
+import 'widgets/exercise_muscle_body_view.dart';
 
 /// A screen displaying detailed information about a specific [Exercise].
 class ExerciseDetailScreen extends StatefulWidget {
   final Exercise exercise;
   final IExerciseCatalogRepository? repository;
 
-  const ExerciseDetailScreen(
-      {super.key, required this.exercise, this.repository});
+  const ExerciseDetailScreen({
+    super.key,
+    required this.exercise,
+    this.repository,
+  });
 
   @override
   State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
@@ -57,8 +65,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   bool _isLoading = true;
 
   /// What the chart can be drawn on, and which of those it opens with.
-  late List<ExerciseMetric> _availableMetrics =
-      exerciseMetricsFor(widget.exercise);
+  late List<ExerciseMetric> _availableMetrics = exerciseMetricsFor(
+    widget.exercise,
+  );
   late ExerciseMetric _selectedMetric = _availableMetrics.first;
   String _selectedRange = '30D';
 
@@ -75,8 +84,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   /// in which case the body-weight cards read "-" rather than 0 kg.
   double? _bodyweightKg;
   List<Map<String, dynamic>> _timeSeriesData = [];
-  late final Stream<List<WorkoutLog>> _workoutHistory =
-      context.read<IWorkoutRepository>().watchFullWorkoutLogs();
+  late final Stream<List<WorkoutLog>> _workoutHistory = context
+      .read<IWorkoutRepository>()
+      .watchFullWorkoutLogs();
 
   /// The UI language, read once per load rather than per row.
   String get _languageCode => Localizations.localeOf(context).languageCode;
@@ -98,21 +108,26 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.exerciseDetail));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.exerciseDetail,
+      ),
+    );
     _loadData();
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    _muscleVocabulary =
-        await MuscleVocabulary.load(await DatabaseHelper.instance.database);
+    _muscleVocabulary = await MuscleVocabulary.load(
+      await DatabaseHelper.instance.database,
+    );
     _bodyweightKg = await DatabaseHelper.instance.getLatestWeight();
 
     Exercise exercise = widget.exercise;
     if (widget.exercise.id != null) {
-      final String? exerciseUuid = widget.exercise.uuid ??
+      final String? exerciseUuid =
+          widget.exercise.uuid ??
           await _repository.getExerciseUuidByLocalId(widget.exercise.id!);
       if (exerciseUuid != null) {
         final fresh = await _repository.getExerciseByUuid(exerciseUuid);
@@ -131,8 +146,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     // they see now and the alternate is the stable English one.
     final displayName = exercise.localizedNameFor(_languageCode);
     final canonical = exercise.canonicalName;
-    final altName =
-        canonical.isNotEmpty && canonical != displayName ? canonical : null;
+    final altName = canonical.isNotEmpty && canonical != displayName
+        ? canonical
+        : null;
 
     final prs = await _repository.getExercisePRs(
       displayName,
@@ -196,9 +212,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.error}: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
       }
     }
   }
@@ -254,8 +269,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS,
-                  vertical: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingS,
+                vertical: DesignConstants.spacingS,
+              ),
               child: Text(
                 body,
                 textAlign: TextAlign.center,
@@ -309,8 +325,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS,
-                  vertical: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingS,
+                vertical: DesignConstants.spacingS,
+              ),
               child: Text(
                 l10n.deleteCustomExerciseBody(exerciseName),
                 textAlign: TextAlign.center,
@@ -322,8 +339,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               padding: const EdgeInsets.all(DesignConstants.spacingM),
               decoration: BoxDecoration(
                 color: colorScheme.errorContainer.withValues(alpha: 0.25),
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,14 +349,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(LucideIcons.rotate_ccw_clock,
-                          size: 16, color: colorScheme.error),
+                      Icon(
+                        LucideIcons.rotate_ccw_clock,
+                        size: 16,
+                        color: colorScheme.error,
+                      ),
                       const SizedBox(width: DesignConstants.spacingS),
                       Expanded(
                         child: Text(
                           l10n.deleteCustomExerciseWithLogsWarning,
-                          style: textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onErrorContainer),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
                         ),
                       ),
                     ],
@@ -347,14 +369,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(LucideIcons.dumbbell,
-                          size: 16, color: colorScheme.error),
+                      Icon(
+                        LucideIcons.dumbbell,
+                        size: 16,
+                        color: colorScheme.error,
+                      ),
                       const SizedBox(width: DesignConstants.spacingS),
                       Expanded(
                         child: Text(
                           l10n.deleteCustomExerciseWithRoutinesWarning,
-                          style: textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onErrorContainer),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
                         ),
                       ),
                     ],
@@ -401,18 +427,17 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.deleteCustomExerciseSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.deleteCustomExerciseSuccess)));
       Navigator.of(context).pop('deleted');
     } catch (e) {
       debugPrint('Error deleting exercise: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.error}: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
       }
     }
   }
@@ -451,22 +476,22 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     if (_currentExercise.source == 'user') {
                       Navigator.of(context)
                           .push(
-                        CardMorphRoute(
-                          sourceContext: iconCtx,
-                          sourceBorderRadius: 20.0,
-                          sourceBuilder: (_) => editButton,
-                          onSourceVisibilityChanged: setHidden,
-                          builder: (context) => CreateExerciseScreen(
-                            repository: _repository,
-                            exerciseToEdit: _currentExercise,
-                          ),
-                        ),
-                      )
+                            CardMorphRoute(
+                              sourceContext: iconCtx,
+                              sourceBorderRadius: 20.0,
+                              sourceBuilder: (_) => editButton,
+                              onSourceVisibilityChanged: setHidden,
+                              builder: (context) => CreateExerciseScreen(
+                                repository: _repository,
+                                exerciseToEdit: _currentExercise,
+                              ),
+                            ),
+                          )
                           .then((wasSaved) {
-                        if (wasSaved == true) {
-                          _loadData();
-                        }
-                      });
+                            if (wasSaved == true) {
+                              _loadData();
+                            }
+                          });
                     } else {
                       _showSystemEditMenu(context);
                     }
@@ -478,50 +503,54 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-            child: _CategoryBadge(text: _currentExercise.categoryName),
+            child: ExerciseCategoryBadge(text: _currentExercise.categoryName),
           ),
         ],
       ),
       body: DefaultTabController(
         length: 3,
-        child: Column(children: [
-          SizedBox(height: topPadding),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingL,
-              vertical: DesignConstants.spacingXS,
-            ),
-            child: TabBar(
-              isScrollable: false,
-              indicator: const BoxDecoration(),
-              splashFactory: NoSplash.splashFactory,
-              overlayColor: WidgetStateProperty.all(Colors.transparent),
-              labelPadding: EdgeInsets.zero,
-              labelColor: isLightMode ? Colors.black : Colors.white,
-              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-              labelStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+        child: Column(
+          children: [
+            SizedBox(height: topPadding),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL,
+                vertical: DesignConstants.spacingXS,
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+              child: TabBar(
+                isScrollable: false,
+                indicator: const BoxDecoration(),
+                splashFactory: NoSplash.splashFactory,
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+                labelPadding: EdgeInsets.zero,
+                labelColor: isLightMode ? Colors.black : Colors.white,
+                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                labelStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+                tabs: const [
+                  Tab(text: 'Zusammenfassung'),
+                  Tab(text: 'Historie'),
+                  Tab(text: 'So geht’s'),
+                ],
               ),
-              tabs: const [
-                Tab(text: 'Zusammenfassung'),
-                Tab(text: 'Historie'),
-                Tab(text: 'So geht’s'),
-              ],
             ),
-          ),
-          Expanded(
-            child: TabBarView(children: [
-              _buildSummaryTab(l10n, textTheme),
-              _buildExerciseHistoryTab(),
-              _buildInstructionsTab(l10n),
-            ]),
-          ),
-        ]),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildSummaryTab(l10n, textTheme),
+                  _buildExerciseHistoryTab(),
+                  _buildInstructionsTab(l10n),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -530,88 +559,111 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     return SingleChildScrollView(
       clipBehavior: Clip.none,
       padding: DesignConstants.cardPadding,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (!_currentExercise.isCardio) ...[
-          RepaintBoundary(
-              child: _ExerciseMuscleBodyView(
-                  exercise: _currentExercise,
-                  vocabulary: _muscleVocabulary,
-                  showExerciseTitle: true)),
-          const SizedBox(height: DesignConstants.spacingXL),
-        ],
-        _ClassificationChips(exercise: _currentExercise),
-        if (_isLoading &&
-            _timeSeriesData.isEmpty &&
-            _prMap.values.every((v) => v == null))
-          const Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_currentExercise.isCardio) ...[
+            RepaintBoundary(
+              child: ExerciseMuscleBodyView(
+                exercise: _currentExercise,
+                vocabulary: _muscleVocabulary,
+                showExerciseTitle: true,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingXL),
+          ],
+          ExerciseClassificationChips(exercise: _currentExercise),
+          if (_isLoading &&
+              _timeSeriesData.isEmpty &&
+              _prMap.values.every((v) => v == null))
+            const Center(
               child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      vertical: DesignConstants.spacingXXL),
-                  child: CircularProgressIndicator()))
-        else if (_timeSeriesData.isEmpty &&
-            _prMap.values.every((v) => v == null))
-          Center(
+                padding: EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXXL,
+                ),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_timeSeriesData.isEmpty &&
+              _prMap.values.every((v) => v == null))
+            Center(
               child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: DesignConstants.spacingXL),
-                  child: Text(l10n.exerciseAnalyticsNoData,
-                      style: textTheme.bodyMedium?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant))))
-        else
-          Stack(children: [
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _buildPRSummarySection(l10n),
-              const SizedBox(height: DesignConstants.spacingXL),
-              AppSectionHeader(title: l10n.workoutHistoryButton),
-              RepaintBoundary(child: _buildConsolidatedChart(l10n)),
-            ]),
-            if (_isLoading)
-              const Positioned(
-                  top: DesignConstants.spacingM,
-                  right: DesignConstants.spacingM,
-                  child: SizedBox(
+                padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXL,
+                ),
+                child: Text(
+                  l10n.exerciseAnalyticsNoData,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            )
+          else
+            Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPRSummarySection(l10n),
+                    const SizedBox(height: DesignConstants.spacingXL),
+                    AppSectionHeader(title: l10n.workoutHistoryButton),
+                    RepaintBoundary(child: _buildConsolidatedChart(l10n)),
+                  ],
+                ),
+                if (_isLoading)
+                  const Positioned(
+                    top: DesignConstants.spacingM,
+                    right: DesignConstants.spacingM,
+                    child: SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))),
-          ]),
-      ]),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 
   Widget _buildInstructionsTab(AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: DesignConstants.cardPadding,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (!_currentExercise.isCardio) ...[
-          _ExerciseMuscleBodyView(
-              exercise: _currentExercise, vocabulary: _muscleVocabulary),
-          const SizedBox(height: DesignConstants.spacingXL),
-        ],
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text(
-            _currentExercise.getLocalizedDescription(context).isNotEmpty
-                ? _currentExercise.getLocalizedDescription(context)
-                : l10n.noDescriptionAvailable,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_currentExercise.isCardio) ...[
+            ExerciseMuscleBodyView(
+              exercise: _currentExercise,
+              vocabulary: _muscleVocabulary,
+            ),
+            const SizedBox(height: DesignConstants.spacingXL),
+          ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              _currentExercise.getLocalizedDescription(context).isNotEmpty
+                  ? _currentExercise.getLocalizedDescription(context)
+                  : l10n.noDescriptionAvailable,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface
+                    .withValues(alpha: 0.6),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingXL),
-        AppLinkRow(
-          title: l10n.pinnedExerciseNoteTitle,
-          subtitle: _currentExercise.pinnedNote?.trim().isNotEmpty == true
-              ? _currentExercise.pinnedNote!
-              : l10n.exerciseNoteHint,
-          trailingIcon: LucideIcons.pencil,
-          onTap: _editPinnedNote,
-        ),
-      ]),
+          const SizedBox(height: DesignConstants.spacingXL),
+          AppLinkRow(
+            title: l10n.pinnedExerciseNoteTitle,
+            subtitle: _currentExercise.pinnedNote?.trim().isNotEmpty == true
+                ? _currentExercise.pinnedNote!
+                : l10n.exerciseNoteHint,
+            trailingIcon: LucideIcons.pencil,
+            onTap: _editPinnedNote,
+          ),
+        ],
+      ),
     );
   }
 
@@ -627,18 +679,22 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         final targetUuid = _currentExercise.uuid;
         final names = {
           _currentExercise.localizedNameFor(_languageCode).toLowerCase(),
-          _currentExercise.canonicalName.toLowerCase()
+          _currentExercise.canonicalName.toLowerCase(),
         };
         final entries = (snapshot.data ?? [])
-            .map((log) => (
-                  log: log,
-                  sets: log.sets
-                      .where((set) =>
+            .map(
+              (log) => (
+                log: log,
+                sets: log.sets
+                    .where(
+                      (set) =>
                           (targetUuid != null &&
                               set.exerciseId == targetUuid) ||
-                          names.contains(set.exerciseName.toLowerCase()))
-                      .toList()
-                ))
+                          names.contains(set.exerciseName.toLowerCase()),
+                    )
+                    .toList(),
+              ),
+            )
             .where((entry) => entry.sets.isNotEmpty)
             .toList();
         if (entries.isEmpty) {
@@ -651,40 +707,45 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             final entry = entries[index];
             final log = entry.log;
             return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    title: Text(log.routineName ?? l10n.freeWorkoutTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(DateFormat.yMMMMd(locale)
-                        .add_Hm()
-                        .format(log.startTime)),
-                    trailing: const Icon(LucideIcons.chevron_right),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) =>
-                            WorkoutLogDetailScreen(logId: log.id!))),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text(
+                    log.routineName ?? l10n.freeWorkoutTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  WorkoutExerciseLogCard(
-                    exerciseName: _currentExercise.getLocalizedName(context),
-                    exercise: _currentExercise,
-                    sets: entry.sets,
-                    isEditMode: false,
-                    isCardio: _currentExercise.isCardio,
-                    showExerciseHeader: false,
-                    mask: ExerciseLogMask.forExercise(_currentExercise),
-                    bodyweightKg: _bodyweightKg,
-                    weightControllers: const {},
-                    repsControllers: const {},
-                    rirControllers: const {},
-                    exerciseNote: null,
-                    onEditNotes: (_) {},
-                    onDeleteExercise: (_) {},
-                    onAddSet: () {},
-                    onDeleteSet: (_) {},
-                    index: index,
+                  subtitle: Text(
+                    DateFormat.yMMMMd(locale).add_Hm().format(log.startTime),
                   ),
-                  const Divider(height: 1),
-                ]);
+                  trailing: const Icon(LucideIcons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => WorkoutLogDetailScreen(logId: log.id!),
+                    ),
+                  ),
+                ),
+                WorkoutExerciseLogCard(
+                  exerciseName: _currentExercise.getLocalizedName(context),
+                  exercise: _currentExercise,
+                  sets: entry.sets,
+                  isEditMode: false,
+                  isCardio: _currentExercise.isCardio,
+                  showExerciseHeader: false,
+                  mask: ExerciseLogMask.forExercise(_currentExercise),
+                  bodyweightKg: _bodyweightKg,
+                  weightControllers: const {},
+                  repsControllers: const {},
+                  rirControllers: const {},
+                  exerciseNote: null,
+                  onEditNotes: (_) {},
+                  onDeleteExercise: (_) {},
+                  onAddSet: () {},
+                  onDeleteSet: (_) {},
+                  index: index,
+                ),
+                const Divider(height: 1),
+              ],
+            );
           },
         );
       },
@@ -704,12 +765,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   /// rep brackets stay as they are: "2-3 RM" is numerals and an abbreviation
   /// that reads the same in every language the app ships.
   String _prLabel(String bracket, AppLocalizations l10n) => switch (bracket) {
-        'Best Distance' => l10n.exerciseMetricDistance,
-        'Longest Duration' => l10n.exerciseMetricDuration,
-        'Fastest Pace' => l10n.exerciseMetricPace,
-        'Est. 1RM' => l10n.exerciseMetricEst1RM,
-        _ => bracket,
-      };
+    'Best Distance' => l10n.exerciseMetricDistance,
+    'Longest Duration' => l10n.exerciseMetricDuration,
+    'Fastest Pace' => l10n.exerciseMetricPace,
+    'Est. 1RM' => l10n.exerciseMetricEst1RM,
+    _ => bracket,
+  };
 
   Widget _buildPRSummarySection(AppLocalizations l10n) {
     final theme = Theme.of(context);
@@ -758,7 +819,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             value = displayKg == null
                 ? '-'
                 : '${units.convertDisplayValue(displayKg, UnitDimension.weight).toStringAsFixed(1)} '
-                    '${units.suffixFor(UnitDimension.weight)}';
+                      '${units.suffixFor(UnitDimension.weight)}';
             subtitle = l10n.repsCount(prSet.reps ?? 0);
         }
         valueColor = theme.colorScheme.primary;
@@ -827,8 +888,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             child: Text(
               l10n.exerciseAnalyticsNotEnoughData,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
@@ -870,10 +931,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           unit: _selectedMetric == ExerciseMetric.distance
               ? 'km'
               : (_selectedMetric == ExerciseMetric.duration
-                  ? 'min'
-                  : (_selectedMetric == ExerciseMetric.pace
-                      ? 'min/km'
-                      : unitService.suffixFor(UnitDimension.weight))),
+                    ? 'min'
+                    : (_selectedMetric == ExerciseMetric.pace
+                          ? 'min/km'
+                          : unitService.suffixFor(UnitDimension.weight))),
           axisMode: MeasurementChartAxisMode.day,
           edgeToEdge: true,
         ),
@@ -922,8 +983,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             keyPoints: l10n.estimatedOneRepMaxInfoPoints.split('\n'),
             technicalTitle: l10n.estimatedOneRepMaxInfoDetailsTitle,
             technicalExplanation: l10n.estimatedOneRepMaxInfoDetails,
-            citationUrl:
-                "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
+            citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
           ),
         ],
         const SizedBox(width: DesignConstants.spacingS),
@@ -968,290 +1028,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// What the catalog knows about the movement, as a row of chips.
-///
-/// Five axes the data repo annotates on 877 of 909 exercises. This screen is
-/// the only place any of them is read: they are description, not machinery,
-/// and nothing filters, groups or computes on the two added last.
-///
-/// [ExerciseClassificationLabels.forceVector] is derived upstream from
-/// [ExerciseClassificationLabels.movementPattern], so where both exist the
-/// pair reads a little doubled — "Ziehen · Vertikales Ziehen". Kept because
-/// the force vector survives 62 static exercises that have no pattern anyone
-/// would call a direction, and because the shorter word is the one a reader
-/// scanning the row actually takes in.
-///
-/// Renders nothing at all when none of the five is set — a user-created
-/// exercise, or one of the 32 unclassified catalog rows — rather than drawing
-/// an empty strip above the description.
-class _ClassificationChips extends StatelessWidget {
-  final Exercise exercise;
-
-  const _ClassificationChips({required this.exercise});
-
-  @override
-  Widget build(BuildContext context) {
-    final labels = <String>[
-      for (final label in [
-        ExerciseClassificationLabels.mechanic(context, exercise.mechanic),
-        ExerciseClassificationLabels.forceVector(context, exercise.forceVector),
-        ExerciseClassificationLabels.movementPattern(
-          context,
-          exercise.movementPattern,
-        ),
-        ExerciseClassificationLabels.laterality(context, exercise.laterality),
-        ExerciseClassificationLabels.difficulty(context, exercise.difficulty),
-      ])
-        if (label != null) label,
-    ];
-    if (labels.isEmpty) return const SizedBox.shrink();
-
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    // Pill, outline and full-strength text. The first cut used
-    // surfaceContainerHighest with onSurfaceVariant on top, which against the
-    // near-black scaffold was an unlit rectangle behind grey text — three
-    // words that read as a leftover rather than as the exercise's own
-    // description of itself.
-    //
-    // Not the category badge's treatment either: that one is filled with the
-    // accent colour and there is exactly one of it per screen, so three more
-    // in the same paint would turn the top of the page into a traffic light.
-    return Padding(
-      padding: const EdgeInsets.only(bottom: DesignConstants.spacingXL),
-      child: Wrap(
-        spacing: DesignConstants.spacingS,
-        runSpacing: DesignConstants.spacingS,
-        children: [
-          for (final label in labels)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: DesignConstants.spacingS,
-              ),
-              decoration: BoxDecoration(
-                color: scheme.onSurface.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.8),
-                ),
-              ),
-              child: Text(
-                label,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryBadge extends StatelessWidget {
-  final String text;
-  const _CategoryBadge({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bg = theme.colorScheme.primary.withValues(alpha: 0.15);
-    final fg = theme.colorScheme.primary;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: fg.withValues(alpha: 0.4)),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelLarge?.copyWith(
-          color: fg,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}
-
-/// Displays front + back [BodyHighlighter] views side by side, plus a compact
-/// chip legend listing primary and secondary muscle names.
-class _ExerciseMuscleBodyView extends StatelessWidget {
-  final Exercise exercise;
-  final MuscleVocabulary vocabulary;
-  final bool showExerciseTitle;
-
-  const _ExerciseMuscleBodyView({
-    required this.exercise,
-    required this.vocabulary,
-    this.showExerciseTitle = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (exercise.isCardio) {
-      return const SizedBox.shrink();
-    }
-
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    // Muscle ids are the precise annotation; the legacy name columns are what
-    // the fifteen-name vocabulary could still express. 38 active exercises
-    // have the former and nothing in the latter.
-    final useIds = !vocabulary.isEmpty && exercise.primaryMuscleIds.isNotEmpty;
-    final primaryLabels =
-        useIds ? exercise.primaryMuscleIds : exercise.primaryMuscles;
-    final secondaryLabels =
-        useIds ? exercise.secondaryMuscleIds : exercise.secondaryMuscles;
-    final hasMuscles = primaryLabels.isNotEmpty || secondaryLabels.isNotEmpty;
-
-    if (!hasMuscles) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
-        child: Text(
-          l10n.noMusclesSpecified,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-        ),
-      );
-    }
-
-    final allHighlights = useIds
-        ? BodySlugMapper.mergedHighlightsFromIds(
-            primaryMuscleIds: exercise.primaryMuscleIds,
-            secondaryMuscleIds: exercise.secondaryMuscleIds,
-            vocabulary: vocabulary,
-          )
-        : BodySlugMapper.mergedHighlights(
-            primaryMuscles: exercise.primaryMuscles,
-            secondaryMuscles: exercise.secondaryMuscles,
-          );
-
-    final frontHighlights =
-        BodySlugMapper.forSide(allHighlights, BodySide.front);
-    final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
-
-    // The names are coarsened, the highlights above are not: a beginner reads
-    // "shoulders" while the body map still paints the single head that works.
-    final coarse =
-        context.watch<ExperienceLevelService>().usesCoarseMuscleNames;
-    final resolvedVocabulary = useIds ? vocabulary : null;
-    final primaryNames = BodySlugMapper.localizeAll(
-      context,
-      primaryLabels,
-      vocabulary: resolvedVocabulary,
-      coarse: coarse,
-    );
-    // A secondary muscle that coarsens into a primary region says nothing —
-    // "shoulders" cannot be both the point of the exercise and an aside.
-    final secondaryNames = BodySlugMapper.localizeAll(
-      context,
-      secondaryLabels,
-      vocabulary: resolvedVocabulary,
-      coarse: coarse,
-    ).where((name) => !primaryNames.contains(name)).toList(growable: false);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Body diagrams ──────────────────────────────────────────────
-        DualBodyHighlighter(
-          gender: context.watch<ProfileService>().gender.toBodyGender(),
-          frontHighlights: frontHighlights,
-          backHighlights: backHighlights,
-        ),
-        if (showExerciseTitle)
-          Padding(
-            padding: const EdgeInsets.only(top: DesignConstants.spacingL),
-            child: Text(
-              exercise.getLocalizedName(context),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        // ── Legend ─────────────────────────────────────────────────────
-        const SizedBox(height: DesignConstants.spacingS),
-        _MuscleChipRow(
-          label: l10n.primaryLabel,
-          names: primaryNames,
-          color: theme.colorScheme.primary,
-        ),
-        if (secondaryNames.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          _MuscleChipRow(
-            label: l10n.secondaryLabel,
-            names: secondaryNames,
-            color: theme.colorScheme.primary.withValues(alpha: 0.45),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-/// A labelled row of muscle names used as a text legend.
-///
-/// Takes names, not ids: which name a muscle gets — the head or its region —
-/// is decided by the caller, together with the de-duplication that decision
-/// makes necessary.
-class _MuscleChipRow extends StatelessWidget {
-  final String label;
-  final List<String> names;
-  final Color color;
-
-  const _MuscleChipRow({
-    required this.label,
-    required this.names,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 85,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.outline,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: names.map((name) {
-                return Text(
-                  name,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
       ),
     );
   }

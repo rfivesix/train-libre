@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
+
 import '../data/drift_database.dart';
 import '../features/diary/domain/models/food_item.dart';
 
@@ -25,7 +26,8 @@ class ArchiveService {
     final fiber = foodItem.fiber;
     final salt = foodItem.salt;
     final caffeine = foodItem.caffeineMgPer100ml ?? foodItem.caffeineMgPer100g;
-    final caffeineMgPer100g = foodItem.caffeineMgPer100g ?? foodItem.caffeineMgPer100ml;
+    final caffeineMgPer100g =
+        foodItem.caffeineMgPer100g ?? foodItem.caffeineMgPer100ml;
     final productQuantity = foodItem.productQuantity;
     final productQuantityUnit = foodItem.productQuantityUnit;
     final isFluid = foodItem.isFluid;
@@ -54,10 +56,11 @@ class ArchiveService {
     );
 
     // 1. Try to find the existing entry in the database
-    final existing = await (_db.select(_db.offProductsArchive)
-          ..where((tbl) => tbl.contentHash.equals(contentHash))
-          ..limit(1))
-        .getSingleOrNull();
+    final existing =
+        await (_db.select(_db.offProductsArchive)
+              ..where((tbl) => tbl.contentHash.equals(contentHash))
+              ..limit(1))
+            .getSingleOrNull();
 
     if (existing != null) {
       return existing.localId;

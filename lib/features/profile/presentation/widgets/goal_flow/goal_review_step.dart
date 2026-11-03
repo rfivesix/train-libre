@@ -145,8 +145,9 @@ class GoalReviewStep extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Text(
           label,

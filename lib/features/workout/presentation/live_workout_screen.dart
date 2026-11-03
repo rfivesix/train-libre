@@ -2,12 +2,12 @@
 // FINAL: Cardio fix + null safety + header logic
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
-import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/morph_source.dart';
 import '../data/sources/workout_local_data_source.dart';
@@ -25,7 +25,9 @@ import '../../../services/unit_service.dart';
 import 'widgets/workout_summary_bar.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
+
 import 'package:provider/provider.dart';
+
 import 'workout_summary_screen.dart';
 import 'widgets/superset_connector_button.dart';
 import 'widgets/workout_card.dart';
@@ -38,8 +40,12 @@ import 'widgets/log_mask_labels.dart';
 import 'widgets/live_workout_set_row.dart';
 import 'widgets/workout_keyboard_accessory_bar.dart';
 import 'widgets/exercise_notes_dialog.dart';
+import 'widgets/live_workout_fab.dart';
+import 'widgets/live_workout_rest_bar.dart';
 import 'widgets/routine_pause_time_dialog.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/platform_adaptive_dropdown.dart';
 
 import '../../../util/time_util.dart';
@@ -49,6 +55,7 @@ import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/training_autonomy_service.dart';
 import '../domain/models/prescription_enums.dart';
 import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models/workout_log.dart';
@@ -107,8 +114,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   Offset? _pointerDownPosition;
   Object? _touchedAnchorId;
   final ScrollController _scrollController = ScrollController();
-  late final ReorderScrollAnchor _scrollAnchor =
-      ReorderScrollAnchor(_scrollController);
+  late final ReorderScrollAnchor _scrollAnchor = ReorderScrollAnchor(
+    _scrollController,
+  );
 
   void _onDragPointerDown(PointerDownEvent event, Object anchorId, int index) {
     _touchedAnchorId = anchorId;
@@ -158,7 +166,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   double? _lastDragPointerY;
 
   void _trackReorderHover(
-      double pointerGlobalY, List<RoutineExercise> exercises) {
+    double pointerGlobalY,
+    List<RoutineExercise> exercises,
+  ) {
     _lastDragPointerY = pointerGlobalY;
     ReorderHapticFeedback.onPointerMove(
       pointerGlobalY: pointerGlobalY,
@@ -193,10 +203,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   /// Called after loading the exercises. The list is lazy, so an offscreen
   /// card has no context until it has been built. Step towards it across
   /// frames, but give control back immediately when the user touches the list.
-  void _scrollToActiveExercise({
-    int attempt = 0,
-    int? request,
-  }) {
+  void _scrollToActiveExercise({int attempt = 0, int? request}) {
     final currentRequest = request ?? ++_scrollRequest;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted ||
@@ -212,8 +219,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       final activeIndex = manager.nextOpenExerciseIndex ?? 0;
 
       final targetExercise = exercises[activeIndex];
-      final targetContext =
-          _scrollAnchor.keyFor(targetExercise.id ?? activeIndex).currentContext;
+      final targetContext = _scrollAnchor
+          .keyFor(targetExercise.id ?? activeIndex)
+          .currentContext;
 
       if (targetContext == null) {
         // The target can be above us when the user inspected a later exercise.
@@ -230,15 +238,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         final direction = firstMountedIndex > activeIndex ? -1 : 1;
         final nextOffset =
             (position.pixels + direction * position.viewportDimension).clamp(
-          position.minScrollExtent,
-          position.maxScrollExtent,
-        );
+              position.minScrollExtent,
+              position.maxScrollExtent,
+            );
         if (nextOffset == position.pixels) return;
         _scrollController.jumpTo(nextOffset);
-        _retryScroll(
-          attempt: attempt,
-          request: currentRequest,
-        );
+        _retryScroll(attempt: attempt, request: currentRequest);
         return;
       }
 
@@ -256,15 +261,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     WidgetsBinding.instance.ensureVisualUpdate();
   }
 
-  void _retryScroll({
-    required int attempt,
-    required int request,
-  }) {
+  void _retryScroll({required int attempt, required int request}) {
     if (attempt >= _maxScrollAttempts) return;
-    _scrollToActiveExercise(
-      attempt: attempt + 1,
-      request: request,
-    );
+    _scrollToActiveExercise(attempt: attempt + 1, request: request);
   }
 
   void _handleBack() {
@@ -292,28 +291,28 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.liveWorkout));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.liveWorkout,
+      ),
+    );
     _scrollController.addListener(_onScrollUpdated);
     _prAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _prSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _prAnimationController,
-      curve: Curves.elasticOut,
-      reverseCurve: Curves.easeInBack,
-    ));
+    _prSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, -1.5), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _prAnimationController,
+            curve: Curves.elasticOut,
+            reverseCurve: Curves.easeInBack,
+          ),
+        );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final manager = Provider.of<LiveWorkoutViewModel>(
-        context,
-        listen: false,
-      );
+      final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
       _prEventsSubscription = manager.prEvents.listen((event) {
         _prQueue.add(event);
         _processPRQueue();
@@ -407,24 +406,30 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       // Tapping the Live Activity body itself returns here via URL deep link
       // rather than an app-lifecycle resume, so it needs its own drain too.
       () async {
-        await Provider.of<LiveWorkoutViewModel>(context, listen: false)
-            .applyPendingLiveActivityCommands();
+        await Provider.of<LiveWorkoutViewModel>(
+          context,
+          listen: false,
+        ).applyPendingLiveActivityCommands();
         if (!mounted) return;
         _scrollToActiveExercise();
       }();
     };
     final l10n = AppLocalizations.of(context)!;
     final unitService = Provider.of<UnitService>(context);
-    Provider.of<LiveWorkoutViewModel>(context, listen: false)
-        .configureLiveActivity(
+    Provider.of<LiveWorkoutViewModel>(
+      context,
+      listen: false,
+    ).configureLiveActivity(
       localeName: Localizations.localeOf(context).toLanguageTag(),
       strings: WorkoutLiveActivityStrings(
         setPosition: (index, total) =>
             l10n.liveActivitySetPosition(index, total),
-        weightUnit:
-            unitService.isMetric ? l10n.unit_kilograms : l10n.unit_pounds,
-        distanceUnit:
-            unitService.isMetric ? l10n.unit_kilometers : l10n.unit_miles,
+        weightUnit: unitService.isMetric
+            ? l10n.unit_kilograms
+            : l10n.unit_pounds,
+        distanceUnit: unitService.isMetric
+            ? l10n.unit_kilometers
+            : l10n.unit_miles,
         repsShort: l10n.repsShort,
         rirLabel: l10n.liveActivityRirLabel,
         rpeLabel: l10n.liveActivityRpeLabel,
@@ -450,8 +455,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     super.didChangeAppLifecycleState(state);
     if (state != AppLifecycleState.resumed || !mounted) return;
     () async {
-      await Provider.of<LiveWorkoutViewModel>(context, listen: false)
-          .applyPendingLiveActivityCommands();
+      await Provider.of<LiveWorkoutViewModel>(
+        context,
+        listen: false,
+      ).applyPendingLiveActivityCommands();
       if (!mounted) return;
       _scrollToActiveExercise();
     }();
@@ -510,17 +517,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     );
     final supersetColor = membership == null
         ? null
-        : DesignConstants.supersetColors[
-            membership.groupIndex % DesignConstants.supersetColors.length];
+        : DesignConstants.supersetColors[membership.groupIndex %
+              DesignConstants.supersetColors.length];
     final exerciseTitle = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Text(
         routineExercise.exercise.getLocalizedName(context),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
     final titleContent = membership == null
@@ -640,20 +645,17 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   /// Expands the cards once the drop animation and the reorder have finished.
   void _scheduleExpandAfterDrop() {
     _expandTimer?.cancel();
-    _expandTimer = Timer(
-      kReorderDropSettleDuration,
-      () {
-        if (mounted && _isDragging && !_isDragActive) {
-          _scrollAnchor.pin(
-            _touchedAnchorId,
-            () => setState(() {
-              _isDragging = false;
-              _dynamicHeadroom = 0.0;
-            }),
-          );
-        }
-      },
-    );
+    _expandTimer = Timer(kReorderDropSettleDuration, () {
+      if (mounted && _isDragging && !_isDragActive) {
+        _scrollAnchor.pin(
+          _touchedAnchorId,
+          () => setState(() {
+            _isDragging = false;
+            _dynamicHeadroom = 0.0;
+          }),
+        );
+      }
+    });
   }
 
   Future<void> _finishWorkout() async {
@@ -747,10 +749,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         HapticFeedbackService.instance.confirmationFeedback();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => WorkoutSummaryScreen(
-              logId: logId,
-              requestReviewOnClose: true,
-            ),
+            builder: (context) =>
+                WorkoutSummaryScreen(logId: logId, requestReviewOnClose: true),
           ),
         );
       }
@@ -798,16 +798,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           required IconData icon,
           required String title,
           required String description,
-        }) =>
-            ListTile(
-              leading: Icon(icon),
-              title: Text(title),
-              subtitle: Text(description),
-              onTap: () {
-                close();
-                Navigator.of(ctx).pop(key);
-              },
-            );
+        }) => ListTile(
+          leading: Icon(icon),
+          title: Text(title),
+          subtitle: Text(description),
+          onTap: () {
+            close();
+            Navigator.of(ctx).pop(key);
+          },
+        );
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -894,11 +893,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     );
 
     if (selectedExercise != null) {
-      final lastSets =
-          await WorkoutLocalDataSource.instance.getLastSetsForExercise(
-        exerciseId: selectedExercise.uuid,
-        exerciseNameSnapshot: selectedExercise.canonicalName,
-      );
+      final lastSets = await WorkoutLocalDataSource.instance
+          .getLastSetsForExercise(
+            exerciseId: selectedExercise.uuid,
+            exerciseNameSnapshot: selectedExercise.canonicalName,
+          );
       if (mounted) {
         setState(() {
           manager.lastPerformances[selectedExercise.canonicalName] = lastSets;
@@ -924,8 +923,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       if (!mounted) return;
       if (prefs.getBool(_progressionEnginePromptKey) == true) return;
 
-      final trainingAutonomyService =
-          Provider.of<TrainingAutonomyService?>(context, listen: false);
+      final trainingAutonomyService = Provider.of<TrainingAutonomyService?>(
+        context,
+        listen: false,
+      );
       if (trainingAutonomyService == null ||
           trainingAutonomyService.level != AutonomyLevel.off) {
         return;
@@ -940,8 +941,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
         final priorSets = manager.lastPerformances[re.exercise.canonicalName];
         if (priorSets != null &&
-            priorSets
-                .any((s) => WorkoutSetPositionMapper.isWorking(s.setType))) {
+            priorSets.any(
+              (s) => WorkoutSetPositionMapper.isWorking(s.setType),
+            )) {
           hasEligibleHistoricalData = true;
           break;
         }
@@ -998,8 +1000,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 Container(
                   padding: const EdgeInsets.all(DesignConstants.spacingM),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.35),
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.35,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -1081,10 +1084,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
       if (accepted == true && mounted) {
         await trainingAutonomyService.setLevel(AutonomyLevel.suggest);
-        unawaited(TelemetryService.instance.trackSettingToggled(
-          settingKey: 'training_autonomy_level',
-          value: AutonomyLevel.suggest.name,
-        ));
+        unawaited(
+          TelemetryService.instance.trackSettingToggled(
+            settingKey: 'training_autonomy_level',
+            value: AutonomyLevel.suggest.name,
+          ),
+        );
       }
     } finally {
       _isCheckingProgressionPrompt = false;
@@ -1225,19 +1230,25 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
 
-    final isLoading =
-        context.select<LiveWorkoutViewModel, bool>((vm) => vm.isLoading);
-    final isActive =
-        context.select<LiveWorkoutViewModel, bool>((vm) => vm.isActive);
+    final isLoading = context.select<LiveWorkoutViewModel, bool>(
+      (vm) => vm.isLoading,
+    );
+    final isActive = context.select<LiveWorkoutViewModel, bool>(
+      (vm) => vm.isActive,
+    );
     final routineName = context.select<LiveWorkoutViewModel, String?>(
-        (vm) => vm.workoutLog?.routineName);
-    final exercises =
-        context.select<LiveWorkoutViewModel, List<RoutineExercise>>(
-            (vm) => vm.exercises);
+      (vm) => vm.workoutLog?.routineName,
+    );
+    final exercises = context
+        .select<LiveWorkoutViewModel, List<RoutineExercise>>(
+          (vm) => vm.exercises,
+        );
     final workoutNotes = context.select<LiveWorkoutViewModel, Map<int, String>>(
-        (vm) => vm.workoutExerciseNotes);
+      (vm) => vm.workoutExerciseNotes,
+    );
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
-        (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
+      (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone,
+    );
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
@@ -1327,9 +1338,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             centerTitle: false,
             title: Text(
               routineName ?? l10n.freeWorkoutTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             actions: [
               TextButton(
@@ -1358,8 +1368,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               final completed = vm.setLogs.values
                                   .where((s) => s.isCompleted == true)
                                   .length;
-                              final progress =
-                                  planned == 0 ? 0.0 : completed / planned;
+                              final progress = planned == 0
+                                  ? 0.0
+                                  : completed / planned;
                               return WorkoutSummaryBar(
                                 duration: vm.elapsedDuration,
                                 volume: vm.totalVolume,
@@ -1371,9 +1382,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           Divider(
                             height: 1,
                             thickness: 1,
-                            color: Theme.of(
-                              context,
-                            )
+                            color: Theme.of(context)
                                 .colorScheme
                                 .onSurfaceVariant
                                 .withValues(alpha: 0.1),
@@ -1389,10 +1398,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       if (_isDragActive) {
                                         final manager =
                                             Provider.of<LiveWorkoutViewModel>(
-                                                context,
-                                                listen: false);
+                                              context,
+                                              listen: false,
+                                            );
                                         _trackReorderHover(
-                                            e.position.dy, manager.exercises);
+                                          e.position.dy,
+                                          manager.exercises,
+                                        );
                                       }
                                     },
                                     child: ReorderableListView.builder(
@@ -1400,24 +1412,27 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       buildDefaultDragHandles: false,
                                       scrollCacheExtent:
                                           const ScrollCacheExtent.pixels(
-                                              1500.0),
+                                            1500.0,
+                                          ),
                                       header: ReorderHeadroom(
                                         height: _isDragging
                                             ? _dynamicHeadroom
                                             : 0.0,
                                       ),
                                       padding: EdgeInsets.only(
-                                        bottom: (showRestBar
+                                        bottom:
+                                            (showRestBar
                                                 ? 220.0
                                                 : DesignConstants
-                                                    .bottomContentSpacer) +
+                                                      .bottomContentSpacer) +
                                             MediaQuery.paddingOf(context)
                                                 .bottom,
                                       ),
                                       onReorderStart: (index) {
                                         _isDragActive = true;
                                         ReorderHapticFeedback.onDragStart(
-                                            index);
+                                          index,
+                                        );
                                         _scrollAnchor.discard();
                                         _collapseTimer?.cancel();
                                         _expandTimer?.cancel();
@@ -1432,47 +1447,59 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                         ReorderHapticFeedback.onDragEnd();
                                         _scheduleExpandAfterDrop();
                                       },
-                                      proxyDecorator: (Widget child, int index,
-                                          Animation<double> animation) {
-                                        final l10n =
-                                            AppLocalizations.of(context)!;
-                                        final theme = Theme.of(context);
-                                        if (index >= 0 &&
-                                            index < exercises.length) {
-                                          final routineExercise =
-                                              exercises[index];
-                                          final membership =
-                                              supersetMembershipAt(
-                                            exercises,
-                                            index,
-                                          );
-                                          final supersetColor = membership ==
-                                                  null
-                                              ? null
-                                              : DesignConstants.supersetColors[
-                                                  membership.groupIndex %
-                                                      DesignConstants
-                                                          .supersetColors
-                                                          .length];
-                                          final proxyChild = WorkoutCard(
-                                            accentColor: supersetColor,
-                                            child: _buildExerciseCardHeader(
+                                      proxyDecorator:
+                                          (
+                                            Widget child,
+                                            int index,
+                                            Animation<double> animation,
+                                          ) {
+                                            final l10n = AppLocalizations.of(
                                               context,
-                                              routineExercise,
-                                              index,
-                                              l10n,
-                                              theme.textTheme,
-                                              theme.colorScheme,
-                                              onEditPauseTime: null,
-                                              isProxy: true,
-                                            ),
-                                          );
-                                          return buildReorderDragProxy(
-                                              context, proxyChild, animation);
-                                        }
-                                        return buildReorderDragProxy(
-                                            context, child, animation);
-                                      },
+                                            )!;
+                                            final theme = Theme.of(context);
+                                            if (index >= 0 &&
+                                                index < exercises.length) {
+                                              final routineExercise =
+                                                  exercises[index];
+                                              final membership =
+                                                  supersetMembershipAt(
+                                                    exercises,
+                                                    index,
+                                                  );
+                                              final supersetColor =
+                                                  membership == null
+                                                  ? null
+                                                  : DesignConstants
+                                                        .supersetColors[membership
+                                                            .groupIndex %
+                                                        DesignConstants
+                                                            .supersetColors
+                                                            .length];
+                                              final proxyChild = WorkoutCard(
+                                                accentColor: supersetColor,
+                                                child: _buildExerciseCardHeader(
+                                                  context,
+                                                  routineExercise,
+                                                  index,
+                                                  l10n,
+                                                  theme.textTheme,
+                                                  theme.colorScheme,
+                                                  onEditPauseTime: null,
+                                                  isProxy: true,
+                                                ),
+                                              );
+                                              return buildReorderDragProxy(
+                                                context,
+                                                proxyChild,
+                                                animation,
+                                              );
+                                            }
+                                            return buildReorderDragProxy(
+                                              context,
+                                              child,
+                                              animation,
+                                            );
+                                          },
                                       onReorderItem: _onReorderItem,
                                       itemCount: exercises.length,
                                       itemBuilder: (context, index) {
@@ -1486,18 +1513,21 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             ?.trim();
                                         final hasExerciseNote =
                                             exerciseNote?.isNotEmpty == true;
-                                        final showE1rmSummary =
-                                            !_isCardio(routineExercise);
+                                        final showE1rmSummary = !_isCardio(
+                                          routineExercise,
+                                        );
                                         final membership = supersetMembershipAt(
                                           exercises,
                                           index,
                                         );
                                         final supersetColor = membership == null
                                             ? null
-                                            : DesignConstants.supersetColors[
-                                                membership.groupIndex %
-                                                    DesignConstants
-                                                        .supersetColors.length];
+                                            : DesignConstants
+                                                  .supersetColors[membership
+                                                      .groupIndex %
+                                                  DesignConstants
+                                                      .supersetColors
+                                                      .length];
 
                                         final isDeleting = _deletingExerciseIds
                                             .contains(routineExercise.id);
@@ -1514,16 +1544,20 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             child: isDeleting
                                                 ? const SizedBox(
                                                     width: double.infinity,
-                                                    height: 0)
+                                                    height: 0,
+                                                  )
                                                 : AnimatedOpacity(
                                                     duration: const Duration(
-                                                        milliseconds: 180),
+                                                      milliseconds: 180,
+                                                    ),
                                                     curve: Curves.easeOut,
-                                                    opacity:
-                                                        isDeleting ? 0.0 : 1.0,
+                                                    opacity: isDeleting
+                                                        ? 0.0
+                                                        : 1.0,
                                                     child: RepaintBoundary(
                                                       key: ValueKey(
-                                                          routineExercise.id),
+                                                        routineExercise.id,
+                                                      ),
                                                       child: WorkoutCard(
                                                         accentColor:
                                                             supersetColor,
@@ -1551,60 +1585,54 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                   editPauseTime,
                                                             ),
                                                             Selector<
-                                                                LiveWorkoutViewModel,
-                                                                int?>(
-                                                              selector: (_,
-                                                                      vm) =>
-                                                                  vm.pauseTimes[
-                                                                      routineExercise
-                                                                          .id!],
-                                                              builder: (context,
-                                                                  pauseSeconds,
-                                                                  _) {
+                                                              LiveWorkoutViewModel,
+                                                              int?
+                                                            >(
+                                                              selector: (_, vm) =>
+                                                                  vm.pauseTimes[routineExercise
+                                                                      .id!],
+                                                              builder: (context, pauseSeconds, _) {
                                                                 if (_isDragging) {
-                                                                  return const SizedBox
-                                                                      .shrink();
+                                                                  return const SizedBox.shrink();
                                                                 }
-                                                                final noteRow =
-                                                                    InkWell(
+                                                                final noteRow = InkWell(
                                                                   onTap: () =>
                                                                       _editExerciseNotes(
-                                                                          context,
-                                                                          routineExercise),
+                                                                        context,
+                                                                        routineExercise,
+                                                                      ),
                                                                   borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              8),
-                                                                  child:
-                                                                      Padding(
-                                                                    padding: const EdgeInsets
-                                                                        .symmetric(
-                                                                        vertical:
-                                                                            4),
+                                                                      BorderRadius.circular(
+                                                                        8,
+                                                                      ),
+                                                                  child: Padding(
+                                                                    padding:
+                                                                        const EdgeInsets.symmetric(
+                                                                          vertical:
+                                                                              4,
+                                                                        ),
                                                                     child: Text(
                                                                       hasExerciseNote
                                                                           ? exerciseNote!
-                                                                          : l10n
-                                                                              .workoutNoteAddHint,
-                                                                      maxLines: hasExerciseNote
+                                                                          : l10n.workoutNoteAddHint,
+                                                                      maxLines:
+                                                                          hasExerciseNote
                                                                           ? null
                                                                           : 1,
-                                                                      overflow: hasExerciseNote
-                                                                          ? TextOverflow
-                                                                              .visible
-                                                                          : TextOverflow
-                                                                              .ellipsis,
+                                                                      overflow:
+                                                                          hasExerciseNote
+                                                                          ? TextOverflow.visible
+                                                                          : TextOverflow.ellipsis,
                                                                       style: textTheme
                                                                           .bodyMedium
                                                                           ?.copyWith(
-                                                                        color: colorScheme
-                                                                            .onSurfaceVariant,
-                                                                      ),
+                                                                            color:
+                                                                                colorScheme.onSurfaceVariant,
+                                                                          ),
                                                                     ),
                                                                   ),
                                                                 );
-                                                                final timerRow =
-                                                                    _buildPauseTimerRow(
+                                                                final timerRow = _buildPauseTimerRow(
                                                                   pauseSeconds:
                                                                       pauseSeconds,
                                                                   l10n: l10n,
@@ -1614,31 +1642,37 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                       colorScheme,
                                                                   onTap: () =>
                                                                       editPauseTime(
-                                                                          routineExercise),
+                                                                        routineExercise,
+                                                                      ),
                                                                 );
 
                                                                 return Padding(
                                                                   padding:
-                                                                      const EdgeInsets
-                                                                          .fromLTRB(
-                                                                          16,
-                                                                          0,
-                                                                          16,
-                                                                          12),
-                                                                  child: hasExerciseNote
+                                                                      const EdgeInsets.fromLTRB(
+                                                                        16,
+                                                                        0,
+                                                                        16,
+                                                                        12,
+                                                                      ),
+                                                                  child:
+                                                                      hasExerciseNote
                                                                       ? Column(
                                                                           crossAxisAlignment:
                                                                               CrossAxisAlignment.start,
                                                                           children: [
                                                                             noteRow,
-                                                                            const SizedBox(height: 2),
+                                                                            const SizedBox(
+                                                                              height: 2,
+                                                                            ),
                                                                             timerRow,
                                                                           ],
                                                                         )
                                                                       : Row(
                                                                           children: [
                                                                             timerRow,
-                                                                            const SizedBox(width: 16),
+                                                                            const SizedBox(
+                                                                              width: 16,
+                                                                            ),
                                                                             Expanded(
                                                                               child: Align(
                                                                                 alignment: Alignment.centerRight,
@@ -1651,19 +1685,18 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                               },
                                                             ),
                                                             _isDragging
-                                                                ? const SizedBox
-                                                                    .shrink()
+                                                                ? const SizedBox.shrink()
                                                                 : AnimatedSize(
                                                                     duration: const Duration(
-                                                                        milliseconds:
-                                                                            250),
+                                                                      milliseconds:
+                                                                          250,
+                                                                    ),
                                                                     curve: Curves
                                                                         .easeInOut,
                                                                     alignment:
                                                                         Alignment
                                                                             .topCenter,
-                                                                    child:
-                                                                        Column(
+                                                                    child: Column(
                                                                       crossAxisAlignment:
                                                                           CrossAxisAlignment
                                                                               .start,
@@ -1676,16 +1709,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                 manager,
                                                                           ),
                                                                         Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.symmetric(
+                                                                          padding: const EdgeInsets.symmetric(
                                                                             horizontal:
                                                                                 0.0,
                                                                           ),
-                                                                          child: Selector<
-                                                                              LiveWorkoutViewModel,
-                                                                              Map<int, SetLog>>(
-                                                                            selector:
-                                                                                (context, vm) {
+                                                                          child: Selector<LiveWorkoutViewModel, Map<int, SetLog>>(
+                                                                            selector: (context, vm) {
                                                                               final map = <int, SetLog>{};
                                                                               for (final template in routineExercise.setTemplates) {
                                                                                 final log = vm.setLogs[template.id];
@@ -1695,8 +1724,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                               }
                                                                               return map;
                                                                             },
-                                                                            shouldRebuild:
-                                                                                (prev, next) {
+                                                                            shouldRebuild: (prev, next) {
                                                                               if (prev.length != next.length) {
                                                                                 return true;
                                                                               }
@@ -1706,15 +1734,19 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                 if (prevLog == null || nextLog == null) {
                                                                                   return true;
                                                                                 }
-                                                                                if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted || prevLog.weightKg != nextLog.weightKg || prevLog.reps != nextLog.reps || prevLog.prescribedWeight != nextLog.prescribedWeight || prevLog.prescribedRepMin != nextLog.prescribedRepMin || prevLog.progressionData != nextLog.progressionData) {
+                                                                                if (prevLog.setType != nextLog.setType ||
+                                                                                    prevLog.isCompleted != nextLog.isCompleted ||
+                                                                                    prevLog.weightKg != nextLog.weightKg ||
+                                                                                    prevLog.reps != nextLog.reps ||
+                                                                                    prevLog.prescribedWeight != nextLog.prescribedWeight ||
+                                                                                    prevLog.prescribedRepMin != nextLog.prescribedRepMin ||
+                                                                                    prevLog.progressionData != nextLog.progressionData) {
                                                                                   return true;
                                                                                 }
                                                                               }
                                                                               return false;
                                                                             },
-                                                                            builder: (context,
-                                                                                selection,
-                                                                                child) {
+                                                                            builder: (context, selection, child) {
                                                                               final exerciseSetLogs = selection;
                                                                               return AnimatedSize(
                                                                                 duration: const Duration(milliseconds: 260),
@@ -1724,10 +1756,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
                                                                                     // FIX: Insert header row dynamically.
-                                                                                    _buildHeaderRow(
-                                                                                      routineExercise,
-                                                                                      l10n,
-                                                                                    ),
+                                                                                    _buildHeaderRow(routineExercise, l10n),
 
                                                                                     // Set Rows
                                                                                     ...routineExercise.setTemplates.asMap().entries.map((setEntry) {
@@ -1738,11 +1767,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                       if (setLog == null) {
                                                                                         return const SizedBox.shrink();
                                                                                       }
-                                                                                      final currentSetTypes = routineExercise.setTemplates.map((currentTemplate) => exerciseSetLogs[currentTemplate.id]?.setType ?? currentTemplate.setType).toList();
-                                                                                      final position = WorkoutSetPositionMapper.positionAt(
-                                                                                        currentSetTypes,
-                                                                                        setEntry.key,
-                                                                                      );
+                                                                                      final currentSetTypes = routineExercise.setTemplates
+                                                                                          .map(
+                                                                                            (currentTemplate) => exerciseSetLogs[currentTemplate.id]?.setType ?? currentTemplate.setType,
+                                                                                          )
+                                                                                          .toList();
+                                                                                      final position = WorkoutSetPositionMapper.positionAt(currentSetTypes, setEntry.key);
 
                                                                                       return LiveWorkoutSetRow(
                                                                                         setIndex: position.ordinal,
@@ -1758,9 +1788,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                       );
                                                                                     }),
                                                                                     Padding(
-                                                                                      padding: const EdgeInsets.symmetric(
-                                                                                        horizontal: 16.0,
-                                                                                      ),
+                                                                                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                                                                       child: Row(
                                                                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                         children: [
@@ -1772,10 +1800,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                           if (index + 1 < exercises.length)
                                                                                             Flexible(
                                                                                               child: SupersetConnectorButton(
-                                                                                                key: ValueKey(
-                                                                                                  'live_superset_connector_$index',
-                                                                                                ),
-                                                                                                isConnected: routineExercise.supersetGroup != null && routineExercise.supersetGroup == exercises[index + 1].supersetGroup,
+                                                                                                key: ValueKey('live_superset_connector_$index'),
+                                                                                                isConnected:
+                                                                                                    routineExercise.supersetGroup != null &&
+                                                                                                    routineExercise.supersetGroup == exercises[index + 1].supersetGroup,
                                                                                                 onPressed: () => manager.toggleSupersetAfter(index),
                                                                                               ),
                                                                                             ),
@@ -1830,14 +1858,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           top: false,
                           bottom: false,
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: 12.0,
-                            ),
+                            padding: const EdgeInsets.only(bottom: 12.0),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                _HiddenWhileKeyboardVisible(
+                                HiddenWhileKeyboardVisible(
                                   child: AnimatedBuilder(
                                     animation: manager,
                                     builder: (context, _) {
@@ -1849,20 +1875,22 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                           isRunning || isDoneBanner;
 
                                       return AnimatedSlide(
-                                        duration:
-                                            const Duration(milliseconds: 320),
+                                        duration: const Duration(
+                                          milliseconds: 320,
+                                        ),
                                         curve: Curves.easeInOutCubic,
                                         offset: showRestBar
                                             ? Offset.zero
                                             : const Offset(0.0, 1.25),
                                         child: AnimatedOpacity(
-                                          duration:
-                                              const Duration(milliseconds: 280),
+                                          duration: const Duration(
+                                            milliseconds: 280,
+                                          ),
                                           curve: Curves.easeInOutCubic,
                                           opacity: showRestBar ? 1.0 : 0.0,
                                           child: IgnorePointer(
                                             ignoring: !showRestBar,
-                                            child: _LiveWorkoutRestBar(
+                                            child: LiveWorkoutRestBar(
                                               isRunning: isRunning,
                                               isDoneBanner: isDoneBanner,
                                               remainingRestSeconds:
@@ -1893,13 +1921,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           curve: Curves.easeInOutCubic,
                           bottom: showRestBar
                               ? (20.0 +
-                                  DesignConstants.workoutOverlayHeight +
-                                  8.0) // 12.0px outer padding + 8.0px inner bottom margin + 64.0px rest bar height + 8.0px gap = 92.0px
+                                    DesignConstants.workoutOverlayHeight +
+                                    8.0) // 12.0px outer padding + 8.0px inner bottom margin + 64.0px rest bar height + 8.0px gap = 92.0px
                               : (12.0 + MediaQuery.paddingOf(context).bottom),
                           right: 16.0,
                           child: RepaintBoundary(
-                            child: _HiddenWhileKeyboardVisible(
-                              child: _LiveWorkoutFab(onPressed: _addExercise),
+                            child: HiddenWhileKeyboardVisible(
+                              child: LiveWorkoutFab(onPressed: _addExercise),
                             ),
                           ),
                         );
@@ -1918,7 +1946,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
                     // --- Keyboard Done Accessory Bar ---
                     const WorkoutKeyboardAccessoryBar(
-                        showProgressionToggle: true),
+                      showProgressionToggle: true,
+                    ),
                   ],
                 ),
         ),
@@ -1940,489 +1969,5 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final match = RegExp(r'[-+]?\d+(?:[.,]\d+)?').firstMatch(text);
     if (match == null) return null;
     return double.tryParse(match.group(0)!.replaceAll(',', '.'));
-  }
-}
-
-class _LiveWorkoutFab extends StatefulWidget {
-  final void Function({
-    BuildContext? sourceContext,
-    WidgetBuilder? sourceBuilder,
-    void Function(bool hidden)? onSourceVisibilityChanged,
-  }) onPressed;
-
-  const _LiveWorkoutFab({required this.onPressed});
-
-  @override
-  State<_LiveWorkoutFab> createState() => _LiveWorkoutFabState();
-}
-
-/// Removes its child while the software keyboard is up.
-///
-/// The bottom of the live workout screen carries two floating elements — the
-/// add-exercise button and the rest bar — and both sit exactly where the
-/// keyboard appears. Shared so the two cannot drift apart.
-class _HiddenWhileKeyboardVisible extends StatefulWidget {
-  final Widget child;
-
-  const _HiddenWhileKeyboardVisible({required this.child});
-
-  @override
-  State<_HiddenWhileKeyboardVisible> createState() =>
-      _HiddenWhileKeyboardVisibleState();
-}
-
-class _HiddenWhileKeyboardVisibleState
-    extends State<_HiddenWhileKeyboardVisible> with WidgetsBindingObserver {
-  double _keyboardHeight = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateKeyboardHeight();
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    _updateKeyboardHeight();
-  }
-
-  void _updateKeyboardHeight() {
-    if (!mounted) return;
-    final view = View.of(context);
-    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
-    if (newHeight != _keyboardHeight) {
-      setState(() {
-        _keyboardHeight = newHeight;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      _keyboardHeight > 0 ? const SizedBox.shrink() : widget.child;
-}
-
-class _LiveWorkoutFabState extends State<_LiveWorkoutFab> {
-  bool _isFabHidden = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final showRestBar = context.select<LiveWorkoutViewModel, bool>(
-        (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
-
-    Widget buildFabContent({VoidCallback? onPressed}) {
-      final fab = GlassFab(
-        label: AppLocalizations.of(context)!.fabAddExercise,
-        onPressed: onPressed ?? () {},
-      );
-
-      if (showRestBar) {
-        return ClipPath(
-          clipper: const _LiveWorkoutFabShadowClipper(),
-          child: fab,
-        );
-      }
-      return fab;
-    }
-
-    return Opacity(
-      opacity: _isFabHidden ? 0.0 : 1.0,
-      child: IgnorePointer(
-        ignoring: _isFabHidden,
-        child: Builder(
-          builder: (fabCtx) => buildFabContent(
-            onPressed: () => widget.onPressed(
-              sourceContext: fabCtx,
-              sourceBuilder: (_) => buildFabContent(),
-              onSourceVisibilityChanged: (hidden) {
-                if (mounted) setState(() => _isFabHidden = hidden);
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A clipper that crops the FAB drop shadow at the bottom (exactly 8.0 logical
-/// pixels below the FAB edge) so it terminates where the rest bar begins.
-class _LiveWorkoutFabShadowClipper extends CustomClipper<Path> {
-  const _LiveWorkoutFabShadowClipper();
-
-  @override
-  Path getClip(Size size) {
-    final Path path = Path();
-    path.addRect(Rect.fromLTRB(
-      -50.0,
-      -50.0,
-      size.width + 50.0,
-      size.height +
-          8.0, // cut off exactly at the top of the rest bar (8.0px below FAB bottom)
-    ));
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant _LiveWorkoutFabShadowClipper oldClipper) => false;
-}
-
-class _LiveWorkoutRestBar extends StatefulWidget {
-  const _LiveWorkoutRestBar({
-    required this.isRunning,
-    required this.isDoneBanner,
-    required this.remainingRestSeconds,
-    required this.onAdjustRestTime,
-    required this.onCancelRest,
-  });
-
-  final bool isRunning;
-  final bool isDoneBanner;
-  final int remainingRestSeconds;
-  final void Function(int seconds) onAdjustRestTime;
-  final VoidCallback onCancelRest;
-
-  @override
-  State<_LiveWorkoutRestBar> createState() => _LiveWorkoutRestBarState();
-}
-
-class _LiveWorkoutRestBarState extends State<_LiveWorkoutRestBar>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _morphController;
-  late final Animation<double> _morphAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _morphController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 360),
-      value: widget.isDoneBanner ? 1.0 : 0.0,
-    );
-    _morphAnimation = CurvedAnimation(
-      parent: _morphController,
-      curve: Curves.easeInOutCubic,
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant _LiveWorkoutRestBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isDoneBanner && !oldWidget.isDoneBanner) {
-      _morphController.forward(from: 0.0);
-    } else if (!widget.isDoneBanner && oldWidget.isDoneBanner) {
-      _morphController.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _morphController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final isDark = theme.brightness == Brightness.dark;
-    final double r = DesignConstants.workoutOverlayHeight / 2;
-
-    final defaultGlass = DesignConstants.liquidGlassSettings(isDark);
-    final doneGlassColor = isDark
-        ? const Color(0xFF1B5E20).withValues(alpha: 0.75)
-        : const Color(0xFF81C784).withValues(alpha: 0.70);
-
-    final doneGlass = LiquidGlassSettings(
-      thickness: 25,
-      blur: 3.5,
-      glassColor: doneGlassColor,
-      lightIntensity: isDark ? 0.70 : 0.85,
-      saturation: 1.2,
-      ambientRim: 0.15,
-    );
-
-    final Color doneTextColor = isDark ? Colors.white : Colors.black;
-    final Color doneIconColor =
-        isDark ? const Color(0xFF69F0AE) : const Color(0xFF2E7D32);
-
-    final restSeconds = widget.remainingRestSeconds;
-    final minutes = restSeconds ~/ 60;
-    final seconds = restSeconds % 60;
-    final timerStr =
-        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: SizedBox(
-        height: DesignConstants.workoutOverlayHeight,
-        child: Stack(
-          children: [
-            // Drop shadow base
-            Positioned.fill(
-              child: ClipPath(
-                clipper: ShadowOuterClipper(borderRadius: r),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(r),
-                    boxShadow: DesignConstants.glassShadow(isDark),
-                  ),
-                ),
-              ),
-            ),
-
-            AnimatedBuilder(
-              animation: _morphAnimation,
-              builder: (context, _) {
-                final t = _morphAnimation.value;
-
-                return Stack(
-                  children: [
-                    // Layer 1: Dark Glass Timer Pill
-                    if (t < 1.0)
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: (1.0 - t).clamp(0.0, 1.0),
-                          child: Transform.scale(
-                            scale: 1.0 - (0.04 * t),
-                            child: IgnorePointer(
-                              ignoring: t > 0.5,
-                              child: GlassAdaptiveScope(
-                                maxQuality: DesignConstants.defaultGlassQuality,
-                                minQuality: DesignConstants.minGlassQuality,
-                                child: GlassContainer(
-                                  useOwnLayer: true,
-                                  height: DesignConstants.workoutOverlayHeight,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0, vertical: 12.0),
-                                  shape: LiquidRoundedSuperellipse(
-                                      borderRadius: r),
-                                  quality: DesignConstants.defaultGlassQuality,
-                                  settings: defaultGlass,
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      // -15 Button
-                                      SizedBox(
-                                        height: 38,
-                                        width: 48,
-                                        child: TextButton(
-                                          style: TextButton.styleFrom(
-                                            minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                            backgroundColor: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.08)
-                                                : Colors.black
-                                                    .withValues(alpha: 0.06),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              side: BorderSide(
-                                                color: isDark
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.1)
-                                                    : Colors.black.withValues(
-                                                        alpha: 0.05),
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          onPressed: () =>
-                                              widget.onAdjustRestTime(-15),
-                                          child: Text(
-                                            "-15",
-                                            style: TextStyle(
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      // Timer Text
-                                      Container(
-                                        height: 38,
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          timerStr,
-                                          style: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: theme.colorScheme.onSurface,
-                                            fontFeatures: const [
-                                              FontFeature.tabularFigures()
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      // +15 Button
-                                      SizedBox(
-                                        height: 38,
-                                        width: 48,
-                                        child: TextButton(
-                                          style: TextButton.styleFrom(
-                                            minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                            backgroundColor: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.08)
-                                                : Colors.black
-                                                    .withValues(alpha: 0.06),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              side: BorderSide(
-                                                color: isDark
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.1)
-                                                    : Colors.black.withValues(
-                                                        alpha: 0.05),
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          onPressed: () =>
-                                              widget.onAdjustRestTime(15),
-                                          child: Text(
-                                            "+15",
-                                            style: TextStyle(
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      // Skip Button
-                                      SizedBox(
-                                        height: 38,
-                                        child: AppButton.primary(
-                                          onPressed: widget.onCancelRest,
-                                          label: l10n.skipButton,
-                                          tooltip: l10n.skipButton,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    // Layer 2: Completed "Pause is over" Pill
-                    if (t > 0.0)
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: t.clamp(0.0, 1.0),
-                          child: Transform.scale(
-                            scale: 0.95 + (0.05 * t),
-                            child: IgnorePointer(
-                              ignoring: t <= 0.5,
-                              child: GlassAdaptiveScope(
-                                maxQuality: DesignConstants.defaultGlassQuality,
-                                minQuality: DesignConstants.minGlassQuality,
-                                child: GlassContainer(
-                                  useOwnLayer: true,
-                                  height: DesignConstants.workoutOverlayHeight,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0, vertical: 12.0),
-                                  shape: LiquidRoundedSuperellipse(
-                                      borderRadius: r),
-                                  quality: DesignConstants.defaultGlassQuality,
-                                  settings: doneGlass,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(LucideIcons.circle_check,
-                                              color: doneIconColor),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            l10n.restOverLabel,
-                                            style: TextStyle(
-                                              color: doneTextColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 38,
-                                        child: TextButton(
-                                          style: TextButton.styleFrom(
-                                            minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                            foregroundColor: doneTextColor,
-                                            backgroundColor: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.15)
-                                                : Colors.black
-                                                    .withValues(alpha: 0.08),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              side: BorderSide(
-                                                color: isDark
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.20)
-                                                    : Colors.black.withValues(
-                                                        alpha: 0.08),
-                                              ),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 16),
-                                          ),
-                                          onPressed: widget.onCancelRest,
-                                          child: Text(
-                                            l10n.snackbar_button_ok,
-                                            style: TextStyle(
-                                              color: doneTextColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

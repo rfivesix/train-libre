@@ -57,7 +57,10 @@ class DepthLegend extends StatelessWidget {
             Text(
               '${render.minDistanceCm.toStringAsFixed(1)} cm',
               style: TextStyle(
-                  fontSize: 11.5, fontWeight: FontWeight.w700, color: ink),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: ink,
+              ),
             ),
             Text(
               '${render.bandCount} Stufen · ${render.stepCm.toStringAsFixed(1)} cm',
@@ -66,7 +69,10 @@ class DepthLegend extends StatelessWidget {
             Text(
               '${render.maxDistanceCm.toStringAsFixed(1)} cm',
               style: TextStyle(
-                  fontSize: 11.5, fontWeight: FontWeight.w700, color: ink),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: ink,
+              ),
             ),
           ],
         ),

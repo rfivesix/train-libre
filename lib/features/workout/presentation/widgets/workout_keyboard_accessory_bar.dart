@@ -13,8 +13,10 @@ import '../../../../util/design_constants.dart';
 
 /// Glass accessory controls shown above the keyboard on workout screens.
 class WorkoutKeyboardAccessoryBar extends StatefulWidget {
-  const WorkoutKeyboardAccessoryBar(
-      {super.key, this.showProgressionToggle = false});
+  const WorkoutKeyboardAccessoryBar({
+    super.key,
+    this.showProgressionToggle = false,
+  });
 
   final bool showProgressionToggle;
 
@@ -24,7 +26,8 @@ class WorkoutKeyboardAccessoryBar extends StatefulWidget {
 }
 
 class _WorkoutKeyboardAccessoryBarState
-    extends State<WorkoutKeyboardAccessoryBar> with WidgetsBindingObserver {
+    extends State<WorkoutKeyboardAccessoryBar>
+    with WidgetsBindingObserver {
   double _keyboardHeight = 0;
 
   @override
@@ -32,8 +35,9 @@ class _WorkoutKeyboardAccessoryBarState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     FocusManager.instance.addListener(_onFocusChanged);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _updateKeyboardHeight());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _updateKeyboardHeight(),
+    );
   }
 
   @override
@@ -59,8 +63,8 @@ class _WorkoutKeyboardAccessoryBarState
 
   void _insertHyphen() {
     final focusContext = FocusManager.instance.primaryFocus?.context;
-    final editable =
-        focusContext?.findAncestorWidgetOfExactType<EditableText>();
+    final editable = focusContext
+        ?.findAncestorWidgetOfExactType<EditableText>();
     if (editable == null ||
         editable.keyboardType.index != TextInputType.number.index) {
       return;
@@ -211,15 +215,15 @@ class _KeyboardGlassButton extends StatelessWidget {
               child: neuralCloud
                   ? _buildIcon(foreground)
                   : icon == null
-                      ? Text(
-                          label,
-                          style: TextStyle(
-                            color: foreground,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : _buildIcon(foreground),
+                  ? Text(
+                      label,
+                      style: TextStyle(
+                        color: foreground,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : _buildIcon(foreground),
             ),
           )
         : Padding(
@@ -230,15 +234,15 @@ class _KeyboardGlassButton extends StatelessWidget {
                 child: neuralCloud
                     ? _buildIcon(foreground)
                     : icon == null
-                        ? Text(
-                            label,
-                            style: TextStyle(
-                              color: foreground,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : _buildIcon(foreground),
+                    ? Text(
+                        label,
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : _buildIcon(foreground),
               ),
             ),
           );

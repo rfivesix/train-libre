@@ -14,7 +14,9 @@ void main() {
     DatabaseHelper.setDriftDb(database);
     addTearDown(database.close);
 
-    await database.into(database.products).insert(
+    await database
+        .into(database.products)
+        .insert(
           const ProductsCompanion(
             barcode: drift.Value('recipe-test-rice'),
             name: drift.Value('Rice'),

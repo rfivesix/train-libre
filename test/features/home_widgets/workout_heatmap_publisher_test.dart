@@ -14,16 +14,15 @@ void main() {
     String name,
     List<String> muscles, {
     String category = 'Strength',
-  }) =>
-      Exercise(
-        texts: {
-          'de': ExerciseText(name: name, description: ''),
-          'en': ExerciseText(name: name, description: ''),
-        },
-        categoryName: category,
-        primaryMuscles: muscles,
-        secondaryMuscles: const [],
-      );
+  }) => Exercise(
+    texts: {
+      'de': ExerciseText(name: name, description: ''),
+      'en': ExerciseText(name: name, description: ''),
+    },
+    categoryName: category,
+    primaryMuscles: muscles,
+    secondaryMuscles: const [],
+  );
 
   test('renders a heatmap without a BuildContext', () async {
     final bytes = await const WorkoutHeatmapPublisher().renderPng(
@@ -34,13 +33,21 @@ void main() {
       gender: BodyGender.male,
     );
 
-    expect(bytes, isNotNull,
-        reason: 'the offscreen pipeline must produce an image');
     expect(
-      bytes!.sublist(0, 8),
-      [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
-      reason: 'a real PNG header',
+      bytes,
+      isNotNull,
+      reason: 'the offscreen pipeline must produce an image',
     );
+    expect(bytes!.sublist(0, 8), [
+      0x89,
+      0x50,
+      0x4E,
+      0x47,
+      0x0D,
+      0x0A,
+      0x1A,
+      0x0A,
+    ], reason: 'a real PNG header');
     // 240pt at 3x with two shaded silhouettes on it cannot compress to a
     // handful of bytes — that would mean an empty canvas.
     expect(bytes.length, greaterThan(2000));
@@ -52,7 +59,7 @@ void main() {
     for (var i = 0; i < 3; i++) {
       final bytes = await const WorkoutHeatmapPublisher().renderPng(
         exercises: [
-          exercise('Deadlift', ['hamstrings', 'lower back'])
+          exercise('Deadlift', ['hamstrings', 'lower back']),
         ],
         gender: BodyGender.female,
       );
@@ -63,7 +70,7 @@ void main() {
   test('draws nothing for a session with no muscles to shade', () async {
     final bytes = await const WorkoutHeatmapPublisher().renderPng(
       exercises: [
-        exercise('Treadmill', ['cardio'], category: 'Cardio')
+        exercise('Treadmill', ['cardio'], category: 'Cardio'),
       ],
       gender: BodyGender.male,
     );

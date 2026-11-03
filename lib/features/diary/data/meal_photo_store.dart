@@ -42,10 +42,7 @@ class MealPhotoStore {
   Future<MealPhotoPaths?> save(File source) async {
     final stored = await AppMediaStore.instance.save(source, domain: _domain);
     if (stored == null) return null;
-    return MealPhotoPaths(
-      photoPath: stored.path,
-      thumbPath: stored.thumbPath,
-    );
+    return MealPhotoPaths(photoPath: stored.path, thumbPath: stored.thumbPath);
   }
 
   /// Turns a stored path into a file. Null before [ensureInitialized] has run
@@ -61,11 +58,9 @@ class MealPhotoStore {
       AppMediaStore.thumbPathFor(photoPath);
 
   /// Deletes every file in the photo folder that no meal entry refers to.
-  Future<int> pruneOrphans(Set<String> referencedPaths) =>
-      AppMediaStore.instance.pruneOrphans(
-        domain: _domain,
-        referencedPaths: referencedPaths,
-      );
+  Future<int> pruneOrphans(Set<String> referencedPaths) => AppMediaStore
+      .instance
+      .pruneOrphans(domain: _domain, referencedPaths: referencedPaths);
 
   /// Best-effort removal of every file behind a meal entry.
   ///

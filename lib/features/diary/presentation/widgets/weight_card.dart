@@ -42,6 +42,8 @@ class _WeightCardState extends State<WeightCard>
   bool _editing = false;
   bool _saving = false;
   bool _saveFailed = false;
+  bool _morphingToMeasurements = false;
+  db.Measurement? _morphMeasurementSnapshot;
 
   /// Days without a weigh-in after which the card nudges again. Kept well
   /// below the recommendation engine's `sparse_weight_logs` threshold (fewer
@@ -124,7 +126,13 @@ class _WeightCardState extends State<WeightCard>
     final date = DateUtils.isSameDay(day, now)
         ? now
         : DateTime(
-            day.year, day.month, day.day, now.hour, now.minute, now.second);
+            day.year,
+            day.month,
+            day.day,
+            now.hour,
+            now.minute,
+            now.second,
+          );
     setState(() {
       _saving = true;
       _saveFailed = false;
@@ -157,13 +165,15 @@ class _WeightCardState extends State<WeightCard>
         if (snapshot.hasError && !isSkeleton) {
           return AppCardContainer(
             padding: const EdgeInsets.all(DesignConstants.spacingM),
-            child: Column(children: [
-              Text(l10n.diaryWeightLoadError),
-              TextButton(
-                onPressed: () => setState(_subscribe),
-                child: Text(l10n.diaryWeightRetry),
-              ),
-            ]),
+            child: Column(
+              children: [
+                Text(l10n.diaryWeightLoadError),
+                TextButton(
+                  onPressed: () => setState(_subscribe),
+                  child: Text(l10n.diaryWeightRetry),
+                ),
+              ],
+            ),
           );
         }
         if (snapshot.connectionState == ConnectionState.waiting &&
@@ -173,7 +183,8 @@ class _WeightCardState extends State<WeightCard>
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        final latest = snapshot.data ??
+        final streamedLatest =
+            snapshot.data ??
             (isSkeleton
                 ? db.Measurement(
                     localId: -1,
@@ -186,12 +197,20 @@ class _WeightCardState extends State<WeightCard>
                     unit: 'kg',
                   )
                 : null);
+        // Keep the diary source visually identical to the card copy in flight.
+        // The measurement stream can emit while its detail screen is open;
+        // applying that result during the reverse morph can change the card's
+        // content/height exactly at the source hand-over.
+        final latest = _morphingToMeasurements
+            ? _morphMeasurementSnapshot
+            : streamedLatest;
         final logged = latest != null && DateUtils.isSameDay(latest.date, _day);
         // The card's own margin sits outside the morph scope so the measured
         // source rect is the visible card, not the card plus its gap.
         return Padding(
-          padding:
-              const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+          padding: const EdgeInsets.symmetric(
+            vertical: DesignConstants.spacingXS,
+          ),
           child: MorphSourceScope(
             builder: (context, setHidden) => Builder(
               builder: (cardCtx) => AnimatedBuilder(
@@ -206,21 +225,38 @@ class _WeightCardState extends State<WeightCard>
                     // Only the collapsed, already-logged card navigates; while
                     // the ruler is open the card belongs to the inline editor.
                     onTap: logged && !open && !isSkeleton
-                        ? () => Navigator.of(context).push(
-                              CardMorphRoute<void>(
-                                sourceContext: cardCtx,
-                                // The flying copy is the same presentation
-                                // call, not a fresh WeightCard: that one would
-                                // resubscribe and take off as a spinner.
-                                sourceBuilder: (_) => _buildCard(
-                                    units, l10n, latest, logged,
-                                    onTap: null),
-                                onSourceVisibilityChanged: setHidden,
-                                builder: (_) => const MeasurementsScreen(
-                                  initialMeasurementType: 'weight',
-                                ),
+                        ? () async {
+                            _morphMeasurementSnapshot = latest;
+                            _morphingToMeasurements = true;
+                            final route = CardMorphRoute<void>(
+                              sourceContext: cardCtx,
+                              // The flying copy is the same presentation
+                              // call, not a fresh WeightCard: that one would
+                              // resubscribe and take off as a spinner.
+                              sourceBuilder: (_) => _buildCard(
+                                units,
+                                l10n,
+                                latest,
+                                logged,
+                                onTap: null,
                               ),
-                            )
+                              onSourceVisibilityChanged: setHidden,
+                              builder: (_) => const MeasurementsScreen(
+                                initialMeasurementType: 'weight',
+                              ),
+                            );
+                            try {
+                              await Navigator.of(context).push(route);
+                              await route.completed;
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _morphingToMeasurements = false;
+                                  _morphMeasurementSnapshot = null;
+                                });
+                              }
+                            }
+                          }
                         : null,
                   );
                 },
@@ -232,9 +268,13 @@ class _WeightCardState extends State<WeightCard>
     );
   }
 
-  Widget _buildCard(UnitService units, AppLocalizations l10n,
-      db.Measurement? latest, bool logged,
-      {required VoidCallback? onTap}) {
+  Widget _buildCard(
+    UnitService units,
+    AppLocalizations l10n,
+    db.Measurement? latest,
+    bool logged, {
+    required VoidCallback? onTap,
+  }) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final p = _phase.value;
@@ -256,24 +296,31 @@ class _WeightCardState extends State<WeightCard>
     final daysSinceLatest = latest == null
         ? null
         : DateTime.utc(_day.year, _day.month, _day.day)
-            .difference(DateTime.utc(
-                latest.date.year, latest.date.month, latest.date.day))
-            .inDays;
+              .difference(
+                DateTime.utc(
+                  latest.date.year,
+                  latest.date.month,
+                  latest.date.day,
+                ),
+              )
+              .inDays;
     final age = latest == null
         ? ''
         : logged
-            ? (DateUtils.isSameDay(_day, DateTime.now())
-                ? l10n.diaryWeightToday
-                : DateFormat.MMMd(locale).format(_day))
-            : l10n.diaryWeightDaysAgo(daysSinceLatest!);
+        ? (DateUtils.isSameDay(_day, DateTime.now())
+              ? l10n.diaryWeightToday
+              : DateFormat.MMMd(locale).format(_day))
+        : l10n.diaryWeightDaysAgo(daysSinceLatest!);
     // The onboarding weigh-in alone would silence the pitch forever, so keep
     // nudging once the trend data goes stale.
-    final isStale = !open &&
+    final isStale =
+        !open &&
         daysSinceLatest != null &&
         daysSinceLatest >= _staleNudgeAfterDays;
     final secondaryTextColor = cs.onSurface.withValues(alpha: .64);
-    final titleColor =
-        theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+    final titleColor = theme.brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
     final label = Text(
       l10n.diaryWeightLabel,
       style: theme.textTheme.titleMedium?.copyWith(
@@ -295,13 +342,19 @@ class _WeightCardState extends State<WeightCard>
           spacing: DesignConstants.spacingXS,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(number,
-                key: const ValueKey('weight-value'), style: valueStyle),
+            Text(
+              number,
+              key: const ValueKey('weight-value'),
+              style: valueStyle,
+            ),
             Text(unit, style: valueStyle),
             if (!open)
-              Text(age,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: secondaryTextColor)),
+              Text(
+                age,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: secondaryTextColor,
+                ),
+              ),
           ],
         ),
       ],
@@ -320,20 +373,19 @@ class _WeightCardState extends State<WeightCard>
       ),
     );
     Widget trigger(bool wide) => IgnorePointer(
-          ignoring: open || _saving,
-          child: Opacity(
-            opacity: triggerP,
-            child: Transform.scale(
-              scale: .94 + .06 * triggerP,
-              child: FilledButton(
-                style: buttonStyle,
-                onPressed: () => _open(latest, units),
-                child:
-                    Text(wide ? l10n.diaryWeightLogLong : l10n.diaryWeightLog),
-              ),
-            ),
+      ignoring: open || _saving,
+      child: Opacity(
+        opacity: triggerP,
+        child: Transform.scale(
+          scale: .94 + .06 * triggerP,
+          child: FilledButton(
+            style: buttonStyle,
+            onPressed: () => _open(latest, units),
+            child: Text(wide ? l10n.diaryWeightLogLong : l10n.diaryWeightLog),
           ),
-        );
+        ),
+      ),
+    );
     final actions = IgnorePointer(
       ignoring: !_editing || actionP < .5 || _saving,
       child: Opacity(
@@ -369,119 +421,143 @@ class _WeightCardState extends State<WeightCard>
       child: AppCardContainer(
         padding: const EdgeInsets.all(DesignConstants.spacingM),
         margin: EdgeInsets.zero,
-        child: LayoutBuilder(builder: (context, constraints) {
-          // Keep full German labels and three-digit pounds at narrow widths
-          // and large text sizes. Only the action row moves below the value.
-          final textScale = MediaQuery.textScalerOf(context).scale(13) / 13;
-          final actionText = TextPainter(
-            text: TextSpan(
-              text: '${l10n.cancel}${l10n.save}',
-              style: actionStyle,
-            ),
-            textDirection: Directionality.of(context),
-            textScaler: MediaQuery.textScalerOf(context),
-          )..layout();
-          final actionTextWidth = actionText.width;
-          actionText.dispose();
-          final stackActions = constraints.maxWidth <
-              actionTextWidth + 56 + 120 * textScale + DesignConstants.spacingM;
-          final header = latest == null && !open
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    label,
-                    const SizedBox(height: DesignConstants.spacingXS),
-                    Text(l10n.diaryWeightPitch,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            height: 1.35, color: secondaryTextColor)),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    trigger(true),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(children: [
-                      Expanded(child: valueColumn),
-                      const SizedBox(width: DesignConstants.spacingM),
-                      if (!open && logged)
-                        Icon(LucideIcons.chevron_right, color: cs.onSurface)
-                      else if (!open)
-                        trigger(false)
-                      else if (!stackActions)
-                        Stack(
-                          alignment: Alignment.centerRight,
-                          children: [actions, if (triggerP > 0) trigger(false)],
-                        )
-                      else if (triggerP > 0)
-                        trigger(false),
-                    ]),
-                    if (isStale) ...[
-                      const SizedBox(height: DesignConstants.spacingS),
-                      Text(
-                        l10n.diaryWeightStaleNudge,
-                        key: const ValueKey('weight-stale-nudge'),
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(height: 1.35, color: secondaryTextColor),
-                      ),
-                    ],
-                    if (open && stackActions) ...[
-                      const SizedBox(height: DesignConstants.spacingS),
-                      Align(alignment: Alignment.centerRight, child: actions),
-                    ],
-                  ],
-                );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                alignment: Alignment.topCenter,
-                child: header,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Keep full German labels and three-digit pounds at narrow widths
+            // and large text sizes. Only the action row moves below the value.
+            final textScale = MediaQuery.textScalerOf(context).scale(13) / 13;
+            final actionText = TextPainter(
+              text: TextSpan(
+                text: '${l10n.cancel}${l10n.save}',
+                style: actionStyle,
               ),
-              if (open)
-                ClipRect(
-                  child: Align(
-                    heightFactor: rulerP,
-                    alignment: Alignment.topCenter,
-                    child: Opacity(
-                      opacity: rulerP,
-                      child: IgnorePointer(
-                        ignoring: !_editing || _saving,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: DesignConstants.spacingM),
-                            WeightRuler(
-                              key: const ValueKey('weight-ruler'),
-                              value: value,
-                              imperial: units.isImperial,
-                              enabled: !_saving,
-                              label: l10n.diaryWeightLabel,
-                              unit: unit,
-                              onChanged: (display) => setState(() {
-                                _draftKg = units.convertToMetric(
-                                    display, UnitDimension.weight);
-                              }),
-                            ),
-                            if (!valid)
-                              Text(l10n.diaryWeightRange,
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: secondaryTextColor)),
-                          ],
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout();
+            final actionTextWidth = actionText.width;
+            actionText.dispose();
+            final stackActions =
+                constraints.maxWidth <
+                actionTextWidth +
+                    56 +
+                    120 * textScale +
+                    DesignConstants.spacingM;
+            final header = latest == null && !open
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      label,
+                      const SizedBox(height: DesignConstants.spacingXS),
+                      Text(
+                        l10n.diaryWeightPitch,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          height: 1.35,
+                          color: secondaryTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingM),
+                      trigger(true),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: valueColumn),
+                          const SizedBox(width: DesignConstants.spacingM),
+                          if (!open && logged)
+                            Icon(LucideIcons.chevron_right, color: cs.onSurface)
+                          else if (!open)
+                            trigger(false)
+                          else if (!stackActions)
+                            Stack(
+                              alignment: Alignment.centerRight,
+                              children: [
+                                actions,
+                                if (triggerP > 0) trigger(false),
+                              ],
+                            )
+                          else if (triggerP > 0)
+                            trigger(false),
+                        ],
+                      ),
+                      if (isStale) ...[
+                        const SizedBox(height: DesignConstants.spacingS),
+                        Text(
+                          l10n.diaryWeightStaleNudge,
+                          key: const ValueKey('weight-stale-nudge'),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            height: 1.35,
+                            color: secondaryTextColor,
+                          ),
+                        ),
+                      ],
+                      if (open && stackActions) ...[
+                        const SizedBox(height: DesignConstants.spacingS),
+                        Align(alignment: Alignment.centerRight, child: actions),
+                      ],
+                    ],
+                  );
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: header,
+                ),
+                if (open)
+                  ClipRect(
+                    child: Align(
+                      heightFactor: rulerP,
+                      alignment: Alignment.topCenter,
+                      child: Opacity(
+                        opacity: rulerP,
+                        child: IgnorePointer(
+                          ignoring: !_editing || _saving,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const SizedBox(height: DesignConstants.spacingM),
+                              WeightRuler(
+                                key: const ValueKey('weight-ruler'),
+                                value: value,
+                                imperial: units.isImperial,
+                                enabled: !_saving,
+                                label: l10n.diaryWeightLabel,
+                                unit: unit,
+                                onChanged: (display) => setState(() {
+                                  _draftKg = units.convertToMetric(
+                                    display,
+                                    UnitDimension.weight,
+                                  );
+                                }),
+                              ),
+                              if (!valid)
+                                Text(
+                                  l10n.diaryWeightRange,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: secondaryTextColor,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              if (_saveFailed)
-                Text(l10n.diaryWeightSaveError,
+                if (_saveFailed)
+                  Text(
+                    l10n.diaryWeightSaveError,
                     style: theme.textTheme.bodySmall,
-                    semanticsLabel: l10n.diaryWeightSaveError),
-            ],
-          );
-        }),
+                    semanticsLabel: l10n.diaryWeightSaveError,
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

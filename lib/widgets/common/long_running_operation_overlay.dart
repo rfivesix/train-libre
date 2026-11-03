@@ -11,7 +11,8 @@ class LongRunningOperationOverlay extends StatefulWidget {
   final Future<void> Function(
     CancellationToken token,
     void Function(String status, double progress) updateProgress,
-  ) operation;
+  )
+  operation;
 
   const LongRunningOperationOverlay({
     super.key,
@@ -29,7 +30,8 @@ class LongRunningOperationOverlay extends StatefulWidget {
     required Future<void> Function(
       CancellationToken token,
       void Function(String status, double progress) updateProgress,
-    ) operation,
+    )
+    operation,
   }) async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -104,8 +106,9 @@ class _LongRunningOperationOverlayState
     final l10n = AppLocalizations.of(context)!;
 
     final displayTitle = widget.title.isNotEmpty ? widget.title : _status;
-    final displayDetail =
-        widget.title.isNotEmpty && _status != widget.title ? _status : null;
+    final displayDetail = widget.title.isNotEmpty && _status != widget.title
+        ? _status
+        : null;
 
     return PopScope(
       canPop: false,
@@ -125,8 +128,9 @@ class _LongRunningOperationOverlayState
                       icon: widget.icon,
                       title: displayTitle,
                       detail: displayDetail,
-                      progress:
-                          _progress >= 0 && _progress <= 1.0 ? _progress : null,
+                      progress: _progress >= 0 && _progress <= 1.0
+                          ? _progress
+                          : null,
                       showCard: false,
                     ),
                   ),

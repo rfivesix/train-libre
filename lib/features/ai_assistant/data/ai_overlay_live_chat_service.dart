@@ -6,24 +6,34 @@ import 'package:http/http.dart' as http;
 
 import '../../../services/ai/apple_foundation_service.dart';
 import '../../../services/ai_service.dart';
+import 'assistant_image_attachment.dart';
+
+class AiUnsupportedImageException implements Exception {
+  const AiUnsupportedImageException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
 
 /// Lightweight in-memory turn passed as conversation context during the UI demo.
 class AiOverlayLiveChatTurn {
   final String prompt;
   final String response;
 
-  const AiOverlayLiveChatTurn({
-    required this.prompt,
-    required this.response,
-  });
+  const AiOverlayLiveChatTurn({required this.prompt, required this.response});
 }
 
-/// Temporary, self-contained live chat streaming service for the AI overlay demo.
-///
-/// Uses the provider, model, and credentials already configured in [AiService]
-/// without persisting chats or exposing tool/permission capabilities.
-/// Kept in its own file so it can be removed or replaced cleanly once the
-/// production assistant pipeline is introduced.
+class AiOverlayChatConfiguration {
+  const AiOverlayChatConfiguration(this.provider, this.model, this.apiKey);
+  final AiProvider provider;
+  final String model;
+  final String apiKey;
+}
+
+/// Provider transport for the overlay. It uses the credentials and models
+/// already configured in [AiService]. Approval and persistence are enforced
+/// by the caller before this transport receives app data.
 class AiOverlayLiveChatService {
   AiOverlayLiveChatService._();
 
@@ -38,11 +48,15 @@ class AiOverlayLiveChatService {
   Stream<String> streamChat({
     required String prompt,
     List<AiOverlayLiveChatTurn> history = const [],
+    List<AssistantImagePayload> images = const [],
+    AiOverlayChatConfiguration? configuration,
+    Future<void> Function()? onDispatch,
+    bool smoothWords = true,
   }) async* {
-    final resolved = await _resolveEffectiveProvider();
+    final resolved = configuration ?? await resolveConfiguration();
     final provider = resolved.provider;
     final apiKey = resolved.apiKey;
-    final model = await AiService.instance.getSelectedModel(provider);
+    final model = resolved.model;
     final timeoutSeconds = await AiService.instance.getAiTimeoutSeconds();
     final timeout = Duration(seconds: timeoutSeconds.clamp(15, 300));
 
@@ -52,18 +66,74 @@ class AiOverlayLiveChatService {
       model: model,
       prompt: prompt,
       history: history,
+      images: images,
       timeout: timeout,
+      onDispatch: onDispatch,
     );
+
+    if (!smoothWords) {
+      yield* rawChunks;
+      return;
+    }
 
     await for (final chunk in _smoothWordStream(rawChunks)) {
       yield chunk;
     }
   }
 
+  Future<AiOverlayChatConfiguration> resolveConfiguration() async {
+    final resolved = await _resolveEffectiveProvider();
+    return AiOverlayChatConfiguration(
+      resolved.provider,
+      await AiService.instance.getSelectedModel(resolved.provider),
+      resolved.apiKey,
+    );
+  }
+
+  /// Resolves only the configured provider for image-bearing chat turns.
+  /// Sending a user's image to an implicit credential fallback would change
+  /// the recipient without their knowledge.
+  Future<AiOverlayChatConfiguration> resolveSelectedConfiguration() async {
+    final provider = await AiService.instance.getSelectedProvider();
+    if (provider == AiProvider.appleFoundation) {
+      if (!await AppleFoundationService.instance.isAvailable()) {
+        throw const AiUnsupportedFeatureException(
+          'Apple Intelligence is not available on this device.',
+        );
+      }
+      return AiOverlayChatConfiguration(
+        provider,
+        await AiService.instance.getSelectedModel(provider),
+        '',
+      );
+    }
+    if (provider == AiProvider.ollama) {
+      return AiOverlayChatConfiguration(
+        provider,
+        await AiService.instance.getSelectedModel(provider),
+        '',
+      );
+    }
+    if (provider == AiProvider.custom) {
+      return AiOverlayChatConfiguration(
+        provider,
+        await AiService.instance.getSelectedModel(provider),
+        await AiService.instance.getApiKey(provider) ?? '',
+      );
+    }
+    final key = await AiService.instance.getApiKey(provider);
+    if (key == null || key.trim().isEmpty) throw const AiKeyMissingException();
+    return AiOverlayChatConfiguration(
+      provider,
+      await AiService.instance.getSelectedModel(provider),
+      key.trim(),
+    );
+  }
+
   /// Resolves the selected provider, falling back to another configured
   /// provider if the active default has no credentials on this device.
   Future<({AiProvider provider, String apiKey})>
-      _resolveEffectiveProvider() async {
+  _resolveEffectiveProvider() async {
     final selected = await AiService.instance.getSelectedProvider();
 
     if (selected == AiProvider.appleFoundation) {
@@ -103,7 +173,7 @@ class AiOverlayLiveChatService {
   }
 
   Future<({AiProvider provider, String apiKey})?>
-      _findConfiguredCloudProvider() async {
+  _findConfiguredCloudProvider() async {
     const cloudProviders = <AiProvider>[
       AiProvider.openai,
       AiProvider.gemini,
@@ -150,7 +220,9 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
+    Future<void> Function()? onDispatch,
     bool modelRefreshAttempted = false,
   }) async* {
     try {
@@ -159,7 +231,9 @@ class AiOverlayLiveChatService {
           yield* _streamAppleFoundation(
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.openai:
           yield* _streamOpenAiCompatible(
@@ -169,7 +243,9 @@ class AiOverlayLiveChatService {
             model: _normalizeOpenAiModelId(model),
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.mistral:
           yield* _streamOpenAiCompatible(
@@ -179,7 +255,9 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.xai:
           yield* _streamOpenAiCompatible(
@@ -189,7 +267,21 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
+          );
+        case AiProvider.deepseek:
+          yield* _streamOpenAiCompatible(
+            provider: provider,
+            endpoint: 'https://api.deepseek.com/chat/completions',
+            apiKey: apiKey,
+            model: model,
+            prompt: prompt,
+            history: history,
+            images: images,
+            timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.ollama:
           final customUrl = await AiService.instance.getCustomBaseUrl();
@@ -204,7 +296,9 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.custom:
           final customUrl = await AiService.instance.getCustomBaseUrl();
@@ -224,7 +318,9 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.gemini:
           yield* _streamGemini(
@@ -232,7 +328,9 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         case AiProvider.anthropic:
           yield* _streamAnthropic(
@@ -240,11 +338,24 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
           );
       }
     } on AiNetworkException catch (e) {
-      if (!modelRefreshAttempted &&
+      if (images.isNotEmpty &&
+          RegExp(
+            r'(image|vision|multimodal|visual|media|content type).{0,80}(unsupported|not supported|not allowed|invalid|does not support)|(?:unsupported|not supported|does not support).{0,80}(image|vision|multimodal|visual|media)',
+            caseSensitive: false,
+          ).hasMatch(e.message)) {
+        throw AiUnsupportedImageException(
+          'The selected model does not support image input: ${e.message}',
+        );
+      }
+      if (images.isEmpty &&
+          onDispatch == null &&
+          !modelRefreshAttempted &&
           provider != AiProvider.ollama &&
           provider != AiProvider.custom &&
           provider != AiProvider.appleFoundation &&
@@ -253,8 +364,9 @@ class AiOverlayLiveChatService {
             caseSensitive: false,
           ).hasMatch(e.message)) {
         final options = await AiService.instance.loadModelOptions(provider);
-        final alternatives =
-            options.options.where((option) => option.id != model);
+        final alternatives = options.options.where(
+          (option) => option.id != model,
+        );
         if (alternatives.isNotEmpty) {
           final fallbackModel = alternatives.first.id;
           await AiService.instance.setSelectedModel(provider, fallbackModel);
@@ -264,7 +376,9 @@ class AiOverlayLiveChatService {
             model: fallbackModel,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
+            onDispatch: onDispatch,
             modelRefreshAttempted: true,
           );
           return;
@@ -277,7 +391,9 @@ class AiOverlayLiveChatService {
   Stream<String> _streamAppleFoundation({
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
+    Future<void> Function()? onDispatch,
   }) async* {
     final fullPrompt = StringBuffer();
     if (history.isNotEmpty) {
@@ -297,10 +413,12 @@ class AiOverlayLiveChatService {
       fullPrompt.write(prompt);
     }
 
+    if (onDispatch != null) await onDispatch();
     final response = await AppleFoundationService.instance
         .generateMealJson(
           prompt: fullPrompt.toString(),
           systemPrompt: _defaultSystemPrompt,
+          imagesBase64: images.map((image) => image.base64).toList(),
         )
         .timeout(timeout);
     yield response;
@@ -313,7 +431,9 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
+    Future<void> Function()? onDispatch,
   }) async* {
     final messages = <Map<String, dynamic>>[
       {'role': 'system', 'content': _defaultSystemPrompt},
@@ -323,7 +443,21 @@ class AiOverlayLiveChatService {
           if (turn.response.trim().isNotEmpty)
             {'role': 'assistant', 'content': turn.response},
         ],
-      {'role': 'user', 'content': prompt},
+      {
+        'role': 'user',
+        'content': images.isEmpty
+            ? prompt
+            : [
+                {'type': 'text', 'text': prompt},
+                for (final image in images)
+                  {
+                    'type': 'image_url',
+                    'image_url': {
+                      'url': 'data:${image.mimeType};base64,${image.base64}',
+                    },
+                  },
+              ],
+      },
     ];
 
     final isOpenAi = provider == AiProvider.openai;
@@ -333,7 +467,8 @@ class AiOverlayLiveChatService {
       bool includeReasoningEffort = true,
       bool useLegacyMaxTokens = false,
     }) {
-      final legacyFamily = useLegacyMaxTokens ||
+      final legacyFamily =
+          useLegacyMaxTokens ||
           !isOpenAi ||
           model.toLowerCase().startsWith('gpt-3') ||
           model.toLowerCase().startsWith('gpt-4') ||
@@ -342,10 +477,7 @@ class AiOverlayLiveChatService {
         'model': model,
         'messages': messages,
         'stream': true,
-        if (legacyFamily)
-          'max_tokens': 2000
-        else
-          'max_completion_tokens': 2000,
+        if (legacyFamily) 'max_tokens': 4096 else 'max_completion_tokens': 8192,
         if (isReasoningModel && includeReasoningEffort)
           'reasoning_effort': 'low',
       };
@@ -366,14 +498,15 @@ class AiOverlayLiveChatService {
         headers: headers,
         body: jsonEncode(requestMap),
         timeout: timeout,
+        onDispatch: onDispatch,
       );
 
       if (streamedResponse.statusCode == 400) {
-        final errorBody = await streamedResponse.stream
-            .bytesToString()
-            .timeout(timeout);
-        final lowerError =
-            (_extractErrorMessage(errorBody) ?? errorBody).toLowerCase();
+        final errorBody = await streamedResponse.stream.bytesToString().timeout(
+          timeout,
+        );
+        final lowerError = (_extractErrorMessage(errorBody) ?? errorBody)
+            .toLowerCase();
 
         if (lowerError.contains('reasoning_effort') ||
             lowerError.contains('unrecognized request argument')) {
@@ -384,6 +517,7 @@ class AiOverlayLiveChatService {
             headers: headers,
             body: jsonEncode(requestMap),
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         } else if (lowerError.contains('max_completion_tokens')) {
           requestMap = buildRequestMap(
@@ -396,6 +530,7 @@ class AiOverlayLiveChatService {
             headers: headers,
             body: jsonEncode(requestMap),
             timeout: timeout,
+            onDispatch: onDispatch,
           );
         } else {
           _throwForStatus(streamedResponse.statusCode, errorBody);
@@ -403,9 +538,9 @@ class AiOverlayLiveChatService {
       }
 
       if (streamedResponse.statusCode != 200) {
-        final errorBody = await streamedResponse.stream
-            .bytesToString()
-            .timeout(timeout);
+        final errorBody = await streamedResponse.stream.bytesToString().timeout(
+          timeout,
+        );
         _throwForStatus(streamedResponse.statusCode, errorBody);
       }
 
@@ -471,7 +606,9 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
+    Future<void> Function()? onDispatch,
   }) async* {
     final messages = <Map<String, dynamic>>[
       for (final turn in history)
@@ -480,7 +617,21 @@ class AiOverlayLiveChatService {
           {'role': 'user', 'content': turn.prompt},
           {'role': 'assistant', 'content': turn.response},
         ],
-      {'role': 'user', 'content': prompt},
+      {
+        'role': 'user',
+        'content': [
+          {'type': 'text', 'text': prompt},
+          for (final image in images)
+            {
+              'type': 'image',
+              'source': {
+                'type': 'base64',
+                'media_type': image.mimeType,
+                'data': image.base64,
+              },
+            },
+        ],
+      },
     ];
 
     final request = <String, dynamic>{
@@ -506,12 +657,13 @@ class AiOverlayLiveChatService {
         headers: headers,
         body: jsonEncode(request),
         timeout: timeout,
+        onDispatch: onDispatch,
       );
 
       if (streamedResponse.statusCode != 200) {
-        final errorBody = await streamedResponse.stream
-            .bytesToString()
-            .timeout(timeout);
+        final errorBody = await streamedResponse.stream.bytesToString().timeout(
+          timeout,
+        );
         _throwForStatus(streamedResponse.statusCode, errorBody);
       }
 
@@ -563,7 +715,9 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
+    Future<void> Function()? onDispatch,
   }) async* {
     final candidates = _geminiModelCandidates(model);
     final routes = <(String, String)>[
@@ -601,6 +755,13 @@ class AiOverlayLiveChatService {
                   ? prompt
                   : '$_defaultSystemPrompt\n\n$prompt',
             },
+            for (final image in images)
+              {
+                'inlineData': {
+                  'mimeType': image.mimeType,
+                  'data': image.base64,
+                },
+              },
           ],
         },
       ];
@@ -617,9 +778,7 @@ class AiOverlayLiveChatService {
           'maxOutputTokens': 4096,
           if (includeThinkingConfig &&
               candidate.toLowerCase().startsWith('gemini-2.5-flash'))
-            'thinkingConfig': {
-              'thinkingBudget': 0,
-            },
+            'thinkingConfig': {'thinkingBudget': 0},
         },
       };
     }
@@ -651,14 +810,15 @@ class AiOverlayLiveChatService {
             ),
           ),
           timeout: timeout,
+          onDispatch: onDispatch,
         );
 
         if (response.statusCode == 400) {
-          final errBody = await response.stream
-              .bytesToString()
-              .timeout(timeout);
-          final lower =
-              (_extractErrorMessage(errBody) ?? errBody).toLowerCase();
+          final errBody = await response.stream.bytesToString().timeout(
+            timeout,
+          );
+          final lower = (_extractErrorMessage(errBody) ?? errBody)
+              .toLowerCase();
           if (lower.contains('thinking') ||
               lower.contains('systeminstruction') ||
               lower.contains('unknown field')) {
@@ -674,6 +834,7 @@ class AiOverlayLiveChatService {
                 ),
               ),
               timeout: timeout,
+              onDispatch: onDispatch,
             );
           } else {
             lastStatusCode = response.statusCode;
@@ -691,9 +852,7 @@ class AiOverlayLiveChatService {
         }
 
         lastStatusCode = response.statusCode;
-        lastErrorBody = await response.stream
-            .bytesToString()
-            .timeout(timeout);
+        lastErrorBody = await response.stream.bytesToString().timeout(timeout);
         if (response.statusCode == 404) {
           continue;
         }
@@ -753,11 +912,14 @@ class AiOverlayLiveChatService {
     required Map<String, String> headers,
     required String body,
     required Duration timeout,
-  }) {
+    Future<void> Function()? onDispatch,
+  }) async {
     final request = http.Request('POST', uri)
       ..headers.addAll(headers)
       ..body = body;
-    return client.send(request).timeout(timeout);
+    final response = await client.send(request).timeout(timeout);
+    if (onDispatch != null) await onDispatch();
+    return response;
   }
 
   String _resolveOpenAiEndpoint(
@@ -783,6 +945,8 @@ class AiOverlayLiveChatService {
     return id.startsWith('o1') ||
         id.startsWith('o3') ||
         id.startsWith('o4') ||
+        id.startsWith('gpt-5') ||
+        id.startsWith('gpt-6') ||
         id.contains('-luna') ||
         id.contains('-terra') ||
         id.contains('-sol') ||
@@ -792,8 +956,8 @@ class AiOverlayLiveChatService {
 
   String _normalizeOpenAiModelId(String modelId) {
     final lower = modelId.toLowerCase();
-    final match =
-        RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$').firstMatch(lower);
+    final match = RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$')
+        .firstMatch(lower);
     if (match != null) return match.group(1)!;
     return modelId;
   }

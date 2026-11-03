@@ -17,10 +17,7 @@ import '../../domain/repositories/goal_repository.dart';
 import '../../domain/services/goal_notification_orchestrator.dart';
 import '../../domain/services/goal_trajectory_calculator.dart';
 
-enum AdjustmentFixOption {
-  keepDate,
-  keepRate,
-}
+enum AdjustmentFixOption { keepDate, keepRate }
 
 class GoalAdjustmentSheet extends StatefulWidget {
   final Goal goal;
@@ -93,18 +90,20 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
     super.initState();
     final now = DateTime.now();
     _adjustmentDate = DateTime(now.year, now.month, now.day);
-    _trackingMode = widget.initialTrackingMode ??
+    _trackingMode =
+        widget.initialTrackingMode ??
         (widget.goal.preset == GoalPreset.recomposition
             ? GoalTrackingMode.open
             : widget.goal.preset == GoalPreset.maintainWeight &&
-                    widget.goal.trackingMode == GoalTrackingMode.weeklyRate
-                ? GoalTrackingMode.open
-                : widget.goal.trackingMode);
+                  widget.goal.trackingMode == GoalTrackingMode.weeklyRate
+            ? GoalTrackingMode.open
+            : widget.goal.trackingMode);
     _hasTargetDate = widget.goal.targetDate != null;
     _targetWeightKg = widget.goal.targetValue ?? widget.startWeightKg;
     _targetDate =
         widget.goal.targetDate ?? DateTime.now().add(const Duration(days: 90));
-    _weeklyRateKg = widget.goal.desiredWeeklyRateKg ??
+    _weeklyRateKg =
+        widget.goal.desiredWeeklyRateKg ??
         (widget.goal.targetValue != null
             ? GoalTrajectoryCalculator.calculateWeeklyRate(
                 startWeight: widget.startWeightKg,
@@ -227,15 +226,17 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
             : null,
         targetDate:
             _trackingMode == GoalTrackingMode.targetWeight && _hasTargetDate
-                ? _targetDate
-                : null,
-        desiredWeeklyRateKg:
-            _trackingMode == GoalTrackingMode.weeklyRate ? _weeklyRateKg : null,
+            ? _targetDate
+            : null,
+        desiredWeeklyRateKg: _trackingMode == GoalTrackingMode.weeklyRate
+            ? _weeklyRateKg
+            : null,
         anchorValue: widget.startWeightKg,
         reason: 'Goal planning mode or trajectory adjusted',
       );
-      final notifications =
-          GoalNotificationOrchestrator(goalRepository: widget.repository);
+      final notifications = GoalNotificationOrchestrator(
+        goalRepository: widget.repository,
+      );
       await notifications.synchronize();
       if (!mounted) return;
       if (widget.onSaved != null) {
@@ -279,7 +280,8 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
     final unitStr = unitService.unitString(UnitDimension.weight);
 
     final isSafe = GoalTrajectoryCalculator.isRateSafe(_weeklyRateKg);
-    final recommendationKeepsDate = widget.goal.targetDate != null &&
+    final recommendationKeepsDate =
+        widget.goal.targetDate != null &&
         widget.recommendedTargetDate != null &&
         DateUtils.isSameDay(
           widget.goal.targetDate,
@@ -287,9 +289,7 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
         );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -321,10 +321,7 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
           const SizedBox(height: DesignConstants.spacingL),
 
           if (_trackingMode == GoalTrackingMode.open) ...[
-            Text(
-              l10n.goalTrackingOpenReady,
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(l10n.goalTrackingOpenReady, style: theme.textTheme.bodyMedium),
           ],
 
           if (_trackingMode == GoalTrackingMode.targetWeight &&
@@ -334,8 +331,9 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
               padding: const EdgeInsets.all(DesignConstants.spacingM),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.10),
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
                 border: Border.all(
                   color: theme.colorScheme.primary.withValues(alpha: 0.25),
                 ),
@@ -520,8 +518,9 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
                   allowNegative: false,
                 );
                 if (newDisplayRate != null) {
-                  final signedRate =
-                      isNegative ? -newDisplayRate : newDisplayRate;
+                  final signedRate = isNegative
+                      ? -newDisplayRate
+                      : newDisplayRate;
                   final metric = unitService.convertToMetric(
                     signedRate,
                     UnitDimension.weight,
@@ -539,13 +538,17 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
               padding: const EdgeInsets.all(DesignConstants.spacingM),
               decoration: BoxDecoration(
                 color: Colors.orange.withValues(alpha: 0.12),
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusS),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusS,
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.triangle_alert,
-                      color: Colors.orange, size: 20),
+                  const Icon(
+                    LucideIcons.triangle_alert,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
                   const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
                     child: Text(

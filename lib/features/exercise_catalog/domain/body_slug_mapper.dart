@@ -1,8 +1,10 @@
 import '../../../../generated/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 // lib/features/exercise_catalog/domain/body_slug_mapper.dart
 
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
+
 import '../../statistics/domain/recovery_domain_service.dart';
 import 'muscle_vocabulary.dart';
 
@@ -100,7 +102,9 @@ class BodySlugMapper {
     final separated = slug
         .trim()
         .replaceAllMapped(
-            RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]}-${m[2]}')
+          RegExp(r'([a-z0-9])([A-Z])'),
+          (m) => '${m[1]}-${m[2]}',
+        )
         .toLowerCase();
     return BodyPartSlug.fromString(separated);
   }
@@ -163,8 +167,11 @@ class BodySlugMapper {
   ///
   /// Returns an empty list when no mapping can be determined.
   static List<BodyPartSlug> fromRawName(String rawName) {
-    final cleaned =
-        rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+    final cleaned = rawName
+        .trim()
+        .toLowerCase()
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ');
 
     // Explicit manual mappings for specific muscle queries to bridge cleanly to visual slugs
     if (cleaned == 'traps' ||
@@ -294,11 +301,13 @@ class BodySlugMapper {
     List<BodyPartHighlightData> highlights,
     BodySide side,
   ) {
-    return highlights.where((h) {
-      final slugSide = _slugSide[h.slug];
-      // If slug has no side mapping, show it on both views
-      return slugSide == null || slugSide == side;
-    }).toList(growable: false);
+    return highlights
+        .where((h) {
+          final slugSide = _slugSide[h.slug];
+          // If slug has no side mapping, show it on both views
+          return slugSide == null || slugSide == side;
+        })
+        .toList(growable: false);
   }
 
   /// A muscle's display name.
@@ -339,8 +348,11 @@ class BodySlugMapper {
       }
     }
 
-    final cleaned =
-        name.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+    final cleaned = name
+        .trim()
+        .toLowerCase()
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ');
 
     final canonical =
         RecoveryDomainService.majorMuscleGroupFor(cleaned) ?? cleaned;

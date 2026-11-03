@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 
@@ -66,9 +67,10 @@ class _AppButtonState extends State<AppButton>
       vsync: this,
       duration: const Duration(milliseconds: 120),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -115,10 +117,12 @@ class _AppButtonState extends State<AppButton>
         glassSettings = LiquidGlassSettings(
           thickness: 18, // Thinner glass = reduced gray refraction
           blur: 1.5, // Subtle blur for sharper colors
-          glassColor:
-              primaryColor.withValues(alpha: 0.35), // Transparent glass base
-          lightIntensity:
-              isDark ? 0.85 : 0.95, // High light intensity for clarity
+          glassColor: primaryColor.withValues(
+            alpha: 0.35,
+          ), // Transparent glass base
+          lightIntensity: isDark
+              ? 0.85
+              : 0.95, // High light intensity for clarity
           saturation: 1.60, // Enhanced saturation for vibrant tint
           ambientRim: 0.15,
         );
@@ -129,8 +133,9 @@ class _AppButtonState extends State<AppButton>
         glassSettings = LiquidGlassSettings(
           thickness: 18,
           blur: 1.5,
-          glassColor: DesignConstants.brandRedColor
-              .withValues(alpha: 0.40), // Sattes Rot strahlt durch
+          glassColor: DesignConstants.brandRedColor.withValues(
+            alpha: 0.40,
+          ), // Sattes Rot strahlt durch
           lightIntensity: isDark ? 0.80 : 0.90,
           saturation: 1.50,
           ambientRim: 0.10,
@@ -139,10 +144,8 @@ class _AppButtonState extends State<AppButton>
         break;
       case AppButtonVariant.secondary:
         foregroundColor = theme.colorScheme.primary;
-        glassSettings = DesignConstants.liquidGlassSettings(isDark).copyWith(
-          thickness: 15,
-          blur: 1.5,
-        );
+        glassSettings = DesignConstants.liquidGlassSettings(isDark)
+            .copyWith(thickness: 15, blur: 1.5);
         glowColor = Colors.white.withValues(alpha: isDark ? 0.10 : 0.05);
         break;
     }
@@ -181,6 +184,11 @@ class _AppButtonState extends State<AppButton>
         break;
     }
 
+    final isIconOnly = widget.label.isEmpty && widget.icon != null;
+    final contentPadding = isIconOnly
+        ? EdgeInsets.symmetric(horizontal: (height - iconSize) / 2)
+        : padding;
+
     const double radius = 14.0;
 
     // ── Build the button label/icon row ─────────────────────────────────────
@@ -200,20 +208,21 @@ class _AppButtonState extends State<AppButton>
           const SizedBox(width: 8.0),
         ] else if (widget.icon != null) ...[
           Icon(widget.icon, color: foregroundColor, size: iconSize),
-          const SizedBox(width: 8.0),
+          if (widget.label.isNotEmpty) const SizedBox(width: 8.0),
         ],
-        Flexible(
-          child: Text(
-            widget.label,
-            style: textStyle?.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.bold,
+        if (widget.label.isNotEmpty)
+          Flexible(
+            child: Text(
+              widget.label,
+              style: textStyle?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
       ],
     );
 
@@ -225,7 +234,7 @@ class _AppButtonState extends State<AppButton>
           : theme.colorScheme.onSurface.withValues(alpha: 0.12);
       buttonContent = Container(
         height: height,
-        padding: padding,
+        padding: contentPadding,
         decoration: BoxDecoration(
           color: disabledBg,
           borderRadius: BorderRadius.circular(radius),
@@ -243,16 +252,16 @@ class _AppButtonState extends State<AppButton>
           ? Colors.grey.shade700
           : theme.colorScheme.onSurface.withValues(alpha: 0.1);
 
-// Inner content container — carries the solid background, rim border, and labels
+      // Inner content container — carries the solid background, rim border, and labels
       final Widget innerContent = Container(
         height: height,
-        padding: padding,
+        padding: contentPadding,
         decoration: BoxDecoration(
           color: widget.variant == AppButtonVariant.primary
               ? primaryColor
               : widget.variant == AppButtonVariant.danger
-                  ? DesignConstants.brandRedColor
-                  : primaryColor.withValues(alpha: isDark ? 0.18 : 0.12),
+              ? DesignConstants.brandRedColor
+              : primaryColor.withValues(alpha: isDark ? 0.18 : 0.12),
           borderRadius: BorderRadius.circular(radius),
         ),
         foregroundDecoration: BoxDecoration(
@@ -328,10 +337,8 @@ class _AppButtonState extends State<AppButton>
         behavior: HitTestBehavior.opaque,
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (context, child) => Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          ),
+          builder: (context, child) =>
+              Transform.scale(scale: _scaleAnimation.value, child: child),
           child: buttonContent,
         ),
       ),

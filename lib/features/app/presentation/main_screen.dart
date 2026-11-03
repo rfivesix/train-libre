@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../../core/performance/jank_route_observer.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../data/database_helper.dart';
 
@@ -26,6 +29,7 @@ import '../../diary/presentation/scanner_screen.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_presentation.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
 import '../../workout/presentation/edit_routine_screen.dart';
@@ -44,6 +48,7 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../whats_new/data/whats_new_service.dart';
+import '../../whats_new/data/ai_assistant_update_intro_service.dart';
 import '../../whats_new/presentation/whats_new_sheet.dart';
 import '../../onboarding/data/telemetry_consent_prompt.dart';
 import '../../onboarding/presentation/telemetry_consent_sheet.dart';
@@ -54,8 +59,10 @@ import 'widgets/running_workout_overlay.dart';
 import 'widgets/speed_dial_menu_overlay.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/keep_alive_page.dart';
+
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
@@ -108,6 +115,7 @@ class _MainScreenState extends State<MainScreen>
   final GlobalKey _tourWorkoutTabKey = GlobalKey();
   final GlobalKey _tourStatisticsTabKey = GlobalKey();
   final GlobalKey _tourNutritionTabKey = GlobalKey();
+  final GlobalKey _aiChatActionKey = GlobalKey();
   bool _isAddMenuOpen = false;
   bool _isTourActive = false;
   final bool _isTourOfferVisible = false;
@@ -115,12 +123,17 @@ class _MainScreenState extends State<MainScreen>
   int _tourStepIndex = 0;
   Rect? _tourTargetRect;
   late final AnimationController _menuController;
+  ThemeService? _observedThemeService;
+  bool? _lastAiChatActionAvailable;
+  Timer? _pendingQuickChatOpen;
   final StepsAggregationRepository _stepsRepository =
       HealthStepsAggregationRepository();
   StreamSubscription<AppNotificationPayload>? _notificationTapSubscription;
 
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
+
+  bool get _isAiChatActionAvailable => themeService.isAiEnabled;
 
   double get kNavBarHeight => DesignConstants.bottomNavigationBarHeight;
   double kBarFabGap = 12.0;
@@ -159,16 +172,21 @@ class _MainScreenState extends State<MainScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
+    _menuController.addListener(_syncAiChatActionCenter);
+    AiGlobalCloudPresentation.onQuickChatTap = _handleQuickChatTap;
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     _notificationTapSubscription = LocalNotificationService
-        .instance.notificationTaps
+        .instance
+        .notificationTaps
         .listen(_handleNotificationTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
         _publishPerfTabLabel(_currentIndex);
-        unawaited(TelemetryService.instance.trackScreenView(
-          screenName: _tabScreenNames[_currentIndex],
-        ));
+        unawaited(
+          TelemetryService.instance.trackScreenView(
+            screenName: _tabScreenNames[_currentIndex],
+          ),
+        );
       }
       // Cold launch from a widget: the deep link arrived before this screen
       // existed, so the action was parked rather than run.
@@ -178,16 +196,20 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _scheduleIdleStartupWork() {
-    SchedulerBinding.instance.scheduleTask(() async {
-      if (!mounted) return;
-      unawaited(_runStartupPrompts());
-      _drainPendingWidgetAction();
-      final pendingTap =
-          LocalNotificationService.instance.takePendingNotificationTap();
-      if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
-      unawaited(_tagebuchKey.currentState?.syncHealthData());
-      refreshHomeWidgets();
-    }, Priority.idle, debugLabel: 'deferred-main-startup');
+    SchedulerBinding.instance.scheduleTask(
+      () async {
+        if (!mounted) return;
+        unawaited(_runStartupPrompts());
+        _drainPendingWidgetAction();
+        final pendingTap = LocalNotificationService.instance
+            .takePendingNotificationTap();
+        if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
+        unawaited(_tagebuchKey.currentState?.syncHealthData());
+        refreshHomeWidgets();
+      },
+      Priority.idle,
+      debugLabel: 'deferred-main-startup',
+    );
   }
 
   /// Runs a quick action parked by the Home Screen widget deep link, if any.
@@ -213,28 +235,29 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _handleNotificationTap(AppNotificationPayload payload) async {
     LocalNotificationService.instance.takePendingNotificationTap();
-    final destination =
-        await AppNotificationRouter(GoalRepositoryImpl()).resolve(payload);
+    final destination = await AppNotificationRouter(GoalRepositoryImpl())
+        .resolve(payload);
     if (!mounted) return;
     switch (destination) {
       case WorkoutPlanNotificationDestination():
         _onNavigationTapped(1);
-        await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const ManualPlanScreen(),
-        ));
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const ManualPlanScreen()));
         return;
       case NutritionHubNotificationDestination():
         _onNavigationTapped(3);
         return;
       case GoalDetailNotificationDestination(:final goal):
-        await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => GoalDetailScreen(goalId: goal.id),
-        ));
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => GoalDetailScreen(goalId: goal.id)),
+        );
         return;
       case WeeklyReviewNotificationDestination(:final goal, :final review):
-        await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => WeeklyGoalReviewScreen(goal: goal, review: review),
-        ));
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => WeeklyGoalReviewScreen(goal: goal, review: review),
+          ),
+        );
         return;
     }
   }
@@ -274,18 +297,25 @@ class _MainScreenState extends State<MainScreen>
   Future<void> _syncHomeWidgetsNow({bool forceStatistics = true}) async {
     if (!mounted) return;
     await context.read<HomeWidgetSyncService>().refresh(
-          l10n: AppLocalizations.of(context)!,
-          isAiEnabled: themeService.isAiEnabled,
-          // Backgrounding is the last moment before the Home Screen is on
-          // screen, so the statistics sections are recomputed rather than
-          // served from the cache the cheap in-app paths rely on.
-          forceStatistics: forceStatistics,
-        );
+      l10n: AppLocalizations.of(context)!,
+      isAiEnabled: themeService.isAiEnabled,
+      // Backgrounding is the last moment before the Home Screen is on
+      // screen, so the statistics sections are recomputed rather than
+      // served from the cache the cheap in-app paths rely on.
+      forceStatistics: forceStatistics,
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final nextThemeService = Provider.of<ThemeService>(context, listen: false);
+    if (!identical(_observedThemeService, nextThemeService)) {
+      _observedThemeService?.removeListener(_handleAiChatAvailabilityChanged);
+      _observedThemeService = nextThemeService
+        ..addListener(_handleAiChatAvailabilityChanged);
+    }
+    _lastAiChatActionAvailable ??= _isAiChatActionAvailable;
     final route = ModalRoute.of(context);
     if (!_isRouteObserverAttached && route is PageRoute<dynamic>) {
       appRouteObserver.subscribe(this, route);
@@ -316,6 +346,17 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    _observedThemeService?.removeListener(_handleAiChatAvailabilityChanged);
+    _pendingQuickChatOpen?.cancel();
+    AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+    AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+    if (identical(
+      AiGlobalCloudPresentation.onQuickChatTap,
+      _handleQuickChatTap,
+    )) {
+      AiGlobalCloudPresentation.onQuickChatTap = null;
+    }
+    _menuController.removeListener(_syncAiChatActionCenter);
     _widgetRefreshTimer?.cancel();
     _notificationTapSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -346,9 +387,11 @@ class _MainScreenState extends State<MainScreen>
         index >= 0 &&
         index < _tabScreenNames.length) {
       _publishPerfTabLabel(index);
-      unawaited(TelemetryService.instance.trackScreenView(
-        screenName: _tabScreenNames[index],
-      ));
+      unawaited(
+        TelemetryService.instance.trackScreenView(
+          screenName: _tabScreenNames[index],
+        ),
+      );
     }
     if (index == 2) {
       if (mounted && _currentIndex == 2) {
@@ -368,10 +411,73 @@ class _MainScreenState extends State<MainScreen>
     HapticFeedbackService.instance.lightImpact();
     setState(() {
       _isAddMenuOpen = !_isAddMenuOpen;
+      AiGlobalCloudPresentation.isAddMenuOpen.value =
+          _isAddMenuOpen && _isAiChatActionAvailable;
       if (_isAddMenuOpen) {
         _menuController.forward();
       } else {
         _menuController.reverse();
+      }
+    });
+  }
+
+  void _syncAiChatActionCenter() {
+    if (!_isAddMenuOpen || !_isAiChatActionAvailable) {
+      AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_isAddMenuOpen) return;
+      final renderObject = _aiChatActionKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.hasSize) return;
+      final center = renderObject.localToGlobal(
+        renderObject.size.center(Offset.zero),
+      );
+      if (AiGlobalCloudPresentation.quickChatActionCenter.value != center) {
+        AiGlobalCloudPresentation.quickChatActionCenter.value = center;
+      }
+    });
+  }
+
+  void _handleQuickChatTap() {
+    if (!_isAiChatActionAvailable) return;
+    if (_isAddMenuOpen) {
+      setState(() {
+        _isAddMenuOpen = false;
+        _menuController.reverse();
+      });
+      AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+      AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+    }
+    _pendingQuickChatOpen?.cancel();
+    _pendingQuickChatOpen = Timer(const Duration(milliseconds: 400), () {
+      _pendingQuickChatOpen = null;
+      if (mounted && _isAiChatActionAvailable) {
+        AiGlobalCloudPresentation.requestOpenChat();
+      }
+    });
+  }
+
+  void _handleAiChatAvailabilityChanged() {
+    if (!mounted) return;
+    final available = _isAiChatActionAvailable;
+    final availabilityChanged = _lastAiChatActionAvailable != available;
+    _lastAiChatActionAvailable = available;
+    if (!availabilityChanged) return;
+    if (!available) {
+      _pendingQuickChatOpen?.cancel();
+      _pendingQuickChatOpen = null;
+    }
+    setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final shouldPresentChatAction =
+          _isAddMenuOpen && _isAiChatActionAvailable;
+      AiGlobalCloudPresentation.isAddMenuOpen.value = shouldPresentChatAction;
+      if (shouldPresentChatAction) {
+        _syncAiChatActionCenter();
+      } else {
+        AiGlobalCloudPresentation.quickChatActionCenter.value = null;
       }
     });
   }
@@ -405,6 +511,9 @@ class _MainScreenState extends State<MainScreen>
         );
         if (result == true) _refreshHomeScreen();
         break;
+      case 'ai_chat':
+        _handleQuickChatTap();
+        break;
     }
   }
 
@@ -418,13 +527,16 @@ class _MainScreenState extends State<MainScreen>
     );
 
     if (barcode != null && mounted) {
-      final foodItem =
-          await ProductLocalDataSource.instance.getProductByBarcode(barcode);
+      final foodItem = await ProductLocalDataSource.instance
+          .getProductByBarcode(barcode);
       if (!mounted) return;
 
       if (foodItem != null) {
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.barcodeScanned,
+          ),
+        );
         final targetDate = _currentActiveDate;
         final fallbackMealType =
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
@@ -515,9 +627,9 @@ class _MainScreenState extends State<MainScreen>
   void refreshHomeWidgets() {
     if (!mounted) return;
     context.read<HomeWidgetSyncService>().scheduleRefresh(
-          l10n: AppLocalizations.of(context)!,
-          isAiEnabled: themeService.isAiEnabled,
-        );
+      l10n: AppLocalizations.of(context)!,
+      isAiEnabled: themeService.isAiEnabled,
+    );
   }
 
   Future<void> _refreshDiaryForActiveDate({
@@ -538,10 +650,10 @@ class _MainScreenState extends State<MainScreen>
     final l10n = AppLocalizations.of(context)!;
     final Supplement? selectedSupplement =
         await showGlassBottomMenu<Supplement>(
-      context: context,
-      title: l10n.logIntakeTitle,
-      contentBuilder: (ctx, close) => LogSupplementMenu(close: close),
-    );
+          context: context,
+          title: l10n.logIntakeTitle,
+          contentBuilder: (ctx, close) => LogSupplementMenu(close: close),
+        );
 
     if (selectedSupplement == null || !mounted) return;
 
@@ -578,9 +690,8 @@ class _MainScreenState extends State<MainScreen>
         HapticFeedbackService.instance.confirmationFeedback();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.error)),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.error)));
         }
       } finally {
         _refreshHomeScreen();
@@ -646,160 +757,161 @@ class _MainScreenState extends State<MainScreen>
     // The menu closes itself and returns the data.
     final result =
         await showGlassBottomMenu<({WorkoutLog log, Routine? routine})>(
-      context: context,
-      title: l10n.startWorkout,
-      applySafeAreaBottom: false,
-      contentBuilder: (ctx, close) {
-        final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        Widget glassCard({required Widget child, EdgeInsets? padding}) {
-          return Material(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.black.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(18),
-            child: Padding(
-              padding: padding ??
-                  const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingM,
-                      vertical: DesignConstants.spacingM),
-              child: child,
-            ),
-          );
-        }
-
-        final freeWorkoutTile = glassCard(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () async {
-              // 1. Create workout
-              final newWorkoutLog = await WorkoutLocalDataSource.instance
-                  .startWorkout(routineName: l10n.freeWorkoutTitle);
-
-              if (!ctx.mounted) return;
-
-              // 2. Close menu and return data
-              // Use Navigator.of(ctx).pop(...), not 'close()', to send data.
-              Navigator.of(ctx).pop((log: newWorkoutLog, routine: null));
-            },
-            child: Row(
-              children: [
-                const Icon(LucideIcons.play),
-                const SizedBox(width: DesignConstants.spacingM),
-                Text(
-                  l10n.startEmptyWorkoutButton,
-                  style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+          context: context,
+          title: l10n.startWorkout,
+          applySafeAreaBottom: false,
+          contentBuilder: (ctx, close) {
+            final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
+            final isDark = Theme.of(ctx).brightness == Brightness.dark;
+            Widget glassCard({required Widget child, EdgeInsets? padding}) {
+              return Material(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(18),
+                child: Padding(
+                  padding:
+                      padding ??
+                      const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingM,
+                        vertical: DesignConstants.spacingM,
                       ),
+                  child: child,
                 ),
-              ],
-            ),
-          ),
-        );
+              );
+            }
 
-        final routinesList = ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 420),
-          child: ListView.separated(
-            padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
-            shrinkWrap: true,
-            itemCount: routines.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (ctx, i) {
-              final r = routines[i];
-              return glassCard(
+            final freeWorkoutTile = glassCard(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () async {
+                  // 1. Create workout
+                  final newWorkoutLog = await WorkoutLocalDataSource.instance
+                      .startWorkout(routineName: l10n.freeWorkoutTitle);
+
+                  if (!ctx.mounted) return;
+
+                  // 2. Close menu and return data
+                  // Use Navigator.of(ctx).pop(...), not 'close()', to send data.
+                  Navigator.of(ctx).pop((log: newWorkoutLog, routine: null));
+                },
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    AppButton.primary(
-                      onPressed: () async {
-                        final fullRoutine = await WorkoutLocalDataSource
-                            .instance
-                            .getRoutineById(r.id!);
-                        final newWorkoutLog = await WorkoutLocalDataSource
-                            .instance
-                            .startWorkout(routineName: r.name);
-
-                        if (!mounted) return;
-
-                        if (fullRoutine != null && ctx.mounted) {
-                          // Close menu and return data
-                          Navigator.of(
-                            ctx,
-                          ).pop((log: newWorkoutLog, routine: fullRoutine));
-                        }
-                      },
-                      label: l10n.startButton,
-                      tooltip: l10n.startButton,
-                      size: AppButtonSize.small,
-                    ),
+                    const Icon(LucideIcons.play),
                     const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
-                        onTap: () {
-                          // Editing navigates directly (that is ok because it is a new screen).
-                          // pop+push would also be better here, but keep this for edit,
-                          // because the user wants to return to the menu while editing.
-                          // Close only the menu here without a result.
-                          close();
-                          Navigator.of(context)
-                              .push(
-                                MaterialPageRoute(
-                                  builder: (_) => EditRoutineScreen(routine: r),
-                                ),
-                              )
-                              .then((_) => _refreshHomeScreen());
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              r.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(ctx)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              l10n.editRoutineSubtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(ctx).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Icon(
-                      LucideIcons.ellipsis_vertical,
-                      color: Theme.of(ctx).textTheme.bodyMedium?.color,
+                    Text(
+                      l10n.startEmptyWorkoutButton,
+                      style: Theme.of(ctx).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-        );
+              ),
+            );
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            freeWorkoutTile,
-            if (routines.isNotEmpty) ...[
-              const SizedBox(height: DesignConstants.spacingM),
-              routinesList,
-            ] else ...[
-              SizedBox(height: bottomInset),
-            ],
-          ],
+            final routinesList = ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
+                shrinkWrap: true,
+                itemCount: routines.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (ctx, i) {
+                  final r = routines[i];
+                  return glassCard(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        AppButton.primary(
+                          onPressed: () async {
+                            final fullRoutine = await WorkoutLocalDataSource
+                                .instance
+                                .getRoutineById(r.id!);
+                            final newWorkoutLog = await WorkoutLocalDataSource
+                                .instance
+                                .startWorkout(routineName: r.name);
+
+                            if (!mounted) return;
+
+                            if (fullRoutine != null && ctx.mounted) {
+                              // Close menu and return data
+                              Navigator.of(
+                                ctx,
+                              ).pop((log: newWorkoutLog, routine: fullRoutine));
+                            }
+                          },
+                          label: l10n.startButton,
+                          tooltip: l10n.startButton,
+                          size: AppButtonSize.small,
+                        ),
+                        const SizedBox(width: DesignConstants.spacingM),
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM,
+                            ),
+                            onTap: () {
+                              // Editing navigates directly (that is ok because it is a new screen).
+                              // pop+push would also be better here, but keep this for edit,
+                              // because the user wants to return to the menu while editing.
+                              // Close only the menu here without a result.
+                              close();
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditRoutineScreen(routine: r),
+                                    ),
+                                  )
+                                  .then((_) => _refreshHomeScreen());
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  r.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(ctx).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.editRoutineSubtitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(ctx).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Icon(
+                          LucideIcons.ellipsis_vertical,
+                          color: Theme.of(ctx).textTheme.bodyMedium?.color,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            );
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                freeWorkoutTile,
+                if (routines.isNotEmpty) ...[
+                  const SizedBox(height: DesignConstants.spacingM),
+                  routinesList,
+                ] else ...[
+                  SizedBox(height: bottomInset),
+                ],
+              ],
+            );
+          },
         );
-      },
-    );
 
     // The actual navigation to the workout happens here,
     // after the menu is closed.
@@ -992,9 +1104,9 @@ class _MainScreenState extends State<MainScreen>
                         }
                       } catch (e) {
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.error)),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(l10n.error)));
                         }
                       } finally {
                         close();
@@ -1045,14 +1157,16 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<
-      ({
-        int quantity,
-        DateTime timestamp,
-        String mealType,
-        bool isLiquid,
-        double? sugarPer100ml,
-        double? caffeinePer100ml,
-      })?> _showQuantityMenu(
+    ({
+      int quantity,
+      DateTime timestamp,
+      String mealType,
+      bool isLiquid,
+      double? sugarPer100ml,
+      double? caffeinePer100ml,
+    })?
+  >
+  _showQuantityMenu(
     FoodItem item, {
     DateTime? initialDate, // <--- New parameter
     String? initialMealType,
@@ -1169,9 +1283,7 @@ class _MainScreenState extends State<MainScreen>
           title: l10n.statistics,
           actions: [
             Padding(
-              padding: const EdgeInsets.only(
-                right: DesignConstants.spacingS,
-              ),
+              padding: const EdgeInsets.only(right: DesignConstants.spacingS),
               child: Center(
                 child: Tooltip(
                   excludeFromSemantics: true,
@@ -1188,13 +1300,9 @@ class _MainScreenState extends State<MainScreen>
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
                           customBorder: const CircleBorder(),
-                          splashColor: Theme.of(context)
-                              .colorScheme
-                              .surface
+                          splashColor: Theme.of(context).colorScheme.surface
                               .withValues(alpha: 0.15),
-                          highlightColor: Theme.of(context)
-                              .colorScheme
-                              .surface
+                          highlightColor: Theme.of(context).colorScheme.surface
                               .withValues(alpha: 0.08),
                           onTap: () async {
                             await Navigator.of(context).push(
@@ -1232,9 +1340,7 @@ class _MainScreenState extends State<MainScreen>
         return GlobalAppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 0,
-          titleWidget: DiaryAppBar(
-            diaryKey: _tagebuchKey,
-          ),
+          titleWidget: DiaryAppBar(diaryKey: _tagebuchKey),
           actions: [
             IconButton(
               icon: Icon(
@@ -1256,6 +1362,13 @@ class _MainScreenState extends State<MainScreen>
 
   List<Map<String, dynamic>> _getSpeedDialActions(AppLocalizations l10n) {
     return [
+      if (_isAiChatActionAvailable)
+        {
+          'icon': LucideIcons.sparkles,
+          'label': l10n.aiChatAction,
+          'action': 'ai_chat',
+          'gradient': true,
+        },
       {
         'icon': LucideIcons.glass_water,
         'label': l10n.addLiquidOption,
@@ -1374,11 +1487,7 @@ class _MainScreenState extends State<MainScreen>
     }
 
     if (key == _tourFabKey) {
-      return Rect.fromCenter(
-        center: rect.center,
-        width: 72,
-        height: 72,
-      );
+      return Rect.fromCenter(center: rect.center, width: 72, height: 72);
     }
 
     if (key == _tourDiaryTabKey ||
@@ -1418,16 +1527,22 @@ class _MainScreenState extends State<MainScreen>
   /// harmless only because the app tour and the review prompt rarely became due
   /// on the same launch. "What's New" makes that collision likely — an update
   /// is exactly when the tour can also be pending — so the order is now
-  /// explicit: app tour, then release notes. The review prompt is reserved for
+  /// explicit: app tour, release notes, then the AI introduction if due. The review prompt is reserved for
   /// the first completed-workout summary instead of interrupting app launch.
   Future<void> _runStartupPrompts() async {
     await _handlePendingAppTourEntry();
     if (!mounted || _isTourActive || _isTourOfferVisible) return;
 
-    if (await _showWhatsNewIfPending()) return;
+    final showedWhatsNew = await _showWhatsNewIfPending();
     if (!mounted) return;
 
-    await _showTelemetryFollowUpIfDue();
+    if (await AiAssistantUpdateIntroService.instance.isDue()) {
+      if (!mounted) return;
+      await showAiAssistantUpdateIntroSheet(context);
+      return;
+    }
+
+    if (!showedWhatsNew) await _showTelemetryFollowUpIfDue();
   }
 
   /// The single follow-up to a telemetry question declined during onboarding.
@@ -1437,8 +1552,9 @@ class _MainScreenState extends State<MainScreen>
   /// declined or dismissed, it is marked as shown and never returns.
   Future<void> _showTelemetryFollowUpIfDue() async {
     final isOptedIn = await TelemetryService.instance.isOptedIn();
-    if (!await TelemetryConsentPrompt.instance
-        .isFollowUpDue(isOptedIn: isOptedIn)) {
+    if (!await TelemetryConsentPrompt.instance.isFollowUpDue(
+      isOptedIn: isOptedIn,
+    )) {
       return;
     }
     if (!mounted) return;
@@ -1450,12 +1566,13 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  /// Returns `true` when the release notes were shown, so the caller can hold
-  /// the review prompt back until the next launch.
+  /// Returns `true` when release notes were shown, so unrelated follow-ups can
+  /// wait until the next launch.
   Future<bool> _showWhatsNewIfPending() async {
     final languageCode = Localizations.localeOf(context).languageCode;
-    final releases =
-        await WhatsNewService.instance.pendingReleases(languageCode);
+    final releases = await WhatsNewService.instance.pendingReleases(
+      languageCode,
+    );
     if (!mounted || releases.isEmpty) return false;
 
     await showWhatsNewSheet(context, releases);
@@ -1479,15 +1596,18 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _startAppTour() async {
     if (!mounted) return;
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.appTourStarted));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.appTourStarted,
+      ),
+    );
     await AppTourService.instance.markOfferShown();
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final steps = _buildAppTourSteps(l10n);
     final initialTarget = steps.isNotEmpty
         ? (_rectForKey(steps[0].anchorKey) ??
-            _rectForKey(_tourNavigationBarKey))
+              _rectForKey(_tourNavigationBarKey))
         : null;
     setState(() {
       _isTourActive = true;
@@ -1554,8 +1674,8 @@ class _MainScreenState extends State<MainScreen>
 
       final int nextStableFrames =
           (targetRect != null && targetRect == previousRect)
-              ? stableFrames + 1
-              : 0;
+          ? stableFrames + 1
+          : 0;
       if (nextStableFrames >= _tourTargetStableFrames ||
           frame + 1 >= _tourTargetMaxFrames) {
         return;
@@ -1597,8 +1717,11 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _completeAppTour() async {
     if (!mounted || !_isTourActive) return;
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.appTourCompleted));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.appTourCompleted,
+      ),
+    );
     setState(() {
       _isTourActive = false;
       _tourTargetRect = null;
@@ -1681,7 +1804,8 @@ class _MainScreenState extends State<MainScreen>
 
     final l10n = AppLocalizations.of(context)!;
     final appTourSteps = _buildAppTourSteps(l10n);
-    final activeTourStep = (_isTourActive &&
+    final activeTourStep =
+        (_isTourActive &&
             _tourStepIndex >= 0 &&
             _tourStepIndex < appTourSteps.length)
         ? appTourSteps[_tourStepIndex]
@@ -1700,8 +1824,8 @@ class _MainScreenState extends State<MainScreen>
     // will natively push up all Snackbars (including those from settings).
     final double dynamicBottomPadding = isWorkoutRunning
         ? (DesignConstants.bottomNavigationBarHeight +
-            DesignConstants.workoutOverlayHeight +
-            48.0)
+              DesignConstants.workoutOverlayHeight +
+              48.0)
         : (DesignConstants.bottomNavigationBarHeight + 48.0);
 
     return Stack(
@@ -1766,7 +1890,8 @@ class _MainScreenState extends State<MainScreen>
               builder: (context, hidden, _) => hidden
                   ? const SizedBox.shrink()
                   : RepaintBoundary(
-                      child: _buildRunningWorkoutOverlay(context)),
+                      child: _buildRunningWorkoutOverlay(context),
+                    ),
             ),
           ),
         // Bottom Nav Bar & FAB
@@ -1781,7 +1906,8 @@ class _MainScreenState extends State<MainScreen>
                 final double verticalPadding = 8.0;
                 final double spacing = 8.0;
                 final double extraButtonSize = DesignConstants.fabSize;
-                final double maxTabW = constraints.maxWidth -
+                final double maxTabW =
+                    constraints.maxWidth -
                     (horizontalPadding * 2) -
                     (extraButtonSize + spacing);
 
@@ -1798,37 +1924,42 @@ class _MainScreenState extends State<MainScreen>
                           children: [
                             ClipPath(
                               clipper: ShadowOuterClipper(
-                                  borderRadius: DesignConstants
-                                          .bottomNavigationBarHeight /
-                                      2),
+                                borderRadius:
+                                    DesignConstants.bottomNavigationBarHeight /
+                                    2,
+                              ),
                               child: Container(
                                 width: maxTabW,
-                                height: DesignConstants
-                                    .bottomNavigationBarHeight, // Match barHeight
+                                height:
+                                    DesignConstants.bottomNavigationBarHeight, // Match barHeight
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(
-                                      DesignConstants
-                                              .bottomNavigationBarHeight /
-                                          2),
-                                  boxShadow:
-                                      DesignConstants.glassShadow(isDark),
+                                    DesignConstants.bottomNavigationBarHeight /
+                                        2,
+                                  ),
+                                  boxShadow: DesignConstants.glassShadow(
+                                    isDark,
+                                  ),
                                 ),
                               ),
                             ),
                             SizedBox(width: spacing),
                             ClipPath(
                               clipper: ShadowOuterClipper(
-                                  borderRadius: DesignConstants.fabSize / 2,
-                                  isOval: true),
+                                borderRadius: DesignConstants.fabSize / 2,
+                                isOval: true,
+                              ),
                               child: Container(
                                 width: extraButtonSize,
                                 height:
                                     DesignConstants.fabSize, // Match barHeight
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(
-                                      DesignConstants.fabSize / 2),
-                                  boxShadow:
-                                      DesignConstants.glassShadow(isDark),
+                                    DesignConstants.fabSize / 2,
+                                  ),
+                                  boxShadow: DesignConstants.glassShadow(
+                                    isDark,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1874,17 +2005,22 @@ class _MainScreenState extends State<MainScreen>
                                       // indicator's resting inset.
                                       indicatorExpansion:
                                           const EdgeInsets.symmetric(
-                                              horizontal: 14, vertical: 8),
+                                            horizontal: 14,
+                                            vertical: 8,
+                                          ),
                                       selectedIconColor:
                                           theme.colorScheme.primary,
-                                      unselectedIconColor:
-                                          isDark ? Colors.white : Colors.black,
+                                      unselectedIconColor: isDark
+                                          ? Colors.white
+                                          : Colors.black,
                                       indicatorColor:
                                           DesignConstants.floatingBarPillColor(
-                                              isDark),
+                                            isDark,
+                                          ),
                                       settings:
                                           DesignConstants.liquidGlassSettings(
-                                              isDark),
+                                            isDark,
+                                          ),
                                       tabs: [
                                         GlassTab(
                                           label: l10n.diary,
@@ -1892,8 +2028,9 @@ class _MainScreenState extends State<MainScreen>
                                             LucideIcons.notebook,
                                             key: _tourDiaryTabKey,
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.notebook),
+                                          activeIcon: const Icon(
+                                            LucideIcons.notebook,
+                                          ),
                                         ),
                                         GlassTab(
                                           label: l10n.workout,
@@ -1901,8 +2038,9 @@ class _MainScreenState extends State<MainScreen>
                                             LucideIcons.dumbbell,
                                             key: _tourWorkoutTabKey,
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.dumbbell),
+                                          activeIcon: const Icon(
+                                            LucideIcons.dumbbell,
+                                          ),
                                         ),
                                         GlassTab(
                                           label: l10n.statistics,
@@ -1911,7 +2049,8 @@ class _MainScreenState extends State<MainScreen>
                                             key: _tourStatisticsTabKey,
                                           ),
                                           activeIcon: const Icon(
-                                              LucideIcons.chart_no_axes_column),
+                                            LucideIcons.chart_no_axes_column,
+                                          ),
                                         ),
                                         GlassTab(
                                           label: l10n.nutrition,
@@ -1919,8 +2058,9 @@ class _MainScreenState extends State<MainScreen>
                                             LucideIcons.utensils,
                                             key: _tourNutritionTabKey,
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.utensils),
+                                          activeIcon: const Icon(
+                                            LucideIcons.utensils,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -1942,12 +2082,12 @@ class _MainScreenState extends State<MainScreen>
                                     shape: const LiquidOval(),
                                     settings:
                                         DesignConstants.liquidGlassSettings(
-                                            isDark),
+                                          isDark,
+                                        ),
                                     quality:
                                         DesignConstants.defaultGlassQuality,
                                     useOwnLayer: true,
-                                    isInteractive:
-                                        true, //false, // Force blur in minimal quality
+                                    isInteractive: true, //false, // Force blur in minimal quality
                                     child: Material(
                                       color: Colors.transparent,
                                       child: InkWell(
@@ -1988,17 +2128,22 @@ class _MainScreenState extends State<MainScreen>
         SpeedDialMenuOverlay(
           animation: _menuController,
           actions: _getSpeedDialActions(l10n),
+          aiChatActionKey: _aiChatActionKey,
           onClose: () {
             setState(() {
               _isAddMenuOpen = false;
               _menuController.reverse();
             });
+            AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+            AiGlobalCloudPresentation.quickChatActionCenter.value = null;
           },
           onActionTap: (actionKey) {
             setState(() {
               _isAddMenuOpen = false;
               _menuController.reverse();
             });
+            AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+            AiGlobalCloudPresentation.quickChatActionCenter.value = null;
             _executeAddMenuAction(actionKey);
           },
         ),

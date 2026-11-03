@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' as drift;
+
 import '../../../data/drift_database.dart' as db;
 import 'sources/supplement_local_data_source.dart';
 import '../domain/models/supplement.dart';
@@ -10,7 +11,7 @@ class SupplementRepositoryImpl implements SupplementRepository {
   final SupplementLocalDataSource _localDataSource;
 
   SupplementRepositoryImpl({required SupplementLocalDataSource localDataSource})
-      : _localDataSource = localDataSource;
+    : _localDataSource = localDataSource;
 
   @override
   Stream<List<Supplement>> watchAllSupplements() {

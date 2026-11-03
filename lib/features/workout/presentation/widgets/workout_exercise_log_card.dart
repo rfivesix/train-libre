@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
@@ -13,7 +14,9 @@ import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
 import 'workout_log_set_row.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../../util/time_util.dart';
 
@@ -217,10 +220,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
 
     final linkedTitle = MorphSourceScope(
       builder: (context, setHidden) => Builder(
-        builder: (titleCtx) => InkWell(
-          onTap: () => openDetail(titleCtx, setHidden),
-          child: title,
-        ),
+        builder: (titleCtx) =>
+            InkWell(onTap: () => openDetail(titleCtx, setHidden), child: title),
       ),
     );
 
@@ -363,20 +364,19 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                       ],
                                     )
                                   : isEditMode
-                                      ? Row(
-                                          children: [
-                                            timerRow,
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: Align(
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: noteRow,
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : timerRow,
+                                  ? Row(
+                                      children: [
+                                        timerRow,
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: noteRow,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : timerRow,
                             );
                           },
                         ),
@@ -392,48 +392,61 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Headed by the same mask the rows use.
-                              Builder(builder: (context) {
-                                final unitService = context.read<UnitService>();
-                                final primary = LogMaskLabels.primaryHeader(
-                                    mask, l10n, unitService);
-                                final secondary =
-                                    LogMaskLabels.secondaryHeader(mask, l10n);
-                                final wide =
-                                    mask.logsDistance || mask.logsDuration;
-                                return Row(
-                                  children: [
-                                    _buildHeader(l10n.setLabel, flex: 2),
-                                    if (primary != null)
-                                      _buildHeader(primary, flex: wide ? 4 : 2)
-                                    else
-                                      Expanded(
+                              Builder(
+                                builder: (context) {
+                                  final unitService = context
+                                      .read<UnitService>();
+                                  final primary = LogMaskLabels.primaryHeader(
+                                    mask,
+                                    l10n,
+                                    unitService,
+                                  );
+                                  final secondary =
+                                      LogMaskLabels.secondaryHeader(mask, l10n);
+                                  final wide =
+                                      mask.logsDistance || mask.logsDuration;
+                                  return Row(
+                                    children: [
+                                      _buildHeader(l10n.setLabel, flex: 2),
+                                      if (primary != null)
+                                        _buildHeader(
+                                          primary,
                                           flex: wide ? 4 : 2,
-                                          child: const SizedBox.shrink()),
-                                    const SizedBox(width: 8),
-                                    if (secondary != null)
-                                      _buildHeader(secondary,
-                                          flex: wide ? 4 : 2)
-                                    else
-                                      Expanded(
+                                        )
+                                      else
+                                        Expanded(
                                           flex: wide ? 4 : 2,
-                                          child: const SizedBox.shrink()),
-                                    // Same level as the rows below, so the
-                                    // column is present or absent as a whole.
-                                    if (context
-                                        .watch<ExperienceLevelService>()
-                                        .showsIntensity) ...[
+                                          child: const SizedBox.shrink(),
+                                        ),
                                       const SizedBox(width: 8),
-                                      _buildHeader(
-                                        mask.logsDistance
-                                            ? l10n.cardioIntensityShortLabel
-                                            : 'RIR',
-                                        flex: 2,
-                                      ),
+                                      if (secondary != null)
+                                        _buildHeader(
+                                          secondary,
+                                          flex: wide ? 4 : 2,
+                                        )
+                                      else
+                                        Expanded(
+                                          flex: wide ? 4 : 2,
+                                          child: const SizedBox.shrink(),
+                                        ),
+                                      // Same level as the rows below, so the
+                                      // column is present or absent as a whole.
+                                      if (context
+                                          .watch<ExperienceLevelService>()
+                                          .showsIntensity) ...[
+                                        const SizedBox(width: 8),
+                                        _buildHeader(
+                                          mask.logsDistance
+                                              ? l10n.cardioIntensityShortLabel
+                                              : 'RIR',
+                                          flex: 2,
+                                        ),
+                                      ],
+                                      const SizedBox(width: 48),
                                     ],
-                                    const SizedBox(width: 48),
-                                  ],
-                                );
-                              }),
+                                  );
+                                },
+                              ),
 
                               // Set Rows
                               ...sets.asMap().entries.map((setEntry) {
@@ -463,8 +476,10 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                       ? () => onSetTypeTap!(setLog.id!)
                                       : null,
                                   onSetTypeChanged: onSetTypeChanged != null
-                                      ? (newType) =>
-                                          onSetTypeChanged!(setLog.id!, newType)
+                                      ? (newType) => onSetTypeChanged!(
+                                          setLog.id!,
+                                          newType,
+                                        )
                                       : null,
                                 );
                               }),
@@ -472,7 +487,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                               if (isEditMode)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
+                                    horizontal: 16.0,
+                                  ),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,

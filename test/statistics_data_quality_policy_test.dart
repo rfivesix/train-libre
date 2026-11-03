@@ -52,16 +52,10 @@ void main() {
 
   group('StatisticsDataQualityPolicy.muscleDistribution', () {
     test('is sufficient at threshold and insufficient just below', () {
-      final sufficient =
-          StatisticsDataQualityPolicy.instance.muscleDistribution(
-        dataPointDays: 3,
-        spanDays: 14,
-      );
-      final lowDataPoints =
-          StatisticsDataQualityPolicy.instance.muscleDistribution(
-        dataPointDays: 2,
-        spanDays: 14,
-      );
+      final sufficient = StatisticsDataQualityPolicy.instance
+          .muscleDistribution(dataPointDays: 3, spanDays: 14);
+      final lowDataPoints = StatisticsDataQualityPolicy.instance
+          .muscleDistribution(dataPointDays: 2, spanDays: 14);
       final lowSpan = StatisticsDataQualityPolicy.instance.muscleDistribution(
         dataPointDays: 3,
         spanDays: 13,
@@ -72,7 +66,9 @@ void main() {
 
       expect(lowDataPoints.hasSufficientData, isFalse);
       expect(
-          lowDataPoints.reasonHook, 'quality:muscle-distribution:insufficient');
+        lowDataPoints.reasonHook,
+        'quality:muscle-distribution:insufficient',
+      );
 
       expect(lowSpan.hasSufficientData, isFalse);
       expect(lowSpan.reasonHook, 'quality:muscle-distribution:insufficient');

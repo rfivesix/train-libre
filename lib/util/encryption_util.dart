@@ -140,9 +140,9 @@ class BackupCipher {
 
   /// Everything a reader needs to derive the same key from the passphrase.
   Map<String, dynamic> get header => {
-        'enc': EncryptionUtil.wrapperVersionV2,
-        'salt': base64Encode(_salt),
-      };
+    'enc': EncryptionUtil.wrapperVersionV2,
+    'salt': base64Encode(_salt),
+  };
 
   Future<Uint8List> encrypt(List<int> data) async {
     final nonce = EncryptionUtil.randomNonce(_nonceLength);

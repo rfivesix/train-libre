@@ -27,12 +27,29 @@ class WorkoutLiveActivityBridge(private val context: Context) {
                 WorkoutLiveStore.clear(context)
                 result.success(null)
             }
-            // Android keeps the rest timer's sound with the app's own
-            // notification scheduler; see the note in `scheduleRestSound` on the
-            // Dart side. Answered rather than left unimplemented so the app is
-            // not made to log a failure for something that is working as
-            // designed.
-            "scheduleRestSound", "cancelRestSound" -> result.success(null)
+            "scheduleRestSound" -> {
+                val args = call.arguments as? Map<*, *>
+                val end = (args?.get("endsAtEpochMs") as? Number)?.toLong()
+                if (end != null) {
+                    RestTimerSound.setTexts(context, args["title"] as? String ?: "", args["body"] as? String ?: "")
+                    RestTimerSound.schedule(context, end, args["ignoreSilentMode"] as? Boolean ?: true)
+                }
+                result.success(null)
+            }
+            "cancelRestSound" -> {
+                RestTimerSound.cancel(context)
+                result.success(null)
+            }
+            "setRestIgnoreSilentMode" -> {
+                val args = call.arguments as? Map<*, *>
+                RestTimerSound.setIgnoreSilent(context, args?.get("enabled") as? Boolean ?: true)
+                result.success(null)
+            }
+            "setRestNotificationsEnabled" -> {
+                val args = call.arguments as? Map<*, *>
+                RestTimerSound.setAlertEnabled(context, args?.get("enabled") as? Boolean ?: true)
+                result.success(null)
+            }
             "consumePendingCommands" -> result.success(WorkoutLiveStore.consumeCommands(context))
             else -> result.notImplemented()
         }

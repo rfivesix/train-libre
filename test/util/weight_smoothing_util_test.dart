@@ -43,27 +43,29 @@ void main() {
       expect(smoothed[2].value, closeTo(85.1225, 0.0001));
     });
 
-    test('calculateEwmaDailyPoints smoothes DailyValuePoint series identically',
-        () {
-      final d1 = DateTime.utc(2026, 1, 1);
-      final d2 = DateTime.utc(2026, 1, 2);
-      final d3 = DateTime.utc(2026, 1, 3);
+    test(
+      'calculateEwmaDailyPoints smoothes DailyValuePoint series identically',
+      () {
+        final d1 = DateTime.utc(2026, 1, 1);
+        final d2 = DateTime.utc(2026, 1, 2);
+        final d3 = DateTime.utc(2026, 1, 3);
 
-      final points = [
-        DailyValuePoint(day: d2, value: 84.0),
-        DailyValuePoint(day: d1, value: 85.0),
-        DailyValuePoint(day: d3, value: 86.0),
-      ];
+        final points = [
+          DailyValuePoint(day: d2, value: 84.0),
+          DailyValuePoint(day: d1, value: 85.0),
+          DailyValuePoint(day: d3, value: 86.0),
+        ];
 
-      final smoothed = WeightSmoothingUtil.calculateEwmaDailyPoints(points);
+        final smoothed = WeightSmoothingUtil.calculateEwmaDailyPoints(points);
 
-      expect(smoothed.length, 3);
-      expect(smoothed[0].day, d1);
-      expect(smoothed[0].value, 85.0);
-      expect(smoothed[1].day, d2);
-      expect(smoothed[1].value, closeTo(84.65, 0.0001));
-      expect(smoothed[2].day, d3);
-      expect(smoothed[2].value, closeTo(85.1225, 0.0001));
-    });
+        expect(smoothed.length, 3);
+        expect(smoothed[0].day, d1);
+        expect(smoothed[0].value, 85.0);
+        expect(smoothed[1].day, d2);
+        expect(smoothed[1].value, closeTo(84.65, 0.0001));
+        expect(smoothed[2].day, d3);
+        expect(smoothed[2].value, closeTo(85.1225, 0.0001));
+      },
+    );
   });
 }

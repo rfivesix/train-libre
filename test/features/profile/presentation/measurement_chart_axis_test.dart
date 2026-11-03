@@ -15,22 +15,25 @@ void main() {
     required List<ChartDataPoint> points,
     required MeasurementChartAxisMode axisMode,
   }) async {
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: MeasurementChartWidget.fromData(
-          dataPoints: points,
-          unit: '%',
-          axisMode: axisMode,
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: MeasurementChartWidget.fromData(
+            dataPoints: points,
+            unit: '%',
+            axisMode: axisMode,
+          ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a month-wide time axis stays at a handful of labels',
-      (tester) async {
+  testWidgets('a month-wide time axis stays at a handful of labels', (
+    tester,
+  ) async {
     final start = DateTime(2024, 1, 1);
     final points = List.generate(
       4,
@@ -40,8 +43,11 @@ void main() {
       ),
     );
 
-    await pumpChart(tester,
-        points: points, axisMode: MeasurementChartAxisMode.time);
+    await pumpChart(
+      tester,
+      points: points,
+      axisMode: MeasurementChartAxisMode.time,
+    );
 
     // Every axis step becomes a widget — a drawn `SideTitleWidget` or the
     // `SizedBox.shrink()` the builder returns for a skipped step. With
@@ -50,8 +56,9 @@ void main() {
     expect(tester.widgetList(find.byType(SizedBox)).length, lessThan(100));
   });
 
-  testWidgets('a multi-year day axis stays at a handful of labels',
-      (tester) async {
+  testWidgets('a multi-year day axis stays at a handful of labels', (
+    tester,
+  ) async {
     final start = DateTime(2020, 1, 1);
     final points = List.generate(
       6,
@@ -61,8 +68,11 @@ void main() {
       ),
     );
 
-    await pumpChart(tester,
-        points: points, axisMode: MeasurementChartAxisMode.day);
+    await pumpChart(
+      tester,
+      points: points,
+      axisMode: MeasurementChartAxisMode.day,
+    );
 
     expect(find.byType(SideTitleWidget), findsAtLeastNWidgets(1));
     expect(tester.widgetList(find.byType(SizedBox)).length, lessThan(100));

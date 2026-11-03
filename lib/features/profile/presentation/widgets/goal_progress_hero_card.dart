@@ -64,8 +64,9 @@ class GoalProgressHeroCard extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusS),
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusS,
+                      ),
                     ),
                     child: Icon(
                       LucideIcons.compass,
@@ -87,8 +88,9 @@ class GoalProgressHeroCard extends StatelessWidget {
                         Text(
                           l10n.noActiveGoalSubtitle,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       ],
@@ -109,9 +111,7 @@ class GoalProgressHeroCard extends StatelessWidget {
                 label: l10n.createGoalButton,
                 onPressed: () async {
                   await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CreateGoalFlow(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const CreateGoalFlow()),
                   );
                   onRefresh?.call();
                 },
@@ -217,8 +217,8 @@ class GoalProgressHeroCard extends StatelessWidget {
                       value: currentGoal.hasNumericTarget
                           ? formatWeight(currentGoal.targetValue)
                           : (currentGoal.isMaintenanceOrRecomp
-                              ? l10n.goalMaintainCorridor
-                              : l10n.goalDirectionalOnly),
+                                ? l10n.goalMaintainCorridor
+                                : l10n.goalDirectionalOnly),
                       subtitle: currentGoal.targetDate != null
                           ? dateFormat.format(currentGoal.targetDate!)
                           : null,
@@ -244,8 +244,9 @@ class GoalProgressHeroCard extends StatelessWidget {
                       child: Text(
                         l10n.goalNeedsFirstMeasurementPrompt,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       ),
                     ),
@@ -277,8 +278,9 @@ class GoalProgressHeroCard extends StatelessWidget {
                           '${unitService.convertDisplayValue(currentProgress!.remainingDistance!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
                         ),
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.8),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.8,
+                          ),
                           fontWeight: FontWeight.w600,
                         ),
                       )
@@ -300,8 +302,9 @@ class GoalProgressHeroCard extends StatelessWidget {
                       Text(
                         '${currentGoal.desiredWeeklyRateKg! >= 0 ? '+' : ''}${unitService.convertDisplayValue(currentGoal.desiredWeeklyRateKg!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                   ],

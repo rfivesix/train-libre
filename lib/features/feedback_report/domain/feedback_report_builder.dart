@@ -25,11 +25,11 @@ class FeedbackReportBuilder {
     FeedbackReportDiagnosticsProvider? performanceDiagnosticsProvider,
     PackageInfoLoader? packageInfoLoader,
     NowProvider? nowProvider,
-  })  : _adaptiveDiagnosticsProvider = adaptiveDiagnosticsProvider,
-        _backupRestoreDiagnosticsProvider = backupRestoreDiagnosticsProvider,
-        _performanceDiagnosticsProvider = performanceDiagnosticsProvider,
-        _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
-        _nowProvider = nowProvider ?? DateTime.now;
+  }) : _adaptiveDiagnosticsProvider = adaptiveDiagnosticsProvider,
+       _backupRestoreDiagnosticsProvider = backupRestoreDiagnosticsProvider,
+       _performanceDiagnosticsProvider = performanceDiagnosticsProvider,
+       _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
+       _nowProvider = nowProvider ?? DateTime.now;
 
   Future<FeedbackReportDocument> build({
     required FeedbackReportOptions options,
@@ -162,15 +162,20 @@ class FeedbackReportSerializer {
 
     buffer.writeln(report.title);
     buffer.writeln(
-        '${copy.generatedLabel}: ${_iso(report.metadata.generatedAt)}');
+      '${copy.generatedLabel}: ${_iso(report.metadata.generatedAt)}',
+    );
     buffer.writeln(
-        '${copy.appVersionLabel}: ${_valueOrUnavailable(report.metadata.appVersion, copy.unavailableValue)}');
+      '${copy.appVersionLabel}: ${_valueOrUnavailable(report.metadata.appVersion, copy.unavailableValue)}',
+    );
     buffer.writeln(
-        '${copy.buildNumberLabel}: ${_valueOrUnavailable(report.metadata.buildNumber, copy.unavailableValue)}');
+      '${copy.buildNumberLabel}: ${_valueOrUnavailable(report.metadata.buildNumber, copy.unavailableValue)}',
+    );
     buffer.writeln(
-        '${copy.platformLabel}: ${_valueOrUnavailable(report.metadata.platform, copy.unavailableValue)}');
+      '${copy.platformLabel}: ${_valueOrUnavailable(report.metadata.platform, copy.unavailableValue)}',
+    );
     buffer.writeln(
-        '${copy.osVersionLabel}: ${_valueOrUnavailable(report.metadata.osVersion, copy.unavailableValue)}');
+      '${copy.osVersionLabel}: ${_valueOrUnavailable(report.metadata.osVersion, copy.unavailableValue)}',
+    );
 
     for (final section in report.sections) {
       if (!section.hasContent) {

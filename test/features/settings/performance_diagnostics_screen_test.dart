@@ -21,11 +21,11 @@ FrameTiming _frame({required int buildMs, required int rasterMs}) {
 }
 
 Widget _wrap(Widget child) => MaterialApp(
-      locale: const Locale('de'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: child,
-    );
+  locale: const Locale('de'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: child,
+);
 
 void main() {
   late JankRecorder recorder;
@@ -38,11 +38,11 @@ void main() {
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'Clipboard.setData') {
-        clipboardCalls.add(call);
-      }
-      return null;
-    });
+          if (call.method == 'Clipboard.setData') {
+            clipboardCalls.add(call);
+          }
+          return null;
+        });
   });
 
   tearDown(() {
@@ -58,10 +58,12 @@ void main() {
     ]);
 
     await tester.pumpWidget(
-      _wrap(PerformanceDiagnosticsScreen(
-        recorder: recorder,
-        deviceLabelLoader: () async => 'iPhone (iPhone14,4)',
-      )),
+      _wrap(
+        PerformanceDiagnosticsScreen(
+          recorder: recorder,
+          deviceLabelLoader: () async => 'iPhone (iPhone14,4)',
+        ),
+      ),
     );
     await tester.pump();
 
@@ -75,10 +77,12 @@ void main() {
     recorder.handleTimings([_frame(buildMs: 40, rasterMs: 40)]);
 
     await tester.pumpWidget(
-      _wrap(PerformanceDiagnosticsScreen(
-        recorder: recorder,
-        deviceLabelLoader: () async => 'iPhone (iPhone14,4)',
-      )),
+      _wrap(
+        PerformanceDiagnosticsScreen(
+          recorder: recorder,
+          deviceLabelLoader: () async => 'iPhone (iPhone14,4)',
+        ),
+      ),
     );
     await tester.pump();
 
@@ -100,10 +104,12 @@ void main() {
     recorder.handleTimings([_frame(buildMs: 40, rasterMs: 40)]);
 
     await tester.pumpWidget(
-      _wrap(PerformanceDiagnosticsScreen(
-        recorder: recorder,
-        deviceLabelLoader: () async => 'iPhone (iPhone14,4)',
-      )),
+      _wrap(
+        PerformanceDiagnosticsScreen(
+          recorder: recorder,
+          deviceLabelLoader: () async => 'iPhone (iPhone14,4)',
+        ),
+      ),
     );
     await tester.pump();
     expect(find.text('DiaryTab'), findsOneWidget);
@@ -111,8 +117,9 @@ void main() {
     // The screen grew past one viewport, so the tile is not built until the
     // list is scrolled to it — ensureVisible alone needs an element that
     // already exists.
-    final resetTile =
-        find.byKey(const Key('performance_diagnostics_reset_tile'));
+    final resetTile = find.byKey(
+      const Key('performance_diagnostics_reset_tile'),
+    );
     await tester.scrollUntilVisible(
       resetTile,
       300,

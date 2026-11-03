@@ -135,7 +135,8 @@ extension RegressionEngine on BayesianTdeeEstimator {
       final normalizedLastDueWeekKey = _normalizeDueWeekKey(
         recursiveState.lastDueWeekKey,
       );
-      final sameDueWeek = dueWeekKey != null &&
+      final sameDueWeek =
+          dueWeekKey != null &&
           normalizedLastDueWeekKey == dueWeekKey &&
           dueWeekKey.isNotEmpty;
 
@@ -161,8 +162,10 @@ extension RegressionEngine on BayesianTdeeEstimator {
 
       var predictedVariance = priorVariance;
       for (var i = 0; i < elapsedDueWeeks; i++) {
-        predictedVariance =
-            math.min(predictedVariance + qVariance, varianceCap);
+        predictedVariance = math.min(
+          predictedVariance + qVariance,
+          varianceCap,
+        );
       }
 
       if (!sameDueWeek && dueWeekKey != null && dueWeekKey.isNotEmpty) {
@@ -238,10 +241,7 @@ extension RegressionEngine on BayesianTdeeEstimator {
     return math.max(dayDiff ~/ 7, 1);
   }
 
-  double _clampVariance(
-    double variance, {
-    required double maxVariance,
-  }) {
+  double _clampVariance(double variance, {required double maxVariance}) {
     if (!variance.isFinite || variance <= 0) {
       return 1.0;
     }
@@ -285,7 +285,7 @@ extension RegressionEngine on BayesianTdeeEstimator {
         (posteriorVarianceCalories2 / math.max(varianceCapCalories2, 1.0))
             .clamp(0.0, 1.0);
 
-    if (windowDays >= 21 &&
+    if (windowDays >= 14 &&
         effectiveSampleSize >= 10 &&
         uncertaintyRatio <= 0.25) {
       return RecommendationConfidence.high;

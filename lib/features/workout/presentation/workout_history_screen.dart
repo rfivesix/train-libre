@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../../services/unit_service.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -15,9 +16,13 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/summary_card.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/common.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen displaying a list of all previously completed workout sessions.
@@ -37,10 +42,15 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.workoutHistory));
-    _logsStream = Provider.of<IWorkoutRepository>(context, listen: false)
-        .watchFullWorkoutLogs();
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.workoutHistory,
+      ),
+    );
+    _logsStream = Provider.of<IWorkoutRepository>(
+      context,
+      listen: false,
+    ).watchFullWorkoutLogs();
   }
 
   Future<void> _deleteLog(int logId) async {
@@ -100,9 +110,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
           }
 
           return ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              scrollbars: false,
-            ),
+            behavior: ScrollConfiguration.of(context)
+                .copyWith(scrollbars: false),
             child: CupertinoScrollbar(
               controller: _scrollController,
               thumbVisibility: true,
@@ -159,7 +168,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               // FIX: Subtitle is now a Column with more information.
                               subtitle: Column(
@@ -167,9 +177,9 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                 children: [
                                   const SizedBox(height: 4),
                                   Text(
-                                    DateFormat.yMMMMd(
-                                      locale,
-                                    ).add_Hm().format(log.startTime),
+                                    DateFormat.yMMMMd(locale)
+                                        .add_Hm()
+                                        .format(log.startTime),
                                   ),
                                   const SizedBox(height: 8),
                                   Row(
@@ -192,7 +202,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                                         ),
                                       ),
                                       const SizedBox(
-                                          width: DesignConstants.spacingM),
+                                        width: DesignConstants.spacingM,
+                                      ),
                                       Icon(
                                         LucideIcons.rotate_ccw,
                                         size: 14,

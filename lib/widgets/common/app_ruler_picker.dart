@@ -109,8 +109,10 @@ class _AppRulerPickerState extends State<AppRulerPicker> {
 
   void _finish() {
     final tick = (widget.value / widget.step).round();
-    final snapped =
-        (tick * widget.step).clamp(widget.minValue, widget.maxValue);
+    final snapped = (tick * widget.step).clamp(
+      widget.minValue,
+      widget.maxValue,
+    );
     if (tick != _lastHapticTick) {
       HapticFeedback.selectionClick();
       _lastHapticTick = tick;
@@ -132,10 +134,12 @@ class _AppRulerPickerState extends State<AppRulerPicker> {
           '${format.format(widget.value + widget.step)} ${widget.unit}',
       decreasedValue:
           '${format.format(widget.value - widget.step)} ${widget.unit}',
-      onIncrease:
-          widget.enabled ? () => _change(widget.value + widget.step) : null,
-      onDecrease:
-          widget.enabled ? () => _change(widget.value - widget.step) : null,
+      onIncrease: widget.enabled
+          ? () => _change(widget.value + widget.step)
+          : null,
+      onDecrease: widget.enabled
+          ? () => _change(widget.value - widget.step)
+          : null,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onHorizontalDragStart: widget.enabled
@@ -217,8 +221,10 @@ class _RulerPainter extends CustomPainter {
     final tickDistance = pixelsPerUnit * step;
     final radius = (middle / tickDistance).ceil() + 2;
     final centerTick = (value / step).round();
-    final labelFormat =
-        NumberFormat(fractionDigits == 2 ? '0.00' : '0', locale);
+    final labelFormat = NumberFormat(
+      fractionDigits == 2 ? '0.00' : '0',
+      locale,
+    );
     final paint = Paint()..strokeWidth = 1.5;
 
     final epsilon = step / 4;
@@ -238,10 +244,13 @@ class _RulerPainter extends CustomPainter {
           remMinor < epsilon || (minorInterval - remMinor).abs() < epsilon;
 
       final x = middle + (tickValue - value) * pixelsPerUnit;
-      final fade =
-          (math.min(x, size.width - x) / (size.width * .09)).clamp(0.0, 1.0);
-      paint.color =
-          tickColor.withValues(alpha: fade * (isMajor || isMid ? .8 : .4));
+      final fade = (math.min(x, size.width - x) / (size.width * .09)).clamp(
+        0.0,
+        1.0,
+      );
+      paint.color = tickColor.withValues(
+        alpha: fade * (isMajor || isMid ? .8 : .4),
+      );
       final height = isMajor ? 26.0 : (isMid ? 15.0 : 9.0);
       canvas.drawLine(Offset(x, 42 - height), Offset(x, 42), paint);
 
@@ -249,8 +258,9 @@ class _RulerPainter extends CustomPainter {
         final text = TextPainter(
           text: TextSpan(
             text: labelFormat.format(tickValue),
-            style:
-                labelStyle.copyWith(color: tickColor.withValues(alpha: fade)),
+            style: labelStyle.copyWith(
+              color: tickColor.withValues(alpha: fade),
+            ),
           ),
           textDirection: TextDirection.ltr,
           textScaler: textScaler,

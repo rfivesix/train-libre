@@ -37,53 +37,61 @@ void main() {
       final products = await database.select(database.products).get();
       expect(products.length, 1);
       expect(
-          products.first.barcode, NutritionTestDataSeeder.testFixtureBarcode);
+        products.first.barcode,
+        NutritionTestDataSeeder.testFixtureBarcode,
+      );
 
       await NutritionTestDataSeeder.clearNutritionTestData(dbHelper: dbHelper);
 
       final remainingGoals = await database.select(database.userGoals).get();
       expect(remainingGoals, isEmpty);
 
-      final remainingReviews =
-          await database.select(database.goalReviews).get();
+      final remainingReviews = await database
+          .select(database.goalReviews)
+          .get();
       expect(remainingReviews, isEmpty);
 
       final remainingProducts = await database.select(database.products).get();
       expect(remainingProducts, isEmpty);
     });
 
-    test('seedScenario is idempotent and does not fail on repeated injection',
-        () async {
-      // 1. Seed first scenario (on track)
-      await NutritionTestDataSeeder.seedScenario(
-        CanonicalNutritionScenarios.all[0],
-        dbHelper: dbHelper,
-      );
+    test(
+      'seedScenario is idempotent and does not fail on repeated injection',
+      () async {
+        // 1. Seed first scenario (on track)
+        await NutritionTestDataSeeder.seedScenario(
+          CanonicalNutritionScenarios.all[0],
+          dbHelper: dbHelper,
+        );
 
-      // 2. Seed a second scenario immediately without clear (plateau)
-      await NutritionTestDataSeeder.seedScenario(
-        CanonicalNutritionScenarios.all[1],
-        dbHelper: dbHelper,
-      );
+        // 2. Seed a second scenario immediately without clear (plateau)
+        await NutritionTestDataSeeder.seedScenario(
+          CanonicalNutritionScenarios.all[1],
+          dbHelper: dbHelper,
+        );
 
-      // 3. Seed the same scenario again
-      await NutritionTestDataSeeder.seedScenario(
-        CanonicalNutritionScenarios.all[1],
-        dbHelper: dbHelper,
-      );
+        // 3. Seed the same scenario again
+        await NutritionTestDataSeeder.seedScenario(
+          CanonicalNutritionScenarios.all[1],
+          dbHelper: dbHelper,
+        );
 
-      // Only one active goal should exist
-      final activeGoals = await (database.select(database.userGoals)
-            ..where((t) => t.status.equals('active')))
-          .get();
-      expect(activeGoals.length, 1);
+        // Only one active goal should exist
+        final activeGoals = await (database.select(
+          database.userGoals,
+        )..where((t) => t.status.equals('active'))).get();
+        expect(activeGoals.length, 1);
 
-      // Products table should have exactly 1 test product without unique constraint crashes
-      final products = await (database.select(database.products)
-            ..where((t) =>
-                t.barcode.equals(NutritionTestDataSeeder.testFixtureBarcode)))
-          .get();
-      expect(products.length, 1);
-    });
+        // Products table should have exactly 1 test product without unique constraint crashes
+        final products =
+            await (database.select(database.products)..where(
+                  (t) => t.barcode.equals(
+                    NutritionTestDataSeeder.testFixtureBarcode,
+                  ),
+                ))
+                .get();
+        expect(products.length, 1);
+      },
+    );
   });
 }

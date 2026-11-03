@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -44,15 +45,17 @@ class PulseSectionCard extends StatelessWidget {
     final rangeValue = !hasMetrics
         ? '--'
         : '${summary!.minBpm!.round()}-${summary.maxBpm!.round()}';
-    final averageValue =
-        summary?.averageBpm == null ? '--' : '${summary!.averageBpm!.round()}';
-    final restingValue =
-        summary?.restingBpm == null ? '--' : '${summary!.restingBpm!.round()}';
+    final averageValue = summary?.averageBpm == null
+        ? '--'
+        : '${summary!.averageBpm!.round()}';
+    final restingValue = summary?.restingBpm == null
+        ? '--'
+        : '${summary!.restingBpm!.round()}';
     final stateText = summary == null
         ? l10n.load_dots
         : summary.hasData
-            ? '${l10n.pulseSampleCount(summary.sampleCount)} - ${_pulseQualityLabel(l10n, summary.quality)}'
-            : _pulseNoDataMessage(l10n, summary.noDataReason);
+        ? '${l10n.pulseSampleCount(summary.sampleCount)} - ${_pulseQualityLabel(l10n, summary.quality)}'
+        : _pulseNoDataMessage(l10n, summary.noDataReason);
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -102,9 +105,8 @@ class PulseSectionCard extends StatelessWidget {
               const SizedBox(height: DesignConstants.spacingS),
               Text(
                 stateText,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
             ],
           ),

@@ -16,7 +16,7 @@ final JankRouteObserver jankRouteObserver = JankRouteObserver();
 
 class JankRouteObserver extends NavigatorObserver {
   JankRouteObserver({JankRecorder? recorder})
-      : _recorder = recorder ?? JankRecorder.instance;
+    : _recorder = recorder ?? JankRecorder.instance;
 
   final JankRecorder _recorder;
   final List<_TrackedRoute> _stack = <_TrackedRoute>[];

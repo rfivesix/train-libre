@@ -503,6 +503,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appInitStarting => 'Démarrage de l\'application...';
 
   @override
+  String get appInitFailed =>
+      'Train Libre n’a pas pu démarrer. Vos données enregistrées n’ont pas été supprimées. Veuillez réessayer.';
+
+  @override
   String get appInitInitializing => 'Initialisation...';
 
   @override
@@ -646,7 +650,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'Votre export est traité sur cet appareil. Si l’analyse anonyme est activée, nous enregistrons uniquement si vous démarrez, ignorez ou terminez un import, jamais les détails des entraînements.';
+      'Votre export est traité sur cet appareil. Si les statistiques pseudonymes sont activées, l’état de l’import peut être enregistré ; les détails de cet entraînement ne sont pas transmis.';
 
   @override
   String get workoutImportButton => 'Importer des données d\'entraînement';
@@ -1834,7 +1838,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onbPrivacyBody =>
-      'Vos données restent sur l\'appareil. Pas de comptes cloud, pas de synchronisation en arrière-plan.';
+      'Train Libre stocke principalement les données sur l’appareil. Des fonctions facultatives peuvent les transmettre ou les copier ailleurs.';
 
   @override
   String get onbFinishTitle => 'Tout est prêt';
@@ -2127,7 +2131,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'Supprimez définitivement les données appartenant à l\'utilisateur stockées sur cet appareil et réinitialisez Train Libre à un nouvel état local.';
+      'Supprimer les données et réglages locaux de l’application. Certaines copies peuvent subsister.';
 
   @override
   String get deleteAllLocalAppData =>
@@ -2139,7 +2143,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'Cela supprime définitivement les entraînements stockés localement, les journaux nutritionnels, les mesures, les suppléments, les paramètres/état, les analyses mises en cache et les données des applications locales.\n\nCela ne supprime pas les données déjà exportées vers Apple Health ou Health Connect.\n\nCela ne supprime pas les données des fournisseurs externes ni les sources de catalogue public distantes. Les ressources d\'application groupées et les catalogues par défaut requis sont conservés ou recréés afin que l\'application puisse se lancer après la réinitialisation.';
+      'La réinitialisation supprime de nombreux enregistrements et réglages locaux. Certaines pièces jointes ou configurations peuvent subsister. Elle ne supprime pas les sauvegardes, exports, données des plateformes de santé ou données des fournisseurs externes.';
 
   @override
   String get localDataDeletionTypeDeleteLabel => 'Tapez SUPPR pour confirmer';
@@ -2475,6 +2479,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mealTotalAmountLabel => 'Quantité totale de la recette';
 
   @override
+  String get aiMealRawEquivalent => 'Équivalent cru';
+
+  @override
+  String get aiMealServed => 'Servi';
+
+  @override
   String get mealWeightBasisLabel => 'État';
 
   @override
@@ -2576,7 +2586,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get error => 'Erreur';
 
   @override
-  String get mealsViewTitle => 'repasViewTitle';
+  String get mealsViewTitle => 'Recettes';
 
   @override
   String get noNotes => 'Aucune note';
@@ -2626,6 +2636,69 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsMaterialColorsSubtitle =>
       'Utilisez les couleurs dynamiques du système (Material You) au lieu de l\'accent de la marque Train Libre';
+
+  @override
+  String get settingsAppColorTitle => 'Couleur de l’application';
+
+  @override
+  String get settingsAppColorSubtitle =>
+      'Choisissez une couleur d’accent adaptée aux modes clair et sombre.';
+
+  @override
+  String get appColorPresetTrainLibre => 'Train Libre';
+
+  @override
+  String get appColorPresetMonochrome => 'Noir et blanc';
+
+  @override
+  String get appColorPresetBlue => 'Bleu';
+
+  @override
+  String get appColorPresetTeal => 'Turquoise';
+
+  @override
+  String get appColorPresetPurple => 'Violet';
+
+  @override
+  String get appColorPresetOrange => 'Orange';
+
+  @override
+  String get appColorPresetRose => 'Rose';
+
+  @override
+  String get appColorPresetCustom => 'Personnalisée';
+
+  @override
+  String get appColorPresetSystem => 'Couleurs du système';
+
+  @override
+  String get appColorCustomDialogTitle => 'Choisir une couleur';
+
+  @override
+  String get appColorHexLabel => 'Couleur hexadécimale';
+
+  @override
+  String get appColorHexInvalid =>
+      'Saisissez une couleur hexadécimale à 6 chiffres.';
+
+  @override
+  String get appColorHexOutOfRange =>
+      'Choisissez une couleur avec une luminosité de 40 à 82 %.';
+
+  @override
+  String get appColorHueLabel => 'Teinte';
+
+  @override
+  String get appColorSaturationLabel => 'Saturation';
+
+  @override
+  String get appColorBrightnessLabel => 'Luminosité';
+
+  @override
+  String get appColorCancel => 'Annuler';
+
+  @override
+  String get appColorApply => 'Appliquer';
 
   @override
   String get settingsFoodDbSectionTitle => 'Base de données alimentaire';
@@ -2679,6 +2752,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'Autriche (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'Pays-Bas (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'Espagne (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'Australie (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Insignes macro colorés';
@@ -2770,7 +2852,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Suivez les macros, l\'eau et utilisez la reconnaissance d\'images IA optionnelle.';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100% privé et local';
+  String get onboardingFeaturePrivacyTitle =>
+      'Données locales et confidentialité';
 
   @override
   String get onboardingFeaturePrivacyBody =>
@@ -2983,11 +3066,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ingredients => 'Ingrédients';
 
   @override
-  String get aiSettingsTitle => 'Reconnaissance de repas par IA';
+  String get aiSettingsTitle => 'Fonctionnalités d’IA';
 
   @override
   String get aiSettingsDescription =>
-      'Configurer la détection de repas assistée par IA.';
+      'Configurer les fonctions d’IA comme le chat et la reconnaissance des repas.';
 
   @override
   String get aiProviderSection => 'Fournisseur d\'IA';
@@ -3021,10 +3104,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      'Les images, le texte et les invites générées sont envoyés au fournisseur d\'IA sélectionné uniquement lorsque vous utilisez une action d\'IA. La rétention et le traitement du fournisseur suivent les conditions de ce fournisseur. Votre clé API est stockée cryptée sur cet appareil uniquement.';
+      'Les fonctions d’IA peuvent envoyer du texte, des images et du contexte au modèle utilisé. Le chat peut utiliser un autre fournisseur configuré. L’accès aux données enregistrées nécessite une autorisation, sauf si l’approbation automatique est activée. Consultez les conditions du fournisseur ; les clés API utilisent le stockage sécurisé de la plateforme.';
 
   @override
   String get aiMealCapture => 'Repas IA';
+
+  @override
+  String get aiChatAction => 'Chat IA';
 
   @override
   String get aiCaptureTitle => 'Capture de repas IA';
@@ -3084,11 +3170,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'Utilisation de l’IA : $count jetons';
+    return '$count jetons';
   }
 
   @override
-  String get aiReviewTokensPending => 'Utilisation de l’IA : mise à jour…';
+  String get aiReviewTokensPending => 'mise à jour…';
 
   @override
   String get aiReviewTokensUnknown => 'Utilisation de l’IA : indisponible';
@@ -3106,6 +3192,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'La requête IA a pris trop de temps. L’analyse a été arrêtée. Revenez en arrière et réessayez.';
 
   @override
+  String get aiReviewAdjustPortions => 'Ajuster l’estimation';
+
+  @override
+  String get aiReviewPortionsLarger => 'Portions plus grandes';
+
+  @override
+  String get aiReviewPortionsSmaller => 'Portions plus petites';
+
+  @override
   String get aiReviewFeedbackHint => 'Décrivez ce que l\'IA s\'est trompé...';
 
   @override
@@ -3116,7 +3211,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiErrorNoKey =>
-      'Aucune clé API configurée. Veuillez en définir un dans Paramètres → AI Meal Capture.';
+      'Aucune clé API configurée. Veuillez en définir une dans Paramètres → Fonctionnalités d’IA.';
 
   @override
   String get aiErrorNetwork =>
@@ -3139,7 +3234,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'Permet l\'utilisation de l\'IA pour la reconnaissance des repas. La désactivation de cette option masque tous les boutons AI de l\'application.';
+      'Active les fonctions d’IA comme le chat et la reconnaissance des repas. La désactivation masque tous les points d’accès à l’IA.';
+
+  @override
+  String get aiNutritionEngineLabel => 'Méthode d’estimation nutritionnelle';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      'L’estimation directe enregistre les nutriments sans rechercher dans la base alimentaire. Le mode catalogue conserve la recherche locale.';
+
+  @override
+  String get aiNutritionEngineEstimate => 'Estimation directe par l’IA';
+
+  @override
+  String get aiNutritionEngineCatalog => 'Catalogue alimentaire local';
+
+  @override
+  String get aiDirectEstimateLabel => 'Estimation IA';
+
+  @override
+  String get aiFloatingAssistantTitle => 'Afficher l’assistant IA flottant';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'Affiche le nuage IA par-dessus l’application. Le chat IA reste accessible depuis le menu Ajouter lorsque le nuage est masqué.';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'Statut et fonctionnalités';
@@ -5299,11 +5417,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Construit à partir des journaux récents et de leur exhaustivité.';
+      'L’évaluation tient compte des données alimentaires et de poids ainsi que de la stabilité de l’estimation.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Basé uniquement sur le profil/les données antérieures. Ajoutez des journaux de poids et de consommation récents pour un ajustement adaptatif.';
+      'Les données disponibles ne permettent pas encore une évaluation fiable.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5318,10 +5436,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les registres récents de poids et de consommation sont rares, cette recommandation est donc plus conservatrice.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Profil/antérieur seulement';
+  String get adaptiveConfidenceNotEnoughData => 'Données fiables insuffisantes';
 
   @override
-  String get adaptiveConfidenceLow => 'Journaux récents limités';
+  String get adaptiveConfidenceLow => 'Base de données limitée';
 
   @override
   String get adaptiveConfidenceMedium => 'Journaux récents utilisables';
@@ -5576,6 +5694,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get healthExportDomainNutritionHydration => 'Nutrition & hydratation';
 
   @override
+  String get healthNutritionImportTitle => 'Importer la nutrition';
+
+  @override
+  String get healthNutritionImportSubtitle =>
+      'Importer les totaux quotidiens d’Apple Santé ou Health Connect dans le journal.';
+
+  @override
+  String get healthNutritionImportPolicy =>
+      'Les entrées manuelles restent séparées. Les jours importés ne sont pas écrasés après une modification locale et ne sont pas recréés après suppression.';
+
+  @override
   String get healthExportDomainWorkouts => 'Entraînements';
 
   @override
@@ -5680,6 +5809,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => 'Japonais';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'Espagnol';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'Néerlandais';
 
   @override
   String get aiModelLabel => 'Modèle';
@@ -5914,7 +6049,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre doit lire vos données de pas pour afficher des statistiques quotidiennes/hebdomadaires. Vos données restent localement sur votre appareil ; il n\'y a pas de serveur externe.';
+      'Train Libre utilise les pas pour les statistiques quotidiennes et hebdomadaires. Les données importées peuvent aussi figurer dans des sauvegardes ou être partagées avec l’IA lorsque vous utilisez cette fonction. Gérez l’accès à la santé dans les réglages de l’appareil.';
 
   @override
   String get health_permission_continue => 'Continuer';
@@ -5931,11 +6066,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'J\'accepte expressément le traitement de mes données de santé et de forme pour le suivi des entraînements et des analyses. Je peux retirer mon consentement à tout moment dans les paramètres.';
+      'J’accepte expressément le traitement de mes données de forme et de santé pour le suivi des entraînements et les analyses, comme décrit dans la politique de confidentialité. Pour toute question sur le retrait de mon consentement, je peux contacter feedback@schotte.me.';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optionnel) Je souhaite partager des statistiques d\'utilisation pseudonymisées pour améliorer la stabilité et les fonctionnalités (aucune donnée personnelle ou de santé).';
+      '(Optionnel) Je souhaite partager des statistiques d’utilisation pseudonymes. Les événements peuvent inclure des identifiants techniques et des mesures d’utilisation qui peuvent être personnelles ou liées à la santé, même sans mon nom.';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -5981,12 +6116,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legal_section => 'Mentions légales et confidentialité';
 
   @override
-  String get aiSettingsInstructionTitle =>
-      'Comment fonctionne la reconnaissance des repas par l\'IA';
+  String get aiSettingsInstructionTitle => 'Fonctionnement des fonctions d’IA';
 
   @override
   String get aiSettingsInstructionBody =>
-      'Cette fonctionnalité utilise l\'IA pour analyser les images d\'aliments et fournir des estimations des nutriments. Vos images ne sont envoyées au fournisseur d\'IA sélectionné que lorsque vous utilisez la fonctionnalité. Il s\'appuie sur une architecture Bring-Your-Own-Key (BYOK), conservant vos données localement sur votre appareil jusqu\'à leur analyse.';
+      'Les fonctions d’IA comprennent le chat et la reconnaissance des repas. Messages, images et contexte sont transmis au modèle utilisé. Le chat peut utiliser un autre fournisseur. Les données enregistrées nécessitent une autorisation, sauf si l’approbation automatique est activée.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Guide de configuration';
@@ -6138,11 +6272,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      'Convertit les photos de repas ou les descriptions textuelles en entrées de journal structurées et les compare à votre base de données de produits privée.';
+      'En mode catalogue, les suggestions de l’IA sont rapprochées des aliments locaux. Le mode d’estimation directe peut utiliser des valeurs nutritionnelles estimées par l’IA. Vérifiez les résultats avant l’enregistrement.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Traduit des descriptions imprécises (par exemple, « une tranche de pain ») en estimations de poids métriques.\n• Fait correspondre les suggestions d\'IA hors ligne avec la base de données de produits locale sur votre appareil.\n• Calcule la nutrition localement au lieu de déléguer les calculs à des serveurs externes.';
+      'En mode catalogue, les suggestions de l’IA sont rapprochées des aliments locaux. Le mode d’estimation directe peut utiliser des valeurs nutritionnelles estimées par l’IA. Vérifiez les résultats avant l’enregistrement.';
 
   @override
   String get infoAiMealTechnicalTitle =>
@@ -6150,7 +6284,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Utilise un modèle de confidentialité Bring-Your-Own-Key (BYOK). L’IA fonctionne strictement comme une couche de suggestions. La correspondance est effectuée hors ligne à l\'aide d\'un filtre Jaro-Winkler tokenisé par rapport à la base de données SQLite locale. Il est strictement interdit au fournisseur d\'IA d\'effectuer des calculs nutritionnels via les invites du système.';
+      'En mode catalogue, les suggestions de l’IA sont rapprochées des aliments locaux. Le mode d’estimation directe peut utiliser des valeurs nutritionnelles estimées par l’IA. Vérifiez les résultats avant l’enregistrement.';
 
   @override
   String get infoSleepTitle => 'Qualité du sommeil (SHS v3.5)';
@@ -6718,7 +6852,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      'Voulez-vous vraiment supprimer vos données de télémétrie passées ?\n\nCe qui suit va se produire :\n• Tous les UUID d\'appareil, ID de session et compteurs locaux enregistrés sur cet appareil seront réinitialisés.\n• Une demande de suppression (\$delete_person) sera envoyée aux serveurs PostHog dans l\'UE pour y supprimer vos données.\n• Le SDK de télémétrie sera entièrement réinitialisé.';
+      'Train Libre tentera de réinitialiser les identifiants et compteurs locaux et de demander leur suppression à PostHog. La demande peut échouer, ne confirme pas la suppression sur le serveur et peut exclure les anciens identifiants ou sauvegardes.';
 
   @override
   String get telemetryDeleteConfirmButton => 'Supprimer les données maintenant';
@@ -6732,15 +6866,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      'Pseudonymisé : aucun nom, aucune adresse e-mail, aucune donnée de journal, d\'entraînement, de poids, de nutrition ou de santé. Seuls l\'affichage des écrans, l\'utilisation des fonctionnalités et les rapports d\'erreurs sont transmis.';
+      'Pseudonymes : les événements peuvent inclure des identifiants techniques, le contexte de l’application et de l’appareil, l’utilisation des écrans et fonctions, des nombres exacts d’entraînements et leur durée, le nombre d’entrées alimentaires, l’état des requêtes IA et des indicateurs liés à la nutrition ou au poids. Même sans nom, ces données peuvent être personnelles ou liées à la santé.';
 
   @override
   String get telemetryConsentPointNotSold =>
-      'Pas de publicité : Les données ne sont jamais vendues et ne sont jamais utilisées à des fins marketing ou publicitaires. Le traitement est effectué sur des serveurs situés dans l\'UE.';
+      'Pas de publicité dans l’application : Train Libre n’affiche pas de publicités. Les événements d’utilisation servent aux statistiques de l’application ; le traitement et l’hébergement dépendent de la configuration du service.';
 
   @override
   String get telemetryConsentPointRevocable =>
-      'Facultatif : Désactivable à tout moment dans les réglages. Les données de télémétrie enregistrées peuvent également y être supprimées.';
+      'Facultatif : vous pouvez désactiver les futurs envois dans les réglages. La commande d’effacement réinitialise les identifiants et compteurs locaux et tente une demande ; elle ne confirme pas la suppression côté serveur.';
 
   @override
   String get telemetryConsentAccept => 'Oui, partager les données d\'usage';
@@ -6754,7 +6888,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'Aide à améliorer l\'application. Pseudonymisé, sans données personnelles ni données de santé.';
+      'Les statistiques facultatives peuvent inclure des identifiants techniques et des mesures qui peuvent être personnelles ou liées à la santé, même sans votre nom.';
 
   @override
   String get settingsTelemetryDeleteTitle =>
@@ -6762,7 +6896,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'Supprime tous les identifiants stockés localement et sur le serveur PostHog';
+      'Réinitialise les identifiants locaux et tente une demande d’effacement ; la suppression côté serveur n’est pas confirmée.';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -6900,6 +7034,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get voiceTapToFinish => 'À l’écoute — touchez pour terminer';
+
+  @override
+  String get aiChatAddImage => 'Ajouter une image';
+
+  @override
+  String get aiChatTakePhoto => 'Prendre une photo';
+
+  @override
+  String get aiChatChoosePhoto => 'Choisir dans la photothèque';
+
+  @override
+  String get aiChatRemoveImage => 'Supprimer l’image';
+
+  @override
+  String get aiChatCameraUnavailable =>
+      'L’appareil photo n’est pas disponible sur cet appareil.';
+
+  @override
+  String get aiChatCameraPermission =>
+      'Autorisez l’accès à l’appareil photo pour prendre une photo.';
+
+  @override
+  String get aiChatCapture => 'Prendre une photo';
+
+  @override
+  String get aiChatCameraOptions => 'Options de l’appareil photo';
+
+  @override
+  String get aiChatFlash => 'Flash';
+
+  @override
+  String get aiChatSwitchCamera => 'Changer d’appareil photo';
+
+  @override
+  String get aiChatImageLimit => 'Vous pouvez joindre jusqu’à 4 images.';
+
+  @override
+  String get aiChatImageQuestion =>
+      'Si cette image montre des aliments ou des boissons, estime leurs valeurs nutritionnelles et prépare une entrée de journal à vérifier. Sinon, décris brièvement ce qu’elle montre.';
+
+  @override
+  String get aiChatImageUnsupported =>
+      'Le modèle d’IA sélectionné ne prend pas en charge les images. Votre brouillon reste dans le champ de saisie.';
 
   @override
   String get voiceStarting => 'Un instant…';
@@ -8010,7 +8187,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get goalReasonPrivacyNotice =>
-      'Votre note reste 100 % privée sur votre appareil et n\'est jamais partagée.';
+      'Votre note est stockée dans l’application et peut être incluse dans une sauvegarde ou une demande d’IA autorisée.';
 
   @override
   String get goalStep7Question => 'Vérifier & Activer';
@@ -8585,6 +8762,30 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rappels d’entraînement, d’objectifs et de bilans';
 
   @override
+  String get notificationExactAlarmTitle => 'Autoriser les minuteurs précis';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Autorisez les alarmes et rappels dans les réglages Android pour que le son de pause retentisse à temps en arrière-plan.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Entraînement en cours';
+
+  @override
+  String get notificationRestTimerTitle => 'Notifications de pause';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Afficher une notification système à la fin du repos.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Ignorer le mode silencieux';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Émettre le son de pause dans l’app même en mode silencieux. Les notifications en arrière-plan suivent les réglages système.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Plan d’entraînement';
 
   @override
@@ -9024,11 +9225,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiOverlayDemoGlobalEnabledTitle =>
-      'Activer AI Overlay dans toute l’application';
+      'Afficher l’assistant IA dans toute l’application';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'Afficher le nuage de démonstration sur tous les écrans. Les discussions ne sont pas enregistrées.';
+      'Afficher le nuage IA flottant sur tous les écrans.';
 
   @override
   String get aiOverlayDemoScreenTitle => 'Démo de l’interface AI Overlay';
@@ -9085,6 +9286,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiOverlayChatHistory => 'Historique des discussions';
 
   @override
+  String get aiOverlayAutoApprove =>
+      'Approuver automatiquement les demandes de données';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'Vous vous êtes entraîné trois fois cette semaine. Voulez-vous comparer votre charge d’entraînement ?';
 
@@ -9119,7 +9324,218 @@ class AppLocalizationsFr extends AppLocalizations {
       'Faites glisser le nuage horizontalement. Sa position est enregistrée.';
 
   @override
+  String get aiOverlayDemoAssistantHint => 'Ouvrir l’assistant IA';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => 'Noir et blanc';
+
+  @override
+  String get aiOverlayDemoColorWhite => 'Blanc';
+
+  @override
+  String get aiOverlayDemoColorBlack => 'Noir';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'Animation du nuage';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription =>
+      'Règle le mouvement du nuage IA développé.';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle =>
+      'Afficher les points de la zone sûre';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      'Afficher les coins permettant de redimensionner la zone';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle =>
+      'Ouvrir directement en plein écran';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle =>
+      'Ignorer l’écran intermédiaire à l’ouverture du nuage';
+
+  @override
+  String get developerNutritionLabSubtitle =>
+      'Examiner la logique nutritionnelle et les recommandations adaptatives';
+
+  @override
+  String get appleFoundationReadyTitle => 'Disponible sur cet appareil';
+
+  @override
+  String get appleFoundationEnableTitle => 'Activer dans les réglages iOS';
+
+  @override
+  String get appleFoundationNoTransferSubtitle =>
+      'Aucun transfert de données ni frais d’API.';
+
+  @override
+  String get telemetryDeleteSuccess =>
+      'La réinitialisation de la télémétrie a été tentée. La suppression sur le serveur n’a pas été confirmée.';
+
+  @override
   String aiAssistantAskModelHint(String model) {
     return 'Demander à $model';
   }
+
+  @override
+  String get aiStarterCheckNutritionTitle =>
+      'Vérifier la nutrition d\'aujourd\'hui';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      'Quel est mon bilan nutritionnel et macro pour aujourd\'hui ? Montre-moi les calories, protéines, glucides et lipides déjà consommés par rapport à mes objectifs quotidiens et ce qu\'il me reste.';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => 'Consulter l\'état de récupération';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      'Quel est mon état de récupération actuel ? Quels groupes musculaires sont totalement récupérés et lesquels ont encore besoin de repos avant le prochain entraînement ?';
+
+  @override
+  String get aiStarterSuggestMealTitle => 'Suggérer un repas selon les macros';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      'Consulte mon journal alimentaire d\'aujourd\'hui et mes macros restantes : quels repas ai-je déjà enregistrés et que puis-je manger au prochain repas pour couvrir au mieux mes objectifs restants ?';
+
+  @override
+  String get aiAssistantThinking => 'Réflexion en cours…';
+
+  @override
+  String get aiAssistantProcessingData => 'Analyse des données approuvées…';
+
+  @override
+  String get macroEntryButton => 'Macros';
+
+  @override
+  String get macroEntryTitle => 'Saisir les macros';
+
+  @override
+  String get macroEntryName => 'Nom (facultatif)';
+
+  @override
+  String get macroEntryAmount => 'Quantité (facultative)';
+
+  @override
+  String get macroEntryAmountTotalHint =>
+      'Laisser vide pour saisir les valeurs de l’entrée entière.';
+
+  @override
+  String get macroEntryAmountPer100GramHint =>
+      'Avec une quantité, les valeurs sont pour 100 g.';
+
+  @override
+  String get macroEntryAmountPer100MlHint =>
+      'Avec une quantité, les valeurs sont pour 100 ml.';
+
+  @override
+  String get macroEntryCalculate => 'Calculer automatiquement';
+
+  @override
+  String get macroEntryInvalidValues =>
+      'Ces valeurs ne permettent pas de calculer une macro valide.';
+
+  @override
+  String get macroEntryLogAsFluid => 'Enregistrer aussi comme boisson';
+
+  @override
+  String get macroEntryFluidAmountRequired =>
+      'Saisissez une quantité en ml pour une boisson.';
+
+  @override
+  String get macroEntryExtraNutrients => 'Ajouter d’autres nutriments';
+
+  @override
+  String get macroEntrySugar => 'Sucres';
+
+  @override
+  String get macroEntryFiber => 'Fibres';
+
+  @override
+  String get macroEntrySalt => 'Sel';
+
+  @override
+  String get macroEntryCaffeine => 'Caféine';
+
+  @override
+  String get macroEntryPer100 => 'Pour 100';
+
+  @override
+  String get macroEntryPortion => 'Portion';
+
+  @override
+  String get macroEntrySaved => 'Macros enregistrées.';
+
+  @override
+  String get macroEntryDefaultName => 'Entrée macro';
+
+  @override
+  String get macroEntryDetailTitle => 'Nutriments';
+
+  @override
+  String get macroEntryFillThreeValues =>
+      'Saisissez exactement trois des quatre valeurs macro.';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'Cette boisson est liée à une entrée macro. Sa suppression supprimera aussi l’entrée macro.';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => 'Mixte / prêt';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      'L’envoi direct nécessite l’activation des statistiques d’utilisation pseudonymes. Activez-les dans les réglages ou utilisez plutôt l’e-mail ou le partage.';
+
+  @override
+  String get feedbackReportDirectSent =>
+      'Rapport de diagnostic envoyé directement au développeur. Merci !';
+
+  @override
+  String get feedbackReportDirectSend => 'Envoyer directement au développeur';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Découvrez le chat IA';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Posez des questions sur l’entraînement et la nutrition ou préparez des brouillons. Votre message et vos images sont transmis au modèle lorsque vous les envoyez. L’accès aux données enregistrées nécessite une autorisation, sauf si l’approbation automatique est activée. Le fournisseur peut changer en cas de repli.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Exemple de chat';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Que peut faire le nouveau chat IA de Train Libre ?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'L’assistant peut préparer des routines, plans et recettes sous forme de brouillons. Vérifiez les suggestions et repas avant de les appliquer ou de les enregistrer.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'Activer les fonctions IA';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Contrôle le chat IA et les autres fonctions d’IA.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled =>
+      'Afficher le chat IA flottant';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Afficher ou masquer la bulle du chat. Le chat reste accessible depuis le menu Ajouter.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'Découvrir le chat IA';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Rouvrez à tout moment la présentation du nouveau chat IA.';
 }

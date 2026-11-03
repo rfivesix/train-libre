@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../widgets/common/macro_badge_row.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../add_food_screen.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class MealItemCard extends StatelessWidget {
@@ -43,10 +46,11 @@ class MealItemCard extends StatelessWidget {
     return SummaryCard(
       onTap: onTap,
       padding: const EdgeInsets.only(
-          left: DesignConstants.spacingL,
-          right: DesignConstants.spacingS,
-          top: DesignConstants.spacingL,
-          bottom: DesignConstants.spacingL),
+        left: DesignConstants.spacingL,
+        right: DesignConstants.spacingS,
+        top: DesignConstants.spacingL,
+        bottom: DesignConstants.spacingL,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -83,8 +87,9 @@ class MealItemCard extends StatelessWidget {
                         Text(
                           '${AppLocalizations.of(context)!.mealIngredientsTitle}: $count',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: DesignConstants.spacingXS),
@@ -95,8 +100,9 @@ class MealItemCard extends StatelessWidget {
                           fat: totals.fat,
                           useBadges: themeService.useColorfulMacroBadges,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                           ),
                         ),
                       ],

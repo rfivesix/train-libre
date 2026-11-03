@@ -29,8 +29,10 @@ class _RoutineSummaryCard extends StatelessWidget {
               labels.warmupSuffix,
               '${typeCounts[ShareSetType.warmup] ?? 0}',
             ),
-            _Metric(labels.failureSuffix,
-                '${typeCounts[ShareSetType.failure] ?? 0}'),
+            _Metric(
+              labels.failureSuffix,
+              '${typeCounts[ShareSetType.failure] ?? 0}',
+            ),
           ],
         ),
       ],
