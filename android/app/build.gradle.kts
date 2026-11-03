@@ -21,7 +21,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-android {
+extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = "com.rfivesix.trainlibre"
     compileSdk = 37
     ndkVersion = "28.2.13676358"
@@ -65,11 +65,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
-    kotlinOptions { jvmTarget = JavaVersion.VERSION_17.toString() }
 
     // Only the widget configuration Activities are Compose; the app itself
     // stays Flutter.
     buildFeatures { compose = true }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 flutter { source = "../.." }
