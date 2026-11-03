@@ -129,25 +129,25 @@ Train Libre is built with Flutter and natively supports:
 
 ## Key Features
 
-- **On-Device AI Meal Capture (Apple Intelligence & Foundation Models):** Zero-cloud, 100% offline meal recognition directly powered by Apple's native `FoundationModels` framework and Apple Silicon Neural Engine (iOS 26+). Log whole plates and ingredients in seconds with zero subscription costs, zero third-party API keys, 0 MB disk footprint, and zero bytes leaving your device.
-- **Privacy-First AI Meal Capture & Multi-Provider BYOK:** Capture meals from photos, dictated speech, or text. Support for on-device Foundation Models alongside Bring Your Own Key (BYOK) setup for OpenAI, Google Gemini, Anthropic Claude, Mistral, xAI Grok, or local self-hosted Ollama and custom OpenAI-compatible endpoints. Fully integrated with a culinary context anchor (`mealContext`) and a deterministic SQLite validation pipeline to prevent hallucinations.
-- **AI Chat Meal Logging:** Ask the floating assistant to log a described or photographed meal. Review its macro-only food entries before applying; the app calculates calories locally, and copies attached photos into the saved diary meal.
+- **On-Device AI with Apple Foundation Models:** On compatible iPhones with iOS 26 or later, use Apple's on-device model without a third-party API key. Photo understanding through this provider requires iOS 27 or later and a build with the necessary compiler support; availability depends on the device and system configuration.
+- **AI Meal Capture & Provider Choice:** Capture meals from photos, dictated speech, or text using a compatible provider. Choose Apple Foundation Models, bring your own key for OpenAI, Google Gemini, Anthropic Claude, Mistral, xAI Grok, or DeepSeek, or configure Ollama or an OpenAI-compatible endpoint. Review estimates before saving; catalog matching and validation provide checks but cannot guarantee accuracy.
+- **AI Assistant:** Ask questions, log a described or photographed meal, or prepare drafts for routines, training plans, and recipes. Review and apply or discard proposed changes. Access to stored app data is controlled in the assistant, and chat history is stored locally. See the [AI assistant guide](documentation/user_guide/ai_chat.md) for permissions and provider behavior.
 - **Workout & Routine Tracker (Hypertrophy & Strength):** Built for progressive overload, bodybuilding, and serious lifting. Create saved workout templates, customizable routines, and flexible training splits (PPL, Upper/Lower, Full Body). Log sets with warm-ups, working sets, failure sets, dropsets, timed sets, and RIR (Reps in Reserve) alongside rest timers and live session tracking.
 - **400+ Offline Exercise Library:** Bundled offline exercise database derived from [OpenExerciseDB](https://github.com/rfivesix/OpenExerciseDB) and wger. Filter by primary and secondary muscle groups, equipment, and movement patterns, or create custom exercises.
 - **Progress Tracking & Analytics:** Real-time personal record (PR) detection, estimated 1-Rep Max (1RM) progression curves (Brzycki model), volume load trends per muscle group, and comprehensive body measurement tracking (arms, chest, waist, hips, calves, thighs) with trend smoothing.
-- **Wearable & Health Sync:** Native bi-directional sync with **Apple Health** (iOS) and **Health Connect** (Android) for daily steps, sleep stages, active and resting heart rate aggregates, and body weight, backed by an idempotent local export pipeline.
+- **Wearable & Health Sync:** Optionally import selected health data, including steps, sleep, heart rate, measurements, and daily nutrition totals, from **Apple Health** or **Health Connect**. Export supported measurements, nutrition, hydration, and workouts; available data and permissions vary by platform.
 - **Muscle Recovery & Readiness:** Per-set RIR-aware residual load model with muscle-specific recovery decay and readiness heatmaps, paired with an algorithmic Sleep Health Score across five domains.
-- **Calorie & Macro Tracker:** Track nutrition, hydration, caffeine, creatine, and custom supplements in one unified local diary with adaptive weekly guidance and a Bayesian TDEE Estimator.
+- **Calorie & Macro Tracker:** Track nutrition, hydration, caffeine, creatine, and custom supplements in a local diary with adaptive weekly guidance and a Bayesian TDEE Estimator. Log foods from a catalog or enter macros manually without creating a catalog item.
 - **Meal Logging, Four Ways:** Barcode scanning, offline food catalog search, saved meal templates, or the camera — barcodes are detected passively while the meal camera is open, so there is no mode to pick in advance.
-- **LiDAR Scale Hint:** On supported iPhones, a measured physical scale of the scene assists the model instead of a guessed plate size — tackling the largest source of portion estimation error. Switchable and silently skipped everywhere else.
-- **Privacy & Local-First:** 100% offline-first architecture. All data stays securely on your device. No ads, no commercial tracking, and no mandatory cloud accounts.
+- **LiDAR Scale Hint:** On supported iPhones, optional depth measurements can provide scale information for meal estimates. Devices without suitable depth data continue without it; portions remain estimates.
+- **Privacy & Local-First:** Core data is stored locally. Optional health integrations, backups, AI providers, catalog downloads, and usage statistics have their own data flows. No ads, commercial tracking, or mandatory cloud accounts.
 
 ## Privacy & Philosophy
 
 - **No Ads. No Mandatory Account. No Commercial Tracking (Optional Pseudonymised Usage Statistics, off by default).**
 - **Offline-First:** Your data stays local unless you explicitly choose otherwise.
 - **Open-Source Transparency:** Trust through public code and understandable data flows.
-- **On-Device & User-Controlled AI:** On-device Apple Foundation Models run 100% locally on your Neural Engine with zero network requests. Optional cloud AI features require your own API key (BYOK); no data is sent to external providers without explicit configuration and opt-in.
+- **On-Device & User-Controlled AI:** Apple Foundation Models are intended for on-device processing on compatible devices. Online AI providers and configured endpoints receive the content needed for their requests; provider selection and the assistant's data-access controls are described in the [AI assistant guide](documentation/user_guide/ai_chat.md).
 
 ## Feedback & Community
 
@@ -174,6 +174,7 @@ For AI-assisted routine creation, see the [public AI routine guide](https://trai
 *   [Smart Features Overview](documentation/features/overview.md): Overview of algorithmic features and architectural privacy invariants.
 *   [Bayesian TDEE Estimator](documentation/features/bayesian_tdee_estimator.md): Comprehensive mathematical and statistical formulation of the Kalman filter-based adaptive energy expenditure engine.
 *   [BYOK AI Meal Validation](documentation/features/byok_ai_validation.md): AI meal capture pipeline details, fuzzy validation scoring, and the 3-pass self-repair verification loop.
+*   [AI Assistant Data Access](documentation/features/ai_assistant_data_access.md): chat history, data access, and reviewable change proposals.
 *   [AI Assistant Meal Logging](documentation/features/ai_assistant_meal_logging.md): reviewed macro-only meal proposals, photo persistence, and estimate boundaries.
 *   [Meal Capture Pipeline](documentation/features/meal_capture_pipeline.md): Unified camera and passive barcode detection, voice dictation, meals as logged events, photo storage, and what leaves the device on each capture path.
 *   [Depth Scale Hint (LiDAR)](documentation/features/depth_scale_hint.md): Measured scale facts and the optional depth image, the quality gate that discards untrustworthy measurements, and the explicit non-goals.
