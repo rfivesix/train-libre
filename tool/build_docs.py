@@ -933,7 +933,7 @@ def build_page_html(
     rel_to_docs = os.path.relpath(DOCS_DIR, current_out_dir)
     rel_to_suite = os.path.relpath(OUTPUT_DOCS_DIR, current_out_dir)
 
-    style_href = f"{rel_to_docs}/style.css"
+    style_href = f"{rel_to_docs}/style.css?v=20261103-comparison"
     docs_css_href = f"{rel_to_suite}/docs.css"
     docs_js_href = f"{rel_to_suite}/docs.js"
     theme_js_href = f"{rel_to_docs}/theme.js"
