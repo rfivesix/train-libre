@@ -1658,7 +1658,9 @@ class BackupManager {
     if (rows == null || rows.isEmpty) return;
 
     final validIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
-    if (!validIdentifier.hasMatch(tableName)) return;
+    if (!validIdentifier.hasMatch(tableName)) {
+      throw ArgumentError('Invalid table name for import: $tableName');
+    }
 
     final dbInst = _dbHelper.dbInstance;
     await dbInst.customStatement('DELETE FROM $tableName');
@@ -1687,6 +1689,8 @@ class BackupManager {
             }
           }
           values.add(val);
+        } else {
+          throw ArgumentError('Invalid column name for import: ${entry.key}');
         }
       }
 
