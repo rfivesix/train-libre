@@ -168,15 +168,16 @@ class AssistantDatabaseSnapshotReader {
         continue;
       }
       final columns = <String, String>{};
-      if (RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) {
-        final rows = await database
-            .customSelect('PRAGMA table_info($table)')
-            .get();
-        for (final row in rows) {
-          columns[row.read<String>('name')] = _sqliteType(
-            row.read<String>('type'),
-          );
-        }
+      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) {
+        throw ArgumentError('Invalid table name: $table');
+      }
+      final rows = await database
+          .customSelect('PRAGMA table_info($table)')
+          .get();
+      for (final row in rows) {
+        columns[row.read<String>('name')] = _sqliteType(
+          row.read<String>('type'),
+        );
       }
       final enriched = _enrichedTableColumns[table];
       if (enriched != null) {
@@ -1194,11 +1195,9 @@ class AssistantDatabaseSnapshotReader {
         effectiveSource = 'unlinked';
       }
 
-      final effectiveName = pickField(
-        'name',
-        archiveField: 'product_name',
-        overrideField: 'name',
-      ) as String?;
+      final effectiveName =
+          pickField('name', archiveField: 'product_name', overrideField: 'name')
+              as String?;
       final effectiveBrand = pickField('brand') as String?;
       final isFluid = asBoolInt(pickField('is_fluid')) ?? 0;
       final isLiquid = asBoolInt(pickField('is_liquid')) ?? 0;
@@ -1429,9 +1428,9 @@ class AssistantDatabaseSnapshotReader {
             .where((row) => row['plan_id'] == planId && row['ended_on'] == null)
             .toList()
           ..sort(
-            (a, b) =>
-                _dateValue(a['started_on'])
-                    .compareTo(_dateValue(b['started_on'])),
+            (a, b) => _dateValue(
+              a['started_on'],
+            ).compareTo(_dateValue(b['started_on'])),
           );
     if (activations.isEmpty) return const [];
     final activation = activations.last;

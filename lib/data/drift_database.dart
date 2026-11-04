@@ -930,7 +930,8 @@ class UserGoals extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()();
   TextColumn get area =>
       text().withDefault(const Constant('body_composition'))();
-  TextColumn get preset => text()(); // 'loseWeight', 'gainWeight', 'maintainWeight', 'recomposition', 'custom'
+  TextColumn get preset =>
+      text()(); // 'loseWeight', 'gainWeight', 'maintainWeight', 'recomposition', 'custom'
   TextColumn get title => text()();
   TextColumn get reason => text().nullable()();
   TextColumn get status => text().withDefault(
@@ -2531,7 +2532,9 @@ final _safeIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
 
 /// Column names of [table], or an empty set when the table does not exist.
 Future<Set<String>> _columnsOf(GeneratedDatabase db, String table) async {
-  if (!_safeIdentifier.hasMatch(table)) return const {};
+  if (!_safeIdentifier.hasMatch(table)) {
+    throw ArgumentError('Invalid table name: $table');
+  }
   final rows = await db.customSelect('PRAGMA table_info($table);').get();
   return rows.map((row) => row.read<String>('name')).toSet();
 }

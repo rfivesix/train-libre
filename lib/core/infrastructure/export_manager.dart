@@ -406,7 +406,9 @@ class ExportManager {
     final sheets = <WorkbookTableDto>[];
 
     for (final spec in _completeWorkbookTables) {
-      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(spec.tableName)) continue;
+      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(spec.tableName)) {
+        throw ArgumentError('Invalid table name: ${spec.tableName}');
+      }
       final query = spec.query ?? 'SELECT * FROM ${spec.tableName}';
       final rows = await dbInst.customSelect(query).get();
       final pragmaRows = await dbInst
@@ -816,8 +818,9 @@ class ExportManager {
         final ratio = entry.quantityInGrams / 100.0;
         nutritionRows.add(
           NutritionRowDto(
-            timestampStr: DateFormat('yyyy-MM-dd HH:mm')
-                .format(entry.timestamp),
+            timestampStr: DateFormat(
+              'yyyy-MM-dd HH:mm',
+            ).format(entry.timestamp),
             name: p.name,
             type: 'Essen',
             quantity: entry.quantityInGrams.toInt(),
@@ -1042,8 +1045,9 @@ class ExportManager {
         final endTime = DateTime.fromMillisecondsSinceEpoch(
           w.read<int>('end_time'),
         );
-        final day = DateFormat('yyyy-MM-dd')
-            .format(startTime.toLocal()); // local timezone date
+        final day = DateFormat(
+          'yyyy-MM-dd',
+        ).format(startTime.toLocal()); // local timezone date
 
         final hr = await _getWorkoutHeartRate(wId, startTime, endTime);
         if (hr != null) {
@@ -1131,7 +1135,8 @@ class ExportManager {
             files: [
               XFile(
                 file.path,
-                mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                mimeType:
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
               ),
             ],
             subject: 'Train Libre Complete Data Export',
@@ -1582,8 +1587,9 @@ class ExportManager {
       final rowData = sortedMeasurements[r];
       final rowIndex = r + 1;
 
-      final dateStr = DateFormat('yyyy-MM-dd')
-          .format(rowData.timestamp.toLocal());
+      final dateStr = DateFormat(
+        'yyyy-MM-dd',
+      ).format(rowData.timestamp.toLocal());
       final timeStr = DateFormat('HH:mm').format(rowData.timestamp.toLocal());
 
       writeCell(measurementsSheet, 0, rowIndex, TextCellValue(dateStr));
