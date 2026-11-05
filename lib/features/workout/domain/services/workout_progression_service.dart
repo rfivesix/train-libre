@@ -195,23 +195,36 @@ class WorkoutProgressionService {
         continue;
       }
       final key = '${set.workoutLogId}:${set.exerciseBlock ?? 0}';
-      sessions.putIfAbsent(key, () => []).add(set);
+      // BOLT OPTIMIZATION: Avoid .putIfAbsent closure allocation
+      var list = sessions[key];
+      if (list == null) {
+        list = [];
+        sessions[key] = list;
+      }
+      list.add(set);
     }
     if (sessions.isEmpty) return null;
 
-    final latest = sessions.values.reduce((left, right) {
-      final leftDate = left
-          .map(
-            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          )
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      final rightDate = right
-          .map(
-            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          )
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      return leftDate.isAfter(rightDate) ? left : right;
-    });
+    // BOLT OPTIMIZATION: Replaced nested .map().reduce() inside .reduce() with a single-pass loop
+    // to avoid intermediate iterables and redundant O(N) evaluations.
+    List<SetLog>? latest;
+    int latestMaxTime = -1;
+
+    for (final session in sessions.values) {
+      int currentMaxTime = -1;
+      for (final set in session) {
+        final time = set.performedAt?.millisecondsSinceEpoch ?? 0;
+        if (time > currentMaxTime) {
+          currentMaxTime = time;
+        }
+      }
+      if (currentMaxTime > latestMaxTime) {
+        latestMaxTime = currentMaxTime;
+        latest = session;
+      }
+    }
+
+    if (latest == null) return null;
     latest.sort((left, right) {
       final order = (left.logOrder ?? 0).compareTo(right.logOrder ?? 0);
       return order != 0 ? order : (left.id ?? 0).compareTo(right.id ?? 0);
