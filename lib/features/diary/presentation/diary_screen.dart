@@ -130,8 +130,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
       }
     }
   }
@@ -239,8 +240,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       }
                     } catch (_) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text(l10n.error)));
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(l10n.error)));
                     }
                   },
                   label: l10n.buttonSave,
@@ -277,8 +279,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               );
 
               final logs = vm.supplementLogsForSupplement(supplement.id!);
-              final timeSuffix = switch (Localizations.localeOf(context)
-                  .languageCode) {
+              final timeSuffix = switch (Localizations.localeOf(
+                context,
+              ).languageCode) {
                 'de' => ' Uhr',
                 'nl' => ' uur',
                 _ => '',
@@ -328,8 +331,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           AppLocalizations.of(context)!.emptySupplementLogs,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface
-                                    .withValues(alpha: 0.5),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.5),
                               ),
                         ),
                       ),
@@ -366,10 +370,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                               confirmDelete: () async {
                                 return await showDeleteConfirmation(
                                   context,
-                                  title: AppLocalizations.of(context)!
-                                      .deleteConfirmTitle,
-                                  content: AppLocalizations.of(context)!
-                                      .deleteSupplementLogConfirm,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  )!.deleteConfirmTitle,
+                                  content: AppLocalizations.of(
+                                    context,
+                                  )!.deleteSupplementLogConfirm,
                                 );
                               },
                               margin: EdgeInsets.zero,
@@ -411,9 +417,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                           .bodyLarge
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                           ),
                                     ),
                                   ],
@@ -438,10 +444,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                               ),
                             );
                           },
-                          label: AppLocalizations.of(context)!
-                              .manageSupplementsTitle,
-                          tooltip: AppLocalizations.of(context)!
-                              .manageSupplementsTitle,
+                          label: AppLocalizations.of(
+                            context,
+                          )!.manageSupplementsTitle,
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.manageSupplementsTitle,
                         ),
                       ),
                       const SizedBox(width: DesignConstants.spacingM),
@@ -605,8 +613,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         close();
                       } catch (e) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text(l10n.error)));
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
                       }
                     },
                     label: l10n.save,
@@ -1012,8 +1021,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       (vm) => vm.workoutSummary != null,
     );
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight = MediaQuery.paddingOf(context)
-        .top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.paddingOf(
+      context,
+    ).top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding = DesignConstants
@@ -1338,7 +1348,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           : null;
 
                       final newEntry = FluidEntry(
-                        timestamp: state.selectedDateTime, // This is now initialized correctly.
+                        timestamp: state
+                            .selectedDateTime, // This is now initialized correctly.
                         quantityInMl: quantity,
                         name: name,
                         kcal: kcal,
@@ -1364,8 +1375,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       } catch (_) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text(l10n.error)));
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
                         return;
                       }
 
@@ -1680,21 +1692,28 @@ class _DiaryCalendarButton extends StatelessWidget {
         : Colors.white;
 
     return Tooltip(
+      excludeFromSemantics: true,
       message: tooltip,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-        child: Material(
-          color: background,
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-          child: InkWell(
-            onTap: onPressed,
+      child: Semantics(
+        label: tooltip,
+        button: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Material(
+            color: background,
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: SizedBox(
-              width: 44,
-              height: 48,
-              child: Icon(
-                LucideIcons.calendar_days,
-                color: colorScheme.onSurface,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
+              child: SizedBox(
+                width: 44,
+                height: 48,
+                child: Icon(
+                  LucideIcons.calendar_days,
+                  color: colorScheme.onSurface,
+                ),
               ),
             ),
           ),
