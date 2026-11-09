@@ -21,7 +21,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+android {
     namespace = "com.rfivesix.trainlibre"
     compileSdk = 37
     ndkVersion = "28.2.13676358"

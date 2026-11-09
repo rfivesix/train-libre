@@ -80,12 +80,14 @@ class _FakeProfileRepo implements IProfileRepository {
   Future<List<ChartDataPoint>> getChartDataForTypeAndRange(
     String type,
     DateTimeRange range,
-  ) async => const [];
+  ) async =>
+      const [];
   @override
   Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
     String type,
     DateTimeRange range,
-  ) => Stream.value(const []);
+  ) =>
+      Stream.value(const []);
   @override
   Future<db.Profile?> getUserProfile() async => null;
   @override
@@ -151,7 +153,7 @@ void main() {
   );
 
   testWidgets(
-    'MeasurementFormSheet uses Clip.none and top headroom padding on SingleChildScrollView',
+    'MeasurementFormSheet clips its scroll content below the date controls',
     (tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -178,7 +180,7 @@ void main() {
       expect(scrollViewFinder, findsOneWidget);
 
       final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
-      expect(scrollView.clipBehavior, Clip.none);
+      expect(scrollView.clipBehavior, Clip.hardEdge);
       expect(
         scrollView.padding,
         const EdgeInsets.only(
@@ -190,7 +192,7 @@ void main() {
   );
 
   testWidgets(
-    'showGlassBottomMenu contentBuilder SingleChildScrollView uses Clip.none',
+    'showGlassBottomMenu clips scrolling content',
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -221,7 +223,7 @@ void main() {
       expect(scrollViewFinder, findsOneWidget);
 
       final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
-      expect(scrollView.clipBehavior, Clip.none);
+      expect(scrollView.clipBehavior, Clip.hardEdge);
       expect(
         scrollView.padding,
         const EdgeInsets.only(top: DesignConstants.spacingXS),

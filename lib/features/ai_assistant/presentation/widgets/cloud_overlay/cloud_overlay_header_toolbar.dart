@@ -33,6 +33,7 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
     required this.onHeaderDragStart,
     required this.onHeaderDragUpdate,
     required this.onHeaderDragEnd,
+    required this.onHeaderDragCancel,
   });
 
   final Rect safeRect;
@@ -56,6 +57,7 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
   final GestureDragStartCallback onHeaderDragStart;
   final GestureDragUpdateCallback onHeaderDragUpdate;
   final GestureDragEndCallback onHeaderDragEnd;
+  final VoidCallback onHeaderDragCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +69,7 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
     final fullscreenInset = 12.0 * fullscreenProgress;
     final expandedToolbarTop = safeRect.top - 62;
     final fullscreenToolbarTop = MediaQuery.paddingOf(context).top + 10;
-    final toolbarTop =
-        expandedToolbarTop +
+    final toolbarTop = expandedToolbarTop +
         (fullscreenToolbarTop - expandedToolbarTop) * fullscreenProgress;
 
     return Positioned(
@@ -78,51 +79,53 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
       height: 52,
       child: IgnorePointer(
         ignoring: !isExpanded,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: HeaderGlassButton(
-                icon: isFullscreen
-                    ? LucideIcons.panel_left
-                    : LucideIcons.maximize_2,
-                tooltip: isFullscreen ? 'Seitenleiste' : 'Vollbild',
-                isDarkSurface: !surfaceIsLight,
-                foregroundColor: foregroundColor,
-                backgroundColor: controlFill,
-                useStaticGlass: useStaticGlass,
-                onPressed: isFullscreen ? onToggleSidebar : onToggleFullscreen,
-              ),
-            ),
-            if (hasChatTurns)
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onVerticalDragStart: onHeaderDragStart,
+          onVerticalDragUpdate: onHeaderDragUpdate,
+          onVerticalDragEnd: onHeaderDragEnd,
+          onVerticalDragCancel: onHeaderDragCancel,
+          child: Row(
+            children: [
               Padding(
-                padding: const EdgeInsets.only(top: 6, left: 8),
+                padding: const EdgeInsets.only(top: 6),
                 child: HeaderGlassButton(
-                  icon: LucideIcons.square_pen,
-                  tooltip: l10n.aiOverlayNewChat,
+                  icon: isFullscreen
+                      ? LucideIcons.panel_left
+                      : LucideIcons.maximize_2,
+                  tooltip: isFullscreen ? 'Seitenleiste' : 'Vollbild',
                   isDarkSurface: !surfaceIsLight,
                   foregroundColor: foregroundColor,
                   backgroundColor: controlFill,
                   useStaticGlass: useStaticGlass,
-                  onPressed: onStartNewChat,
+                  onPressed:
+                      isFullscreen ? onToggleSidebar : onToggleFullscreen,
                 ),
               ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 6, left: 10, right: 10),
-                child: ShaderMask(
-                  blendMode: BlendMode.dstIn,
-                  shaderCallback: (bounds) => const LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [Colors.white, Colors.white, Colors.transparent],
-                    stops: [0, 0.78, 1],
-                  ).createShader(bounds),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onVerticalDragStart: onHeaderDragStart,
-                    onVerticalDragUpdate: onHeaderDragUpdate,
-                    onVerticalDragEnd: onHeaderDragEnd,
+              if (hasChatTurns)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 8),
+                  child: HeaderGlassButton(
+                    icon: LucideIcons.square_pen,
+                    tooltip: l10n.aiOverlayNewChat,
+                    isDarkSurface: !surfaceIsLight,
+                    foregroundColor: foregroundColor,
+                    backgroundColor: controlFill,
+                    useStaticGlass: useStaticGlass,
+                    onPressed: onStartNewChat,
+                  ),
+                ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 10, right: 10),
+                  child: ShaderMask(
+                    blendMode: BlendMode.dstIn,
+                    shaderCallback: (bounds) => const LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [Colors.white, Colors.white, Colors.transparent],
+                      stops: [0, 0.78, 1],
+                    ).createShader(bounds),
                     child: SizedBox(
                       height: 44,
                       child: Align(
@@ -143,62 +146,62 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: PlatformAdaptivePopupMenu<AssistantMenuAction>(
-                icon: HeaderGlassButton(
-                  icon: LucideIcons.ellipsis,
-                  tooltip: 'Chat-Menü',
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: PlatformAdaptivePopupMenu<AssistantMenuAction>(
+                  icon: HeaderGlassButton(
+                    icon: LucideIcons.ellipsis,
+                    tooltip: 'Chat-Menü',
+                    isDarkSurface: !surfaceIsLight,
+                    foregroundColor: foregroundColor,
+                    backgroundColor: controlFill,
+                    useStaticGlass: useStaticGlass,
+                  ),
+                  menuWidth: 330,
+                  hideGlobalAiCloud: false,
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: AssistantMenuAction.autoApprove,
+                      label: l10n.aiOverlayAutoApprove,
+                      icon: LucideIcons.shield_check,
+                      customTrailing: autoApproveDataRequests
+                          ? Icon(
+                              LucideIcons.check,
+                              color: foregroundColor,
+                              size: 18,
+                            )
+                          : null,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: AssistantMenuAction.settings,
+                      label: l10n.settingsTitle,
+                      icon: LucideIcons.settings,
+                    ),
+                  ],
+                  onSelected: (action) {
+                    switch (action) {
+                      case AssistantMenuAction.autoApprove:
+                        onToggleAutoApprove();
+                      case AssistantMenuAction.settings:
+                        onOpenSettings();
+                    }
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 8),
+                child: HeaderGlassButton(
+                  icon: LucideIcons.x,
+                  tooltip: 'Schließen',
                   isDarkSurface: !surfaceIsLight,
                   foregroundColor: foregroundColor,
                   backgroundColor: controlFill,
                   useStaticGlass: useStaticGlass,
+                  onPressed: onToggleExpanded,
                 ),
-                menuWidth: 330,
-                hideGlobalAiCloud: false,
-                items: [
-                  PlatformAdaptivePopupMenuItem(
-                    value: AssistantMenuAction.autoApprove,
-                    label: l10n.aiOverlayAutoApprove,
-                    icon: LucideIcons.shield_check,
-                    customTrailing: autoApproveDataRequests
-                        ? Icon(
-                            LucideIcons.check,
-                            color: foregroundColor,
-                            size: 18,
-                          )
-                        : null,
-                  ),
-                  PlatformAdaptivePopupMenuItem(
-                    value: AssistantMenuAction.settings,
-                    label: l10n.settingsTitle,
-                    icon: LucideIcons.settings,
-                  ),
-                ],
-                onSelected: (action) {
-                  switch (action) {
-                    case AssistantMenuAction.autoApprove:
-                      onToggleAutoApprove();
-                    case AssistantMenuAction.settings:
-                      onOpenSettings();
-                  }
-                },
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6, left: 8),
-              child: HeaderGlassButton(
-                icon: LucideIcons.x,
-                tooltip: 'Schließen',
-                isDarkSurface: !surfaceIsLight,
-                foregroundColor: foregroundColor,
-                backgroundColor: controlFill,
-                useStaticGlass: useStaticGlass,
-                onPressed: onToggleExpanded,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

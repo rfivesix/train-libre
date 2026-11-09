@@ -96,12 +96,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   bool _isRolling = true;
 
   List<String> _timeRangeLabels(AppLocalizations l10n) => [
-    l10n.filter7DaysShort,
-    l10n.filter1MonthShort,
-    l10n.filter3MonthsShort,
-    l10n.filter6MonthsShort,
-    l10n.filterMax,
-  ];
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filterMax,
+      ];
 
   DateTimeRange get _activeDateRange {
     if (_isRolling) return _activeBlock.getRollingBounds();
@@ -145,8 +145,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             previousAnchor,
             DateTime(2020),
           );
-          final isPreviousToOngoing =
-              !_isRolling &&
+          final isPreviousToOngoing = !_isRolling &&
               myBounds.start.isAtSameMomentAs(previousBounds.start);
 
           if (isPreviousToOngoing && _activeBlock != TimeframeBlock.day) {
@@ -261,6 +260,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final l10n = AppLocalizations.of(context)!;
     showGlassBottomMenu<bool?>(
       context: context,
+      expandToFullHeight: true,
       title: existingSession != null
           ? l10n.addMeasurementDialogTitle
           : l10n.addMeasurement,
@@ -291,12 +291,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final hasNoData = _filteredSessions.isEmpty;
     final displaySessions = hasNoData
         ? getMockSessions(_activeDateRange)
-              .where(
-                (session) => session.measurements.any(
-                  (measurement) => measurement.type == _displayChartType,
-                ),
-              )
-              .toList()
+            .where(
+              (session) => session.measurements.any(
+                (measurement) => measurement.type == _displayChartType,
+              ),
+            )
+            .toList()
         : _filteredSessions;
 
     final timeframeFilter = TimeRangeFilter(
@@ -317,14 +317,14 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
           ? null
           : () async {
-              final selected = await adaptive_pickers
-                  .showAdaptiveTimeframePicker(
-                    context: context,
-                    activeBlock: _activeBlock,
-                    initialAnchor: _anchorDate,
-                    initialIsRolling: _isRolling,
-                    earliestAvailableDay: DateTime(2020),
-                  );
+              final selected =
+                  await adaptive_pickers.showAdaptiveTimeframePicker(
+                context: context,
+                activeBlock: _activeBlock,
+                initialAnchor: _anchorDate,
+                initialIsRolling: _isRolling,
+                earliestAvailableDay: DateTime(2020),
+              );
               if (selected != null) {
                 setState(() {
                   _anchorDate = selected.anchorDate;
@@ -551,7 +551,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             const SizedBox(width: DesignConstants.spacingM),
             Text(
               '$value $unit'.trim(),
-              style: Theme.of(context).textTheme.bodyMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.end,
             ),
@@ -677,8 +679,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     String chartType,
     DateTimeRange range,
   ) {
-    final key =
-        '$chartType|${range.start.millisecondsSinceEpoch}'
+    final key = '$chartType|${range.start.millisecondsSinceEpoch}'
         '|${range.end.millisecondsSinceEpoch}';
     final cached = _mockChartPoints;
     if (cached != null && _mockChartKey == key) return cached;
@@ -776,11 +777,10 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? context.read<IProfileRepository>();
-    _selectedDateTime =
-        (widget.existingSession?.timestamp ??
-                widget.initialDate ??
-                DateTime.now())
-            .withCurrentTime;
+    _selectedDateTime = (widget.existingSession?.timestamp ??
+            widget.initialDate ??
+            DateTime.now())
+        .withCurrentTime;
     for (var key in _measurementTypes.keys) {
       _controllers[key] = TextEditingController();
     }
@@ -919,84 +919,81 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
     final formattedDate = DateFormat('dd.MM.yyyy').format(_selectedDateTime);
     final formattedTime = DateFormat.Hm().format(_selectedDateTime);
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 420),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton.icon(
-                icon: const Icon(LucideIcons.calendar, size: 20),
-                label: Text(
-                  formattedDate,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                onPressed: _selectDate,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton.icon(
+              icon: const Icon(LucideIcons.calendar, size: 20),
+              label: Text(
+                formattedDate,
+                style: const TextStyle(fontSize: 16),
               ),
-              TextButton.icon(
-                icon: const Icon(LucideIcons.clock, size: 20),
-                label: Text(
-                  formattedTime,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                onPressed: _selectTime,
+              onPressed: _selectDate,
+            ),
+            TextButton.icon(
+              icon: const Icon(LucideIcons.clock, size: 20),
+              label: Text(
+                formattedTime,
+                style: const TextStyle(fontSize: 16),
               ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Expanded(
-            child: SingleChildScrollView(
-              clipBehavior: Clip.none,
-              padding: const EdgeInsets.only(
-                top: DesignConstants.spacingS,
-                bottom: DesignConstants.spacingL,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    ..._measurementTypes.keys.map(
-                      (key) => Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: DesignConstants.spacingM,
+              onPressed: _selectTime,
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Expanded(
+          child: SingleChildScrollView(
+            clipBehavior: Clip.hardEdge,
+            padding: const EdgeInsets.only(
+              top: DesignConstants.spacingS,
+              bottom: DesignConstants.spacingL,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  ..._measurementTypes.keys.map(
+                    (key) => Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: DesignConstants.spacingM,
+                      ),
+                      child: TextFormField(
+                        controller: _controllers[key],
+                        decoration: InputDecoration(
+                          labelText: l10n.getLocalizedMeasurementName(key),
+                          suffixText: _displayUnit(key, unitService),
                         ),
-                        child: TextFormField(
-                          controller: _controllers[key],
-                          decoration: InputDecoration(
-                            labelText: l10n.getLocalizedMeasurementName(key),
-                            suffixText: _displayUnit(key, unitService),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value != null &&
-                                value.isNotEmpty &&
-                                double.tryParse(value.replaceAll(',', '.')) ==
-                                    null) {
-                              return l10n.validatorPleaseEnterNumber;
-                            }
-                            return null;
-                          },
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value != null &&
+                              value.isNotEmpty &&
+                              double.tryParse(value.replaceAll(',', '.')) ==
+                                  null) {
+                            return l10n.validatorPleaseEnterNumber;
+                          }
+                          return null;
+                        },
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingL),
-          AppButton.primary(
-            onPressed: _saveSession,
-            label: l10n.save,
-            tooltip: l10n.save,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+        AppButton.primary(
+          onPressed: _saveSession,
+          label: l10n.save,
+          tooltip: l10n.save,
+        ),
+      ],
     );
   }
 }

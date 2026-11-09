@@ -73,4 +73,27 @@ void main() {
     controller.finishSidebarPointer(const PointerUpEvent(pointer: 1));
     expect(controller.sidebarAnimation.value, 0);
   });
+  testWidgets('header drag honors upward velocity and cancel restores the chat', (tester) async {
+    final morph = AnimationController(vsync: tester, duration: const Duration(milliseconds: 100), value: 1);
+    var closed = false;
+    final controller = CloudScrollSidebarController(
+      vsync: tester,
+      isFullscreenGetter: () => false,
+      morphAnimationGetter: () => morph,
+      onToggleExpanded: () => closed = true,
+    );
+    addTearDown(() { controller.dispose(); morph.dispose(); });
+    controller.handleHeaderDragStart(DragStartDetails());
+    controller.handleHeaderDragUpdate(DragUpdateDetails(globalPosition: Offset.zero, delta: const Offset(0, 150)));
+    controller.handleHeaderDragEnd(DragEndDetails(velocity: const Velocity(pixelsPerSecond: Offset(0, -1000))));
+    await tester.pumpAndSettle();
+    expect(closed, isFalse);
+    expect(morph.value, 1);
+    controller.handleHeaderDragStart(DragStartDetails());
+    controller.handleHeaderDragUpdate(DragUpdateDetails(globalPosition: Offset.zero, delta: const Offset(0, 100)));
+    controller.handleHeaderDragCancel();
+    await tester.pumpAndSettle();
+    expect(morph.value, 1);
+  });
+
 }
