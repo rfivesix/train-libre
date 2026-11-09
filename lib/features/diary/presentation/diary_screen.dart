@@ -1043,7 +1043,13 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
         children: [
           Padding(
             padding: finalPadding.copyWith(bottom: 0),
-            child: weightCard(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                weightCard(),
+                if (stepsEnabled) const StepsSummaryCard(),
+              ],
+            ),
           ),
           Expanded(
             child: Padding(

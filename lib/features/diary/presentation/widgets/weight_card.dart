@@ -222,9 +222,9 @@ class _WeightCardState extends State<WeightCard>
                     l10n,
                     latest,
                     logged,
-                    // Only the collapsed, already-logged card navigates; while
-                    // the ruler is open the card belongs to the inline editor.
-                    onTap: logged && !open && !isSkeleton
+                    // The collapsed card opens the history even before today's
+                    // weigh-in; the separate button still opens the editor.
+                    onTap: !open && !isSkeleton
                         ? () async {
                             _morphMeasurementSnapshot = latest;
                             _morphingToMeasurements = true;

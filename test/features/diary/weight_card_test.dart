@@ -294,6 +294,25 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  for (final hasPreviousWeight in [false, true]) {
+    cardTest(
+      '${hasPreviousWeight ? 'older' : 'missing'} weight opens history from the card',
+      (tester) async {
+        if (hasPreviousWeight) {
+          await seed(tester, 85.1, today.subtract(const Duration(days: 3)));
+        }
+        final observer = _NavigationObserver();
+        await mount(tester, observer: observer);
+        await tester.tap(find.text('Gewicht'));
+        final route = observer.lastRoute! as CardMorphRoute<void>;
+        final destination = route.builder(tester.element(find.byType(WeightCard)));
+        expect(destination, isA<MeasurementsScreen>());
+        expect((destination as MeasurementsScreen).initialMeasurementType, 'weight');
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
+
   for (final imperial in [false, true]) {
     cardTest('drag and save persists kg with imperial=$imperial', (
       tester,

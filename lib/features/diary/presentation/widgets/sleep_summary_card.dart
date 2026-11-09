@@ -5,9 +5,11 @@ import '../../../../util/design_constants.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
-import '../../../../widgets/common/summary_card.dart';
+import 'diary_health_summary_card.dart';
 import '../../../sleep/data/sleep_day_repository.dart';
 import '../../../sleep/presentation/sleep_navigation.dart';
+import '../../../sleep/presentation/day/sleep_day_overview_page.dart';
+import '../../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../diary_view_model.dart';
 
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -27,14 +29,13 @@ class SleepSummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<
-      DiaryViewModel,
-      ({
-        bool isSleepWidgetLoading,
-        SleepDayOverviewData? sleepOverview,
-        DateTime selectedDate,
-        bool showSkeleton,
-      })
-    >(
+        DiaryViewModel,
+        ({
+          bool isSleepWidgetLoading,
+          SleepDayOverviewData? sleepOverview,
+          DateTime selectedDate,
+          bool showSkeleton,
+        })>(
       selector: (context, vm) => (
         isSleepWidgetLoading: vm.isSleepWidgetLoading,
         sleepOverview: vm.sleepOverview,
@@ -44,33 +45,9 @@ class SleepSummaryCard extends StatelessWidget {
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;
         if (data.isSleepWidgetLoading && !showSkeleton) {
-          return SummaryCard(
-            padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(
-              vertical: DesignConstants.spacingXS,
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingM,
-                vertical: DesignConstants.screenPaddingVertical,
-              ),
-              title: Text(
-                l10n.sleepSectionTitle,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                l10n.diaryLoadingSleep,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
+          return DiaryHealthSummaryCard(
+            title: l10n.sleepSectionTitle,
+            subtitle: l10n.diaryLoadingSleep,
           );
         }
 
@@ -85,70 +62,51 @@ class SleepSummaryCard extends StatelessWidget {
         final score = showSkeleton ? 100.0 : overview!.analysis.score;
         final scoreText = score == null ? '--' : score.round().toString();
 
-        return RepaintBoundary(
-          child: SummaryCard(
-            padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(
-              vertical: DesignConstants.spacingXS,
-            ),
-            child: ListTile(
-              onTap: () =>
-                  SleepNavigation.openDayForDate(context, data.selectedDate),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingM,
-                vertical: DesignConstants.screenPaddingVertical,
-              ),
-              title: Text(
-                l10n.sleepSectionTitle,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                '${l10n.durationLabel}: $durationText',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              trailing: Row(
+        return DiaryHealthSummaryCard(
+          title: l10n.sleepSectionTitle,
+          subtitle: '${l10n.durationLabel}: $durationText',
+          routeSettings: RouteSettings(
+            name: SleepRouteNames.day,
+            arguments: data.selectedDate,
+          ),
+          destinationBuilder: (_) => SleepDayOverviewPage(
+            selectedDay: data.selectedDate,
+            initialScope: SleepPeriodScope.day,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        l10n.sleepHubScoreLabel,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        scoreText,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    l10n.sleepHubScoreLabel,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  Icon(
-                    LucideIcons.chevron_right,
-                    color: theme.colorScheme.onSurface,
+                  const SizedBox(height: 2),
+                  Text(
+                    scoreText,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
+                    ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Icon(
+                LucideIcons.chevron_right,
+                color: theme.colorScheme.onSurface,
+              ),
+            ],
           ),
         );
       },
