@@ -27,6 +27,8 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
   final PulseAnalysisRepository _pulseRepository =
       HealthPulseAnalysisRepository();
 
+  DateTime? _loadedDate;
+
   int? stepsForSelectedDay;
   bool isStepsWidgetLoading = false;
   bool stepsTrackingEnabled = false;
@@ -44,44 +46,51 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
     required bool forceStepsRefresh,
     required bool Function(DateTime date) isCurrentLoad,
   }) async {
-    final providerFilter = await _stepsSyncService.getProviderFilter();
-    final providerFilterRaw = StepsSyncService.providerFilterToRaw(
-      providerFilter,
-    );
+    final day = DateTime(date.year, date.month, date.day);
+    if (_loadedDate != day) {
+      _loadedDate = day;
+      stepsForSelectedDay = null;
+      sleepOverview = null;
+      pulseSummary = null;
+      isStepsWidgetLoading = false;
+      isSleepWidgetLoading = false;
+      isPulseWidgetLoading = false;
+      notifyListeners();
+    }
 
-    unawaited(
-      _loadStepsForDate(
+    Future<void> loadSteps() async {
+      final providerFilter = await _stepsSyncService.getProviderFilter();
+      if (!isCurrentLoad(date)) return;
+      await _loadStepsForDate(
         date,
-        providerFilterRaw: providerFilterRaw,
+        providerFilterRaw: StepsSyncService.providerFilterToRaw(providerFilter),
         isCurrentLoad: isCurrentLoad,
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          if (isCurrentLoad(date)) {
-            isStepsWidgetLoading = false;
-            notifyListeners();
-          }
-        },
-      ),
-    );
+      );
+      if (!isCurrentLoad(date)) return;
+      await _syncStepsIfDue(
+        date,
+        force: forceStepsRefresh,
+        isCurrentLoad: isCurrentLoad,
+      );
+    }
 
-    unawaited(
+    await Future.wait([
+      loadSteps().timeout(const Duration(seconds: 25), onTimeout: () {
+        if (isCurrentLoad(date)) {
+          isStepsWidgetLoading = false;
+          notifyListeners();
+        }
+      }),
       _loadSleepAndSyncIfDue(
         date,
         force: forceStepsRefresh,
         isCurrentLoad: isCurrentLoad,
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          if (isCurrentLoad(date)) {
-            isSleepWidgetLoading = false;
-            notifyListeners();
-          }
-        },
-      ),
-    );
-
-    unawaited(
+      ).timeout(const Duration(seconds: 15), onTimeout: () {
+        if (isCurrentLoad(date)) {
+          isSleepWidgetLoading = false;
+          notifyListeners();
+        }
+      }),
       _loadPulseForDate(date, isCurrentLoad: isCurrentLoad).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -91,24 +100,8 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
           }
         },
       ),
-    );
-
-    unawaited(
-      _syncStepsIfDue(
-        date,
-        force: forceStepsRefresh,
-        isCurrentLoad: isCurrentLoad,
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          if (isCurrentLoad(date)) {
-            isStepsWidgetLoading = false;
-            notifyListeners();
-          }
-        },
-      ),
-    );
-    unawaited(_syncNutritionImport(force: forceStepsRefresh));
+      _syncNutritionImport(force: forceStepsRefresh),
+    ]);
   }
 
   Future<void> _syncNutritionImport({required bool force}) async {
@@ -243,9 +236,8 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastSyncStr = prefs.getString('last_steps_sync');
-      final lastSync = lastSyncStr != null
-          ? DateTime.tryParse(lastSyncStr)
-          : null;
+      final lastSync =
+          lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
 
       if (force ||
           lastSync == null ||
@@ -275,9 +267,8 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastSyncStr = prefs.getString('last_sleep_sync');
-      final lastSync = lastSyncStr != null
-          ? DateTime.tryParse(lastSyncStr)
-          : null;
+      final lastSync =
+          lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
 
       if (force ||
           lastSync == null ||

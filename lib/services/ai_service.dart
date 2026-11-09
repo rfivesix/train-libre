@@ -18,6 +18,7 @@ import '../features/depth_scan/domain/models/depth_scale_facts.dart';
 import '../features/diary/domain/models/food_item.dart';
 import '../features/diary/domain/macro_entry_calculator.dart';
 import 'ai/apple_foundation_service.dart';
+import 'ai/ai_cancellation.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -926,7 +927,8 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
   }
 
   @visibleForTesting
-  AiMealCandidate attachDirectEstimateFoodsForTesting(AiMealCandidate candidate) =>
+  AiMealCandidate attachDirectEstimateFoodsForTesting(
+          AiMealCandidate candidate) =>
       _attachDirectEstimateFoods(candidate);
 
   String _buildDirectNutritionPrompt({
@@ -1235,7 +1237,16 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
   }) async {
     final usageRequestId = usageCollector?.startRequest();
     try {
+      if (AiCancellation.current?.isCancelled ?? false) {
+        throw const AiCancelledException();
+      }
       final providerEnum = await getSelectedProvider();
+      if (providerEnum == AiProvider.appleFoundation &&
+          images != null &&
+          images.isNotEmpty &&
+          !await AppleFoundationService.instance.supportsImageInput()) {
+        throw const AiUnsupportedFeatureException();
+      }
       String? apiKey;
       final isOfflineProvider = providerEnum == AiProvider.ollama ||
           providerEnum == AiProvider.custom ||
@@ -1265,6 +1276,10 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
               ),
             );
 
+      if (AiCancellation.current?.isCancelled ?? false) {
+        throw const AiCancelledException();
+      }
+
       final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.appleFoundation:
@@ -1273,6 +1288,7 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
             prompt: userContent,
             systemPrompt: systemPrompt,
             imagesBase64: imageDataList,
+            timeout: Duration(seconds: await getAiTimeoutSeconds()),
           );
           rawResult = _AiRawResponse(response, null);
           break;

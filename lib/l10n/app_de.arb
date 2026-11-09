@@ -3834,5 +3834,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Blende die Chat-Wolke ein oder aus. Der Chat bleibt auch über das Hinzufügen-Menü erreichbar."
 ,
   "aiAssistantIntroAboutRow": "KI-Chat ausprobieren",
-  "aiAssistantIntroAboutRowSubtitle": "Öffne die Vorschau des neuen KI-Chats jederzeit erneut."
+  "aiAssistantIntroAboutRowSubtitle": "Öffne die Vorschau des neuen KI-Chats jederzeit erneut.",
+  "aiFailureTitle": "Analyse fehlgeschlagen",
+  "aiFailureEmptyTitle": "Keine Lebensmittel erkannt",
+  "aiFailureTimeoutTitle": "Die Anfrage dauert zu lange",
+  "aiFailureUnavailableTitle": "KI nicht verfügbar",
+  "aiFailureNetworkTitle": "Verbindung fehlgeschlagen",
+  "aiFailureSetupTitle": "KI-Einrichtung erforderlich",
+  "aiFailureRateTitle": "Anfragelimit erreicht",
+  "aiFailureGenericBody": "Die KI-Antwort konnte nicht verarbeitet werden. Versuche es erneut oder wähle ein anderes Modell.",
+  "aiFailureEmptyBody": "Es wurden keine Lebensmittel zurückgegeben. Das Bild oder die Beschreibung zeigt die Mahlzeit möglicherweise nicht deutlich, oder das Modell hat einen Fehler gemacht.",
+  "aiFailureTimeoutBody": "Die eingestellte Wartezeit wurde erreicht. Erhöhe sie in den KI-Einstellungen oder versuche ein anderes Modell.",
+  "aiFailureNetworkBody": "Der KI-Anbieter konnte nicht erreicht werden. Prüfe deine Verbindung oder den Server.",
+  "aiFailureSetupBody": "Prüfe den KI-Anbieter und deine Zugangsdaten in den KI-Einstellungen.",
+  "aiFailureRateBody": "Warte einen Moment und versuche es erneut.",
+  "aiFailureUnavailableBody": "Prüfe, ob Apple Intelligence aktiviert und verfügbar ist, oder wähle einen anderen Anbieter.",
+  "aiFailureAppleHint": "Apple Intelligence erkennt Mahlzeiten und ihre Angaben möglicherweise nicht zuverlässig. Ein anderes KI-Modell könnte ein besseres Ergebnis liefern.",
+  "aiFailureEdit": "Eingabe bearbeiten",
+  "aiFailureSettings": "KI-Einstellungen öffnen",
+  "aiFailureSlowHint": "Je nach Gerät und Modell kann das etwas länger dauern.",
+  "aiFailureUnsupportedImage": "Apple Intelligence kann auf diesem Gerät oder dieser iOS-Version keine Fotos verwenden. Beschreibe die Mahlzeit als Text oder wähle einen anderen Anbieter.",
+  "aiFailureAppleTimeoutBody": "Die eingestellte Wartezeit wurde erreicht. Erhöhe sie in den KI-Einstellungen oder wähle einen anderen Anbieter."
 }

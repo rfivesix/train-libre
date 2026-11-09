@@ -24,26 +24,17 @@ class PulseSummaryCard extends StatelessWidget {
     return Selector<
         DiaryViewModel,
         ({
-          bool isPulseWidgetLoading,
           PulseAnalysisSummary? pulseSummary,
           DateTime selectedDate,
           bool showSkeleton,
         })>(
       selector: (context, vm) => (
-        isPulseWidgetLoading: vm.isPulseWidgetLoading,
         pulseSummary: vm.pulseSummary,
         selectedDate: vm.selectedDate,
         showSkeleton: !vm.hasDataForSelectedDate && !vm.isSelectedDateToday,
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;
-        if (data.isPulseWidgetLoading && !showSkeleton) {
-          return DiaryHealthSummaryCard(
-            title: l10n.pulseTitle,
-            subtitle: l10n.load_dots,
-          );
-        }
-
         final summary = data.pulseSummary;
         if ((summary == null || !summary.hasData) && !showSkeleton) {
           return const SizedBox.shrink();

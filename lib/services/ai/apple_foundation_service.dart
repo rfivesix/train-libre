@@ -1,39 +1,44 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'ai_cancellation.dart';
+import '../ai_service.dart';
 
 /// Service interfacing with Apple's native FoundationModels framework on iOS.
 class AppleFoundationService {
-  AppleFoundationService._();
+  AppleFoundationService._({bool forceIosForTesting = false})
+      : _forceIosForTesting = forceIosForTesting;
   static final AppleFoundationService instance = AppleFoundationService._();
+
+  @visibleForTesting
+  factory AppleFoundationService.forTesting() =>
+      AppleFoundationService._(forceIosForTesting: true);
+
+  final bool _forceIosForTesting;
+  bool get _isIos => _forceIosForTesting || (!kIsWeb && Platform.isIOS);
 
   static const MethodChannel _channel = MethodChannel(
     'trainlibre.ai/apple_foundation',
   );
 
-  bool? _cachedAvailability;
+  int _nextRequestId = 0;
 
-  /// Checks whether Apple Foundation Models are supported and available on this device.
+  /// Checks live availability, which may change in iOS settings at any time.
+  /// [forceRefresh] remains for compatibility; results are no longer cached.
   Future<bool> isAvailable({bool forceRefresh = false}) async {
-    if (!kIsWeb && !Platform.isIOS) return false;
-    if (!forceRefresh && _cachedAvailability != null) {
-      return _cachedAvailability!;
-    }
+    if (!_isIos) return false;
     try {
       final available =
           await _channel.invokeMethod<bool>('isAvailable') ?? false;
-      _cachedAvailability = available;
       return available;
     } on PlatformException catch (e) {
       debugPrint('[AppleFoundationService] isAvailable error: $e');
-      _cachedAvailability = false;
       return false;
     } on MissingPluginException {
-      _cachedAvailability = false;
       return false;
     } catch (_) {
-      _cachedAvailability = false;
       return false;
     }
   }
@@ -41,7 +46,7 @@ class AppleFoundationService {
   /// Prewarms the Apple Foundation Models session in the background so the model
   /// is already cached in memory when the user triggers an analysis.
   Future<bool> prewarm({String? systemPrompt}) async {
-    if (!kIsWeb && !Platform.isIOS) return false;
+    if (!_isIos) return false;
     try {
       return await _channel.invokeMethod<bool>('prewarm', {
             if (systemPrompt != null) 'systemPrompt': systemPrompt,
@@ -55,7 +60,7 @@ class AppleFoundationService {
   /// Whether this OS build can actually consume image attachments. Older
   /// FoundationModels builds accepted the field but silently ignored images.
   Future<bool> supportsImageInput() async {
-    if (!kIsWeb && !Platform.isIOS) return false;
+    if (!_isIos) return false;
     try {
       return await _channel.invokeMethod<bool>('supportsImageInput') ?? false;
     } on MissingPluginException {
@@ -71,24 +76,61 @@ class AppleFoundationService {
     required String prompt,
     String? systemPrompt,
     List<String>? imagesBase64,
+    Duration? timeout,
   }) async {
-    if (!kIsWeb && !Platform.isIOS) {
+    if (!_isIos) {
       throw UnsupportedError(
         'Apple Foundation Models are only available on iOS devices.',
       );
     }
     try {
-      final response = await _channel.invokeMethod<String>('generateMealJson', {
+      final requestId = '${++_nextRequestId}';
+      final cancellation = AiCancellation.current;
+      if (cancellation?.isCancelled ?? false) {
+        throw const AiCancelledException();
+      }
+      final generation = _channel.invokeMethod<String>('generateMealJson', {
+        'requestId': requestId,
         'prompt': prompt,
         if (systemPrompt != null) 'systemPrompt': systemPrompt,
         'images': imagesBase64 ?? const <String>[],
       });
+      void cancelNative() {
+        unawaited(_channel.invokeMethod<void>(
+            'cancel', {'requestId': requestId}).catchError((Object _) {}));
+      }
+
+      final pending = Future.any<String?>([
+        generation,
+        if (cancellation != null)
+          cancellation.whenCancelled.then((_) {
+            cancelNative();
+            throw const AiCancelledException();
+          }),
+      ]);
+      final response = await (timeout == null
+          ? pending
+          : pending.timeout(timeout, onTimeout: () {
+              cancelNative();
+              throw const AiTimeoutException();
+            }));
       if (response == null || response.trim().isEmpty) {
-        throw StateError('Apple Foundation Model returned an empty response.');
+        throw const AiParseException();
       }
       return response;
     } on PlatformException catch (e) {
-      throw StateError('Apple Foundation Model failed: ${e.message ?? e.code}');
+      if (e.code == 'UNAVAILABLE' ||
+          e.code == 'DEVICE_NOT_ELIGIBLE' ||
+          e.code == 'APPLE_INTELLIGENCE_DISABLED' ||
+          e.code == 'MODEL_NOT_READY' ||
+          e.code == 'UNSUPPORTED_IOS_VERSION' ||
+          e.code == 'FRAMEWORK_UNAVAILABLE') {
+        throw const AiAppleUnavailableException();
+      }
+      if (e.code == 'CANCELLED') throw const AiCancelledException();
+      if (e.code == 'RATE_LIMITED') throw const AiRateLimitException();
+      if (e.code == 'INVALID_RESPONSE') throw const AiParseException();
+      throw const AiAppleGenerationException();
     }
   }
 }

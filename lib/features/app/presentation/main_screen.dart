@@ -203,7 +203,6 @@ class _MainScreenState extends State<MainScreen>
         final pendingTap =
             LocalNotificationService.instance.takePendingNotificationTap();
         if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
-        unawaited(_tagebuchKey.currentState?.syncHealthData());
         refreshHomeWidgets();
       },
       Priority.idle,
@@ -1847,7 +1846,6 @@ class _MainScreenState extends State<MainScreen>
                   storageKey: const PageStorageKey('tab_tagebuch'),
                   child: DiaryScreen(
                     contentKey: _tagebuchKey,
-                    deferInitialHealthSync: true,
                   ),
                 ),
                 const KeepAlivePage(

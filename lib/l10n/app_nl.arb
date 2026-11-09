@@ -4325,5 +4325,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Toon of verberg de chatballon. Je kunt de chat ook openen via het menu Toevoegen."
 ,
   "aiAssistantIntroAboutRow": "AI-chat bekijken",
-  "aiAssistantIntroAboutRowSubtitle": "Bekijk de introductie van de nieuwe AI-chat wanneer je wilt opnieuw."
+  "aiAssistantIntroAboutRowSubtitle": "Bekijk de introductie van de nieuwe AI-chat wanneer je wilt opnieuw.",
+  "aiFailureTitle": "Analyse mislukt",
+  "aiFailureEmptyTitle": "Geen voedsel herkend",
+  "aiFailureTimeoutTitle": "Het verzoek duurt te lang",
+  "aiFailureUnavailableTitle": "AI niet beschikbaar",
+  "aiFailureNetworkTitle": "Verbinding mislukt",
+  "aiFailureSetupTitle": "AI instellen",
+  "aiFailureRateTitle": "Aanvraaglimiet bereikt",
+  "aiFailureGenericBody": "Het AI-antwoord kon niet worden verwerkt. Probeer opnieuw of kies een ander model.",
+  "aiFailureEmptyBody": "Er zijn geen voedingsmiddelen gevonden. De afbeelding of beschrijving is mogelijk niet duidelijk, of het model heeft een fout gemaakt.",
+  "aiFailureTimeoutBody": "De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of probeer een ander model.",
+  "aiFailureNetworkBody": "De AI-aanbieder is niet bereikbaar. Controleer je verbinding of server.",
+  "aiFailureSetupBody": "Controleer de AI-aanbieder en je gegevens in de AI-instellingen.",
+  "aiFailureRateBody": "Wacht even en probeer opnieuw.",
+  "aiFailureUnavailableBody": "Controleer of Apple Intelligence is ingeschakeld en beschikbaar is, of kies een andere aanbieder.",
+  "aiFailureAppleHint": "Apple Intelligence herkent maaltijden mogelijk niet betrouwbaar. Een ander model kan een beter resultaat geven.",
+  "aiFailureEdit": "Invoer wijzigen",
+  "aiFailureSettings": "AI-instellingen openen",
+  "aiFailureSlowHint": "Afhankelijk van het apparaat en model kan dit wat langer duren.",
+  "aiFailureUnsupportedImage": "Apple Intelligence kan op dit apparaat of deze iOS-versie geen foto’s gebruiken. Beschrijf de maaltijd of kies een andere aanbieder.",
+  "aiFailureAppleTimeoutBody": "De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of kies een andere aanbieder."
 }

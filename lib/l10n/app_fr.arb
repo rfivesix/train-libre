@@ -3834,5 +3834,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Afficher ou masquer la bulle du chat. Le chat reste accessible depuis le menu Ajouter."
 ,
   "aiAssistantIntroAboutRow": "Découvrir le chat IA",
-  "aiAssistantIntroAboutRowSubtitle": "Rouvrez à tout moment la présentation du nouveau chat IA."
+  "aiAssistantIntroAboutRowSubtitle": "Rouvrez à tout moment la présentation du nouveau chat IA.",
+  "aiFailureTitle": "Échec de l’analyse",
+  "aiFailureEmptyTitle": "Aucun aliment reconnu",
+  "aiFailureTimeoutTitle": "La demande prend trop de temps",
+  "aiFailureUnavailableTitle": "IA indisponible",
+  "aiFailureNetworkTitle": "Échec de connexion",
+  "aiFailureSetupTitle": "Configuration de l’IA requise",
+  "aiFailureRateTitle": "Limite de demandes atteinte",
+  "aiFailureGenericBody": "La réponse de l’IA n’a pas pu être traitée. Réessaie ou choisis un autre modèle.",
+  "aiFailureEmptyBody": "Aucun aliment n’a été renvoyé. L’image ou la description peut manquer de clarté, ou le modèle a pu se tromper.",
+  "aiFailureTimeoutBody": "Le délai configuré est écoulé. Augmente-le dans les réglages IA ou essaie un autre modèle.",
+  "aiFailureNetworkBody": "Le fournisseur IA est inaccessible. Vérifie ta connexion ou ton serveur.",
+  "aiFailureSetupBody": "Vérifie le fournisseur IA et tes identifiants dans les réglages.",
+  "aiFailureRateBody": "Attends un instant et réessaie.",
+  "aiFailureUnavailableBody": "Vérifie qu’Apple Intelligence est activé et disponible, ou choisis un autre fournisseur.",
+  "aiFailureAppleHint": "Apple Intelligence peut ne pas reconnaître les repas de façon fiable. Un autre modèle peut donner un meilleur résultat.",
+  "aiFailureEdit": "Modifier la saisie",
+  "aiFailureSettings": "Ouvrir les réglages IA",
+  "aiFailureSlowHint": "Cela peut prendre un peu plus de temps selon l’appareil et le modèle.",
+  "aiFailureUnsupportedImage": "Apple Intelligence ne peut pas utiliser de photos sur cet appareil ou cette version d’iOS. Décris le repas ou choisis un autre fournisseur.",
+  "aiFailureAppleTimeoutBody": "Le délai configuré est écoulé. Augmente-le dans les réglages IA ou choisis un autre fournisseur."
 }

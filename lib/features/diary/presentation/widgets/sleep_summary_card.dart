@@ -31,26 +31,17 @@ class SleepSummaryCard extends StatelessWidget {
     return Selector<
         DiaryViewModel,
         ({
-          bool isSleepWidgetLoading,
           SleepDayOverviewData? sleepOverview,
           DateTime selectedDate,
           bool showSkeleton,
         })>(
       selector: (context, vm) => (
-        isSleepWidgetLoading: vm.isSleepWidgetLoading,
         sleepOverview: vm.sleepOverview,
         selectedDate: vm.selectedDate,
         showSkeleton: !vm.hasDataForSelectedDate && !vm.isSelectedDateToday,
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;
-        if (data.isSleepWidgetLoading && !showSkeleton) {
-          return DiaryHealthSummaryCard(
-            title: l10n.sleepSectionTitle,
-            subtitle: l10n.diaryLoadingSleep,
-          );
-        }
-
         final overview = data.sleepOverview;
         if (overview == null && !showSkeleton) {
           return const SizedBox.shrink();

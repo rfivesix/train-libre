@@ -74,13 +74,11 @@ import 'package:skeletonizer/skeletonizer.dart';
 class DiaryScreen extends StatelessWidget {
   final DateTime? initialDate;
   final GlobalKey<DiaryScreenState>? contentKey;
-  final bool deferInitialHealthSync;
 
   const DiaryScreen({
     super.key,
     this.initialDate,
     this.contentKey,
-    this.deferInitialHealthSync = false,
   });
 
   @override
@@ -91,7 +89,6 @@ class DiaryScreen extends StatelessWidget {
         supplementRepo: context.read<SupplementRepository>(),
         workoutRepo: context.read<IWorkoutRepository>(),
         initialDate: initialDate,
-        deferInitialHealthSync: deferInitialHealthSync,
       ),
       child: _DiaryScreenContent(key: contentKey ?? key),
     );

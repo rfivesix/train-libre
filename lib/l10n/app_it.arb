@@ -3834,5 +3834,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Mostra o nascondi la nuvola della chat. Puoi comunque aprire la chat dal menu Aggiungi."
 ,
   "aiAssistantIntroAboutRow": "Prova la chat IA",
-  "aiAssistantIntroAboutRowSubtitle": "Riapri la presentazione della nuova chat IA quando vuoi."
+  "aiAssistantIntroAboutRowSubtitle": "Riapri la presentazione della nuova chat IA quando vuoi.",
+  "aiFailureTitle": "Analisi non riuscita",
+  "aiFailureEmptyTitle": "Nessun alimento riconosciuto",
+  "aiFailureTimeoutTitle": "La richiesta richiede troppo tempo",
+  "aiFailureUnavailableTitle": "IA non disponibile",
+  "aiFailureNetworkTitle": "Connessione non riuscita",
+  "aiFailureSetupTitle": "Configura l’IA",
+  "aiFailureRateTitle": "Limite di richieste raggiunto",
+  "aiFailureGenericBody": "Impossibile elaborare la risposta dell’IA. Riprova o scegli un altro modello.",
+  "aiFailureEmptyBody": "Non sono stati restituiti alimenti. L’immagine o la descrizione potrebbe non essere chiara oppure il modello potrebbe aver sbagliato.",
+  "aiFailureTimeoutBody": "Il tempo di attesa impostato è scaduto. Aumentalo nelle impostazioni IA o prova un altro modello.",
+  "aiFailureNetworkBody": "Impossibile raggiungere il provider IA. Controlla la connessione o il server.",
+  "aiFailureSetupBody": "Controlla il provider e le credenziali nelle impostazioni IA.",
+  "aiFailureRateBody": "Attendi un momento e riprova.",
+  "aiFailureUnavailableBody": "Verifica che Apple Intelligence sia attivo e disponibile oppure scegli un altro provider.",
+  "aiFailureAppleHint": "Apple Intelligence potrebbe non riconoscere i pasti in modo affidabile. Un altro modello potrebbe dare risultati migliori.",
+  "aiFailureEdit": "Modifica inserimento",
+  "aiFailureSettings": "Apri impostazioni IA",
+  "aiFailureSlowHint": "Potrebbe volerci più tempo a seconda del dispositivo e del modello.",
+  "aiFailureUnsupportedImage": "Apple Intelligence non può usare foto su questo dispositivo o versione di iOS. Descrivi il pasto o scegli un altro provider.",
+  "aiFailureAppleTimeoutBody": "Il tempo di attesa impostato è scaduto. Aumentalo nelle impostazioni IA o scegli un altro provider."
 }

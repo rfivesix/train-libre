@@ -4050,5 +4050,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Show or hide the chat orb. You can still open chat from the Add menu."
 ,
   "aiAssistantIntroAboutRow": "Try the AI chat",
-  "aiAssistantIntroAboutRowSubtitle": "Open the new AI chat preview again at any time."
+  "aiAssistantIntroAboutRowSubtitle": "Open the new AI chat preview again at any time.",
+  "aiFailureTitle": "Analysis failed",
+  "aiFailureEmptyTitle": "No foods recognized",
+  "aiFailureTimeoutTitle": "The request took too long",
+  "aiFailureUnavailableTitle": "AI unavailable",
+  "aiFailureNetworkTitle": "Connection failed",
+  "aiFailureSetupTitle": "AI setup required",
+  "aiFailureRateTitle": "Request limit reached",
+  "aiFailureGenericBody": "The AI response could not be processed. Please try again or choose another model.",
+  "aiFailureEmptyBody": "No foods were returned. The image or description may not show food clearly, or the model may have made a mistake.",
+  "aiFailureTimeoutBody": "The configured waiting time was reached. Increase it in AI settings or try another model.",
+  "aiFailureNetworkBody": "The AI provider could not be reached. Check your connection or server.",
+  "aiFailureSetupBody": "Check your AI provider and credentials in AI settings.",
+  "aiFailureRateBody": "Wait a moment and try again.",
+  "aiFailureUnavailableBody": "Check whether Apple Intelligence is enabled and available, or select another provider.",
+  "aiFailureAppleHint": "Apple Intelligence may not recognize meals or their details reliably. Another AI model may give a better result.",
+  "aiFailureEdit": "Edit input",
+  "aiFailureSettings": "Open AI settings",
+  "aiFailureSlowHint": "This can take a little longer depending on the device and model.",
+  "aiFailureUnsupportedImage": "Apple Intelligence cannot use photos on this device or iOS version. Describe the meal in text or choose another provider.",
+  "aiFailureAppleTimeoutBody": "The configured waiting time was reached. Increase it in AI settings or choose another provider."
 }

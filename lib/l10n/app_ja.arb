@@ -3834,5 +3834,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "チャットの雲を表示または非表示にします。チャットは追加メニューからも開けます。"
 ,
   "aiAssistantIntroAboutRow": "AIチャットを試す",
-  "aiAssistantIntroAboutRowSubtitle": "新しいAIチャットの紹介をいつでも再表示できます。"
+  "aiAssistantIntroAboutRowSubtitle": "新しいAIチャットの紹介をいつでも再表示できます。",
+  "aiFailureTitle": "分析できませんでした",
+  "aiFailureEmptyTitle": "食品を認識できませんでした",
+  "aiFailureTimeoutTitle": "リクエストに時間がかかりすぎています",
+  "aiFailureUnavailableTitle": "AIを利用できません",
+  "aiFailureNetworkTitle": "接続できませんでした",
+  "aiFailureSetupTitle": "AIの設定が必要です",
+  "aiFailureRateTitle": "リクエストの上限に達しました",
+  "aiFailureGenericBody": "AIの応答を処理できませんでした。再試行するか、別のモデルを選んでください。",
+  "aiFailureEmptyBody": "食品が返されませんでした。画像や説明が不明瞭か、モデルが誤った可能性があります。",
+  "aiFailureTimeoutBody": "設定された待機時間を超えました。AI設定で延長するか、別のモデルを試してください。",
+  "aiFailureNetworkBody": "AIプロバイダーに接続できませんでした。接続またはサーバーを確認してください。",
+  "aiFailureSetupBody": "AI設定でプロバイダーと認証情報を確認してください。",
+  "aiFailureRateBody": "少し待ってから再試行してください。",
+  "aiFailureUnavailableBody": "Apple Intelligenceが有効で利用可能か確認するか、別のプロバイダーを選んでください。",
+  "aiFailureAppleHint": "Apple Intelligenceは食事を正確に認識できない場合があります。別のモデルで改善する可能性があります。",
+  "aiFailureEdit": "入力を編集",
+  "aiFailureSettings": "AI設定を開く",
+  "aiFailureSlowHint": "デバイスやモデルによっては時間がかかることがあります。",
+  "aiFailureUnsupportedImage": "このデバイスまたはiOSバージョンではApple Intelligenceに写真を使用できません。食事を文章で説明するか、別のプロバイダーを選んでください。",
+  "aiFailureAppleTimeoutBody": "設定された待機時間を超えました。AI設定で延長するか、別のプロバイダーを選んでください。"
 }

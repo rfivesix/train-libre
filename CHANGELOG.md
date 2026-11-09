@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Improved AI meal analysis errors with actionable glass menus, Apple Intelligence cancellation and timeouts, and preserved inputs when retrying.
 - Smoothed card morph transitions with an opaque, color-changing surface, a gentler handover to the original card, and more accurate iPhone corner rounding.
 - Aligned the diary sleep and pulse cards with the training card's spacing and added morph transitions to their day views.
 - Made the diary weight card open weight history even when no weight has been logged for the selected day or no previous entry exists.

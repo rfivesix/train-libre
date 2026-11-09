@@ -16,14 +16,21 @@ import 'package:train_libre/widgets/common/card_morph_route.dart';
 import 'package:train_libre/widgets/common/summary_card.dart';
 
 class _DiaryStub extends ChangeNotifier implements DiaryViewModel {
+  bool loading = false;
+  bool hasDiaryData = false;
+  void updateLoading(bool value) {
+    loading = value;
+    notifyListeners();
+  }
+
   @override
   DateTime get selectedDate => DateTime(2026, 10, 3);
   @override
-  bool get isSleepWidgetLoading => false;
+  bool get isSleepWidgetLoading => loading;
   @override
-  bool get isPulseWidgetLoading => false;
+  bool get isPulseWidgetLoading => loading;
   @override
-  bool get hasDataForSelectedDate => false;
+  bool get hasDataForSelectedDate => hasDiaryData;
   @override
   bool get isSelectedDateToday => false;
   @override
@@ -43,6 +50,32 @@ class _Observer extends NavigatorObserver {
 }
 
 void main() {
+  for (final sleep in [true, false]) {
+    testWidgets(
+        '${sleep ? 'sleep' : 'pulse'} does not flash while loading an empty day',
+        (tester) async {
+      final vm = _DiaryStub()..hasDiaryData = true;
+      addTearDown(vm.dispose);
+      await tester.pumpWidget(ChangeNotifierProvider<DiaryViewModel>.value(
+        value: vm,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+              body:
+                  sleep ? const SleepSummaryCard() : const PulseSummaryCard()),
+        ),
+      ));
+      expect(find.byType(SummaryCard), findsNothing);
+      vm.updateLoading(true);
+      await tester.pump();
+      expect(find.byType(SummaryCard), findsNothing);
+      vm.updateLoading(false);
+      await tester.pump();
+      expect(find.byType(SummaryCard), findsNothing);
+    });
+  }
+
   for (final sleep in [true, false]) {
     testWidgets(
         '${sleep ? 'sleep' : 'pulse'} card uses training spacing and a dated morph route',

@@ -92,6 +92,8 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
   bool _isTransitionComplete = false;
   Animation<double>? _routeAnimation;
   Timer? _cloudMorphTimer;
+  Timer? _slowTimer;
+  bool _showSlowHint = false;
   String? _activeModelName;
 
   @override
@@ -102,6 +104,9 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
         screenName: ScreenName.mealAnalysis,
       ),
     );
+    _slowTimer = Timer(const Duration(seconds: 15), () {
+      if (mounted) setState(() => _showSlowHint = true);
+    });
     widget.controller.addListener(_onPhaseChanged);
     _activeModelName = widget.activeModelName;
     if (_activeModelName == null) {
@@ -156,6 +161,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
   @override
   void dispose() {
     _cloudMorphTimer?.cancel();
+    _slowTimer?.cancel();
     _routeAnimation?.removeStatusListener(_onRouteStatus);
     widget.controller.removeListener(_onPhaseChanged);
     super.dispose();
@@ -185,9 +191,8 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
     final orbSize = (screenWidth * 0.78).clamp(260.0, 360.0);
 
     final textColor = isDark ? Colors.white : const Color(0xFF09090B);
-    final cancelColor = isDark
-        ? const Color(0xFFFF453A)
-        : const Color(0xFFDC2626);
+    final cancelColor =
+        isDark ? const Color(0xFFFF453A) : const Color(0xFFDC2626);
 
     return PopScope(
       // Leaving is offered explicitly below rather than by a back swipe, so a
@@ -291,6 +296,15 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                               ),
                             ),
 
+                          if (_showSlowHint)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(32, 12, 32, 0),
+                              child: Text(l10n.aiFailureSlowHint,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: textColor.withValues(alpha: 0.7))),
+                            ),
+
                           const Spacer(flex: 3),
 
                           // Center Living Cloud Orb
@@ -325,16 +339,15 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                                     return FadeTransition(
                                       opacity: animation,
                                       child: SlideTransition(
-                                        position:
-                                            Tween<Offset>(
-                                              begin: const Offset(0.0, 0.12),
-                                              end: Offset.zero,
-                                            ).animate(
-                                              CurvedAnimation(
-                                                parent: animation,
-                                                curve: Curves.easeOutCubic,
-                                              ),
-                                            ),
+                                        position: Tween<Offset>(
+                                          begin: const Offset(0.0, 0.12),
+                                          end: Offset.zero,
+                                        ).animate(
+                                          CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeOutCubic,
+                                          ),
+                                        ),
                                         child: child,
                                       ),
                                     );

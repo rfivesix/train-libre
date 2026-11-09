@@ -13,6 +13,8 @@ enum AppleFoundationPlugin {
 
   private static var _warmSession: Any? = nil
   private static var _warmSessionPrompt: String? = nil
+  // Accessed on the Flutter platform thread; each request owns its task.
+  private static var tasks: [String: Task<Void, Never>] = [:]
 
   static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
@@ -74,6 +76,12 @@ enum AppleFoundationPlugin {
       #endif
       result(false)
 
+    case "cancel":
+      if let id = (call.arguments as? [String: Any])?["requestId"] as? String {
+        tasks[id]?.cancel()
+      }
+      result(nil)
+
     case "generateMealJson":
       guard let args = call.arguments as? [String: Any],
             let prompt = args["prompt"] as? String else {
@@ -82,6 +90,7 @@ enum AppleFoundationPlugin {
       }
 
       let systemPrompt = args["systemPrompt"] as? String
+      let requestId = args["requestId"] as? String ?? UUID().uuidString
       let imagesBase64 = (args["images"] as? [String]) ?? []
       var cgImages: [CGImage] = []
       for b64 in imagesBase64 {
@@ -94,7 +103,18 @@ enum AppleFoundationPlugin {
 
       #if canImport(FoundationModels)
       if #available(iOS 26.0, *) {
-        Task {
+        if case .unavailable(let reason) = SystemLanguageModel.default.availability {
+          let code: String
+          switch reason {
+          case .deviceNotEligible: code = "DEVICE_NOT_ELIGIBLE"
+          case .appleIntelligenceNotEnabled: code = "APPLE_INTELLIGENCE_DISABLED"
+          case .modelNotReady: code = "MODEL_NOT_READY"
+          @unknown default: code = "UNAVAILABLE"
+          }
+          result(FlutterError(code: code, message: nil, details: nil))
+          return
+        }
+        let task = Task {
           do {
             let session: LanguageModelSession
             let trimmedSysPrompt = systemPrompt?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -134,14 +154,27 @@ enum AppleFoundationPlugin {
             #endif
 
             DispatchQueue.main.async {
+              tasks.removeValue(forKey: requestId)
               result(responseContent)
             }
           } catch {
+            var code = error is CancellationError ? "CANCELLED" : "GENERATION_FAILED"
+            if let generationError = error as? LanguageModelSession.GenerationError {
+              switch generationError {
+              case .rateLimited: code = "RATE_LIMITED"
+              case .exceededContextWindowSize: code = "CONTEXT_TOO_LONG"
+              case .unsupportedLanguageOrLocale: code = "UNSUPPORTED_LANGUAGE"
+              case .decodingFailure: code = "INVALID_RESPONSE"
+              default: break
+              }
+            }
             DispatchQueue.main.async {
-              result(FlutterError(code: "GENERATION_FAILED", message: error.localizedDescription, details: nil))
+              tasks.removeValue(forKey: requestId)
+              result(FlutterError(code: code, message: nil, details: nil))
             }
           }
         }
+        tasks[requestId] = task
       } else {
         result(FlutterError(code: "UNSUPPORTED_IOS_VERSION", message: "FoundationModels requires iOS 26+", details: nil))
       }

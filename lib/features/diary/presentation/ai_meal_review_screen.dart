@@ -23,6 +23,9 @@ import '../../../services/ai_meal_review_telemetry.dart';
 import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
+import '../../../services/ai/ai_cancellation.dart';
+import '../../settings/presentation/ai_settings_screen.dart';
+import 'widgets/ai_meal_error_menu.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
@@ -76,6 +79,9 @@ class AiMealReviewScreen extends StatefulWidget {
   final String? scanRequestId;
   final AiUsageCollector? usageCollector;
   final bool directNutritionMode;
+  final bool appleProvider;
+  final VoidCallback? onFailedScanRetry;
+  final VoidCallback? onFailedScanEdit;
 
   /// Dictated description that accompanied the capture, kept so a later
   /// re-analysis can send the same context again.
@@ -99,6 +105,9 @@ class AiMealReviewScreen extends StatefulWidget {
     this.scanRequestId,
     this.usageCollector,
     this.directNutritionMode = false,
+    this.appleProvider = false,
+    this.onFailedScanRetry,
+    this.onFailedScanEdit,
     this.voiceTranscript,
   });
 
@@ -123,13 +132,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _isSaving = false;
   bool _isMatching = true;
   bool _scanFailed = false;
+  Object? _scanError;
   bool _scanTimedOut = false;
   bool _isEditing = false;
   bool _aiWaitingHapticActive = false;
   final ValueNotifier<double> _mealPhotoScrollOffset = ValueNotifier<double>(0);
   MealAnalysisController? _analysisController;
   Route<void>? _analysisRoute;
-  bool _analysisCancelled = false;
+  AiCancellation? _activeCancellation;
   AiValidationResult? _validation;
   AiValidationResult? _portionUndoValidation;
   final Map<String, Map<String, int?>> _manuallySetPortions = {};
@@ -371,9 +381,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         if (!mounted) return;
         setState(() {
           _scanFailed = true;
+          _scanError = error;
           _scanTimedOut =
               error is AiTimeoutException || error is TimeoutException;
           _isMatching = false;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_showScanError(error));
         });
       });
     } else {
@@ -392,6 +406,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void dispose() {
     _reviewScrollController.dispose();
+    _activeCancellation?.cancel();
     _mealPhotoScrollOffset.dispose();
     _cloudVisibilityLease.dispose();
     widget.progressiveValidation?.removeListener(_onProgressiveValidation);
@@ -873,7 +888,63 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Retry
   // ---------------------------------------------------------------------------
 
+  Future<void> _showScanError(Object error) async {
+    while (mounted) {
+      final action = await showAiMealErrorMenu(
+        context: context,
+        error: error,
+        apple: widget.appleProvider,
+        canEdit: widget.onFailedScanEdit != null,
+      );
+      if (!mounted) return;
+      if (action == AiMealErrorAction.settings) {
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
+        continue;
+      }
+      if (action == AiMealErrorAction.retry) widget.onFailedScanRetry?.call();
+      if (action == AiMealErrorAction.edit) widget.onFailedScanEdit?.call();
+      return;
+    }
+  }
+
+  Future<void> _showCorrectionError(
+      Object error, bool apple, String? portionDirection) async {
+    while (mounted) {
+      final action = await showAiMealErrorMenu(
+          context: context, error: error, apple: apple);
+      if (!mounted) return;
+      if (action == AiMealErrorAction.settings) {
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
+        continue;
+      }
+      if (action == AiMealErrorAction.retry) {
+        unawaited(Future<void>(
+            () => _retryWithFeedback(portionDirection: portionDirection)));
+      }
+      return;
+    }
+  }
+
   Future<void> _retryWithFeedback({String? portionDirection}) async {
+    if (_isRetrying) return;
+    final operation = AiCancellation();
+    _activeCancellation = operation;
+    await operation
+        .run(() => _runCorrection(portionDirection: portionDirection));
+    if (identical(_activeCancellation, operation)) _activeCancellation = null;
+  }
+
+  Future<void> _runCorrection({String? portionDirection}) async {
+    final operation = AiCancellation.current!;
+    bool cancelled() =>
+        operation.isCancelled || !identical(_activeCancellation, operation);
+    Object? displayedError;
+    final apple = await AiService.instance.getSelectedProvider() ==
+        AiProvider.appleFoundation;
+    if (!mounted || cancelled()) return;
+
     final beforeCorrection = _validation;
     final originalDescription = widget.voiceTranscript?.trim();
     final feedback = portionDirection == null
@@ -911,7 +982,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final controller = MealAnalysisController();
     _analysisController?.dispose();
     _analysisController = controller;
-    _analysisCancelled = false;
     final stopwatch = Stopwatch()..start();
     var correctionCompleted = false;
 
@@ -920,7 +990,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       previewImage:
           widget.originalImages.isNotEmpty ? widget.originalImages.first : null,
       onCancel: () {
-        _analysisCancelled = true;
+        operation.cancel();
         if (!correctionCompleted) {
           correctionCompleted = true;
           stopwatch.stop();
@@ -960,7 +1030,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           await AiMatchingLanguageService.resolveMatchingContext(
         context: context,
       );
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
       final candidate = widget.directNutritionMode
           ? await AiService.instance.retryDirectNutrition(
               previousItems: _candidateFromReviewItems().items,
@@ -981,7 +1051,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               usageCollector: _correctionUsage,
             );
 
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
       controller.value = MealAnalysisPhase.matching;
 
       final orchestrator = AiRepairOrchestrator(
@@ -1016,7 +1086,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         },
       );
 
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
 
       stopwatch.stop();
       correctionCompleted = true;
@@ -1066,7 +1136,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         });
       }
     } on AiServiceException catch (e) {
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       correctionCompleted = true;
       if (scanId != null) {
@@ -1090,17 +1160,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       );
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } catch (_) {
-      if (_analysisCancelled) return;
+      if (mounted) displayedError = e;
+    } catch (error) {
+      if (cancelled()) return;
       stopwatch.stop();
       correctionCompleted = true;
       if (scanId != null) {
@@ -1122,13 +1184,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           errorCode: 'unexpected',
         ),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.error)),
-        );
-      }
+      if (mounted) displayedError = error;
     } finally {
-      if (_analysisCancelled && !correctionCompleted) {
+      if (cancelled() && !correctionCompleted) {
         unawaited(
           TelemetryService.instance.trackAiMealCorrectionCompleted(
             hasImages: widget.originalImages.isNotEmpty,
@@ -1138,9 +1196,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           ),
         );
       }
-      _stopAiWaitingHaptics();
-      _dismissAnalysisScreen();
-      if (mounted) setState(() => _isRetrying = false);
+      if (identical(_activeCancellation, operation)) {
+        _stopAiWaitingHaptics();
+        _dismissAnalysisScreen();
+        if (mounted) setState(() => _isRetrying = false);
+      }
+    }
+    if (displayedError != null && mounted && !cancelled()) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (mounted) {
+        await _showCorrectionError(displayedError, apple, portionDirection);
+      }
     }
   }
 
@@ -1843,6 +1909,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                               ),
                             ),
 
+                          if (_scanFailed && _scanError != null)
+                            TextButton(
+                              onPressed: () => _showScanError(_scanError!),
+                              child: Text(l10n.retry),
+                            ),
+
                           if (!_scanFailed &&
                               _validation != null &&
                               (!_validation!.passed ||
@@ -2031,8 +2103,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                 children: [
                                   Text(l10n.aiReviewAdjustPortions,
                                       style: theme.textTheme.titleSmall
-                                          ?.copyWith(fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: DesignConstants.spacingS),
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.w700)),
+                                  const SizedBox(
+                                      height: DesignConstants.spacingS),
                                   LayoutBuilder(
                                       builder: (context, constraints) {
                                     final larger = AppButton.secondary(

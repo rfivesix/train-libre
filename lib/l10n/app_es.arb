@@ -4325,5 +4325,25 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Muestra u oculta la burbuja del chat. También puedes abrirlo desde el menú Añadir."
 ,
   "aiAssistantIntroAboutRow": "Probar el chat de IA",
-  "aiAssistantIntroAboutRowSubtitle": "Vuelve a abrir la presentación del nuevo chat de IA cuando quieras."
+  "aiAssistantIntroAboutRowSubtitle": "Vuelve a abrir la presentación del nuevo chat de IA cuando quieras.",
+  "aiFailureTitle": "Error de análisis",
+  "aiFailureEmptyTitle": "No se reconocieron alimentos",
+  "aiFailureTimeoutTitle": "La solicitud tarda demasiado",
+  "aiFailureUnavailableTitle": "IA no disponible",
+  "aiFailureNetworkTitle": "Error de conexión",
+  "aiFailureSetupTitle": "Configura la IA",
+  "aiFailureRateTitle": "Límite de solicitudes alcanzado",
+  "aiFailureGenericBody": "No se pudo procesar la respuesta de la IA. Inténtalo de nuevo o elige otro modelo.",
+  "aiFailureEmptyBody": "No se devolvieron alimentos. Es posible que la imagen o descripción no sea clara o que el modelo se haya equivocado.",
+  "aiFailureTimeoutBody": "Se alcanzó el tiempo de espera. Auméntalo en los ajustes de IA o prueba otro modelo.",
+  "aiFailureNetworkBody": "No se pudo conectar con el proveedor de IA. Comprueba la conexión o el servidor.",
+  "aiFailureSetupBody": "Comprueba el proveedor y las credenciales en los ajustes de IA.",
+  "aiFailureRateBody": "Espera un momento y vuelve a intentarlo.",
+  "aiFailureUnavailableBody": "Comprueba que Apple Intelligence esté activado y disponible o elige otro proveedor.",
+  "aiFailureAppleHint": "Apple Intelligence puede no reconocer las comidas de forma fiable. Otro modelo podría dar un mejor resultado.",
+  "aiFailureEdit": "Editar entrada",
+  "aiFailureSettings": "Abrir ajustes de IA",
+  "aiFailureSlowHint": "Esto puede tardar un poco más según el dispositivo y el modelo.",
+  "aiFailureUnsupportedImage": "Apple Intelligence no puede usar fotos en este dispositivo o versión de iOS. Describe la comida o elige otro proveedor.",
+  "aiFailureAppleTimeoutBody": "Se alcanzó el tiempo de espera. Auméntalo en los ajustes de IA o elige otro proveedor."
 }

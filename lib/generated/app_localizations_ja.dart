@@ -9055,4 +9055,69 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiAssistantIntroAboutRowSubtitle => '新しいAIチャットの紹介をいつでも再表示できます。';
+
+  @override
+  String get aiFailureTitle => '分析できませんでした';
+
+  @override
+  String get aiFailureEmptyTitle => '食品を認識できませんでした';
+
+  @override
+  String get aiFailureTimeoutTitle => 'リクエストに時間がかかりすぎています';
+
+  @override
+  String get aiFailureUnavailableTitle => 'AIを利用できません';
+
+  @override
+  String get aiFailureNetworkTitle => '接続できませんでした';
+
+  @override
+  String get aiFailureSetupTitle => 'AIの設定が必要です';
+
+  @override
+  String get aiFailureRateTitle => 'リクエストの上限に達しました';
+
+  @override
+  String get aiFailureGenericBody => 'AIの応答を処理できませんでした。再試行するか、別のモデルを選んでください。';
+
+  @override
+  String get aiFailureEmptyBody => '食品が返されませんでした。画像や説明が不明瞭か、モデルが誤った可能性があります。';
+
+  @override
+  String get aiFailureTimeoutBody =>
+      '設定された待機時間を超えました。AI設定で延長するか、別のモデルを試してください。';
+
+  @override
+  String get aiFailureNetworkBody => 'AIプロバイダーに接続できませんでした。接続またはサーバーを確認してください。';
+
+  @override
+  String get aiFailureSetupBody => 'AI設定でプロバイダーと認証情報を確認してください。';
+
+  @override
+  String get aiFailureRateBody => '少し待ってから再試行してください。';
+
+  @override
+  String get aiFailureUnavailableBody =>
+      'Apple Intelligenceが有効で利用可能か確認するか、別のプロバイダーを選んでください。';
+
+  @override
+  String get aiFailureAppleHint =>
+      'Apple Intelligenceは食事を正確に認識できない場合があります。別のモデルで改善する可能性があります。';
+
+  @override
+  String get aiFailureEdit => '入力を編集';
+
+  @override
+  String get aiFailureSettings => 'AI設定を開く';
+
+  @override
+  String get aiFailureSlowHint => 'デバイスやモデルによっては時間がかかることがあります。';
+
+  @override
+  String get aiFailureUnsupportedImage =>
+      'このデバイスまたはiOSバージョンではApple Intelligenceに写真を使用できません。食事を文章で説明するか、別のプロバイダーを選んでください。';
+
+  @override
+  String get aiFailureAppleTimeoutBody =>
+      '設定された待機時間を超えました。AI設定で延長するか、別のプロバイダーを選んでください。';
 }

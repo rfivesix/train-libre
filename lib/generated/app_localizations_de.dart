@@ -9469,4 +9469,74 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aiAssistantIntroAboutRowSubtitle =>
       'Öffne die Vorschau des neuen KI-Chats jederzeit erneut.';
+
+  @override
+  String get aiFailureTitle => 'Analyse fehlgeschlagen';
+
+  @override
+  String get aiFailureEmptyTitle => 'Keine Lebensmittel erkannt';
+
+  @override
+  String get aiFailureTimeoutTitle => 'Die Anfrage dauert zu lange';
+
+  @override
+  String get aiFailureUnavailableTitle => 'KI nicht verfügbar';
+
+  @override
+  String get aiFailureNetworkTitle => 'Verbindung fehlgeschlagen';
+
+  @override
+  String get aiFailureSetupTitle => 'KI-Einrichtung erforderlich';
+
+  @override
+  String get aiFailureRateTitle => 'Anfragelimit erreicht';
+
+  @override
+  String get aiFailureGenericBody =>
+      'Die KI-Antwort konnte nicht verarbeitet werden. Versuche es erneut oder wähle ein anderes Modell.';
+
+  @override
+  String get aiFailureEmptyBody =>
+      'Es wurden keine Lebensmittel zurückgegeben. Das Bild oder die Beschreibung zeigt die Mahlzeit möglicherweise nicht deutlich, oder das Modell hat einen Fehler gemacht.';
+
+  @override
+  String get aiFailureTimeoutBody =>
+      'Die eingestellte Wartezeit wurde erreicht. Erhöhe sie in den KI-Einstellungen oder versuche ein anderes Modell.';
+
+  @override
+  String get aiFailureNetworkBody =>
+      'Der KI-Anbieter konnte nicht erreicht werden. Prüfe deine Verbindung oder den Server.';
+
+  @override
+  String get aiFailureSetupBody =>
+      'Prüfe den KI-Anbieter und deine Zugangsdaten in den KI-Einstellungen.';
+
+  @override
+  String get aiFailureRateBody => 'Warte einen Moment und versuche es erneut.';
+
+  @override
+  String get aiFailureUnavailableBody =>
+      'Prüfe, ob Apple Intelligence aktiviert und verfügbar ist, oder wähle einen anderen Anbieter.';
+
+  @override
+  String get aiFailureAppleHint =>
+      'Apple Intelligence erkennt Mahlzeiten und ihre Angaben möglicherweise nicht zuverlässig. Ein anderes KI-Modell könnte ein besseres Ergebnis liefern.';
+
+  @override
+  String get aiFailureEdit => 'Eingabe bearbeiten';
+
+  @override
+  String get aiFailureSettings => 'KI-Einstellungen öffnen';
+
+  @override
+  String get aiFailureSlowHint =>
+      'Je nach Gerät und Modell kann das etwas länger dauern.';
+
+  @override
+  String get aiFailureUnsupportedImage =>
+      'Apple Intelligence kann auf diesem Gerät oder dieser iOS-Version keine Fotos verwenden. Beschreibe die Mahlzeit als Text oder wähle einen anderen Anbieter.';
+
+  @override
+  String get aiFailureAppleTimeoutBody =>
+      'Die eingestellte Wartezeit wurde erreicht. Erhöhe sie in den KI-Einstellungen oder wähle einen anderen Anbieter.';
 }

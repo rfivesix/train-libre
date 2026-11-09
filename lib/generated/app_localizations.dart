@@ -16536,6 +16536,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open the new AI chat preview again at any time.'**
   String get aiAssistantIntroAboutRowSubtitle;
+
+  /// No description provided for @aiFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis failed'**
+  String get aiFailureTitle;
+
+  /// No description provided for @aiFailureEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No foods recognized'**
+  String get aiFailureEmptyTitle;
+
+  /// No description provided for @aiFailureTimeoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The request took too long'**
+  String get aiFailureTimeoutTitle;
+
+  /// No description provided for @aiFailureUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI unavailable'**
+  String get aiFailureUnavailableTitle;
+
+  /// No description provided for @aiFailureNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get aiFailureNetworkTitle;
+
+  /// No description provided for @aiFailureSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI setup required'**
+  String get aiFailureSetupTitle;
+
+  /// No description provided for @aiFailureRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request limit reached'**
+  String get aiFailureRateTitle;
+
+  /// No description provided for @aiFailureGenericBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI response could not be processed. Please try again or choose another model.'**
+  String get aiFailureGenericBody;
+
+  /// No description provided for @aiFailureEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No foods were returned. The image or description may not show food clearly, or the model may have made a mistake.'**
+  String get aiFailureEmptyBody;
+
+  /// No description provided for @aiFailureTimeoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The configured waiting time was reached. Increase it in AI settings or try another model.'**
+  String get aiFailureTimeoutBody;
+
+  /// No description provided for @aiFailureNetworkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI provider could not be reached. Check your connection or server.'**
+  String get aiFailureNetworkBody;
+
+  /// No description provided for @aiFailureSetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your AI provider and credentials in AI settings.'**
+  String get aiFailureSetupBody;
+
+  /// No description provided for @aiFailureRateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait a moment and try again.'**
+  String get aiFailureRateBody;
+
+  /// No description provided for @aiFailureUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check whether Apple Intelligence is enabled and available, or select another provider.'**
+  String get aiFailureUnavailableBody;
+
+  /// No description provided for @aiFailureAppleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Intelligence may not recognize meals or their details reliably. Another AI model may give a better result.'**
+  String get aiFailureAppleHint;
+
+  /// No description provided for @aiFailureEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit input'**
+  String get aiFailureEdit;
+
+  /// No description provided for @aiFailureSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open AI settings'**
+  String get aiFailureSettings;
+
+  /// No description provided for @aiFailureSlowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This can take a little longer depending on the device and model.'**
+  String get aiFailureSlowHint;
+
+  /// No description provided for @aiFailureUnsupportedImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Intelligence cannot use photos on this device or iOS version. Describe the meal in text or choose another provider.'**
+  String get aiFailureUnsupportedImage;
+
+  /// No description provided for @aiFailureAppleTimeoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The configured waiting time was reached. Increase it in AI settings or choose another provider.'**
+  String get aiFailureAppleTimeoutBody;
 }
 
 class _AppLocalizationsDelegate

@@ -22,6 +22,8 @@ import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_meal_scan_runner.dart';
 import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_service.dart';
+import '../../../services/ai/ai_cancellation.dart';
+import 'widgets/ai_meal_error_menu.dart';
 import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_meal_context.dart';
@@ -29,7 +31,6 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../depth_scan/data/depth_map_attachment.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
-import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'ai_meal_review_reveal_route.dart';
 import 'ai_meal_review_screen.dart';
 import 'ai_meal_distance_guidance.dart';
@@ -44,7 +45,6 @@ import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_item.dart';
 import 'dialogs/quantity_log_flow.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
-import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/telemetry/telemetry_buckets.dart';
 import '../../../services/voice/voice_dictation_service.dart';
@@ -155,7 +155,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _isAnalyzing = false;
   MealAnalysisController? _analysisController;
   Route<void>? _analysisRoute;
-  bool _analysisCancelled = false;
+  AiCancellation? _activeCancellation;
   bool _aiWaitingHapticActive = false;
   bool _showTextInput = false;
 
@@ -210,8 +210,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final tourCompleted = await AiMealCaptureTourService.instance
-          .isTourCompleted();
+      final tourCompleted =
+          await AiMealCaptureTourService.instance.isTourCompleted();
       if (!tourCompleted && mounted) {
         _startTour();
       }
@@ -255,6 +255,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   @override
   void dispose() {
+    _activeCancellation?.cancel();
     _cloudVisibilityLease.dispose();
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
@@ -401,8 +402,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance
-        .isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -480,8 +481,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (code == null || _isLoggingBarcode) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final product =
-        _detectedProduct ??
+    final product = _detectedProduct ??
         await ProductLocalDataSource.instance.getProductByBarcode(code);
     if (!mounted) return;
 
@@ -503,8 +503,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         context,
         product,
         initialDate: widget.initialDate,
-        initialMealType:
-            widget.initialMealType ??
+        initialMealType: widget.initialMealType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey,
         telemetrySource: 'ai_meal_capture_barcode',
       );
@@ -550,14 +549,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     _qrController = controller;
-    controller
-        .getFlashStatus()
-        .then((status) {
-          if (mounted && status != null) {
-            setState(() => _isFlashOn = status);
-          }
-        })
-        .catchError((_) {});
+    controller.getFlashStatus().then((status) {
+      if (mounted && status != null) {
+        setState(() => _isFlashOn = status);
+      }
+    }).catchError((_) {});
     controller.scannedDataStream.listen((scanData) async {
       final code = scanData.code;
       if (!_barcodeDetectionEnabled || !mounted) return;
@@ -570,8 +566,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
         // Lookup product name asynchronously in background
         try {
-          final item = await ProductLocalDataSource.instance
-              .getProductByBarcode(code);
+          final item =
+              await ProductLocalDataSource.instance.getProductByBarcode(code);
           if (item != null && mounted && _detectedBarcode == code) {
             setState(() {
               _detectedProduct = item;
@@ -705,10 +701,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         maxWidth: 1440,
       );
       if (picked.isNotEmpty && mounted) {
-        final newFiles = picked
-            .take(remaining)
-            .map((x) => File(x.path))
-            .toList();
+        final newFiles =
+            picked.take(remaining).map((x) => File(x.path)).toList();
         setState(() {
           _images.addAll(newFiles);
         });
@@ -746,7 +740,22 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _analyze() async {
-    if (!_hasInput) return;
+    if (!_hasInput || _isAnalyzing) {
+      return;
+    }
+    final cancellation = AiCancellation();
+    _activeCancellation = cancellation;
+    await cancellation.run(_runAnalysis);
+    if (identical(_activeCancellation, cancellation)) {
+      _activeCancellation = null;
+    }
+  }
+
+  Future<void> _runAnalysis() async {
+    Object? displayedError;
+    final operation = AiCancellation.current!;
+    bool cancelled() =>
+        operation.isCancelled || !identical(_activeCancellation, operation);
     // The text field can keep the system keyboard alive while the analysis
     // route is shown. Clear focus and hide keyboard before pushing it so it stays dismissed
     // when the scan screen closes.
@@ -882,7 +891,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       sourceRect: sourceRect,
       previewImage: _images.isNotEmpty ? _images.first : null,
       onCancel: () {
-        _analysisCancelled = true;
+        operation.cancel();
         if (!completionScheduled) {
           completionScheduled = true;
           stopwatch.stop();
@@ -920,7 +929,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _dismissAnalysisScreen();
       },
     );
-    _analysisCancelled = false;
     if (mounted) unawaited(Navigator.of(context).push(_analysisRoute!));
 
     try {
@@ -938,7 +946,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         }
       }());
       sendRequested();
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
       final matchingContextFuture =
           AiMatchingLanguageService.resolveMatchingContext(context: context);
       final imagesReady = _images.isNotEmpty
@@ -952,15 +960,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       }();
       await Future.wait([cameraSuspended, imagesReady]);
       final matchingContext = await matchingContextFuture;
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
 
       // Switchable so the same meal can be shot with and without the hint;
       // otherwise there is no way to tell whether the measurement helps.
-      final scaleHintEnabled = await DepthScanSettings.instance
-          .isScaleHintEnabled();
-      final depthFacts = scaleHintEnabled
-          ? _lastDepthCapture?.scaleFacts
-          : null;
+      final scaleHintEnabled =
+          await DepthScanSettings.instance.isScaleHintEnabled();
+      final depthFacts =
+          scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
 
       // The relief of the meal, as a second image. Rendered here rather than kept
       // around: the band scale is fitted to the frame, so it only exists once the
@@ -974,10 +981,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final depthLegend = depthMap == null || depthPhotoIndex < 0
           ? null
           : 'This depth map corresponds to meal photo ${depthPhotoIndex + 1} '
-                '(counting meal photos in order). ${depthMap.describeForPrompt()}';
-      if (!mounted || _analysisCancelled) return;
+              '(counting meal photos in order). ${depthMap.describeForPrompt()}';
+      if (!mounted || cancelled()) return;
 
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       controller.value = MealAnalysisPhase.analyzing;
 
       final preparationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
@@ -998,7 +1005,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final engine = AiMealValidationEngine(
         matchLoader: useDirectNutrition
             ? (item) async =>
-                  item.selectedFood == null ? const [] : [item.selectedFood!]
+                item.selectedFood == null ? const [] : [item.selectedFood!]
             : null,
       );
       final validationCompleter = Completer<AiValidationResult>();
@@ -1019,7 +1026,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         AiValidationResult? validation,
         AiMealContext? mealContext,
       }) async {
-        if (reviewNavigated || !mounted || _analysisCancelled) return;
+        if (reviewNavigated || !mounted || cancelled()) return;
         reviewNavigated = true;
         _stopAiWaitingHaptics();
 
@@ -1027,7 +1034,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         // briefly before the reveal route disperses it into vapor. The startup
         // initializer has its own contraction timing and does not use this path.
         await controller.contractToCircle();
-        if (!mounted || _analysisCancelled) return;
+        if (!mounted || cancelled()) return;
 
         if (mounted) {
           setState(() => _isAnalyzing = false);
@@ -1037,11 +1044,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         controller.isFinished.value = true;
 
         final detectedType = _detectMealTypeFromText(text);
-        final resolvedMealType =
-            widget.initialMealType ??
+        final resolvedMealType = widget.initialMealType ??
             detectedType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
+        var retryFailedReview = false;
         final reviewRoute = AiMealReviewRevealRoute<bool>(
           builder: (context) => AiMealReviewScreen(
             suggestions: items
@@ -1062,9 +1069,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 )
                 .toList(growable: false),
             initialValidation: validation,
-            validationFuture: validation == null
-                ? validationCompleter.future
-                : null,
+            validationFuture:
+                validation == null ? validationCompleter.future : null,
             progressiveValidation: progressiveValidation,
             mealContext: mealContext,
             originalImages: _images,
@@ -1077,6 +1083,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             scanRequestId: requestId,
             usageCollector: usageCollector,
             directNutritionMode: useDirectNutrition,
+            appleProvider: provider == AiProvider.appleFoundation.name,
+            onFailedScanRetry: () {
+              retryFailedReview = true;
+              Navigator.of(context).pop();
+            },
+            onFailedScanEdit: () => Navigator.of(context).pop(),
           ),
         );
 
@@ -1094,6 +1106,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             final result = await navFuture;
             await reviewRoute.completed;
             if (!savedCompleter.isCompleted) savedCompleter.complete(result);
+            if (retryFailedReview && mounted) {
+              unawaited(Future<void>(() => _analyze()));
+            }
           } catch (error, stackTrace) {
             if (!savedCompleter.isCompleted) {
               savedCompleter.completeError(error, stackTrace);
@@ -1125,7 +1140,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final runResult = await AiMealScanRunner(validationEngine: engine).run(
         fastMode: fastMode && cloudProvider,
         automaticRepair: !useDirectNutrition,
-        isCancelled: () => _analysisCancelled || !mounted,
+        isCancelled: () => cancelled() || !mounted,
         onCandidateReady: (candidate) {
           unawaited(
             navigateToReview(
@@ -1152,71 +1167,69 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           }
         },
         onValidating: () {
-          if (!_analysisCancelled &&
+          if (!cancelled() &&
               mounted &&
               controller.value != MealAnalysisPhase.repairing) {
             controller.value = MealAnalysisPhase.matching;
           }
         },
-        onProgress:
-            (
+        onProgress: (
+          stage,
+          elapsedMilliseconds, {
+          durationMilliseconds,
+          result,
+          round,
+          candidate,
+          validationScore,
+          issueCategories,
+        }) {
+          unawaited(
+            scanLog.event(
+              requestId,
               stage,
-              elapsedMilliseconds, {
-              durationMilliseconds,
-              result,
-              round,
-              candidate,
-              validationScore,
-              issueCategories,
-            }) {
-              unawaited(
-                scanLog.event(
-                  requestId,
-                  stage,
-                  elapsedMilliseconds:
-                      runBaseMilliseconds + elapsedMilliseconds,
-                  durationMilliseconds: durationMilliseconds,
-                  result: result,
-                  round: round,
-                  candidate: candidate,
-                  validationScore: validationScore,
-                  issueCategories: issueCategories,
-                ),
-              );
-            },
+              elapsedMilliseconds: runBaseMilliseconds + elapsedMilliseconds,
+              durationMilliseconds: durationMilliseconds,
+              result: result,
+              round: round,
+              candidate: candidate,
+              validationScore: validationScore,
+              issueCategories: issueCategories,
+            ),
+          );
+        },
         analyze: () => useDirectNutrition
             ? (_images.isNotEmpty
-                  ? AiService.instance.analyzeDirectNutritionImages(
-                      _images,
-                      textHint: text.isNotEmpty ? text : null,
-                      languageCode: matchingContext.appLanguage,
-                      depthFacts: depthFacts,
-                      depthPhotoIndex: depthPhotoIndex,
-                      depthMap: depthMap?.file,
-                      depthMapLegend: depthLegend,
-                      usageCollector: usageCollector,
-                    )
-                  : AiService.instance.analyzeDirectNutritionText(
-                      text,
-                      languageCode: matchingContext.appLanguage,
-                      usageCollector: usageCollector,
-                    ))
+                ? AiService.instance.analyzeDirectNutritionImages(
+                    _images,
+                    textHint: text.isNotEmpty ? text : null,
+                    languageCode: matchingContext.appLanguage,
+                    depthFacts: depthFacts,
+                    depthPhotoIndex: depthPhotoIndex,
+                    depthMap: depthMap?.file,
+                    depthMapLegend: depthLegend,
+                    usageCollector: usageCollector,
+                  )
+                : AiService.instance.analyzeDirectNutritionText(
+                    text,
+                    languageCode: matchingContext.appLanguage,
+                    usageCollector: usageCollector,
+                  ))
             : _images.isNotEmpty
-            ? AiService.instance.analyzeImages(
-                _images,
-                textHint: text.isNotEmpty ? text : null,
-                matchingContext: matchingContext,
-                depthFacts: depthFacts,
-                depthPhotoIndex: depthPhotoIndex,
-                depthMap: depthMap?.file,
-                depthMapLegend: depthLegend,
-                usageCollector: usageCollector,
-              )
-            : AiService.instance.analyzeText(
-                text,
-                matchingContext: matchingContext,
-                usageCollector: usageCollector,
-              ),
+                ? AiService.instance.analyzeImages(
+                    _images,
+                    textHint: text.isNotEmpty ? text : null,
+                    matchingContext: matchingContext,
+                    depthFacts: depthFacts,
+                    depthPhotoIndex: depthPhotoIndex,
+                    depthMap: depthMap?.file,
+                    depthMapLegend: depthLegend,
+                    usageCollector: usageCollector,
+                  )
+                : AiService.instance.analyzeText(
+                    text,
+                    matchingContext: matchingContext,
+                    usageCollector: usageCollector,
+                  ),
         repairer: (candidate, validation, attempt) {
           controller.value = MealAnalysisPhase.repairing;
           return useDirectNutrition
@@ -1260,7 +1273,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       if (!mounted) return;
       // The user walked away from the wait; their result is no longer wanted.
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
 
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
         validationOutcome.validation.candidate.items.length,
@@ -1273,8 +1286,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           : (reviewVisibleMilliseconds! / 1000).round();
       final preliminaryNutritionSeconds =
           preliminaryNutritionMilliseconds == null
-          ? null
-          : (preliminaryNutritionMilliseconds! / 1000).round();
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round();
       final revealSeconds = revealDurationMilliseconds == null
           ? null
           : (revealDurationMilliseconds! / 1000).round();
@@ -1330,12 +1343,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       // Leaving the review returns to wherever the capture was started from,
       // saved or not. Dropping back into the viewfinder after reviewing a meal
       // is never what the user meant by "back".
-      if (mounted) {
+      if (mounted && !cancelled()) {
         Navigator.of(context).pop(saved == true);
       }
     } on AiKeyMissingException catch (e, stackTrace) {
       failPendingReview(e, stackTrace);
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       unawaited(
         scanLog.finish(
@@ -1368,10 +1381,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
       _dismissAnalysisScreen();
       if (!mounted) return;
-      if (!reviewNavigated) _showKeyMissingDialog();
+      if (!reviewNavigated) displayedError = e;
     } on AiServiceException catch (e, stackTrace) {
       failPendingReview(e, stackTrace);
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       unawaited(
         scanLog.finish(
@@ -1404,20 +1417,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
       _dismissAnalysisScreen();
       if (!mounted) return;
-      if (!reviewNavigated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      if (!reviewNavigated) displayedError = e;
     } catch (e, stackTrace) {
       debugPrint('[AiMealCapture] Unexpected scan failure: $e');
       debugPrintStack(stackTrace: stackTrace);
       failPendingReview(e, stackTrace);
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       unawaited(
         scanLog.finish(
@@ -1450,16 +1455,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
       _dismissAnalysisScreen();
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      if (!reviewNavigated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.error),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      if (!reviewNavigated) displayedError = e;
     } finally {
       sendRequested();
       scheduleUsage();
@@ -1475,65 +1471,50 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ),
         );
       }
-      _stopAiWaitingHaptics();
-      _dismissAnalysisScreen();
-      if (mounted) {
-        setState(() {
-          _isAnalyzing = false;
-          if (!reviewNavigated && _textController.text.isNotEmpty) {
-            _showTextInput = true;
-          }
-        });
-        if (_isTopRoute && !_analysisCancelled) {
-          unawaited(_resumeCamera());
+      if (identical(_activeCancellation, operation)) {
+        _stopAiWaitingHaptics();
+        _dismissAnalysisScreen();
+        if (mounted) {
+          setState(() {
+            _isAnalyzing = false;
+            if (!reviewNavigated && _textController.text.isNotEmpty) {
+              _showTextInput = true;
+            }
+          });
+          if (_isTopRoute && !cancelled()) unawaited(_resumeCamera());
         }
       }
     }
+    if (displayedError != null && mounted && !cancelled()) {
+      await _showAnalysisError(
+          displayedError, provider == AiProvider.appleFoundation.name);
+    }
   }
 
-  void _showKeyMissingDialog() async {
-    final l10n = AppLocalizations.of(context)!;
-    await _suspendCamera();
-    if (!mounted) return;
-    await showGlassBottomMenu<void>(
-      context: context,
-      title: l10n.aiValidationApiKeyRequiredTitle,
-      contentBuilder: (ctx, close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(l10n.aiErrorNoKey, textAlign: TextAlign.center),
-          const SizedBox(height: DesignConstants.spacingM),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  label: l10n.cancel,
-                  tooltip: l10n.cancel,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: AppButton.primary(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AiSettingsScreen(),
-                      ),
-                    );
-                  },
-                  label: l10n.aiSettingsTitle,
-                  tooltip: l10n.aiSettingsTitle,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-    if (mounted && _isTopRoute && !_isAnalyzing) {
-      unawaited(_resumeCamera());
+  Future<void> _showAnalysisError(Object error, bool apple) async {
+    // The analysis route must finish leaving before a root bottom sheet opens.
+    await WidgetsBinding.instance.endOfFrame;
+    while (true) {
+      if (!mounted) return;
+      final action = await showAiMealErrorMenu(
+          context: context, error: error, apple: apple, canEdit: true);
+      if (!mounted) return;
+      if (action == AiMealErrorAction.settings) {
+        await _suspendCamera();
+        if (!mounted) return;
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
+        if (mounted && _isTopRoute) unawaited(_resumeCamera());
+        continue;
+      }
+      if (action == AiMealErrorAction.retry) {
+        // Schedule after this operation has fully unwound.
+        unawaited(Future<void>(() => _analyze()));
+      } else if (action == AiMealErrorAction.edit &&
+          _textController.text.isNotEmpty) {
+        setState(() => _showTextInput = true);
+      }
+      return;
     }
   }
 
@@ -1824,17 +1805,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                              vertical:
-                                                  DesignConstants.spacingM,
-                                            ),
+                                          vertical: DesignConstants.spacingM,
+                                        ),
                                         border: InputBorder.none,
                                         enabledBorder: InputBorder.none,
                                         focusedBorder: InputBorder.none,
                                         suffixIconConstraints:
                                             const BoxConstraints(
-                                              minWidth: 44,
-                                              minHeight: 44,
-                                            ),
+                                          minWidth: 44,
+                                          minHeight: 44,
+                                        ),
                                         suffixIcon: Align(
                                           alignment: Alignment.topCenter,
                                           widthFactor: 1,
@@ -1856,8 +1836,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                               unawaited(
                                                 SystemChannels.textInput
                                                     .invokeMethod<void>(
-                                                      'TextInput.hide',
-                                                    ),
+                                                  'TextInput.hide',
+                                                ),
                                               );
                                               setState(
                                                 () => _showTextInput = false,
@@ -1902,9 +1882,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                           ),
                                           elevation: 0,
                                         ),
-                                        onPressed: _isAnalyzing
-                                            ? null
-                                            : _analyze,
+                                        onPressed:
+                                            _isAnalyzing ? null : _analyze,
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
@@ -2255,8 +2234,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   placeholder: _isVoiceStarting
                                       ? l10n.voiceStarting
                                       : (_images.isEmpty
-                                            ? l10n.voiceExampleStandalone
-                                            : l10n.voiceExampleWithPhoto),
+                                          ? l10n.voiceExampleStandalone
+                                          : l10n.voiceExampleWithPhoto),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontFamily: 'Inter',
@@ -2382,14 +2361,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   tooltip: l10n.aiChatFlash,
                   isDarkSurface: true,
                   platformViewBackdrop: true,
-                  backgroundColor: _isFlashOn
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
+                  backgroundColor:
+                      _isFlashOn ? Theme.of(context).colorScheme.primary : null,
                   foregroundColor: _isFlashOn
                       ? Theme.of(context).colorScheme.onPrimary
                       : Colors.white,
-                  onPressed:
-                      _cameraPermission.isGranted &&
+                  onPressed: _cameraPermission.isGranted &&
                           !_isCameraSuspended &&
                           !_isAnalyzing
                       ? () => unawaited(_toggleFlash())
@@ -2438,8 +2415,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       foregroundColor: isActive
           ? theme.colorScheme.onPrimary
           : isDarkSurface
-          ? Colors.white
-          : theme.colorScheme.onSurface,
+              ? Colors.white
+              : theme.colorScheme.onSurface,
       backgroundColor: isActive ? theme.colorScheme.primary : null,
       platformViewBackdrop: true,
       dimension: 44,
@@ -2636,9 +2613,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       }
       elapsedMs += 80;
       final characterCount = ((elapsedMs - 300) / 42).floor().clamp(
-        0,
-        sample.length,
-      );
+            0,
+            sample.length,
+          );
       final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
       final variation = (math.sin(elapsedMs / 73) + 1) / 2;
       setState(() {

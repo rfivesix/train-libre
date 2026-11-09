@@ -9487,4 +9487,74 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get aiAssistantIntroAboutRowSubtitle =>
       'Bekijk de introductie van de nieuwe AI-chat wanneer je wilt opnieuw.';
+
+  @override
+  String get aiFailureTitle => 'Analyse mislukt';
+
+  @override
+  String get aiFailureEmptyTitle => 'Geen voedsel herkend';
+
+  @override
+  String get aiFailureTimeoutTitle => 'Het verzoek duurt te lang';
+
+  @override
+  String get aiFailureUnavailableTitle => 'AI niet beschikbaar';
+
+  @override
+  String get aiFailureNetworkTitle => 'Verbinding mislukt';
+
+  @override
+  String get aiFailureSetupTitle => 'AI instellen';
+
+  @override
+  String get aiFailureRateTitle => 'Aanvraaglimiet bereikt';
+
+  @override
+  String get aiFailureGenericBody =>
+      'Het AI-antwoord kon niet worden verwerkt. Probeer opnieuw of kies een ander model.';
+
+  @override
+  String get aiFailureEmptyBody =>
+      'Er zijn geen voedingsmiddelen gevonden. De afbeelding of beschrijving is mogelijk niet duidelijk, of het model heeft een fout gemaakt.';
+
+  @override
+  String get aiFailureTimeoutBody =>
+      'De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of probeer een ander model.';
+
+  @override
+  String get aiFailureNetworkBody =>
+      'De AI-aanbieder is niet bereikbaar. Controleer je verbinding of server.';
+
+  @override
+  String get aiFailureSetupBody =>
+      'Controleer de AI-aanbieder en je gegevens in de AI-instellingen.';
+
+  @override
+  String get aiFailureRateBody => 'Wacht even en probeer opnieuw.';
+
+  @override
+  String get aiFailureUnavailableBody =>
+      'Controleer of Apple Intelligence is ingeschakeld en beschikbaar is, of kies een andere aanbieder.';
+
+  @override
+  String get aiFailureAppleHint =>
+      'Apple Intelligence herkent maaltijden mogelijk niet betrouwbaar. Een ander model kan een beter resultaat geven.';
+
+  @override
+  String get aiFailureEdit => 'Invoer wijzigen';
+
+  @override
+  String get aiFailureSettings => 'AI-instellingen openen';
+
+  @override
+  String get aiFailureSlowHint =>
+      'Afhankelijk van het apparaat en model kan dit wat langer duren.';
+
+  @override
+  String get aiFailureUnsupportedImage =>
+      'Apple Intelligence kan op dit apparaat of deze iOS-versie geen foto’s gebruiken. Beschrijf de maaltijd of kies een andere aanbieder.';
+
+  @override
+  String get aiFailureAppleTimeoutBody =>
+      'De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of kies een andere aanbieder.';
 }

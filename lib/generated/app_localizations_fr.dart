@@ -9546,4 +9546,74 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get aiAssistantIntroAboutRowSubtitle =>
       'Rouvrez à tout moment la présentation du nouveau chat IA.';
+
+  @override
+  String get aiFailureTitle => 'Échec de l’analyse';
+
+  @override
+  String get aiFailureEmptyTitle => 'Aucun aliment reconnu';
+
+  @override
+  String get aiFailureTimeoutTitle => 'La demande prend trop de temps';
+
+  @override
+  String get aiFailureUnavailableTitle => 'IA indisponible';
+
+  @override
+  String get aiFailureNetworkTitle => 'Échec de connexion';
+
+  @override
+  String get aiFailureSetupTitle => 'Configuration de l’IA requise';
+
+  @override
+  String get aiFailureRateTitle => 'Limite de demandes atteinte';
+
+  @override
+  String get aiFailureGenericBody =>
+      'La réponse de l’IA n’a pas pu être traitée. Réessaie ou choisis un autre modèle.';
+
+  @override
+  String get aiFailureEmptyBody =>
+      'Aucun aliment n’a été renvoyé. L’image ou la description peut manquer de clarté, ou le modèle a pu se tromper.';
+
+  @override
+  String get aiFailureTimeoutBody =>
+      'Le délai configuré est écoulé. Augmente-le dans les réglages IA ou essaie un autre modèle.';
+
+  @override
+  String get aiFailureNetworkBody =>
+      'Le fournisseur IA est inaccessible. Vérifie ta connexion ou ton serveur.';
+
+  @override
+  String get aiFailureSetupBody =>
+      'Vérifie le fournisseur IA et tes identifiants dans les réglages.';
+
+  @override
+  String get aiFailureRateBody => 'Attends un instant et réessaie.';
+
+  @override
+  String get aiFailureUnavailableBody =>
+      'Vérifie qu’Apple Intelligence est activé et disponible, ou choisis un autre fournisseur.';
+
+  @override
+  String get aiFailureAppleHint =>
+      'Apple Intelligence peut ne pas reconnaître les repas de façon fiable. Un autre modèle peut donner un meilleur résultat.';
+
+  @override
+  String get aiFailureEdit => 'Modifier la saisie';
+
+  @override
+  String get aiFailureSettings => 'Ouvrir les réglages IA';
+
+  @override
+  String get aiFailureSlowHint =>
+      'Cela peut prendre un peu plus de temps selon l’appareil et le modèle.';
+
+  @override
+  String get aiFailureUnsupportedImage =>
+      'Apple Intelligence ne peut pas utiliser de photos sur cet appareil ou cette version d’iOS. Décris le repas ou choisis un autre fournisseur.';
+
+  @override
+  String get aiFailureAppleTimeoutBody =>
+      'Le délai configuré est écoulé. Augmente-le dans les réglages IA ou choisis un autre fournisseur.';
 }
