@@ -404,30 +404,44 @@ import UserNotifications
       return
     }
 
-    let predicate = HKQuery.predicateForSamples(withStart: fromDate, end: toDate, options: [.strictStartDate])
-    let query = HKSampleQuery(
-      sampleType: stepType,
-      predicate: predicate,
-      limit: HKObjectQueryNoLimit,
-      sortDescriptors: nil
-    ) { _, samples, error in
+    // HealthKit resolves overlapping sources using the user's Health data
+    // priorities before producing each hourly total.
+    let calendar = Calendar.current
+    let anchor = calendar.startOfDay(for: fromDate)
+    let predicate = HKQuery.predicateForSamples(withStart: anchor, end: toDate, options: [])
+    let query = HKStatisticsCollectionQuery(
+      quantityType: stepType,
+      quantitySamplePredicate: predicate,
+      options: .cumulativeSum,
+      anchorDate: anchor,
+      intervalComponents: DateComponents(hour: 1)
+    )
+    query.initialResultsHandler = { _, collection, error in
       if let error = error {
-        result(FlutterError(code: "permission_denied", message: error.localizedDescription, details: nil))
+        result(FlutterError(code: "health_query_failed", message: error.localizedDescription, details: nil))
         return
       }
-
+      guard let collection = collection else {
+        result(FlutterError(code: "health_query_failed", message: "No statistics returned", details: nil))
+        return
+      }
       let formatterOut = ISO8601DateFormatter()
       formatterOut.timeZone = TimeZone(secondsFromGMT: 0)
       formatterOut.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-      let mapped = (samples as? [HKQuantitySample] ?? []).map { sample in
-        [
-          "startAtUtcIso": formatterOut.string(from: sample.startDate),
-          "endAtUtcIso": formatterOut.string(from: sample.endDate),
-          "stepCount": Int(sample.quantity.doubleValue(for: HKUnit.count())),
-          "sourceId": sample.sourceRevision.source.bundleIdentifier,
-          "nativeId": sample.uuid.uuidString
-        ] as [String: Any]
+      var mapped: [[String: Any]] = []
+      collection.enumerateStatistics(from: anchor, to: toDate) { statistics, _ in
+        guard statistics.startDate < toDate,
+              let quantity = statistics.sumQuantity() else { return }
+        let count = Int(quantity.doubleValue(for: HKUnit.count()).rounded())
+        guard count > 0 else { return }
+        let start = formatterOut.string(from: statistics.startDate)
+        mapped.append([
+          "startAtUtcIso": start,
+          "endAtUtcIso": formatterOut.string(from: statistics.endDate),
+          "stepCount": count,
+          "sourceId": "healthkit_merged",
+          "nativeId": "merged-hour-" + start
+        ])
       }
       result(mapped)
     }

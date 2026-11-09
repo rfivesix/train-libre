@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Fixed diary sleep and pulse data not loading on initial screen entry and prevented empty health cards from briefly shifting the diary layout.
+- Fixed iOS step totals double-counting overlapping iPhone and Apple Watch records by importing HealthKit's source-merged hourly statistics and replacing previously imported Apple step records during migration.
+- Fixed step totals at midnight and made daily step boundaries follow local daylight-saving changes.
 - Improved AI meal analysis errors with actionable glass menus, Apple Intelligence cancellation and timeouts, and preserved inputs when retrying.
 - Smoothed card morph transitions with an opaque, color-changing surface, a gentler handover to the original card, and more accurate iPhone corner rounding.
 - Aligned the diary sleep and pulse cards with the training card's spacing and added morph transitions to their day views.

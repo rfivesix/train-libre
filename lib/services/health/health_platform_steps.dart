@@ -10,6 +10,9 @@ class HealthPlatformSteps {
 
   const HealthPlatformSteps();
 
+  bool get usesMergedAppleStatistics =>
+      defaultTargetPlatform == TargetPlatform.iOS;
+
   Future<StepsAvailability> getAvailability() async {
     try {
       final available = await _channel.invokeMethod<bool>('getAvailability');
