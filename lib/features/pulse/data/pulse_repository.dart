@@ -27,11 +27,11 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     AppDatabase? database,
     PulseAggregateStore? aggregateStore,
     this.queryPadding = const Duration(hours: 24),
-  }) : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
-       _trackingService = trackingService ?? PulseTrackingService(),
-       _engine = engine,
-       _database = database,
-       _aggregateStore = aggregateStore;
+  })  : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
+        _trackingService = trackingService ?? PulseTrackingService(),
+        _engine = engine,
+        _database = database,
+        _aggregateStore = aggregateStore;
 
   final HealthHeartRateDataSource _dataSource;
   final PulseTrackingSettingsService _trackingService;
@@ -193,6 +193,34 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     if (existing != null) return existing;
     final db = _database ?? await DatabaseHelper.instance.database;
     return _aggregateStore = PulseAggregateStore(db);
+  }
+
+  /// Re-reads the full range, including hours already present in the cache.
+  Future<PulseAggregateWriteResult> syncRange({
+    required DateTime fromUtc,
+    required DateTime toUtc,
+  }) async {
+    final store = await _store();
+    final start = PulseAggregateStore.floorToBucket(fromUtc);
+    final end = PulseAggregateStore.ceilToBucket(toUtc);
+    if (!end.isAfter(start)) {
+      return const PulseAggregateWriteResult(
+          rawSampleCount: 0, updatedBucketCount: 0);
+    }
+    final rows = await _dataSource.readHeartRateSamples(
+      fromUtc: start,
+      toUtc: end,
+    );
+    // An empty HealthKit response can also mean read access was denied.
+    if (rows.isEmpty) {
+      return const PulseAggregateWriteResult(
+          rawSampleCount: 0, updatedBucketCount: 0);
+    }
+    return store.replaceBucketsFromSamples(
+      fromUtc: start,
+      toUtc: end,
+      samples: rows,
+    );
   }
 
   Future<void> _refreshTrailingAggregatesInBackground({
@@ -424,9 +452,8 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       var sampleCount = 0;
       var sumBpm = 0.0;
       DateTime? firstBucketStart;
-      final end = (i + groupSize < buckets.length)
-          ? i + groupSize
-          : buckets.length;
+      final end =
+          (i + groupSize < buckets.length) ? i + groupSize : buckets.length;
       for (var j = i; j < end; j++) {
         final bucket = buckets[j];
         firstBucketStart ??= bucket.bucketStartUtc;

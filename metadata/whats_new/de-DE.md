@@ -6,6 +6,12 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1 (2026-11-09)
+
+{heart} Apple-Health-Puls repariert: Pulsmessungen können wieder aus Apple Health gelesen werden.
+
+{activity} Puls manuell synchronisieren: In den Health-Einstellungen kannst du die Pulswerte der letzten 365 Tage aktualisieren.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.

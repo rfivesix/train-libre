@@ -58,15 +58,9 @@ OPEN SOURCE UND OFFENE DATEN:
 Train Libre nutzt die Community-Kataloge Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – so kannst du unsere Datenschutzversprechen selbst überprüfen.
 
 ## Release Notes (What's New / Release Notes in this version)
-Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
+Apple-Health-Puls repariert: Pulsmessungen können wieder aus Apple Health gelesen werden.
 
-Hallo, Spanien! Hallo, Niederlande!: Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.
-
-Verbesserte Mahlzeitenerkennung: Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.
-
-Ernährung mit Health synchronisieren: Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.
-
-Mehr Personalisierung: Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.
+Puls manuell synchronisieren: In den Health-Einstellungen kannst du die Pulswerte der letzten 365 Tage aktualisieren.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

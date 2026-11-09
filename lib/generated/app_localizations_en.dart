@@ -5415,6 +5415,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthSettingsStepUnavailable => 'Step data is unavailable';
 
   @override
+  String get healthSettingsSyncPulse => 'Sync pulse now';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return 'Read $count pulse samples from the last year';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Sync steps now';
 
   @override

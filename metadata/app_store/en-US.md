@@ -58,15 +58,9 @@ OPEN SOURCE AND OPEN DATA:
 Train Libre uses the community catalogs Open Food Facts and OpenExerciseDB. The complete source code is public, so you can verify our privacy commitments for yourself.
 
 ## Release Notes (What's New / Release Notes in this version)
-Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.
+Apple Health pulse fix: Heart-rate samples can now be read from Apple Health.
 
-Hello, Spain! Hello, the Netherlands!: Train Libre and its exercise catalog are now available in Spanish and Dutch. The BLS and exercise catalogs also include translated names. Open Food Facts adds catalogs for the Netherlands, Spain, and Australia.
-
-Improved meal recognition: Meals are captured more reliably and much faster. AI can now recognize and log drinks and caffeine too.
-
-Sync nutrition with Health: Import and export calories and macronutrients with Apple Health and Health Connect. Workouts are not synchronized.
-
-More personalization: Set a custom accent color and choose which cards appear in the Statistics hub.
+Sync pulse manually: Refresh heart-rate samples from the last 365 days in Health settings.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

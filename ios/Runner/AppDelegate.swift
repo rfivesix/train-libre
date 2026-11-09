@@ -459,18 +459,8 @@ import UserNotifications
       return
     }
 
-    let heartRateAuthorized =
-      healthStore.authorizationStatus(for: heartRateType) == .sharingAuthorized
-    if !heartRateAuthorized {
-      result(
-        FlutterError(
-          code: "permission_denied",
-          message: "Heart rate permission not granted",
-          details: nil
-        )
-      )
-      return
-    }
+    // HealthKit only reports sharing (write) authorization. Read authorization
+    // is private, so execute the query and let HealthKit filter its results.
 
     let predicate = HKQuery.predicateForSamples(
       withStart: fromDate,

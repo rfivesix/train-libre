@@ -5504,6 +5504,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les données de pas sont indisponibles';
 
   @override
+  String get healthSettingsSyncPulse => 'Synchroniser le pouls';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '$count mesures du pouls lues pour la dernière année';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Synchroniser les pas';
 
   @override

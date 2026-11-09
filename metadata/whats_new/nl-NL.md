@@ -6,6 +6,12 @@
   Genereer opnieuw met: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1 (2026-11-09)
+
+{heart} Hartslag in Apple Health hersteld: Hartslagmetingen kunnen nu uit Apple Health worden gelezen.
+
+{activity} Hartslag handmatig synchroniseren: Werk metingen van de afgelopen 365 dagen bij in de gezondheidsinstellingen.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Maak kennis met de nieuwe AI-chat: stel vragen over voeding en training. De chat kan concepten maken voor trainingsschema’s, routines en recepten. Persoonlijke gegevens worden alleen met jouw toestemming gedeeld; voorstellen bekijk je voordat je ze toepast.

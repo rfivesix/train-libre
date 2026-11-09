@@ -5456,6 +5456,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schrittdaten sind nicht verfügbar';
 
   @override
+  String get healthSettingsSyncPulse => 'Puls jetzt synchronisieren';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '$count Pulsmessungen aus dem letzten Jahr abgerufen';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Schritte jetzt synchronisieren';
 
   @override

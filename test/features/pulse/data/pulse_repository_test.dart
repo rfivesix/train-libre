@@ -122,6 +122,72 @@ void main() {
     expect(summary.noDataReason, PulseNoDataReason.permissionDenied);
   });
 
+  test('empty manual sync preserves cached data', () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final start = DateTime.utc(2026, 4, 20);
+    final samples = [HealthHeartRateSampleDto(sampledAtUtc: start, bpm: 60)];
+    final repository = HealthPulseAnalysisRepository(
+      dataSource: _FakeHeartRateDataSource(samples: samples),
+      trackingService: const _FakePulseSettings(true),
+      database: database,
+      queryPadding: Duration.zero,
+    );
+    final window = PulseAnalysisWindow(
+      startUtc: start,
+      endUtc: start.add(const Duration(hours: 1)),
+    );
+    await repository.getAnalysis(window: window);
+    samples.clear();
+
+    final result =
+        await repository.syncRange(fromUtc: start, toUtc: window.endUtc);
+    final summary = await repository.getAnalysis(window: window);
+
+    expect(result.rawSampleCount, 0);
+    expect(summary.averageBpm, 60);
+  });
+
+  test('manual sync refreshes cached hours using complete hour boundaries',
+      () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final start = DateTime.utc(2026, 4, 20);
+    final samples = [
+      HealthHeartRateSampleDto(sampledAtUtc: start, bpm: 60),
+    ];
+    final dataSource = _FakeHeartRateDataSource(samples: samples);
+    final repository = HealthPulseAnalysisRepository(
+      dataSource: dataSource,
+      trackingService: const _FakePulseSettings(true),
+      database: database,
+      queryPadding: Duration.zero,
+    );
+    final window = PulseAnalysisWindow(
+      startUtc: start,
+      endUtc: start.add(const Duration(hours: 1)),
+    );
+    await repository.getAnalysis(window: window);
+    samples.add(
+      HealthHeartRateSampleDto(
+        sampledAtUtc: start.add(const Duration(minutes: 45)),
+        bpm: 80,
+      ),
+    );
+
+    final result = await repository.syncRange(
+      fromUtc: start.add(const Duration(minutes: 15)),
+      toUtc: start.add(const Duration(minutes: 50)),
+    );
+    final summary = await repository.getAnalysis(window: window);
+
+    expect(
+        dataSource.requests.last, (start, start.add(const Duration(hours: 1))));
+    expect(result.rawSampleCount, 2);
+    expect(summary.sampleCount, 2);
+    expect(summary.averageBpm, 70);
+  });
+
   test(
     'uses aggregate cache on second hub open without reprocessing raw samples',
     () async {

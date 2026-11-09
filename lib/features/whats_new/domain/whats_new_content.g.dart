@@ -16,6 +16,22 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Apple Health pulse fix',
+          body: 'Heart-rate samples can now be read from Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Sync pulse manually',
+          body: 'Refresh heart-rate samples from the last 365 days in Health settings.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -297,6 +313,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Apple-Health-Puls repariert',
+          body: 'Pulsmessungen können wieder aus Apple Health gelesen werden.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Puls manuell synchronisieren',
+          body: 'In den Health-Einstellungen kannst du die Pulswerte der letzten 365 Tage aktualisieren.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
@@ -580,6 +612,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Correction du pouls Apple Health',
+          body: 'Les mesures de fréquence cardiaque peuvent désormais être lues dans Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Synchroniser le pouls manuellement',
+          body: 'Actualisez les mesures des 365 derniers jours dans les réglages Santé.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -862,6 +910,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Correzione del battito in Apple Health',
+          body: 'Le misurazioni della frequenza cardiaca possono ora essere lette da Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Sincronizza il battito manualmente',
+          body: 'Aggiorna le misurazioni degli ultimi 365 giorni nelle impostazioni Salute.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -1143,6 +1207,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Apple Healthの心拍数を修正',
+          body: 'Apple Healthから心拍数データを読み込めるようになりました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: '心拍数を手動で同期',
+          body: 'ヘルス設定から過去365日間の心拍数データを更新できます。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
@@ -1428,6 +1508,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'es': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Corrección del pulso en Apple Health',
+          body: 'Ahora se pueden leer las mediciones de frecuencia cardíaca de Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Sincroniza el pulso manualmente',
+          body: 'Actualiza las mediciones de los últimos 365 días en los ajustes de Salud.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -1460,6 +1556,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'nl': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '2026-11-09',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Hartslag in Apple Health hersteld',
+          body: 'Hartslagmetingen kunnen nu uit Apple Health worden gelezen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Hartslag handmatig synchroniseren',
+          body: 'Werk metingen van de afgelopen 365 dagen bij in de gezondheidsinstellingen.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
@@ -1498,4 +1610,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.7.0';
+const String kWhatsNewGeneratedForVersion = '1.7.1';

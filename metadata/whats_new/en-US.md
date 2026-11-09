@@ -6,6 +6,12 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.7.1 (2026-11-09)
+
+{heart} Apple Health pulse fix: Heart-rate samples can now be read from Apple Health.
+
+{activity} Sync pulse manually: Refresh heart-rate samples from the last 365 days in Health settings.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.

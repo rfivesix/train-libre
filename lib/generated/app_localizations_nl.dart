@@ -5472,6 +5472,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Stappengegevens zijn niet beschikbaar';
 
   @override
+  String get healthSettingsSyncPulse => 'Hartslag nu synchroniseren';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '$count hartslagmetingen van het afgelopen jaar opgehaald';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Stappen nu synchroniseren';
 
   @override

@@ -10,6 +10,7 @@ import '../../../features/health_export/adapters/health_connect/health_connect_e
 import '../../../features/health_export/export_service.dart';
 import '../../../features/health_export/models/export_models.dart';
 import '../../../features/pulse/application/pulse_tracking_service.dart';
+import '../../../features/pulse/data/pulse_repository.dart';
 import '../../../features/sleep/platform/permissions/health_connect_sleep_permissions_service.dart';
 import '../../../features/sleep/platform/permissions/healthkit_sleep_permissions_service.dart';
 import '../../../features/sleep/platform/permissions/sleep_permission_controller.dart';
@@ -45,6 +46,8 @@ class HealthSettingsScreen extends StatefulWidget {
 class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   late final StepsSyncService _steps = StepsSyncService();
   late final PulseTrackingService _pulse = PulseTrackingService();
+  late final HealthPulseAnalysisRepository _pulseRepository =
+      HealthPulseAnalysisRepository();
   late final WeightImportService _measurement = Platform.isIOS
       ? AppleHealthWeightImportService()
       : HealthConnectWeightImportService();
@@ -55,14 +58,14 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   );
   late final SleepPermissionController _pulsePermissions =
       SleepPermissionController(
-        Platform.isIOS
-            ? const HealthKitSleepPermissionsService(
-                HealthKitSleepMethodChannelBridge(),
-              )
-            : const HealthConnectSleepPermissionsService(
-                HealthConnectSleepMethodChannelBridge(),
-              ),
-      );
+    Platform.isIOS
+        ? const HealthKitSleepPermissionsService(
+            HealthKitSleepMethodChannelBridge(),
+          )
+        : const HealthConnectSleepPermissionsService(
+            HealthConnectSleepMethodChannelBridge(),
+          ),
+  );
 
   bool _stepsEnabled = false;
   bool _sleepEnabled = false;
@@ -302,6 +305,22 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     });
   }
 
+  Future<void> _syncPulse() {
+    final l10n = AppLocalizations.of(context)!;
+    return _run(() async {
+      final now = DateTime.now().toUtc();
+      final result = await _pulseRepository.syncRange(
+        fromUtc: now.subtract(const Duration(days: 365)),
+        toUtc: now,
+      );
+      _message(
+        result.rawSampleCount == 0
+            ? l10n.pulseNoDataDefault
+            : l10n.healthSettingsPulseSyncResult(result.rawSampleCount),
+      );
+    });
+  }
+
   Future<void> _syncMeasurement() {
     final l10n = AppLocalizations.of(context)!;
     return _run(() async {
@@ -319,9 +338,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     return _run(() async {
       final permission = await _export.requestPermissions(_platform);
-      final result = permission.success
-          ? await _export.exportNow(_platform)
-          : permission;
+      final result =
+          permission.success ? await _export.exportNow(_platform) : permission;
       _message(
         result.success
             ? l10n.healthExportResultComplete
@@ -385,21 +403,19 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final statuses = _exportStatuses[_platform];
     if (statuses == null) return l10n.healthExportStateIdle;
-    return HealthExportDomain.values
-        .map((domain) {
-          final status = statuses.statusFor(domain);
-          final label = switch (status.state) {
-            HealthExportState.idle => l10n.healthExportStateIdle,
-            HealthExportState.exporting => l10n.healthExportStateExporting,
-            HealthExportState.success => l10n.healthExportStateSuccess,
-            HealthExportState.failed => l10n.healthExportStateFailed,
-            HealthExportState.permissionRequired =>
-              l10n.healthExportStatePermissionRequired,
-            HealthExportState.disabled => l10n.healthExportStateDisabled,
-          };
-          return '${_domainLabel(domain)}: $label';
-        })
-        .join(' · ');
+    return HealthExportDomain.values.map((domain) {
+      final status = statuses.statusFor(domain);
+      final label = switch (status.state) {
+        HealthExportState.idle => l10n.healthExportStateIdle,
+        HealthExportState.exporting => l10n.healthExportStateExporting,
+        HealthExportState.success => l10n.healthExportStateSuccess,
+        HealthExportState.failed => l10n.healthExportStateFailed,
+        HealthExportState.permissionRequired =>
+          l10n.healthExportStatePermissionRequired,
+        HealthExportState.disabled => l10n.healthExportStateDisabled,
+      };
+      return '${_domainLabel(domain)}: $label';
+    }).join(' · ');
   }
 
   String _domainLabel(HealthExportDomain domain) {
@@ -508,6 +524,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                     subtitle: _permissionLabel(pulsePermission),
                     value: _pulseEnabled,
                     onChanged: _setPulse,
+                    actionLabel: l10n.healthSettingsSyncPulse,
+                    onAction: _syncPulse,
                   ),
                 ),
                 _row(
@@ -517,8 +535,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                       : l10n.healthConnectWeightImportTitle,
                   subtitle: _measurementStatus?.available == true
                       ? ((_measurementStatus?.isLimited ?? false)
-                            ? l10n.healthConnectWeightImportLimited
-                            : l10n.healthConnectWeightImportReady)
+                          ? l10n.healthConnectWeightImportLimited
+                          : l10n.healthConnectWeightImportReady)
                       : l10n.healthExportPlatformUnavailable,
                   value: _measurementEnabled,
                   onChanged: _setMeasurement,
@@ -531,10 +549,10 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                   subtitle: _nutritionImportStatus?.available != true
                       ? l10n.healthExportPlatformUnavailable
                       : !_nutritionImportEnabled
-                      ? l10n.healthExportStateIdle
-                      : (_nutritionImportStatus?.limitedHistory ?? false)
-                      ? l10n.healthConnectWeightImportLimited
-                      : l10n.healthConnectWeightImportReady,
+                          ? l10n.healthExportStateIdle
+                          : (_nutritionImportStatus?.limitedHistory ?? false)
+                              ? l10n.healthConnectWeightImportLimited
+                              : l10n.healthConnectWeightImportReady,
                   value: _nutritionImportEnabled,
                   onChanged: _setNutritionImport,
                   actionLabel: l10n.healthConnectWeightImportNow,
@@ -550,9 +568,11 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                     child: Text(
                       l10n.healthNutritionImportPolicy,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface
-                            .withValues(alpha: 0.65),
-                      ),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.65),
+                          ),
                     ),
                   ),
                 _row(

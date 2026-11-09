@@ -9538,6 +9538,18 @@ abstract class AppLocalizations {
   /// **'Step data is unavailable'**
   String get healthSettingsStepUnavailable;
 
+  /// No description provided for @healthSettingsSyncPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync pulse now'**
+  String get healthSettingsSyncPulse;
+
+  /// No description provided for @healthSettingsPulseSyncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Read {count} pulse samples from the last year'**
+  String healthSettingsPulseSyncResult(int count);
+
   /// No description provided for @healthSettingsSyncSteps.
   ///
   /// In en, this message translates to:

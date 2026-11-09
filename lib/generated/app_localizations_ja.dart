@@ -5247,6 +5247,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthSettingsStepUnavailable => '歩数データを利用できません';
 
   @override
+  String get healthSettingsSyncPulse => '心拍数を今すぐ同期';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '過去1年間の心拍数データを$count件読み込みました';
+  }
+
+  @override
   String get healthSettingsSyncSteps => '歩数を今すぐ同期';
 
   @override

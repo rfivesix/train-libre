@@ -5507,6 +5507,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay datos de pasos disponibles';
 
   @override
+  String get healthSettingsSyncPulse => 'Sincronizar pulso ahora';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return 'Se han leído $count mediciones de pulso del último año';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Sincronizar pasos ahora';
 
   @override

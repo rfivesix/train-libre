@@ -58,15 +58,9 @@ OPEN SOURCE E DATI APERTI:
 Train Libre utilizza i cataloghi comunitari Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblico, così puoi verificare direttamente i nostri impegni sulla privacy.
 
 ## Release Notes (What's New / Release Notes in this version)
-Scopri la nuova chat IA: fai domande su alimentazione e allenamento. Può creare bozze di piani di allenamento, routine e ricette. I dati personali vengono condivisi solo con il tuo consenso e puoi controllare i suggerimenti prima di applicarli.
+Correzione del battito in Apple Health: Le misurazioni della frequenza cardiaca possono ora essere lette da Apple Health.
 
-Ciao, Spagna! Ciao, Paesi Bassi!: Train Libre e il catalogo degli esercizi sono ora disponibili in spagnolo e olandese. Anche i cataloghi BLS e degli esercizi includono nomi tradotti. Open Food Facts aggiunge i cataloghi di Paesi Bassi, Spagna e Australia.
-
-Riconoscimento dei pasti migliorato: i pasti vengono registrati in modo più affidabile e molto più veloce. L’IA ora riconosce e registra anche bevande e caffeina.
-
-Sincronizza la nutrizione con Health: importa ed esporta calorie e macronutrienti con Apple Health e Health Connect. Gli allenamenti non vengono sincronizzati.
-
-Più personalizzazione: scegli un colore principale personalizzato e le schede da mostrare nel pannello statistiche.
+Sincronizza il battito manualmente: Aggiorna le misurazioni degli ultimi 365 giorni nelle impostazioni Salute.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

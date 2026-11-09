@@ -6,6 +6,12 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1 (2026-11-09)
+
+{heart} Correction du pouls Apple Health: Les mesures de fréquence cardiaque peuvent désormais être lues dans Apple Health.
+
+{activity} Synchroniser le pouls manuellement: Actualisez les mesures des 365 derniers jours dans les réglages Santé.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Découvrez le nouveau chat IA : Posez vos questions sur la nutrition et l’entraînement. Il peut créer des programmes, des routines et des recettes sous forme de brouillons. Vos données personnelles ne sont partagées qu’avec votre accord, et vous vérifiez les propositions avant de les appliquer.

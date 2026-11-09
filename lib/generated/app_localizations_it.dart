@@ -5490,6 +5490,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'I dati dei passi non sono disponibili';
 
   @override
+  String get healthSettingsSyncPulse => 'Sincronizza il battito';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '$count misurazioni del battito lette nell’ultimo anno';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Sincronizza i passi';
 
   @override
