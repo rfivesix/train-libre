@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Smoothed card morph transitions with an opaque, color-changing surface, a gentler handover to the original card, and more accurate iPhone corner rounding.
+- Aligned the diary sleep and pulse cards with the training card's spacing and added morph transitions to their day views.
+- Made the diary weight card open weight history even when no weight has been logged for the selected day or no previous entry exists.
 - Fixed glass bottom sheet sizing and scrolling, including measurement fields overlapping date and time controls and content being obscured by the keyboard.
 - Fixed AI Chat swipe-to-dismiss gestures, including dragging down from the top of the conversation or an empty chat.
 - Fixed Apple Health heart-rate reads being blocked by an incorrect write-authorization check.
@@ -15,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
+
+### Changed
+- Replaced the diary step progress bar with a health summary card that shows the daily count and goal, or an empty state when no data is available, and opens the selected day's steps with a morph transition.
 
 ## [1.7.0] - 2026-11-03
 
