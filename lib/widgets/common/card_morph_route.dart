@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../util/design_constants.dart';
+import 'predictive_back_route_gesture.dart';
 
 /// A reusable, high-performance container transform route that morphs an
 /// originating UI element (card, tile, FAB) into a destination screen and
@@ -44,10 +45,10 @@ class CardMorphRoute<T> extends PageRoute<T> {
     Duration collapseDuration = const Duration(milliseconds: 360),
     bool maintainState = true,
     bool fullscreenDialog = false,
-  }) : _expandDuration = expandDuration,
-       _collapseDuration = collapseDuration,
-       _maintainState = maintainState,
-       _fullscreenDialog = fullscreenDialog;
+  })  : _expandDuration = expandDuration,
+        _collapseDuration = collapseDuration,
+        _maintainState = maintainState,
+        _fullscreenDialog = fullscreenDialog;
 
   final WidgetBuilder builder;
 
@@ -81,6 +82,32 @@ class CardMorphRoute<T> extends PageRoute<T> {
   bool get maintainState => _maintainState;
 
   final bool _fullscreenDialog;
+  bool _predictiveBackActive = false;
+
+  @override
+  void handleStartBackGesture({double progress = 0.0}) {
+    super.handleStartBackGesture(progress: progress);
+    _predictiveBackActive = true;
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    super.handleCancelBackGesture();
+    final routeAnimation = animation;
+    if (routeAnimation == null || routeAnimation.isCompleted) {
+      _predictiveBackActive = false;
+      return;
+    }
+    late AnimationStatusListener listener;
+    listener = (status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        _predictiveBackActive = false;
+        routeAnimation.removeStatusListener(listener);
+      }
+    };
+    routeAnimation.addStatusListener(listener);
+  }
 
   @override
   bool get fullscreenDialog => _fullscreenDialog;
@@ -154,17 +181,23 @@ class CardMorphRoute<T> extends PageRoute<T> {
 
     // Fallback if no source bounds could be resolved: soft fade
     if (measured == null) {
-      return FadeTransition(opacity: animation, child: child);
+      return PredictiveBackRouteGesture(
+        route: this,
+        child: FadeTransition(opacity: animation, child: child),
+      );
     }
 
-    return _CardMorphTransition(
+    return PredictiveBackRouteGesture(
       route: this,
-      animation: animation,
-      sourceRect: measured,
-      sourceBorderRadius: sourceBorderRadius,
-      sourceBuilder: sourceBuilder,
-      morphOnPop: morphOnPop,
-      child: child,
+      child: _CardMorphTransition(
+        route: this,
+        animation: animation,
+        sourceRect: measured,
+        sourceBorderRadius: sourceBorderRadius,
+        sourceBuilder: sourceBuilder,
+        morphOnPop: morphOnPop,
+        child: child,
+      ),
     );
   }
 
@@ -375,7 +408,7 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (widget.animation.isCompleted && widget.route.isCurrent) {
+    if (widget.route.popGestureEnabled) {
       _backGestureRecognizer.addPointer(event);
     }
   }
@@ -411,7 +444,8 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
             // If morphOnPop is false and we are popping (e.g. LiveWorkoutScreen minimizing to bottom bar),
             // slide down off screen smoothly towards the bottom progress bar:
             if (!widget.morphOnPop &&
-                widget.animation.status == AnimationStatus.reverse) {
+                (widget.animation.status == AnimationStatus.reverse ||
+                    widget.route.navigator?.userGestureInProgress == true)) {
               final double popProgress = (1.0 - raw);
               final double slideY =
                   Curves.easeInCubic.transform(popProgress) * screen.height;
@@ -426,9 +460,10 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
             }
 
             final Curve curve =
-                widget.animation.status == AnimationStatus.reverse
-                ? _kCollapseCurve
-                : _kExpandCurve;
+                widget.animation.status == AnimationStatus.reverse &&
+                        !widget.route._predictiveBackActive
+                    ? _kCollapseCurve
+                    : _kExpandCurve;
             final double t = curve.transform(raw);
 
             final Rect rect = Rect.lerp(widget.sourceRect, fullRect, t)!;

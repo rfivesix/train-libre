@@ -7,7 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Fixed glass bottom sheet sizing and scrolling, including measurement fields overlapping date and time controls and content being obscured by the keyboard.
+- Fixed AI Chat swipe-to-dismiss gestures, including dragging down from the top of the conversation or an empty chat.
 - Fixed Apple Health heart-rate reads being blocked by an incorrect write-authorization check.
+- Fixed Android predictive back gestures for card and workout morph transitions so they follow the swipe and return to the open screen when cancelled.
+- Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
 
 ### Added
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.

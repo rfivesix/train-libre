@@ -33,6 +33,7 @@ import '../ai_global_cloud_presentation.dart';
 import 'cloud_overlay/cloud_chat_coordinator.dart';
 import 'cloud_overlay/ai_chat_camera_screen.dart';
 import 'cloud_overlay/cloud_chat_turn_list_view.dart';
+import 'cloud_overlay/cloud_chat_dismiss_drag.dart';
 import 'cloud_overlay/cloud_docking_controller.dart';
 import 'cloud_overlay/cloud_overlay_access_audit_modal.dart';
 import 'cloud_overlay/cloud_overlay_composer.dart';
@@ -88,8 +89,11 @@ class DraggableAiCloud extends StatefulWidget {
 }
 
 class DraggableAiCloudState extends State<DraggableAiCloud>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   bool _isExpanded = false;
+  LocalHistoryEntry? _chatBackEntry;
+  ModalRoute<dynamic>? _chatBackRoute;
+  double _backGestureStartValue = 1;
   bool _isClosing = false;
   bool _isClosingFromFullscreen = false;
   bool _showChatPreview = false;
@@ -205,6 +209,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _lastChatOpenRequest = AiGlobalCloudPresentation.chatOpenRequests.value;
     _wasAddMenuOpen = AiGlobalCloudPresentation.isAddMenuOpen.value;
     _lastQuickChatActionCenter =
@@ -377,6 +382,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    final entry = _chatBackEntry;
+    _chatBackEntry = null;
+    _chatBackRoute = null;
+    entry?.remove();
     AiGlobalCloudPresentation.isAddMenuOpen.removeListener(
       _handleAddMenuStateChanged,
     );
@@ -405,6 +415,79 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   /// Pauses the current demo response and shows a simulated permission request.
   void requestDemoPermission() => _chatCoordinator.requestDemoPermission();
+
+  void _installChatBackEntry() {
+    final navigator = widget.navigator ??
+        widget.navigatorKey?.currentState ??
+        Navigator.maybeOf(context);
+    ModalRoute<dynamic>? route;
+    navigator?.popUntil((candidate) {
+      if (candidate is ModalRoute<dynamic>) route = candidate;
+      return true;
+    });
+    if (route == null) return;
+    _chatBackRoute = route;
+    _chatBackEntry = LocalHistoryEntry(
+      impliesAppBarDismissal: false,
+      onRemove: () {
+        _notifyBackAvailability(navigator);
+        if (_chatBackEntry == null) return;
+        _chatBackEntry = null;
+        _chatBackRoute = null;
+        if (mounted && _isExpanded) _toggleExpanded();
+      },
+    );
+    route!.addLocalHistoryEntry(_chatBackEntry!);
+    _notifyBackAvailability(navigator);
+  }
+
+  // LocalHistoryEntry changes do not cause Navigator to dispatch its usual
+  // platform back notification. In particular, Android must be told that a
+  // root route with an open chat can handle back before a gesture starts.
+  void _notifyBackAvailability(NavigatorState? navigator) {
+    if (navigator == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!navigator.mounted) return;
+      Route<dynamic>? current;
+      navigator.popUntil((route) {
+        current = route;
+        return true;
+      });
+      NavigationNotification(
+        canHandlePop: navigator.canPop() ||
+            current?.popDisposition == RoutePopDisposition.doNotPop,
+      ).dispatch(navigator.context);
+    });
+  }
+
+  @override
+  bool handleStartBackGesture(PredictiveBackEvent backEvent) {
+    if (backEvent.isButtonEvent ||
+        !_isExpanded ||
+        _chatBackEntry == null ||
+        _chatBackRoute?.isCurrent != true) {
+      return false;
+    }
+    _morphAnimation.stop();
+    _backGestureStartValue = _morphAnimation.value;
+    handleUpdateBackGestureProgress(backEvent);
+    return true;
+  }
+
+  @override
+  void handleUpdateBackGestureProgress(PredictiveBackEvent backEvent) {
+    _morphAnimation.value = _backGestureStartValue * (1 - backEvent.progress);
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    if (mounted && _isExpanded) _morphAnimation.forward();
+  }
+
+  @override
+  void handleCommitBackGesture() {
+    if (mounted && _isExpanded) _toggleExpanded();
+  }
 
   void _toggleExpanded() {
     _dockingController.stopInitialDock();
@@ -452,6 +535,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _isFullscreen = expanding ? openFullscreen : wasFullscreen;
       _showChatPreview = expanding;
     });
+    if (expanding) {
+      _installChatBackEntry();
+    } else {
+      _chatBackEntry?.remove();
+    }
     _dockingController.onExpandToggle(expanding: expanding);
     _chatCoordinator.syncDemoWaitingHaptics();
     if (expanding) {
@@ -1716,53 +1804,62 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
-                    child: CloudChatTurnListView(
+                    child: CloudChatDismissDrag(
                       scrollController:
                           _scrollSidebarController.chatScrollController,
-                      latestMessageEndKey:
-                          _scrollSidebarController.latestMessageEndKey,
-                      chatTurns: _chatCoordinator.chatTurns,
-                      permissionPending: _chatCoordinator.permissionPending,
-                      permissionApproved: _chatCoordinator.permissionApproved,
-                      pendingAccess: _chatCoordinator.pendingAccess,
-                      isGenerating: _chatCoordinator.isGenerating,
-                      isLoadingCloudVisible:
-                          _chatCoordinator.isLoadingCloudVisible,
-                      loadingCloudAnimation:
-                          _chatCoordinator.loadingCloudAnimation,
-                      copiedTurn: _chatCoordinator.copiedTurn,
-                      useLiveAi: widget.useLiveAi,
-                      onNavigate: _navigateFromOverlay,
-                      theme: theme,
-                      contrastColor: contrastColor,
-                      surfaceColor: surfaceColor,
-                      softColor: softColor,
-                      chatTop: chatTop,
-                      topFadeStart: topFadeStart,
-                      topFadeEnd: topFadeEnd,
-                      topFadeHoldStop: topFadeHoldStop,
-                      chatBottom: chatBottom,
-                      bottomFadeHeight: bottomFadeHeight,
-                      fullscreenProgress: fullscreenProgress,
-                      onResolvePermission: _chatCoordinator.resolvePermission,
-                      onCopyResponse: (turn) =>
-                          _chatCoordinator.copyResponseMarkdown(turn),
-                      onCopyFullChat: _chatCoordinator.copyFullChatMarkdown,
-                      onRetryPrompt: (turn) {
-                        _chatInputController.clear();
-                        _chatCoordinator.retryTurnPrompt(turn);
-                      },
-                      onShowAccessAudit: _chatCoordinator.showAccessAudit,
-                      onResolveProposal: _chatCoordinator.resolveChangeProposal,
-                      onIncrementUserScrollRevision:
-                          _scrollSidebarController.incrementUserScrollRevision,
-                      onScrollMetricsChanged: _scrollSidebarController
-                          .refreshChatScrollStateAfterLayout,
-                      onPermissionCardSizeEnd: () {
-                        if (_scrollSidebarController.followChatTail) {
-                          _scrollSidebarController.scrollChatToBottom();
-                        }
-                      },
+                      onStart: _scrollSidebarController.handleHeaderDragStart,
+                      onUpdate: _scrollSidebarController.handleHeaderDragUpdate,
+                      onEnd: _scrollSidebarController.handleHeaderDragEnd,
+                      onCancel: _scrollSidebarController.handleHeaderDragCancel,
+                      child: CloudChatTurnListView(
+                        scrollController:
+                            _scrollSidebarController.chatScrollController,
+                        latestMessageEndKey:
+                            _scrollSidebarController.latestMessageEndKey,
+                        chatTurns: _chatCoordinator.chatTurns,
+                        permissionPending: _chatCoordinator.permissionPending,
+                        permissionApproved: _chatCoordinator.permissionApproved,
+                        pendingAccess: _chatCoordinator.pendingAccess,
+                        isGenerating: _chatCoordinator.isGenerating,
+                        isLoadingCloudVisible:
+                            _chatCoordinator.isLoadingCloudVisible,
+                        loadingCloudAnimation:
+                            _chatCoordinator.loadingCloudAnimation,
+                        copiedTurn: _chatCoordinator.copiedTurn,
+                        useLiveAi: widget.useLiveAi,
+                        onNavigate: _navigateFromOverlay,
+                        theme: theme,
+                        contrastColor: contrastColor,
+                        surfaceColor: surfaceColor,
+                        softColor: softColor,
+                        chatTop: chatTop,
+                        topFadeStart: topFadeStart,
+                        topFadeEnd: topFadeEnd,
+                        topFadeHoldStop: topFadeHoldStop,
+                        chatBottom: chatBottom,
+                        bottomFadeHeight: bottomFadeHeight,
+                        fullscreenProgress: fullscreenProgress,
+                        onResolvePermission: _chatCoordinator.resolvePermission,
+                        onCopyResponse: (turn) =>
+                            _chatCoordinator.copyResponseMarkdown(turn),
+                        onCopyFullChat: _chatCoordinator.copyFullChatMarkdown,
+                        onRetryPrompt: (turn) {
+                          _chatInputController.clear();
+                          _chatCoordinator.retryTurnPrompt(turn);
+                        },
+                        onShowAccessAudit: _chatCoordinator.showAccessAudit,
+                        onResolveProposal:
+                            _chatCoordinator.resolveChangeProposal,
+                        onIncrementUserScrollRevision: _scrollSidebarController
+                            .incrementUserScrollRevision,
+                        onScrollMetricsChanged: _scrollSidebarController
+                            .refreshChatScrollStateAfterLayout,
+                        onPermissionCardSizeEnd: () {
+                          if (_scrollSidebarController.followChatTail) {
+                            _scrollSidebarController.scrollChatToBottom();
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ],
