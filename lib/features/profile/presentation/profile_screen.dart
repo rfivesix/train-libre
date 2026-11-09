@@ -212,6 +212,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: DesignConstants.spacingM),
+                TextField(
+                  controller: heightCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.onboardingHeightLabel,
+                    suffixText: unitService.suffixFor(UnitDimension.height),
+                    prefixIcon: const Icon(LucideIcons.ruler),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusM,
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 Row(
                   children: [
@@ -273,6 +290,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+    nameCtrl.dispose();
+    heightCtrl.dispose();
   }
 
   @override
