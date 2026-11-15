@@ -352,7 +352,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.triangle_alert, size: 18, color: color),
+          Icon(LucideIcons.triangle_exclamation_point, size: 18, color: color),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -596,7 +596,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     leading: Icon(
                       _isAppleFoundationAvailable
                           ? LucideIcons.shield_check
-                          : LucideIcons.circle_alert,
+                          : LucideIcons.circle_exclamation_point,
                       color: _isAppleFoundationAvailable
                           ? const Color(0xFF34C759)
                           : Colors.orange,

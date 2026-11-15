@@ -157,8 +157,8 @@ class _HealthExportSettingsScreenState
     return switch (state) {
       HealthExportState.success => LucideIcons.circle_check,
       HealthExportState.exporting => LucideIcons.refresh_cw,
-      HealthExportState.failed => LucideIcons.triangle_alert,
-      HealthExportState.permissionRequired => LucideIcons.shield_alert,
+      HealthExportState.failed => LucideIcons.triangle_exclamation_point,
+      HealthExportState.permissionRequired => LucideIcons.shield_exclamation_point,
       HealthExportState.disabled => LucideIcons.toggle_left,
       HealthExportState.idle => LucideIcons.hourglass,
     };

@@ -528,7 +528,7 @@ extension AiNetwork on AiService {
 
   Future<AiModelIdsFetch> _loadDynamicModelIds(AiProvider provider) async {
     if (_dynamicModelIdsLoader != null) {
-      final ids = await _dynamicModelIdsLoader!(provider);
+      final ids = await _dynamicModelIdsLoader(provider);
       if (ids == null) {
         return const AiModelIdsFetch.failure(
           AiModelListError(AiModelListErrorKind.unsupported),

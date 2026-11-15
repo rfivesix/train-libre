@@ -45,7 +45,7 @@ The toolbar dropdown lists every Apple/Google-required size for the current devi
 | `src/lib/defaults.ts` | Fallback/reset state used when no project file or local cache exists |
 | `src/components/editor/slide-canvas.tsx` | Add new layouts and connected-canvas element rendering |
 | `src/components/editor/device-frames.tsx` | Tweak device chrome (bezel radii, camera dots) |
-| `src/app/layout.tsx` | Swap the font (`next/font/google`) |
+| `src/app/layout.tsx` | Configure the bundled Inter font (`next/font/local`) |
 
 ## Notes
 

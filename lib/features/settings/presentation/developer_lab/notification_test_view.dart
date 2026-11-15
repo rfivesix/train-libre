@@ -171,7 +171,7 @@ class _NotificationTestViewState extends State<NotificationTestView> {
                   Icon(
                     _notificationsEnabled == true
                         ? LucideIcons.circle_check
-                        : LucideIcons.circle_alert,
+                        : LucideIcons.circle_exclamation_point,
                     color: _notificationsEnabled == true
                         ? Colors.green
                         : Colors.orange,

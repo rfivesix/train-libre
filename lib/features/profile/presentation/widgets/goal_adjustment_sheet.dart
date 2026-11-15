@@ -545,7 +545,7 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
               child: Row(
                 children: [
                   const Icon(
-                    LucideIcons.triangle_alert,
+                    LucideIcons.triangle_exclamation_point,
                     color: Colors.orange,
                     size: 20,
                   ),

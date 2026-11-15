@@ -77,7 +77,7 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
             ? LucideIcons.shield_check
             : (access.status == 'denied'
                   ? LucideIcons.shield_x
-                  : LucideIcons.shield_alert),
+                  : LucideIcons.shield_exclamation_point),
         title: isDe ? 'Status: $statusText' : 'Status: $statusText',
         subtitle: isDe ? 'Datenfreigabestatus' : 'Data access status',
       ),

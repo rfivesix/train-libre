@@ -244,7 +244,7 @@ class GoalPaceTimelineStep extends StatelessWidget {
                     children: [
                       Icon(
                         state.weeklyRateKg > 1.0
-                            ? LucideIcons.triangle_alert
+                            ? LucideIcons.triangle_exclamation_point
                             : (state.weeklyRateKg < 0.3
                                   ? LucideIcons.info
                                   : LucideIcons.circle_check),

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -3212,13 +3213,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  ) {
     return 'デルタ: $kcalDelta kcal · ${proteinDelta}g タンパク質 · ${carbsDelta}g 炭水化物 · ${fatDelta}g 脂肪';
   }
 
   @override
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
@@ -3230,7 +3237,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
@@ -5063,7 +5072,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays) {
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  ) {
     return 'データ基準: $windowDays 日、$weightLogs 体重ログ、$intakeDays 摂取日';
   }
 
@@ -6016,7 +6028,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat) {
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  ) {
     return '新しい 1 日の目標: $calories kcal | ${protein}g プロテイン | ${carbs}g 炭水化物 | ${fat}g 脂肪';
   }
 
@@ -7937,7 +7953,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String weeklyReviewCaloriesComparison(
-      String current, String recommended, String change) {
+    String current,
+    String recommended,
+    String change,
+  ) {
     return '1日 $current → $recommended kcal（$change）';
   }
 
@@ -8393,7 +8412,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String weeklyGoalReviewNotificationDetailedBody(
-      String goalTitle, int calories) {
+    String goalTitle,
+    int calories,
+  ) {
     return '$goalTitle：更新後の推奨は1日$calories kcalです。詳しい根拠はレビューで確認できます。';
   }
 

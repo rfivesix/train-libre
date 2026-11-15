@@ -108,7 +108,7 @@ class AnalyticsCardBase {
           top: 10,
           right: 10,
           child: Icon(
-            LucideIcons.triangle_alert,
+            LucideIcons.triangle_exclamation_point,
             size: 16,
             color: Theme.of(context).colorScheme.error,
           ),

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -3320,34 +3321,40 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  ) {
     return 'Delta: $kcalDelta kcal · ${proteinDelta}g Proteine ​​· ${carbsDelta}g Carboidrati · ${fatDelta}g Grassi';
   }
 
   @override
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
       other:
           'Gli elementi $unmatchedCount non hanno una corrispondenza nel database locale e non verranno salvati.',
-      one:
-          '1 elemento non ha una corrispondenza nel database locale e non verra salvato.',
+      one: '1 elemento non ha una corrispondenza nel database locale e non verra salvato.',
     );
     return '$_temp0';
   }
 
   @override
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
       other:
           'Gli ingredienti $unmatchedCount non hanno una corrispondenza nel database locale e non verranno salvati.',
-      one:
-          '1 ingrediente non ha una corrispondenza nel database locale e non verra salvato.',
+      one: '1 ingrediente non ha una corrispondenza nel database locale e non verra salvato.',
     );
     return '$_temp0';
   }
@@ -5295,7 +5302,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays) {
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  ) {
     return 'Base dati: $windowDays giorni, $weightLogs registri del peso, $intakeDays giorni di assunzione';
   }
 
@@ -6303,7 +6313,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat) {
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  ) {
     return 'Nuovi obiettivi giornalieri: $calories kcal | ${protein}g Proteine ​​| ${carbs}g Carboidrati | ${fat}g Grasso';
   }
 
@@ -7195,8 +7209,7 @@ class AppLocalizationsIt extends AppLocalizations {
       locale: localeName,
       other:
           'La foto e il raggruppamento vengono rimossi. Le $count voci restano da sole nel diario — i totali giornalieri non cambiano.',
-      one:
-          'La foto e il raggruppamento vengono rimossi. La voce resta da sola nel diario — i totali giornalieri non cambiano.',
+      one: 'La foto e il raggruppamento vengono rimossi. La voce resta da sola nel diario — i totali giornalieri non cambiano.',
     );
     return '$_temp0';
   }
@@ -8325,7 +8338,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String weeklyReviewCaloriesComparison(
-      String current, String recommended, String change) {
+    String current,
+    String recommended,
+    String change,
+  ) {
     return '$current → $recommended kcal al giorno ($change)';
   }
 
@@ -8814,7 +8830,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String weeklyGoalReviewNotificationDetailedBody(
-      String goalTitle, int calories) {
+    String goalTitle,
+    int calories,
+  ) {
     return '$goalTitle: la raccomandazione aggiornata è di $calories kcal al giorno. Apri la revisione per la spiegazione completa.';
   }
 

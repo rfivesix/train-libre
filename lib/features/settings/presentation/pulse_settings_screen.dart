@@ -84,10 +84,10 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
       SleepPermissionState.ready => LucideIcons.circle_check,
       SleepPermissionState.loading => LucideIcons.hourglass,
       SleepPermissionState.denied => LucideIcons.ban,
-      SleepPermissionState.partial => LucideIcons.triangle_alert,
+      SleepPermissionState.partial => LucideIcons.triangle_exclamation_point,
       SleepPermissionState.unavailable => LucideIcons.signal_zero,
       SleepPermissionState.notInstalled => LucideIcons.download,
-      SleepPermissionState.technicalError => LucideIcons.triangle_alert,
+      SleepPermissionState.technicalError => LucideIcons.triangle_exclamation_point,
     };
   }
 

@@ -121,7 +121,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      LucideIcons.shield_alert,
+                      LucideIcons.shield_exclamation_point,
                       size: 64,
                       color: theme.colorScheme.primary,
                     ),

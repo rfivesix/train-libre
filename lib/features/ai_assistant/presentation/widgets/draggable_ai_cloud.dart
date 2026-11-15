@@ -1348,7 +1348,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                   width: badgeSize,
                                   height: badgeSize,
                                   child: Icon(
-                                    LucideIcons.shield_alert,
+                                    LucideIcons.shield_exclamation_point,
                                     size: 38,
                                     color: Colors.black,
                                   ),

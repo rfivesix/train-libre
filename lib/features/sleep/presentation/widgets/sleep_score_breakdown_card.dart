@@ -106,7 +106,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.triangle_alert, color: colorScheme.onErrorContainer),
+          Icon(LucideIcons.triangle_exclamation_point, color: colorScheme.onErrorContainer),
           const SizedBox(width: DesignConstants.spacingM),
           Expanded(
             child: Text(

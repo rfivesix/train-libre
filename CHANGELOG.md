@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Updated Flutter and Dart requirements, refreshed app and development dependencies, and updated the screenshot editor and iOS release tooling.
 - Replaced the diary step progress bar with a health summary card that shows the daily count and goal, or an empty state when no data is available, and opens the selected day's steps with a morph transition.
 
 ## [1.7.0] - 2026-11-03

@@ -292,7 +292,7 @@ class _PerformanceDiagnosticsScreenState
                     if (i > 0) const Divider(height: 1),
                     ListTile(
                       leading: Icon(
-                        LucideIcons.octagon_alert,
+                        LucideIcons.octagon_exclamation_point,
                         color: theme.colorScheme.error,
                       ),
                       title: Text('${snapshot.stalls[i].durationMs} ms'),

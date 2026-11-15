@@ -479,7 +479,7 @@ class GoalTargetStep extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            LucideIcons.circle_alert,
+            LucideIcons.circle_exclamation_point,
             color: theme.colorScheme.onErrorContainer,
             size: 18,
           ),

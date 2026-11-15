@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -3333,34 +3334,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  ) {
     return 'Delta : $kcalDelta kcal · ${proteinDelta}g Protéines · ${carbsDelta}g Glucides · ${fatDelta}g Lipides';
   }
 
   @override
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
       other:
           'Les elements $unmatchedCount n\'ont pas de correspondance dans la base de données locale et ne seront pas enregistrés.',
-      one:
-          '1 element n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
+      one: '1 element n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
     );
     return '$_temp0';
   }
 
   @override
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
       other:
           'Les ingredients $unmatchedCount n\'ont pas de correspondance dans la base de données locale et ne seront pas enregistrés.',
-      one:
-          '1 ingredient n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
+      one: '1 ingredient n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
     );
     return '$_temp0';
   }
@@ -3444,8 +3451,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other:
           'Les elements $count ne peuvent pas être enregistrés tant qu\'ils n\'ont pas été mis en correspondance.',
-      one:
-          '1 element ne peut pas etre enregistre tant qu\'il n\'a pas ete associe.',
+      one: '1 element ne peut pas etre enregistre tant qu\'il n\'a pas ete associe.',
     );
     return '$_temp0';
   }
@@ -5307,7 +5313,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays) {
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  ) {
     return 'Base de données : $windowDays jours, $weightLogs journaux de poids, $intakeDays jours de prise';
   }
 
@@ -6318,7 +6327,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat) {
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  ) {
     return 'Nouveaux objectifs quotidiens : $calories kcal | ${protein}g Protéine | ${carbs}g Glucides | ${fat}g Graisse';
   }
 
@@ -7216,8 +7229,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other:
           'La photo et le groupe sont supprimés. Les $count entrées restent seules dans le journal — tes totaux du jour ne changent pas.',
-      one:
-          'La photo et le groupe sont supprimés. L’entrée reste seule dans le journal — tes totaux du jour ne changent pas.',
+      one: 'La photo et le groupe sont supprimés. L’entrée reste seule dans le journal — tes totaux du jour ne changent pas.',
     );
     return '$_temp0';
   }
@@ -8350,7 +8362,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String weeklyReviewCaloriesComparison(
-      String current, String recommended, String change) {
+    String current,
+    String recommended,
+    String change,
+  ) {
     return '$current → $recommended kcal/jour ($change)';
   }
 
@@ -8841,7 +8856,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String weeklyGoalReviewNotificationDetailedBody(
-      String goalTitle, int calories) {
+    String goalTitle,
+    int calories,
+  ) {
     return '$goalTitle : votre recommandation actualisée est de $calories kcal par jour. Ouvrez le bilan pour consulter le raisonnement complet.';
   }
 

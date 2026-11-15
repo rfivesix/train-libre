@@ -68,7 +68,7 @@ class _MealReviewValidationSummaryState
                   Icon(
                     validation.passed
                         ? LucideIcons.badge_check
-                        : LucideIcons.triangle_alert,
+                        : LucideIcons.triangle_exclamation_point,
                     color: color,
                     size: 20,
                   ),

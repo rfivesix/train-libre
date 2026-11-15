@@ -117,7 +117,7 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      LucideIcons.shield_alert,
+                      LucideIcons.shield_exclamation_point,
                       size: 64,
                       color: theme.colorScheme.primary,
                     ),

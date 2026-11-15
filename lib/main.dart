@@ -577,7 +577,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     const cardLight = Colors.white;
 
     return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+      builder: (lightDynamic, darkDynamic) {
         final themeService = context.watch<ThemeService>();
         final isAndroid =
             !kIsWeb && defaultTargetPlatform == TargetPlatform.android;

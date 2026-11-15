@@ -642,7 +642,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await LegacyGoalMigration(
       database: _databaseHelper.dbInstance,
       goalRepository: _goalRepository is GoalRepositoryImpl
-          ? _goalRepository as GoalRepositoryImpl
+          ? _goalRepository
           : null,
     ).run();
 

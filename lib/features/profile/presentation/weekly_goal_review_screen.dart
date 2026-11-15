@@ -1138,7 +1138,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       child: Row(
         children: [
           Icon(
-            isMet ? LucideIcons.circle_check : LucideIcons.circle_alert,
+            isMet ? LucideIcons.circle_check : LucideIcons.circle_exclamation_point,
             color: isMet ? Colors.green : Colors.orange,
             size: 16,
           ),
