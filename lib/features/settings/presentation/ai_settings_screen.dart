@@ -835,8 +835,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                       ],
                                     ),
                                   ),
-                                  Slider(
+                                  PlatformAdaptiveSlider(
                                     value: _timeoutSeconds.toDouble(),
+                                    semanticLabel: l10n.settingsRequestTimeout,
+                                    semanticValue: l10n.settingsSeconds(
+                                      _timeoutSeconds,
+                                    ),
+                                    semanticFormatter: (value) =>
+                                        l10n.settingsSeconds(value.round()),
                                     min: 10,
                                     max: 300,
                                     divisions: 29,

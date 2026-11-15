@@ -170,4 +170,34 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     service.dispose();
   });
+
+  testWidgets('glass appearance changes through the iOS glass slider', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final service = ThemeService();
+    await tester.pumpWidget(
+      ChangeNotifierProvider<ThemeService>.value(
+        value: service,
+        child: MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          locale: const Locale('en'),
+          localizationsDelegates: appLocalizationDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            body: SingleChildScrollView(child: LiquidGlassSettingsSection()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    final slider = find.byType(GlassSlider);
+    expect(slider, findsOneWidget);
+    final bounds = tester.getRect(slider);
+    await tester.tapAt(Offset(bounds.right - 16, bounds.center.dy));
+    await tester.pump();
+    expect(service.glassAppearance, greaterThan(0.95));
+    await tester.pumpWidget(const SizedBox.shrink());
+    service.dispose();
+  });
 }

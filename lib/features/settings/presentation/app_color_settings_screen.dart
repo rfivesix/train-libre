@@ -11,6 +11,7 @@ import '../../../services/theme_service.dart';
 import '../../../theme/app_color_choice.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/platform_adaptive_slider.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
 const _colorFieldCornerRadius = 18.0;
@@ -284,7 +285,7 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
               ),
             ],
           ),
-          Slider(
+          PlatformAdaptiveSlider(
             value:
                 ((hsv.value - customAppColorMinBrightness) /
                         (customAppColorMaxBrightness -
@@ -292,6 +293,10 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
                     .clamp(0, 1)
                     .toDouble(),
             divisions: 100,
+            semanticLabel: widget.brightnessLabel,
+            semanticValue: '${(hsv.value * 100).round()}%',
+            semanticFormatter: (value) =>
+                '${((customAppColorMinBrightness + value * (customAppColorMaxBrightness - customAppColorMinBrightness)) * 100).round()}%',
             activeColor: _color,
             onChanged: (value) {
               final brightness =

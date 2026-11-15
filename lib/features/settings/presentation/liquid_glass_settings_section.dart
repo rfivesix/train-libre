@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/theme_service.dart';
 import '../../../widgets/common/app_section_header.dart';
+import '../../../widgets/common/platform_adaptive_slider.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/main_navigation_bar.dart';
 import '../../diary/presentation/widgets/ai_camera_preview_fallbacks.dart';
@@ -86,18 +87,15 @@ class _GlassSlider extends StatelessWidget {
             ),
           ],
         ),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            trackHeight: 3,
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-          ),
-          child: Slider(
-            value: value.clamp(0, 1),
-            min: 0,
-            max: 1,
-            label: '$percentage%',
-            onChanged: onChanged,
-          ),
+        PlatformAdaptiveSlider(
+          value: value.clamp(0, 1),
+          min: 0,
+          max: 1,
+          label: '$percentage%',
+          semanticLabel: label,
+          semanticValue: '$percentage%',
+          semanticFormatter: (value) => '${(value * 100).round()}%',
+          onChanged: onChanged,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
