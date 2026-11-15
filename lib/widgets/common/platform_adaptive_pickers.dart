@@ -1,4 +1,3 @@
-import '../../util/glass_preferences.dart';
 // lib/widgets/common/platform_adaptive_pickers.dart
 
 export 'adaptive_timeframe_picker.dart';
@@ -691,7 +690,9 @@ class _GlassPickerSheetContent extends StatelessWidget {
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : const Color(0xFFF2F2F7).withValues(alpha: 0.92);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
+    final Color effectiveGlass = Colors.white.withValues(
+      alpha: isDark ? 0.10 : 0.50,
+    );
     const double r = 24;
     final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
     final maxAvailableHeight =
@@ -726,24 +727,19 @@ class _GlassPickerSheetContent extends StatelessWidget {
                     ),
                     child: RepaintBoundary(
                       child: AdaptiveGlass(
-                        settings: GlassPreferences.of(context).apply(
-                          LiquidGlassSettings(
-                            thickness: 0,
-                            blur: 8,
-                            glassColor: effectiveGlass,
-                            lightIntensity: 0,
-                            saturation: 1.20,
-                          ),
+                        settings: LiquidGlassSettings(
+                          thickness: 0,
+                          blur: 8,
+                          glassColor: effectiveGlass,
+                          lightIntensity: 0,
+                          saturation: 1.20,
                         ),
                         shape: const LiquidVerticalRoundedSuperellipse(
                           topRadius: r,
                           bottomRadius: 0,
                         ),
                         child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: GlassPreferences.of(context)
-                                .tint(neutralTint),
-                          ),
+                          decoration: BoxDecoration(color: neutralTint),
                         ),
                       ),
                     ),
@@ -770,14 +766,12 @@ class _GlassPickerSheetContent extends StatelessWidget {
                   ),
                   RepaintBoundary(
                     child: AdaptiveGlass(
-                      settings: GlassPreferences.of(context).apply(
-                        LiquidGlassSettings(
-                          thickness: 0,
-                          blur: 8,
-                          glassColor: effectiveGlass,
-                          lightIntensity: 0,
-                          saturation: 1.20,
-                        ),
+                      settings: LiquidGlassSettings(
+                        thickness: 0,
+                        blur: 8,
+                        glassColor: effectiveGlass,
+                        lightIntensity: 0,
+                        saturation: 1.20,
                       ),
                       shape: const LiquidVerticalRoundedSuperellipse(
                         topRadius: r,
@@ -791,8 +785,7 @@ class _GlassPickerSheetContent extends StatelessWidget {
                               // circular tint would cut across the squircle
                               // glass corners.
                               decoration: ShapeDecoration(
-                                color: GlassPreferences.of(context)
-                                    .tint(neutralTint),
+                                color: neutralTint,
                                 shape: const RoundedSuperellipseBorder(
                                   borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(r),

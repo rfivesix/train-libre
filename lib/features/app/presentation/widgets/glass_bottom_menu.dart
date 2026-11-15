@@ -1,5 +1,3 @@
-import '../../../../util/glass_preferences.dart';
-
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -253,7 +251,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : const Color(0xFFF2F2F7).withValues(alpha: 0.92);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
+    final Color effectiveGlass = Colors.white.withValues(
+      alpha: isDark ? 0.10 : 0.50,
+    );
 
     const double r = 24;
     final topPadding = topSafeInset ?? media.viewPadding.top;
@@ -426,14 +426,12 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
               ),
               RepaintBoundary(
                 child: AdaptiveGlass(
-                  settings: GlassPreferences.of(context).apply(
-                    LiquidGlassSettings(
-                      thickness: 0,
-                      blur: 8,
-                      glassColor: effectiveGlass,
-                      lightIntensity: 0,
-                      saturation: 1.20,
-                    ),
+                  settings: LiquidGlassSettings(
+                    thickness: 0,
+                    blur: 8,
+                    glassColor: effectiveGlass,
+                    lightIntensity: 0,
+                    saturation: 1.20,
                   ),
                   shape: const LiquidVerticalRoundedSuperellipse(
                     topRadius: r,
@@ -446,8 +444,7 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                           // Superellipse, not a plain circular radius: a circular
                           // tint would cut across the squircle glass corners.
                           decoration: ShapeDecoration(
-                            color: GlassPreferences.of(context)
-                                .tint(neutralTint),
+                            color: neutralTint,
                             shape: const RoundedSuperellipseBorder(
                               borderRadius: BorderRadius.vertical(
                                 top: Radius.circular(r),
@@ -508,24 +505,19 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                         ),
                         child: RepaintBoundary(
                           child: AdaptiveGlass(
-                            settings: GlassPreferences.of(context).apply(
-                              LiquidGlassSettings(
-                                thickness: 0,
-                                blur: 8,
-                                glassColor: effectiveGlass,
-                                lightIntensity: 0,
-                                saturation: 1.20,
-                              ),
+                            settings: LiquidGlassSettings(
+                              thickness: 0,
+                              blur: 8,
+                              glassColor: effectiveGlass,
+                              lightIntensity: 0,
+                              saturation: 1.20,
                             ),
                             shape: const LiquidVerticalRoundedSuperellipse(
                               topRadius: r,
                               bottomRadius: 0,
                             ),
                             child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: GlassPreferences.of(context)
-                                    .tint(neutralTint),
-                              ),
+                              decoration: BoxDecoration(color: neutralTint),
                             ),
                           ),
                         ),
@@ -599,7 +591,9 @@ class _GlassTile extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
+    final Color effectiveGlass = Colors.white.withValues(
+      alpha: isDark ? 0.10 : 0.50,
+    );
 
     final Widget leadingWidget = customIcon != null
         ? customIcon!
@@ -666,16 +660,14 @@ class _GlassTile extends StatelessWidget {
 
     return RepaintBoundary(
       child: AdaptiveGlass(
-        settings: GlassPreferences.of(context).apply(
-          LiquidGlassSettings(
-            // Changed here: thickness 0 removes distortion/shift.
-            thickness: 0,
-            blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
-            glassColor: effectiveGlass,
-            // Changed here: less light intensity reduces harsh edges.
-            lightIntensity: 0.1,
-            saturation: 1.20,
-          ),
+        settings: LiquidGlassSettings(
+          // Changed here: thickness 0 removes distortion/shift.
+          thickness: 0,
+          blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+          glassColor: effectiveGlass,
+          // Changed here: less light intensity reduces harsh edges.
+          lightIntensity: 0.1,
+          saturation: 1.20,
         ),
         shape: const LiquidRoundedSuperellipse(borderRadius: 18),
         child: Material(
@@ -693,7 +685,7 @@ class _GlassTile extends StatelessWidget {
                   child: DecoratedBox(
                     // BorderRadius also helps visual separation here.
                     decoration: BoxDecoration(
-                      color: GlassPreferences.of(context).tint(neutralTint),
+                      color: neutralTint,
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
