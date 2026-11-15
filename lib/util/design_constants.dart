@@ -267,7 +267,7 @@ class DesignConstants {
         thickness: 30,
         blur: 4.0,
         glassColor: glassColor(isDark),
-        lightIntensity: isDark ? 0.12 : 0.18,
+        lightIntensity: isDark ? 0.20 : 0.24,
         saturation: 1.2,
         ambientRim: 0.0,
         fresnelStrength: 0.0,

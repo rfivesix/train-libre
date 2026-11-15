@@ -38,8 +38,8 @@ class GlassPreferences {
 
   LiquidGlassSettings apply(LiquidGlassSettings base, {bool premium = false}) {
     final color = base.glassColor;
-    // A frost mixes a broad, colour-preserving cloud with the lightly blurred
-    // copy beneath it. Uniform colours stay vivid while small details fade.
+    // A compact frost cloud softens fine detail without letting strong colours
+    // spread too far into neighbouring parts of the backdrop.
     // Don't add a cloud to an indicator lens, whose base blur is deliberately 0.
     final hasSurface = premium && base.blur > 0 && color.a > 0;
     final level = ((opacity - 0.3) / 1.2).clamp(0.0, 1.0);
@@ -49,7 +49,7 @@ class GlassPreferences {
     return base.copyWith(
       blur: base.blur * blur,
       glassColor: tint,
-      frost: hasSurface ? (base.frost > 0 ? base.frost : 14) : base.frost,
+      frost: hasSurface ? (base.frost > 0 ? base.frost : 6) : base.frost,
       frostOpacity: hasSurface ? 0.2 + 0.76 * level : base.frostOpacity,
       frostWeight: hasSurface ? 1 : base.frostWeight,
     );

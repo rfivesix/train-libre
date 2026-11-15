@@ -82,7 +82,7 @@ void main() {
     ).apply(base, premium: true);
     expect(adjusted.blur, 5);
     expect(adjusted.glassColor, base.glassColor);
-    expect(adjusted.frost, 14);
+    expect(adjusted.frost, 6);
     expect(adjusted.frostOpacity, closeTo(0.96, 0.001));
     expect(adjusted.thickness, base.thickness);
     expect(adjusted.ambientRim, base.ambientRim);
@@ -105,7 +105,7 @@ void main() {
       expect(tinted.glassColor, middle.glassColor);
       expect(clear.blur, middle.blur);
       expect(tinted.blur, middle.blur);
-      expect(clear.frost, 14);
+      expect(clear.frost, 6);
       expect(tinted.frost, clear.frost);
       expect(clear.frostOpacity, lessThan(middle.frostOpacity));
       expect(middle.frostOpacity, lessThan(tinted.frostOpacity));

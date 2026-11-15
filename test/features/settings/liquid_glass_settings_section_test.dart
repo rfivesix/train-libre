@@ -79,7 +79,7 @@ void main() {
       tester.widget<GlassTabBar>(glass).settings!.glassColor.a,
       greaterThan(initialAlpha),
     );
-    expect(tester.widget<GlassTabBar>(glass).settings!.frost, 14);
+    expect(tester.widget<GlassTabBar>(glass).settings!.frost, 6);
     expect(
       tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
       greaterThan(initialFrostOpacity),

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Restored the original appearance of glass bottom sheets and date and time pickers, independent of the glass appearance setting.
 - Fixed diary sleep and pulse data not loading on initial screen entry and prevented empty health cards from briefly shifting the diary layout.
 - Fixed iOS step totals double-counting overlapping iPhone and Apple Watch records by importing HealthKit's source-merged hourly statistics and replacing previously imported Apple step records during migration.
 - Fixed step totals at midnight and made daily step boundaries follow local daylight-saving changes.
@@ -21,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
 
 ### Added
+- Added a clear-to-tinted glass appearance slider with a live preview of the app's navigation bar and a food illustration.
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
