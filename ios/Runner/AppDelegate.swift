@@ -1326,7 +1326,12 @@ import UserNotifications
       }
 
       let hrRows: [[String: Any]] = heartSamples.compactMap { sample in
-          guard let session = sleepSamples.first(where: { self.overlap(sample.startDate, sample.endDate, $0.startDate, $0.endDate) }) else {
+          guard let session = sleepSamples.first(where: {
+            if sample.startDate == sample.endDate {
+              return sample.startDate >= $0.startDate && sample.startDate < $0.endDate
+            }
+            return self.overlap(sample.startDate, sample.endDate, $0.startDate, $0.endDate)
+          }) else {
           return nil
         }
         return [

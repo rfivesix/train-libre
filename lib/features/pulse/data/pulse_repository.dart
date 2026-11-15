@@ -27,11 +27,11 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     AppDatabase? database,
     PulseAggregateStore? aggregateStore,
     this.queryPadding = const Duration(hours: 24),
-  })  : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
-        _trackingService = trackingService ?? PulseTrackingService(),
-        _engine = engine,
-        _database = database,
-        _aggregateStore = aggregateStore;
+  }) : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
+       _trackingService = trackingService ?? PulseTrackingService(),
+       _engine = engine,
+       _database = database,
+       _aggregateStore = aggregateStore;
 
   final HealthHeartRateDataSource _dataSource;
   final PulseTrackingSettingsService _trackingService;
@@ -66,6 +66,27 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     }
 
     try {
+      // Calendar days may span 23 or 25 hours across daylight-saving changes.
+      // Read the detailed measurements directly instead of drawing hourly means.
+      if (window.duration >= const Duration(hours: 23) &&
+          window.duration <= const Duration(hours: 25)) {
+        final rows = await _dataSource.readHeartRateSamples(
+          fromUtc: window.startUtc.subtract(queryPadding),
+          toUtc: window.endUtc.add(queryPadding),
+        );
+        return _engine.analyze(
+          window: window,
+          rawSamples: rows
+              .where((row) => row.sampledAtUtc.isBefore(window.endUtc))
+              .map(
+                (row) => PulseSamplePoint(
+                  sampledAtUtc: row.sampledAtUtc,
+                  bpm: row.bpm,
+                ),
+              )
+              .toList(growable: false),
+        );
+      }
       final store = await _store();
       var coverage = await store.coverageForWindow(window);
       var decision = _coverageDecision(window, coverage);
@@ -205,7 +226,9 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     final end = PulseAggregateStore.ceilToBucket(toUtc);
     if (!end.isAfter(start)) {
       return const PulseAggregateWriteResult(
-          rawSampleCount: 0, updatedBucketCount: 0);
+        rawSampleCount: 0,
+        updatedBucketCount: 0,
+      );
     }
     final rows = await _dataSource.readHeartRateSamples(
       fromUtc: start,
@@ -214,7 +237,9 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     // An empty HealthKit response can also mean read access was denied.
     if (rows.isEmpty) {
       return const PulseAggregateWriteResult(
-          rawSampleCount: 0, updatedBucketCount: 0);
+        rawSampleCount: 0,
+        updatedBucketCount: 0,
+      );
     }
     return store.replaceBucketsFromSamples(
       fromUtc: start,
@@ -452,8 +477,9 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       var sampleCount = 0;
       var sumBpm = 0.0;
       DateTime? firstBucketStart;
-      final end =
-          (i + groupSize < buckets.length) ? i + groupSize : buckets.length;
+      final end = (i + groupSize < buckets.length)
+          ? i + groupSize
+          : buckets.length;
       for (var j = i; j < end; j++) {
         final bucket = buckets[j];
         firstBucketStart ??= bucket.bucketStartUtc;

@@ -1766,9 +1766,7 @@ class MainActivity : FlutterActivity() {
                 val from = Instant.parse(fromIso)
                 val to = Instant.parse(toIso)
                 
-                val buckets = mutableMapOf<Instant, MutableList<Double>>()
-                val sources = mutableMapOf<Instant, String>()
-                val nativeIds = mutableMapOf<Instant, String>()
+                val payload = mutableListOf<Map<String, Any?>>()
                 
                 var pageToken: String? = null
                 do {
@@ -1782,27 +1780,20 @@ class MainActivity : FlutterActivity() {
                     )
                     
                     for (record in response.records) {
-                        for (sample in record.samples) {
-                            val truncated = sample.time.truncatedTo(java.time.temporal.ChronoUnit.MINUTES)
-                            buckets.getOrPut(truncated) { mutableListOf() }.add(sample.beatsPerMinute.toDouble())
-                            if (!sources.containsKey(truncated)) {
-                                sources[truncated] = record.metadata.dataOrigin.packageName
-                                nativeIds[truncated] = record.metadata.id
-                            }
+                        for ((index, sample) in record.samples.withIndex()) {
+                            payload.add(mapOf(
+                                "sampledAtUtcIso" to sample.time.toString(),
+                                "bpm" to sample.beatsPerMinute.toDouble(),
+                                "sourceId" to record.metadata.dataOrigin.packageName,
+                                "nativeId" to "${record.metadata.id}-$index",
+                            ))
                         }
                     }
                     
                     pageToken = response.pageToken
                 } while (pageToken != null)
 
-                val payload = buckets.entries.map { (time, bpms) ->
-                    mapOf(
-                        "sampledAtUtcIso" to time.toString(),
-                        "bpm" to bpms.average(),
-                        "sourceId" to (sources[time] ?: "aggregated"),
-                        "nativeId" to (nativeIds[time] ?: "aggregated"),
-                    )
-                }.sortedBy { row -> row["sampledAtUtcIso"] as String }
+                payload.sortBy { row -> row["sampledAtUtcIso"] as String }
                 
                 withContext(Dispatchers.Main) {
                     result.success(payload)

@@ -47,6 +47,46 @@ class _FakePulseSettings implements PulseTrackingSettingsService {
 }
 
 void main() {
+  test(
+    'daily analysis keeps distinct measurements within the same hour',
+    () async {
+      final start = DateTime.utc(2026, 4, 20);
+      final source = _FakeHeartRateDataSource(
+        samples: [
+          HealthHeartRateSampleDto(
+            sampledAtUtc: start.add(const Duration(minutes: 1, seconds: 10)),
+            bpm: 60,
+          ),
+          HealthHeartRateSampleDto(
+            sampledAtUtc: start.add(const Duration(minutes: 1, seconds: 40)),
+            bpm: 140,
+          ),
+          HealthHeartRateSampleDto(
+            sampledAtUtc: start.add(const Duration(minutes: 2)),
+            bpm: 80,
+          ),
+        ],
+      );
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: source,
+        trackingService: const _FakePulseSettings(true),
+        queryPadding: Duration.zero,
+      );
+      final summary = await repository.getAnalysis(
+        window: PulseAnalysisWindow(
+          startUtc: start,
+          endUtc: start.add(const Duration(days: 1)),
+        ),
+      );
+      expect(summary.sampleCount, 3);
+      expect(summary.chartSamples.map((s) => s.bpm), [60, 140, 80]);
+      expect(
+        summary.chartSamples[1].sampledAtUtc,
+        start.add(const Duration(minutes: 1, seconds: 40)),
+      );
+    },
+  );
+
   test('does not query platform when pulse tracking is disabled', () async {
     final dataSource = _FakeHeartRateDataSource();
     final repository = HealthPulseAnalysisRepository(
@@ -140,53 +180,57 @@ void main() {
     await repository.getAnalysis(window: window);
     samples.clear();
 
-    final result =
-        await repository.syncRange(fromUtc: start, toUtc: window.endUtc);
+    final result = await repository.syncRange(
+      fromUtc: start,
+      toUtc: window.endUtc,
+    );
     final summary = await repository.getAnalysis(window: window);
 
     expect(result.rawSampleCount, 0);
     expect(summary.averageBpm, 60);
   });
 
-  test('manual sync refreshes cached hours using complete hour boundaries',
-      () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final start = DateTime.utc(2026, 4, 20);
-    final samples = [
-      HealthHeartRateSampleDto(sampledAtUtc: start, bpm: 60),
-    ];
-    final dataSource = _FakeHeartRateDataSource(samples: samples);
-    final repository = HealthPulseAnalysisRepository(
-      dataSource: dataSource,
-      trackingService: const _FakePulseSettings(true),
-      database: database,
-      queryPadding: Duration.zero,
-    );
-    final window = PulseAnalysisWindow(
-      startUtc: start,
-      endUtc: start.add(const Duration(hours: 1)),
-    );
-    await repository.getAnalysis(window: window);
-    samples.add(
-      HealthHeartRateSampleDto(
-        sampledAtUtc: start.add(const Duration(minutes: 45)),
-        bpm: 80,
-      ),
-    );
+  test(
+    'manual sync refreshes cached hours using complete hour boundaries',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final start = DateTime.utc(2026, 4, 20);
+      final samples = [HealthHeartRateSampleDto(sampledAtUtc: start, bpm: 60)];
+      final dataSource = _FakeHeartRateDataSource(samples: samples);
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: dataSource,
+        trackingService: const _FakePulseSettings(true),
+        database: database,
+        queryPadding: Duration.zero,
+      );
+      final window = PulseAnalysisWindow(
+        startUtc: start,
+        endUtc: start.add(const Duration(hours: 1)),
+      );
+      await repository.getAnalysis(window: window);
+      samples.add(
+        HealthHeartRateSampleDto(
+          sampledAtUtc: start.add(const Duration(minutes: 45)),
+          bpm: 80,
+        ),
+      );
 
-    final result = await repository.syncRange(
-      fromUtc: start.add(const Duration(minutes: 15)),
-      toUtc: start.add(const Duration(minutes: 50)),
-    );
-    final summary = await repository.getAnalysis(window: window);
+      final result = await repository.syncRange(
+        fromUtc: start.add(const Duration(minutes: 15)),
+        toUtc: start.add(const Duration(minutes: 50)),
+      );
+      final summary = await repository.getAnalysis(window: window);
 
-    expect(
-        dataSource.requests.last, (start, start.add(const Duration(hours: 1))));
-    expect(result.rawSampleCount, 2);
-    expect(summary.sampleCount, 2);
-    expect(summary.averageBpm, 70);
-  });
+      expect(dataSource.requests.last, (
+        start,
+        start.add(const Duration(hours: 1)),
+      ));
+      expect(result.rawSampleCount, 2);
+      expect(summary.sampleCount, 2);
+      expect(summary.averageBpm, 70);
+    },
+  );
 
   test(
     'uses aggregate cache on second hub open without reprocessing raw samples',
@@ -301,7 +345,7 @@ void main() {
       final start = DateTime.utc(2026, 4, 1);
       final samples = _syntheticSamples(
         start,
-        48,
+        72,
         step: const Duration(hours: 1),
       );
       final dataSource = _FakeHeartRateDataSource(samples: samples);
@@ -313,11 +357,11 @@ void main() {
       );
       final window = PulseAnalysisWindow(
         startUtc: start,
-        endUtc: start.add(const Duration(days: 1)),
+        endUtc: start.add(const Duration(days: 2)),
       );
       final expandedWindow = PulseAnalysisWindow(
         startUtc: start,
-        endUtc: start.add(const Duration(days: 2)),
+        endUtc: start.add(const Duration(days: 3)),
       );
 
       await repository.getAnalysis(window: window);
@@ -327,8 +371,8 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(dataSource.requests.length, 2);
-      expect(cachedSummary.sampleCount, 24);
-      expect(dataSource.requests.last.$1, start.add(const Duration(days: 1)));
+      expect(cachedSummary.sampleCount, 48);
+      expect(dataSource.requests.last.$1, start.add(const Duration(days: 2)));
     },
   );
 
