@@ -9557,4 +9557,32 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aiFailureAppleTimeoutBody =>
       'Die eingestellte Wartezeit wurde erreicht. Erhöhe sie in den KI-Einstellungen oder wähle einen anderen Anbieter.';
+
+  @override
+  String get glassCustomizationTitle => 'Glasdarstellung';
+
+  @override
+  String get glassBlur => 'Unschärfe';
+
+  @override
+  String get glassBlurOff => 'Aus';
+
+  @override
+  String get glassOpacity => 'Deckkraft';
+
+  @override
+  String get glassOpacityClear => '0 % (Klar)';
+
+  @override
+  String get glassReset => 'Zurücksetzen';
+
+  @override
+  String get glassLiquid => 'Liquid Glass';
+
+  @override
+  String get glassRemoveBorder => 'Rand entfernen';
+
+  @override
+  String get glassCustomizationDescription =>
+      'Passe Unschärfe, Deckkraft und Ränder aller Glasflächen an.';
 }

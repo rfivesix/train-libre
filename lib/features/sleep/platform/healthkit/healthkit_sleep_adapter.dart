@@ -29,10 +29,9 @@ abstract class HealthKitDataSource {
 
 class HealthKitSleepAdapter {
   const HealthKitSleepAdapter({
-    required SleepPermissionsService permissionsService,
-    required HealthKitDataSource dataSource,
-  }) : _permissionsService = permissionsService,
-       _dataSource = dataSource;
+    required this._permissionsService,
+    required this._dataSource,
+  });
 
   final SleepPermissionsService _permissionsService;
   final HealthKitDataSource _dataSource;

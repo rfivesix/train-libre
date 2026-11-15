@@ -21,8 +21,7 @@ import 'dart:async';
 class NutritionRepository implements IDiaryRepository {
   final DiaryLocalDataSource _localDataSource;
 
-  NutritionRepository({required DiaryLocalDataSource localDataSource})
-    : _localDataSource = localDataSource;
+  NutritionRepository({required this._localDataSource});
 
   @override
   Stream<DailyGoal?> watchGoalsForDate(DateTime date) {

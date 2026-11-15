@@ -4345,5 +4345,14 @@
   "aiFailureSettings": "AI-instellingen openen",
   "aiFailureSlowHint": "Afhankelijk van het apparaat en model kan dit wat langer duren.",
   "aiFailureUnsupportedImage": "Apple Intelligence kan op dit apparaat of deze iOS-versie geen foto’s gebruiken. Beschrijf de maaltijd of kies een andere aanbieder.",
-  "aiFailureAppleTimeoutBody": "De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of kies een andere aanbieder."
+  "aiFailureAppleTimeoutBody": "De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of kies een andere aanbieder.",
+  "glassCustomizationTitle": "Glasweergave",
+  "glassBlur": "Vervaging",
+  "glassBlurOff": "Uit",
+  "glassOpacity": "Dekking",
+  "glassOpacityClear": "0% (Helder)",
+  "glassReset": "Herstellen",
+  "glassLiquid": "Liquid Glass",
+  "glassRemoveBorder": "Rand verwijderen",
+  "glassCustomizationDescription": "Pas vervaging, dekking en randen van glazen oppervlakken aan."
 }

@@ -9575,4 +9575,32 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get aiFailureAppleTimeoutBody =>
       'De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of kies een andere aanbieder.';
+
+  @override
+  String get glassCustomizationTitle => 'Glasweergave';
+
+  @override
+  String get glassBlur => 'Vervaging';
+
+  @override
+  String get glassBlurOff => 'Uit';
+
+  @override
+  String get glassOpacity => 'Dekking';
+
+  @override
+  String get glassOpacityClear => '0% (Helder)';
+
+  @override
+  String get glassReset => 'Herstellen';
+
+  @override
+  String get glassLiquid => 'Liquid Glass';
+
+  @override
+  String get glassRemoveBorder => 'Rand verwijderen';
+
+  @override
+  String get glassCustomizationDescription =>
+      'Pas vervaging, dekking en randen van glazen oppervlakken aan.';
 }

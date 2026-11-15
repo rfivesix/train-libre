@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
@@ -29,13 +29,11 @@ class BodyNutritionAnalyticsDataAdapter {
   final StatisticsRangePolicyService _rangePolicy;
 
   const BodyNutritionAnalyticsDataAdapter({
-    required DatabaseHelper databaseHelper,
-    required ProductLocalDataSource productDatabaseHelper,
-    StatisticsRangePolicyService rangePolicy =
+    required this._databaseHelper,
+    required this._productDatabaseHelper,
+    this._rangePolicy =
         StatisticsRangePolicyService.instance,
-  }) : _databaseHelper = databaseHelper,
-       _productDatabaseHelper = productDatabaseHelper,
-       _rangePolicy = rangePolicy;
+  });
 
   static DateTime normalizeDay(DateTime date) =>
       DateTime(date.year, date.month, date.day);

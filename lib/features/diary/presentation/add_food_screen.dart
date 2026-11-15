@@ -3,8 +3,7 @@ import 'widgets/food_search_sections.dart';
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';

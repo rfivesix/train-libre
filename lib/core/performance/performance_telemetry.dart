@@ -120,13 +120,11 @@ typedef DeviceLabelResolver = Future<String> Function();
 /// than waiting for a feedback report that may never be sent.
 class StallTelemetryReporter {
   StallTelemetryReporter({
-    required StallTelemetrySender sender,
-    required JankRecorder recorder,
-    required DeviceLabelResolver deviceLabelResolver,
+    required this._sender,
+    required this._recorder,
+    required this._deviceLabelResolver,
     this.maxEventsPerSession = 5,
-  }) : _sender = sender,
-       _recorder = recorder,
-       _deviceLabelResolver = deviceLabelResolver;
+  });
 
   final StallTelemetrySender _sender;
   final JankRecorder _recorder;

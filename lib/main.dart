@@ -7,9 +7,9 @@ import 'package:dynamic_color/dynamic_color.dart';
 
 import 'util/design_constants.dart';
 
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import 'features/sleep/presentation/sleep_navigation.dart';
@@ -17,6 +17,7 @@ import 'features/ai_assistant/data/ai_overlay_demo_settings.dart';
 import 'features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'generated/app_localizations.dart';
+import 'l10n/app_localization_delegates.dart';
 import 'navigation/app_route_observer.dart';
 import 'core/performance/device_label.dart';
 import 'core/performance/jank_recorder.dart';
@@ -1087,7 +1088,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           debugShowCheckedModeBanner: false,
           scrollBehavior: NoGlowScrollBehavior(),
           onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           title: "Train Libre",
           theme: baseLightTheme,
@@ -1187,7 +1188,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        if (child != null) child,
+                        ?child,
                         ValueListenableBuilder<AiOverlayDemoConfiguration>(
                           valueListenable: AiOverlayDemoSettings.configuration,
                           builder: (context, settings, _) =>

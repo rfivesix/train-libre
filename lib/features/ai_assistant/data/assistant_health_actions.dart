@@ -123,7 +123,7 @@ class AssistantHealthActions implements AssistantDataAction {
       case AssistantDataCategory.goals:
         final active = await goals.getActiveGoal();
         final retired = await goals.getRetiredGoals();
-        final all = [if (active != null) active, ...retired];
+        final all = [?active, ...retired];
         return AssistantActionResult(
           category: category,
           status: AssistantActionStatus.success,

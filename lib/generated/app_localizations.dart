@@ -16676,6 +16676,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The configured waiting time was reached. Increase it in AI settings or choose another provider.'**
   String get aiFailureAppleTimeoutBody;
+
+  /// No description provided for @glassCustomizationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass appearance'**
+  String get glassCustomizationTitle;
+
+  /// No description provided for @glassBlur.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur'**
+  String get glassBlur;
+
+  /// No description provided for @glassBlurOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get glassBlurOff;
+
+  /// No description provided for @glassOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opacity'**
+  String get glassOpacity;
+
+  /// No description provided for @glassOpacityClear.
+  ///
+  /// In en, this message translates to:
+  /// **'0% (Clear)'**
+  String get glassOpacityClear;
+
+  /// No description provided for @glassReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get glassReset;
+
+  /// No description provided for @glassLiquid.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid Glass'**
+  String get glassLiquid;
+
+  /// No description provided for @glassRemoveBorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove border'**
+  String get glassRemoveBorder;
+
+  /// No description provided for @glassCustomizationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust blur, opacity, and borders across glass surfaces.'**
+  String get glassCustomizationDescription;
 }
 
 class _AppLocalizationsDelegate

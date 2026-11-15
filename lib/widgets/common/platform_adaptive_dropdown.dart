@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import '../../util/glass_preferences.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -65,14 +66,16 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final menuSettings = LiquidGlassSettings(
-      thickness: 30,
-      blur: 8.0,
-      glassColor: isDark
-          ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
-          : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
-      lightIntensity: isDark ? 0.55 : 0.80,
-      saturation: 1.20,
+    final menuSettings = GlassPreferences.of(context).apply(
+      LiquidGlassSettings(
+        thickness: 30,
+        blur: 8.0,
+        glassColor: isDark
+            ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
+            : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
+        lightIntensity: isDark ? 0.55 : 0.80,
+        saturation: 1.20,
+      ),
     );
 
     final menuItems = <Widget>[];
@@ -171,14 +174,16 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
       autovalidateMode: autovalidateMode,
       builder: (FormFieldState<T> state) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final menuSettings = LiquidGlassSettings(
-          thickness: 30,
-          blur: 8.0,
-          glassColor: isDark
-              ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
-              : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
-          lightIntensity: isDark ? 0.55 : 0.80,
-          saturation: 1.20,
+        final menuSettings = GlassPreferences.of(context).apply(
+          LiquidGlassSettings(
+            thickness: 30,
+            blur: 8.0,
+            glassColor: isDark
+                ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
+                : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
+            lightIntensity: isDark ? 0.55 : 0.80,
+            saturation: 1.20,
+          ),
         );
 
         // Find the currently selected item or fall back to the first item
@@ -372,14 +377,16 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final menuSettings = LiquidGlassSettings(
-      thickness: 30,
-      blur: 8.0,
-      glassColor: isDark
-          ? theme.colorScheme.surface.withValues(alpha: 0.88)
-          : theme.colorScheme.surface.withValues(alpha: 0.94),
-      lightIntensity: isDark ? 0.55 : 0.80,
-      saturation: 1.20,
+    final menuSettings = GlassPreferences.of(context).apply(
+      LiquidGlassSettings(
+        thickness: 30,
+        blur: 8.0,
+        glassColor: isDark
+            ? theme.colorScheme.surface.withValues(alpha: 0.88)
+            : theme.colorScheme.surface.withValues(alpha: 0.94),
+        lightIntensity: isDark ? 0.55 : 0.80,
+        saturation: 1.20,
+      ),
     );
 
     // What the collapsed field says. The selected labels rather than a count:

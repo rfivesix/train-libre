@@ -70,10 +70,9 @@ class SleepPipelineBackgroundTaskResult {
 
 class SleepPipelineService {
   SleepPipelineService({
-    required AppDatabase database,
-    bool ownsDatabase = false,
-  }) : _database = database,
-       _ownsDatabase = ownsDatabase {
+    required this._database,
+    this._ownsDatabase = false,
+  }) {
     _rawDao = SleepRawImportsDao(_database);
     _sessionsDao = SleepCanonicalSessionsDao(_database);
     _segmentsDao = SleepCanonicalStageSegmentsDao(_database);

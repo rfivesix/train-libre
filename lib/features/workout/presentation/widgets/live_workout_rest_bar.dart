@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import '../../../../util/glass_preferences.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -68,18 +69,21 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
     final isDark = theme.brightness == Brightness.dark;
     final double r = DesignConstants.workoutOverlayHeight / 2;
 
-    final defaultGlass = DesignConstants.liquidGlassSettings(isDark);
+    final defaultGlass = GlassPreferences.of(context)
+        .apply(DesignConstants.liquidGlassSettings(isDark));
     final doneGlassColor = isDark
         ? const Color(0xFF1B5E20).withValues(alpha: 0.75)
         : const Color(0xFF81C784).withValues(alpha: 0.70);
 
-    final doneGlass = LiquidGlassSettings(
-      thickness: 25,
-      blur: 3.5,
-      glassColor: doneGlassColor,
-      lightIntensity: isDark ? 0.70 : 0.85,
-      saturation: 1.2,
-      ambientRim: 0.15,
+    final doneGlass = GlassPreferences.of(context).apply(
+      LiquidGlassSettings(
+        thickness: 25,
+        blur: 3.5,
+        glassColor: doneGlassColor,
+        lightIntensity: isDark ? 0.70 : 0.85,
+        saturation: 1.2,
+        ambientRim: 0.15,
+      ),
     );
 
     final Color doneTextColor = isDark ? Colors.white : Colors.black;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/workout/presentation/widgets/reorder_drag_proxy.dart';
 import 'package:train_libre/theme/app_colors.dart';
@@ -193,7 +193,7 @@ void main() {
                 int index,
                 Animation<double> animation,
               ) => buildReorderDragProxy(context, child, animation),
-              onReorderItem: (_, __) {},
+              onReorderItem: (_, _) {},
               itemBuilder: (context, index) => ReorderableDragStartListener(
                 key: ValueKey<int>(index),
                 index: index,

@@ -1,7 +1,7 @@
 // lib/features/profile/presentation/profile_screen.dart
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 

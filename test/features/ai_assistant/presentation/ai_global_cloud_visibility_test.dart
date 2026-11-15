@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_presentation.dart';

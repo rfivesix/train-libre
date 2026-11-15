@@ -1,5 +1,5 @@
 // lib/features/profile/data/profile_repository.dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/drift_database.dart' as db;
 import '../../profile/domain/models/measurement_session.dart';
@@ -11,8 +11,7 @@ import '../domain/repositories/profile_repository.dart';
 class ProfileRepository implements IProfileRepository {
   final ProfileLocalDataSource _localDataSource;
 
-  ProfileRepository({required ProfileLocalDataSource localDataSource})
-    : _localDataSource = localDataSource;
+  ProfileRepository({required this._localDataSource});
 
   @override
   Future<db.Profile?> getUserProfile() {

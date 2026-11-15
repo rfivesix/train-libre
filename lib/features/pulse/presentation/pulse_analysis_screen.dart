@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -17,10 +17,10 @@ import '../../../services/telemetry/telemetry_service.dart';
 class PulseAnalysisScreen extends StatefulWidget {
   const PulseAnalysisScreen({
     super.key,
-    PulseAnalysisRepository? repository,
+    this._repository,
     this.initialScope = SleepPeriodScope.day,
     this.initialDate,
-  }) : _repository = repository;
+  });
 
   final PulseAnalysisRepository? _repository;
   final SleepPeriodScope initialScope;

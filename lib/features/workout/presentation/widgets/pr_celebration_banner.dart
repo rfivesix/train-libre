@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import '../../../../util/design_constants.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A premium, glassmorphic sliding banner that celebrates personal records (PRs).

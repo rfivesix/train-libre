@@ -715,7 +715,7 @@ class TestTelemetryService extends NoOpTelemetryService {
     onTrack({
       'type': 'feature_used',
       'feature_key': featureKey,
-      if (extraProps != null) ...extraProps,
+      ...?extraProps,
     });
   }
 }

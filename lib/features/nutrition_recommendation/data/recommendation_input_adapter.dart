@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
@@ -18,8 +18,7 @@ class RecommendationInputAdapter {
 
   final DatabaseHelper _databaseHelper;
 
-  const RecommendationInputAdapter({required DatabaseHelper databaseHelper})
-    : _databaseHelper = databaseHelper;
+  const RecommendationInputAdapter({required this._databaseHelper});
 
   static DateTime normalizeDay(DateTime date) {
     return DateTime(date.year, date.month, date.day);

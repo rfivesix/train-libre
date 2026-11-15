@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 
@@ -616,7 +616,7 @@ class _PlanEditorDayRow extends StatelessWidget {
             onPressed: onRemove,
             icon: const Icon(LucideIcons.circle_minus, size: 18),
           ),
-        if (dragHandle != null) dragHandle!,
+        ?dragHandle,
         const SizedBox(width: 4),
       ],
     );

@@ -24,10 +24,9 @@ class WorkoutProgressionService {
   final UnitService _unitService;
 
   WorkoutProgressionService({
-    required IWorkoutRepository repository,
-    required UnitService unitService,
-  }) : _repository = repository,
-       _unitService = unitService;
+    required this._repository,
+    required this._unitService,
+  });
 
   /// Compatibility entry point for callers that request one template. It now
   /// follows the same first-working-set rule as the live workout and no longer

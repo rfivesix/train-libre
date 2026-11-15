@@ -265,13 +265,13 @@ void main() {
             await AiRepairOrchestrator(validationEngine: testEngine()).run(
               initialCandidate: initial,
               mode: AiValidationMode.capture,
-              repairer: (_, __, ___) async => repaired,
+              repairer: (_, _, _) async => repaired,
             );
         final faster = await AiMealScanRunner(validationEngine: testEngine())
             .run(
               fastMode: false,
               analyze: () async => initial,
-              repairer: (_, __, ___) async => repaired,
+              repairer: (_, _, _) async => repaired,
             );
         expect(faster.outcome.validation.passed, baseline.validation.passed);
         expect(faster.outcome.repairPassesUsed, baseline.repairPassesUsed);

@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:provider/provider.dart';
@@ -632,7 +632,7 @@ class _MuscleGroupAnalyticsScreenState
                     color: Theme.of(context).colorScheme.onSurface
                         .withValues(alpha: 0.08),
                   ),
-                  getTooltipItem: (group, _, rod, __) {
+                  getTooltipItem: (group, _, rod, _) {
                     final index = group.x.toInt();
                     final label = labels[index];
                     final value = values[index];

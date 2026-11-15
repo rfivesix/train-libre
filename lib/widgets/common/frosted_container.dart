@@ -1,6 +1,6 @@
 //lib/widgets/frosted_container.dart
 import 'package:figma_squircle/figma_squircle.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../util/design_constants.dart';
 

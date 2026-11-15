@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/config/app_data_sources.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permission_controller.dart';

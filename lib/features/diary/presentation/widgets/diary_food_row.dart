@@ -1,6 +1,6 @@
 // lib/features/diary/presentation/widgets/diary_food_row.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Width of the amount column shared by every diary row.
 const double kDiaryAmountColumnWidth = 58;

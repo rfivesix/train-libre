@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../util/design_constants.dart';
 
@@ -110,7 +110,7 @@ class _BodyFatGuidanceSheetState extends State<_BodyFatGuidanceSheet> {
                 child: ListView.separated(
                   key: const Key('body_fat_guidance_list'),
                   itemCount: entries.length,
-                  separatorBuilder: (_, __) => const Divider(height: 16),
+                  separatorBuilder: (_, _) => const Divider(height: 16),
                   itemBuilder: (context, index) {
                     final entry = entries[index];
                     return _BodyFatGuidanceRow(

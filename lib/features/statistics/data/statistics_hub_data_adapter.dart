@@ -15,11 +15,10 @@ class StatisticsHubDataAdapter {
   final StatisticsRangePolicyService _rangePolicy;
 
   const StatisticsHubDataAdapter({
-    required WorkoutLocalDataSource workoutDatabaseHelper,
-    StatisticsRangePolicyService rangePolicy =
+    required this._workoutDatabaseHelper,
+    this._rangePolicy =
         StatisticsRangePolicyService.instance,
-  }) : _workoutDatabaseHelper = workoutDatabaseHelper,
-       _rangePolicy = rangePolicy;
+  });
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> fetch({
     required TimeframeBlock selectedBlockType,

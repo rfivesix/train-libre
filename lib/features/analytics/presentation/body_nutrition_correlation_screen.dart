@@ -1,7 +1,7 @@
 import '../../statistics/domain/statistics_data_quality_policy.dart';
 import '../../statistics/domain/timeframe_block.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
 import '../../statistics/domain/statistics_range_policy.dart';

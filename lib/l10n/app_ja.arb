@@ -3854,5 +3854,14 @@
   "aiFailureSettings": "AI設定を開く",
   "aiFailureSlowHint": "デバイスやモデルによっては時間がかかることがあります。",
   "aiFailureUnsupportedImage": "このデバイスまたはiOSバージョンではApple Intelligenceに写真を使用できません。食事を文章で説明するか、別のプロバイダーを選んでください。",
-  "aiFailureAppleTimeoutBody": "設定された待機時間を超えました。AI設定で延長するか、別のプロバイダーを選んでください。"
+  "aiFailureAppleTimeoutBody": "設定された待機時間を超えました。AI設定で延長するか、別のプロバイダーを選んでください。",
+  "glassCustomizationTitle": "ガラスの外観",
+  "glassBlur": "ぼかし",
+  "glassBlurOff": "オフ",
+  "glassOpacity": "不透明度",
+  "glassOpacityClear": "0%（透明）",
+  "glassReset": "リセット",
+  "glassLiquid": "Liquid Glass",
+  "glassRemoveBorder": "境界線を削除",
+  "glassCustomizationDescription": "ガラス面のぼかし、不透明度、境界線を調整します。"
 }

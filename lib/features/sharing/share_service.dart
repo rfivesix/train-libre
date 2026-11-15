@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
@@ -32,8 +32,7 @@ import 'dart:async';
 import '../../services/telemetry/telemetry_service.dart';
 
 class ShareService {
-  const ShareService({ShareCardRenderer renderer = const ShareCardRenderer()})
-    : _renderer = renderer;
+  const ShareService({this._renderer = const ShareCardRenderer()});
 
   final ShareCardRenderer _renderer;
 

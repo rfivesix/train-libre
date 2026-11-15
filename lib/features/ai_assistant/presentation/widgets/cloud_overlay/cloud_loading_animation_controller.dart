@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Manages entering, waiting, and reversing the loading cloud orb animation.
 class CloudLoadingAnimationController {

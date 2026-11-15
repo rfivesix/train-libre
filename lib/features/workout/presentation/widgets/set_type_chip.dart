@@ -1,6 +1,6 @@
 // lib/widgets/set_type_chip.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../generated/app_localizations.dart';
 

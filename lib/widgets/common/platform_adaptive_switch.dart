@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 class PlatformAdaptiveSwitch extends StatelessWidget {
@@ -23,7 +25,15 @@ class PlatformAdaptiveSwitch extends StatelessWidget {
         activeColor ?? Theme.of(context).colorScheme.primary;
 
     if (isIOS) {
+      final preferences = GlassPreferences.of(context);
       return GlassSwitch(
+        settings:
+            preferences.liquidEnabled &&
+                !preferences.borderRemoved &&
+                preferences.opacity == 1 &&
+                preferences.blur == 1
+            ? null
+            : preferences.apply(LiquidGlassSettings.ios27Indicator),
         value: value,
         onChanged: onChanged ?? (val) {},
         activeColor: effectiveActiveColor,

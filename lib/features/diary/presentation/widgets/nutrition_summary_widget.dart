@@ -1,6 +1,6 @@
 // lib/widgets/nutrition_summary_widget.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';

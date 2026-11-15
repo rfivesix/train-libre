@@ -2,7 +2,7 @@ import "../../../services/unit_service.dart";
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import '../../exercise_catalog/domain/models/exercise.dart';
@@ -52,8 +52,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
     DetectPersonalRecordUseCase? detectPRUseCase,
     LogWorkoutSetUseCase? logSetUseCase,
     WorkoutProgressionService? progressionService,
-    TrainingAutonomyService? trainingAutonomyService,
-    bool registerLifecycleObserver = true,
+    this._trainingAutonomyService,
+    this._registerLifecycleObserver = true,
     LiveWorkoutLiveActivityCoordinator? liveActivityCoordinator,
   }) : _repository = repository,
        _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
@@ -63,9 +63,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
            WorkoutProgressionService(
              repository: repository,
              unitService: unitService,
-           ),
-       _trainingAutonomyService = trainingAutonomyService,
-       _registerLifecycleObserver = registerLifecycleObserver {
+           ) {
     _liveActivityCoordinator =
         liveActivityCoordinator ??
         LiveWorkoutLiveActivityCoordinator(host: this);

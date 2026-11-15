@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -32,18 +32,13 @@ import '../../../../services/telemetry/telemetry_service.dart';
 class SleepDayOverviewPage extends StatefulWidget {
   const SleepDayOverviewPage({
     super.key,
-    SleepDayDataRepository? repository,
-    SleepDayViewModel? viewModel,
-    SleepQueryRepository? queryRepository,
-    SleepPeriodScope? initialScope,
-    DateTime? selectedDay,
-    SleepImportService? syncService,
-  }) : _repository = repository,
-       _viewModel = viewModel,
-       _queryRepository = queryRepository,
-       _initialScope = initialScope,
-       _selectedDay = selectedDay,
-       _syncService = syncService;
+    this._repository,
+    this._viewModel,
+    this._queryRepository,
+    this._initialScope,
+    this._selectedDay,
+    this._syncService,
+  });
 
   final SleepDayDataRepository? _repository;
   final SleepDayViewModel? _viewModel;

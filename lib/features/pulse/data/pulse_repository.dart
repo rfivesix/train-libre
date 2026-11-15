@@ -23,15 +23,12 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
   HealthPulseAnalysisRepository({
     HealthHeartRateDataSource? dataSource,
     PulseTrackingSettingsService? trackingService,
-    PulseAnalysisEngine engine = const PulseAnalysisEngine(),
-    AppDatabase? database,
-    PulseAggregateStore? aggregateStore,
+    this._engine = const PulseAnalysisEngine(),
+    this._database,
+    this._aggregateStore,
     this.queryPadding = const Duration(hours: 24),
   }) : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
-       _trackingService = trackingService ?? PulseTrackingService(),
-       _engine = engine,
-       _database = database,
-       _aggregateStore = aggregateStore;
+       _trackingService = trackingService ?? PulseTrackingService();
 
   final HealthHeartRateDataSource _dataSource;
   final PulseTrackingSettingsService _trackingService;

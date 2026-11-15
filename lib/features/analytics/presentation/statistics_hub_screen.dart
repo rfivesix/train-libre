@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'statistics_hub_preferences.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -58,10 +58,10 @@ import 'macro_statistics_screen.dart';
 class StatisticsHubScreen extends StatefulWidget {
   const StatisticsHubScreen({
     super.key,
-    StatisticsHubDataAdapter? hubDataAdapter,
-    StepsAggregationRepository? stepsRepository,
-    SleepHubSummaryRepository? sleepSummaryRepository,
-    PulseAnalysisRepository? pulseRepository,
+    this._hubDataAdapter,
+    this._stepsRepository,
+    this._sleepSummaryRepository,
+    this._pulseRepository,
     this.fetchHubAnalytics,
     this.importSleepIfDue,
     this.isSleepTrackingEnabled,
@@ -71,10 +71,7 @@ class StatisticsHubScreen extends StatefulWidget {
     this.initialBlockType = TimeframeBlock.week,
     this.initialAnchorDate,
     this.initialIsRolling = true,
-  }) : _hubDataAdapter = hubDataAdapter,
-       _stepsRepository = stepsRepository,
-       _sleepSummaryRepository = sleepSummaryRepository,
-       _pulseRepository = pulseRepository;
+  });
 
   final StatisticsHubDataAdapter? _hubDataAdapter;
   final StepsAggregationRepository? _stepsRepository;

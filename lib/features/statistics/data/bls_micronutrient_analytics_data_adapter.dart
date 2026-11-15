@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../../../services/bls_food_catalog_refresh_service.dart';

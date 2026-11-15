@@ -3854,5 +3854,14 @@
   "aiFailureSettings": "Ouvrir les réglages IA",
   "aiFailureSlowHint": "Cela peut prendre un peu plus de temps selon l’appareil et le modèle.",
   "aiFailureUnsupportedImage": "Apple Intelligence ne peut pas utiliser de photos sur cet appareil ou cette version d’iOS. Décris le repas ou choisis un autre fournisseur.",
-  "aiFailureAppleTimeoutBody": "Le délai configuré est écoulé. Augmente-le dans les réglages IA ou choisis un autre fournisseur."
+  "aiFailureAppleTimeoutBody": "Le délai configuré est écoulé. Augmente-le dans les réglages IA ou choisis un autre fournisseur.",
+  "glassCustomizationTitle": "Apparence du verre",
+  "glassBlur": "Flou",
+  "glassBlurOff": "Désactivé",
+  "glassOpacity": "Opacité",
+  "glassOpacityClear": "0 % (Transparent)",
+  "glassReset": "Réinitialiser",
+  "glassLiquid": "Liquid Glass",
+  "glassRemoveBorder": "Supprimer la bordure",
+  "glassCustomizationDescription": "Ajustez le flou, l’opacité et les bordures des surfaces en verre."
 }

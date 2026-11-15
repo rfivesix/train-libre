@@ -15,13 +15,11 @@ import 'models/export_models.dart';
 /// synchronization only.
 class HealthExportCoordinator {
   HealthExportCoordinator({
-    required AppDatabase database,
+    required this._database,
     HealthExportService? service,
-    Duration debounceDuration = const Duration(seconds: 2),
+    this._debounceDuration = const Duration(seconds: 2),
     List<HealthExportPlatform>? platforms,
-  }) : _database = database,
-       _debounceDuration = debounceDuration,
-       _platforms = platforms ?? _platformsForCurrentOs(),
+  }) : _platforms = platforms ?? _platformsForCurrentOs(),
        _service =
            service ??
            HealthExportService(

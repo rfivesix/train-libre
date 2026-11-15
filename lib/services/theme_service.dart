@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_color_choice.dart';
@@ -10,6 +10,10 @@ import 'base_food_language_service.dart';
 /// Persists the user's preference for light/dark mode and visual presets.
 class ThemeService extends ChangeNotifier {
   static const _themeKey = 'theme_mode';
+  static const _glassBlurKey = 'glass_blur';
+  static const _glassOpacityKey = 'glass_opacity';
+  static const _liquidGlassEnabledKey = 'liquid_glass_enabled';
+  static const _glassBorderRemovedKey = 'glass_border_removed';
   static const _styleKey = 'visual_style';
   static const _aiEnabledKey = 'ai_enabled';
   static const _materialColorsEnabledKey = 'material_colors_enabled';
@@ -17,6 +21,20 @@ class ThemeService extends ChangeNotifier {
   static const _customAppColorKey = 'custom_app_color';
   static const _hapticsEnabledKey = 'haptics_enabled';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
+
+  double _glassBlur = 1.0;
+  double _glassOpacity = 1.0;
+  bool _liquidGlassEnabled = true;
+  bool _glassBorderRemoved = false;
+  bool _glassBlurDirty = false;
+  bool _glassOpacityDirty = false;
+  bool _liquidGlassEnabledDirty = false;
+  bool _glassBorderRemovedDirty = false;
+
+  double get glassBlur => _glassBlur;
+  double get glassOpacity => _glassOpacity;
+  bool get liquidGlassEnabled => _liquidGlassEnabled;
+  bool get glassBorderRemoved => _glassBorderRemoved;
 
   ThemeMode _themeMode = ThemeMode.dark;
   int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
@@ -58,6 +76,7 @@ class ThemeService extends ChangeNotifier {
 
   /// Creates a [ThemeService] and loads saved preferences.
   ThemeService() {
+    _loadGlassPreferences();
     _loadThemeMode();
     _loadVisualStyle();
     _loadAiEnabled();
@@ -65,6 +84,58 @@ class ThemeService extends ChangeNotifier {
     _loadHapticsEnabled();
     _loadUseColorfulMacroBadges();
     _loadBaseFoodLanguage();
+  }
+
+  Future<void> _loadGlassPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!_glassBlurDirty) {
+      _glassBlur = (prefs.getDouble(_glassBlurKey) ?? 1.0).clamp(0.0, 2.0);
+    }
+    if (!_glassOpacityDirty) {
+      _glassOpacity = (prefs.getDouble(_glassOpacityKey) ?? 1.0).clamp(
+        0.0,
+        2.0,
+      );
+    }
+    if (!_liquidGlassEnabledDirty) {
+      _liquidGlassEnabled = prefs.getBool(_liquidGlassEnabledKey) ?? true;
+    }
+    if (!_glassBorderRemovedDirty) {
+      _glassBorderRemoved = prefs.getBool(_glassBorderRemovedKey) ?? false;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setGlassBlur(double value) async {
+    _glassBlur = value.clamp(0.0, 2.0);
+    _glassBlurDirty = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_glassBlurKey, _glassBlur);
+  }
+
+  Future<void> setGlassOpacity(double value) async {
+    _glassOpacity = value.clamp(0.0, 2.0);
+    _glassOpacityDirty = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_glassOpacityKey, _glassOpacity);
+  }
+
+  Future<void> setLiquidGlassEnabled(bool value) async {
+    _liquidGlassEnabled = value;
+    _liquidGlassEnabledDirty = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_liquidGlassEnabledKey, value);
+  }
+
+  Future<void> setGlassBorderRemoved(bool value) async {
+    _glassBorderRemoved = value;
+    _glassBorderRemovedDirty = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_glassBorderRemovedKey, value);
   }
 
   Future<void> _loadThemeMode() async {

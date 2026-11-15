@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/diary/domain/models/food_item.dart';
 import 'package:train_libre/features/diary/presentation/ai_meal_review_screen.dart';

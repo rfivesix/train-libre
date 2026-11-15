@@ -2,7 +2,7 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';

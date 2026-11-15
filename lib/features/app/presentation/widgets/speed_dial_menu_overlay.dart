@@ -1,7 +1,9 @@
+import '../../../../util/glass_preferences.dart';
+
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -208,8 +210,12 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                           shape:
                                                               const LiquidOval(),
                                                           settings:
-                                                              DesignConstants.liquidGlassSettings(
-                                                                isDarkLocal,
+                                                              GlassPreferences.of(
+                                                                context,
+                                                              ).apply(
+                                                                DesignConstants.liquidGlassSettings(
+                                                                  isDarkLocal,
+                                                                ),
                                                               ),
                                                           quality: DesignConstants
                                                               .defaultGlassQuality,
@@ -321,8 +327,8 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                           minQuality: DesignConstants.minGlassQuality,
                           child: AdaptiveGlass(
                             shape: const LiquidOval(),
-                            settings: DesignConstants.liquidGlassSettings(
-                              isDarkLocal,
+                            settings: GlassPreferences.of(context).apply(
+                              DesignConstants.liquidGlassSettings(isDarkLocal),
                             ),
                             quality: DesignConstants.defaultGlassQuality,
                             useOwnLayer: true,

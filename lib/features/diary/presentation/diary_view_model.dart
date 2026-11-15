@@ -180,14 +180,11 @@ class DiaryViewModel extends ChangeNotifier {
   DateTime get selectedDate => selectedDateNotifier.value;
 
   DiaryViewModel({
-    required IDiaryRepository nutritionRepo,
-    required SupplementRepository supplementRepo,
-    required IWorkoutRepository workoutRepo,
+    required this._nutritionRepo,
+    required this._supplementRepo,
+    required this._workoutRepo,
     DateTime? initialDate,
-  })  : _nutritionRepo = nutritionRepo,
-        _supplementRepo = supplementRepo,
-        _workoutRepo = workoutRepo,
-        selectedDateNotifier = ValueNotifier(
+  })  : selectedDateNotifier = ValueNotifier(
           resolveDiaryInitialDate(initialDate: initialDate),
         ) {
     healthSyncCoordinator.addListener(notifyListeners);

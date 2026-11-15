@@ -1,5 +1,5 @@
 // lib/features/exercise_catalog/presentation/exercise_detail_screen.dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';

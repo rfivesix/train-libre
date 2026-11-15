@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/app/presentation/widgets/glass_bottom_menu.dart';
 
@@ -17,7 +17,7 @@ void main() {
           context: context,
           title: 'Sheet',
           expandToFullHeight: true,
-          contentBuilder: (_, __) => const SizedBox.expand(key: Key('content')),
+          contentBuilder: (_, _) => const SizedBox.expand(key: Key('content')),
         ),
         child: const Text('Open'),
       ))),

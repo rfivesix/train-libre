@@ -991,9 +991,8 @@ class AssistantChatService {
                 final requested = planner.parseAdditionalRequest(
                   {
                     'categories': categories,
-                    if (dateExpression != null)
-                      'dateExpression': dateExpression,
-                    if (scope != null) 'scope': scope,
+                    'dateExpression': ?dateExpression,
+                    'scope': ?scope,
                   },
                   now: DateTime.now(),
                   locale: locale,

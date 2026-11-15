@@ -1,9 +1,11 @@
+import '../../../../../util/glass_preferences.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -448,8 +450,8 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                             maxQuality: DesignConstants.defaultGlassQuality,
                             minQuality: DesignConstants.minGlassQuality,
                             child: AdaptiveGlass(
-                              settings: DesignConstants.liquidGlassSettings(
-                                true,
+                              settings: GlassPreferences.of(context).apply(
+                                DesignConstants.liquidGlassSettings(true),
                               ),
                               quality: DesignConstants.defaultGlassQuality,
                               platformViewBackdrop: true,

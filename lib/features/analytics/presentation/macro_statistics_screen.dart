@@ -2,8 +2,8 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -528,7 +528,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
             padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: trackedDays.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
                 const SizedBox(height: DesignConstants.spacingS),
             itemBuilder: (context, index) {
               final day = trackedDays[index];

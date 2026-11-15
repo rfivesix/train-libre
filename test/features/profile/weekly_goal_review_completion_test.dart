@@ -1,7 +1,7 @@
 // test/features/profile/weekly_goal_review_completion_test.dart
 
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/data/database_helper.dart';

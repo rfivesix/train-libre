@@ -9607,4 +9607,32 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get aiFailureAppleTimeoutBody =>
       'Il tempo di attesa impostato è scaduto. Aumentalo nelle impostazioni IA o scegli un altro provider.';
+
+  @override
+  String get glassCustomizationTitle => 'Aspetto del vetro';
+
+  @override
+  String get glassBlur => 'Sfocatura';
+
+  @override
+  String get glassBlurOff => 'Disattivata';
+
+  @override
+  String get glassOpacity => 'Opacità';
+
+  @override
+  String get glassOpacityClear => '0% (Trasparente)';
+
+  @override
+  String get glassReset => 'Ripristina';
+
+  @override
+  String get glassLiquid => 'Liquid Glass';
+
+  @override
+  String get glassRemoveBorder => 'Rimuovi bordo';
+
+  @override
+  String get glassCustomizationDescription =>
+      'Regola sfocatura, opacità e bordi delle superfici in vetro.';
 }

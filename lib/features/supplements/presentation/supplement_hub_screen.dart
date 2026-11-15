@@ -1,5 +1,5 @@
 // lib/features/supplements/presentation/supplement_hub_screen.dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../domain/repositories/supplement_repository.dart';
 import '../data/supplement_repository_impl.dart';

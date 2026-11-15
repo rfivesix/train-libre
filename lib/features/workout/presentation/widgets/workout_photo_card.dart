@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:figma_squircle/figma_squircle.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
 

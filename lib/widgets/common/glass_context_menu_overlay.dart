@@ -1,8 +1,10 @@
+import '../../util/glass_preferences.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../services/haptic_feedback_service.dart';
@@ -217,6 +219,7 @@ class _GlassContextMenuOverlay extends StatelessWidget {
     ColorScheme cs,
   ) {
     final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
+    final glassPreferences = GlassPreferences.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -232,19 +235,28 @@ class _GlassContextMenuOverlay extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          filter: ImageFilter.blur(
+            sigmaX: 16 * glassPreferences.blur,
+            sigmaY: 16 * glassPreferences.blur,
+          ),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark
-                  ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.88)
-                  : cs.surface.withValues(alpha: 0.92),
-              borderRadius: radius,
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : cs.onSurface.withValues(alpha: 0.1),
-                width: 0.5,
+              color: glassPreferences.tint(
+                isDark
+                    ? DesignConstants.summaryCardDarkMode.withValues(
+                        alpha: 0.88,
+                      )
+                    : cs.surface.withValues(alpha: 0.92),
               ),
+              borderRadius: radius,
+              border: glassPreferences.borderRemoved
+                  ? null
+                  : Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : cs.onSurface.withValues(alpha: 0.1),
+                      width: 0.5,
+                    ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

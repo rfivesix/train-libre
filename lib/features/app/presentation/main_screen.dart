@@ -1,7 +1,9 @@
+import '../../../util/glass_preferences.dart';
+
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../../core/performance/jank_route_observer.dart';
@@ -55,6 +57,7 @@ import '../../onboarding/presentation/telemetry_consent_sheet.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/glass_bottom_menu.dart';
+import 'widgets/main_navigation_bar.dart';
 import 'widgets/running_workout_overlay.dart';
 import 'widgets/speed_dial_menu_overlay.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -176,7 +179,8 @@ class _MainScreenState extends State<MainScreen>
     AiGlobalCloudPresentation.onQuickChatTap = _handleQuickChatTap;
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     _notificationTapSubscription = LocalNotificationService
-        .instance.notificationTaps
+        .instance
+        .notificationTaps
         .listen(_handleNotificationTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
@@ -200,8 +204,8 @@ class _MainScreenState extends State<MainScreen>
         if (!mounted) return;
         unawaited(_runStartupPrompts());
         _drainPendingWidgetAction();
-        final pendingTap =
-            LocalNotificationService.instance.takePendingNotificationTap();
+        final pendingTap = LocalNotificationService.instance
+            .takePendingNotificationTap();
         if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
         refreshHomeWidgets();
       },
@@ -233,8 +237,8 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _handleNotificationTap(AppNotificationPayload payload) async {
     LocalNotificationService.instance.takePendingNotificationTap();
-    final destination =
-        await AppNotificationRouter(GoalRepositoryImpl()).resolve(payload);
+    final destination = await AppNotificationRouter(GoalRepositoryImpl())
+        .resolve(payload);
     if (!mounted) return;
     switch (destination) {
       case WorkoutPlanNotificationDestination():
@@ -295,13 +299,13 @@ class _MainScreenState extends State<MainScreen>
   Future<void> _syncHomeWidgetsNow({bool forceStatistics = true}) async {
     if (!mounted) return;
     await context.read<HomeWidgetSyncService>().refresh(
-          l10n: AppLocalizations.of(context)!,
-          isAiEnabled: themeService.isAiEnabled,
-          // Backgrounding is the last moment before the Home Screen is on
-          // screen, so the statistics sections are recomputed rather than
-          // served from the cache the cheap in-app paths rely on.
-          forceStatistics: forceStatistics,
-        );
+      l10n: AppLocalizations.of(context)!,
+      isAiEnabled: themeService.isAiEnabled,
+      // Backgrounding is the last moment before the Home Screen is on
+      // screen, so the statistics sections are recomputed rather than
+      // served from the cache the cheap in-app paths rely on.
+      forceStatistics: forceStatistics,
+    );
   }
 
   @override
@@ -518,15 +522,15 @@ class _MainScreenState extends State<MainScreen>
   Future<void> _handleDirectBarcodeScan() async {
     final String? barcode = await Navigator.of(context).push<String>(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const ScannerScreen(),
-        transitionsBuilder: (_, animation, __, child) =>
+        pageBuilder: (_, _, _) => const ScannerScreen(),
+        transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
     );
 
     if (barcode != null && mounted) {
-      final foodItem =
-          await ProductLocalDataSource.instance.getProductByBarcode(barcode);
+      final foodItem = await ProductLocalDataSource.instance
+          .getProductByBarcode(barcode);
       if (!mounted) return;
 
       if (foodItem != null) {
@@ -625,9 +629,9 @@ class _MainScreenState extends State<MainScreen>
   void refreshHomeWidgets() {
     if (!mounted) return;
     context.read<HomeWidgetSyncService>().scheduleRefresh(
-          l10n: AppLocalizations.of(context)!,
-          isAiEnabled: themeService.isAiEnabled,
-        );
+      l10n: AppLocalizations.of(context)!,
+      isAiEnabled: themeService.isAiEnabled,
+    );
   }
 
   Future<void> _refreshDiaryForActiveDate({
@@ -648,10 +652,10 @@ class _MainScreenState extends State<MainScreen>
     final l10n = AppLocalizations.of(context)!;
     final Supplement? selectedSupplement =
         await showGlassBottomMenu<Supplement>(
-      context: context,
-      title: l10n.logIntakeTitle,
-      contentBuilder: (ctx, close) => LogSupplementMenu(close: close),
-    );
+          context: context,
+          title: l10n.logIntakeTitle,
+          contentBuilder: (ctx, close) => LogSupplementMenu(close: close),
+        );
 
     if (selectedSupplement == null || !mounted) return;
 
@@ -756,163 +760,161 @@ class _MainScreenState extends State<MainScreen>
     // The menu closes itself and returns the data.
     final result =
         await showGlassBottomMenu<({WorkoutLog log, Routine? routine})>(
-      context: context,
-      title: l10n.startWorkout,
-      applySafeAreaBottom: false,
-      contentBuilder: (ctx, close) {
-        final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        Widget glassCard({required Widget child, EdgeInsets? padding}) {
-          return Material(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.black.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(18),
-            child: Padding(
-              padding: padding ??
-                  const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM,
-                    vertical: DesignConstants.spacingM,
-                  ),
-              child: child,
-            ),
-          );
-        }
-
-        final freeWorkoutTile = glassCard(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () async {
-              // 1. Create workout
-              final newWorkoutLog = await WorkoutLocalDataSource.instance
-                  .startWorkout(routineName: l10n.freeWorkoutTitle);
-
-              if (!ctx.mounted) return;
-
-              // 2. Close menu and return data
-              // Use Navigator.of(ctx).pop(...), not 'close()', to send data.
-              Navigator.of(ctx).pop((log: newWorkoutLog, routine: null));
-            },
-            child: Row(
-              children: [
-                const Icon(LucideIcons.play),
-                const SizedBox(width: DesignConstants.spacingM),
-                Text(
-                  l10n.startEmptyWorkoutButton,
-                  style: Theme.of(ctx)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ],
-            ),
-          ),
-        );
-
-        final routinesList = ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 420),
-          child: ListView.separated(
-            padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
-            shrinkWrap: true,
-            itemCount: routines.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (ctx, i) {
-              final r = routines[i];
-              return glassCard(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    AppButton.primary(
-                      onPressed: () async {
-                        final fullRoutine = await WorkoutLocalDataSource
-                            .instance
-                            .getRoutineById(r.id!);
-                        final newWorkoutLog = await WorkoutLocalDataSource
-                            .instance
-                            .startWorkout(routineName: r.name);
-
-                        if (!mounted) return;
-
-                        if (fullRoutine != null && ctx.mounted) {
-                          // Close menu and return data
-                          Navigator.of(
-                            ctx,
-                          ).pop((log: newWorkoutLog, routine: fullRoutine));
-                        }
-                      },
-                      label: l10n.startButton,
-                      tooltip: l10n.startButton,
-                      size: AppButtonSize.small,
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(
-                          DesignConstants.borderRadiusM,
-                        ),
-                        onTap: () {
-                          // Editing navigates directly (that is ok because it is a new screen).
-                          // pop+push would also be better here, but keep this for edit,
-                          // because the user wants to return to the menu while editing.
-                          // Close only the menu here without a result.
-                          close();
-                          Navigator.of(context)
-                              .push(
-                                MaterialPageRoute(
-                                  builder: (_) => EditRoutineScreen(routine: r),
-                                ),
-                              )
-                              .then((_) => _refreshHomeScreen());
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              r.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(ctx)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              l10n.editRoutineSubtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(ctx).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
+          context: context,
+          title: l10n.startWorkout,
+          applySafeAreaBottom: false,
+          contentBuilder: (ctx, close) {
+            final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
+            final isDark = Theme.of(ctx).brightness == Brightness.dark;
+            Widget glassCard({required Widget child, EdgeInsets? padding}) {
+              return Material(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(18),
+                child: Padding(
+                  padding:
+                      padding ??
+                      const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingM,
+                        vertical: DesignConstants.spacingM,
                       ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Icon(
-                      LucideIcons.ellipsis_vertical,
-                      color: Theme.of(ctx).textTheme.bodyMedium?.color,
+                  child: child,
+                ),
+              );
+            }
+
+            final freeWorkoutTile = glassCard(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () async {
+                  // 1. Create workout
+                  final newWorkoutLog = await WorkoutLocalDataSource.instance
+                      .startWorkout(routineName: l10n.freeWorkoutTitle);
+
+                  if (!ctx.mounted) return;
+
+                  // 2. Close menu and return data
+                  // Use Navigator.of(ctx).pop(...), not 'close()', to send data.
+                  Navigator.of(ctx).pop((log: newWorkoutLog, routine: null));
+                },
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.play),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Text(
+                      l10n.startEmptyWorkoutButton,
+                      style: Theme.of(ctx).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-        );
+              ),
+            );
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            freeWorkoutTile,
-            if (routines.isNotEmpty) ...[
-              const SizedBox(height: DesignConstants.spacingM),
-              routinesList,
-            ] else ...[
-              SizedBox(height: bottomInset),
-            ],
-          ],
+            final routinesList = ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
+                shrinkWrap: true,
+                itemCount: routines.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (ctx, i) {
+                  final r = routines[i];
+                  return glassCard(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        AppButton.primary(
+                          onPressed: () async {
+                            final fullRoutine = await WorkoutLocalDataSource
+                                .instance
+                                .getRoutineById(r.id!);
+                            final newWorkoutLog = await WorkoutLocalDataSource
+                                .instance
+                                .startWorkout(routineName: r.name);
+
+                            if (!mounted) return;
+
+                            if (fullRoutine != null && ctx.mounted) {
+                              // Close menu and return data
+                              Navigator.of(
+                                ctx,
+                              ).pop((log: newWorkoutLog, routine: fullRoutine));
+                            }
+                          },
+                          label: l10n.startButton,
+                          tooltip: l10n.startButton,
+                          size: AppButtonSize.small,
+                        ),
+                        const SizedBox(width: DesignConstants.spacingM),
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM,
+                            ),
+                            onTap: () {
+                              // Editing navigates directly (that is ok because it is a new screen).
+                              // pop+push would also be better here, but keep this for edit,
+                              // because the user wants to return to the menu while editing.
+                              // Close only the menu here without a result.
+                              close();
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditRoutineScreen(routine: r),
+                                    ),
+                                  )
+                                  .then((_) => _refreshHomeScreen());
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  r.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(ctx).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.editRoutineSubtitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(ctx).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Icon(
+                          LucideIcons.ellipsis_vertical,
+                          color: Theme.of(ctx).textTheme.bodyMedium?.color,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            );
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                freeWorkoutTile,
+                if (routines.isNotEmpty) ...[
+                  const SizedBox(height: DesignConstants.spacingM),
+                  routinesList,
+                ] else ...[
+                  SizedBox(height: bottomInset),
+                ],
+              ],
+            );
+          },
         );
-      },
-    );
 
     // The actual navigation to the workout happens here,
     // after the menu is closed.
@@ -1158,14 +1160,16 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<
-      ({
-        int quantity,
-        DateTime timestamp,
-        String mealType,
-        bool isLiquid,
-        double? sugarPer100ml,
-        double? caffeinePer100ml,
-      })?> _showQuantityMenu(
+    ({
+      int quantity,
+      DateTime timestamp,
+      String mealType,
+      bool isLiquid,
+      double? sugarPer100ml,
+      double? caffeinePer100ml,
+    })?
+  >
+  _showQuantityMenu(
     FoodItem item, {
     DateTime? initialDate, // <--- New parameter
     String? initialMealType,
@@ -1299,13 +1303,9 @@ class _MainScreenState extends State<MainScreen>
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
                           customBorder: const CircleBorder(),
-                          splashColor: Theme.of(context)
-                              .colorScheme
-                              .surface
+                          splashColor: Theme.of(context).colorScheme.surface
                               .withValues(alpha: 0.15),
-                          highlightColor: Theme.of(context)
-                              .colorScheme
-                              .surface
+                          highlightColor: Theme.of(context).colorScheme.surface
                               .withValues(alpha: 0.08),
                           onTap: () async {
                             await Navigator.of(context).push(
@@ -1610,7 +1610,7 @@ class _MainScreenState extends State<MainScreen>
     final steps = _buildAppTourSteps(l10n);
     final initialTarget = steps.isNotEmpty
         ? (_rectForKey(steps[0].anchorKey) ??
-            _rectForKey(_tourNavigationBarKey))
+              _rectForKey(_tourNavigationBarKey))
         : null;
     setState(() {
       _isTourActive = true;
@@ -1677,8 +1677,8 @@ class _MainScreenState extends State<MainScreen>
 
       final int nextStableFrames =
           (targetRect != null && targetRect == previousRect)
-              ? stableFrames + 1
-              : 0;
+          ? stableFrames + 1
+          : 0;
       if (nextStableFrames >= _tourTargetStableFrames ||
           frame + 1 >= _tourTargetMaxFrames) {
         return;
@@ -1807,7 +1807,8 @@ class _MainScreenState extends State<MainScreen>
 
     final l10n = AppLocalizations.of(context)!;
     final appTourSteps = _buildAppTourSteps(l10n);
-    final activeTourStep = (_isTourActive &&
+    final activeTourStep =
+        (_isTourActive &&
             _tourStepIndex >= 0 &&
             _tourStepIndex < appTourSteps.length)
         ? appTourSteps[_tourStepIndex]
@@ -1826,8 +1827,8 @@ class _MainScreenState extends State<MainScreen>
     // will natively push up all Snackbars (including those from settings).
     final double dynamicBottomPadding = isWorkoutRunning
         ? (DesignConstants.bottomNavigationBarHeight +
-            DesignConstants.workoutOverlayHeight +
-            48.0)
+              DesignConstants.workoutOverlayHeight +
+              48.0)
         : (DesignConstants.bottomNavigationBarHeight + 48.0);
 
     return Stack(
@@ -1844,9 +1845,7 @@ class _MainScreenState extends State<MainScreen>
               children: <Widget>[
                 KeepAlivePage(
                   storageKey: const PageStorageKey('tab_tagebuch'),
-                  child: DiaryScreen(
-                    contentKey: _tagebuchKey,
-                  ),
+                  child: DiaryScreen(contentKey: _tagebuchKey),
                 ),
                 const KeepAlivePage(
                   storageKey: PageStorageKey('tab_workout'),
@@ -1907,7 +1906,8 @@ class _MainScreenState extends State<MainScreen>
                 final double verticalPadding = 8.0;
                 final double spacing = 8.0;
                 final double extraButtonSize = DesignConstants.fabSize;
-                final double maxTabW = constraints.maxWidth -
+                final double maxTabW =
+                    constraints.maxWidth -
                     (horizontalPadding * 2) -
                     (extraButtonSize + spacing);
 
@@ -1926,12 +1926,12 @@ class _MainScreenState extends State<MainScreen>
                               clipper: ShadowOuterClipper(
                                 borderRadius:
                                     DesignConstants.bottomNavigationBarHeight /
-                                        2,
+                                    2,
                               ),
                               child: Container(
                                 width: maxTabW,
-                                height: DesignConstants
-                                    .bottomNavigationBarHeight, // Match barHeight
+                                height:
+                                    DesignConstants.bottomNavigationBarHeight, // Match barHeight
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(
                                     DesignConstants.bottomNavigationBarHeight /
@@ -1987,81 +1987,13 @@ class _MainScreenState extends State<MainScreen>
                                     width: maxTabW,
                                     height: DesignConstants
                                         .bottomNavigationBarHeight,
-                                    child: GlassTabBar.bottom(
+                                    child: MainNavigationBar(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
-                                      barHeight: DesignConstants
-                                          .bottomNavigationBarHeight,
-                                      barBorderRadius:
-                                          GlassDefaults.capsuleRadius,
-                                      indicatorBorderRadius:
-                                          GlassDefaults.capsuleRadius,
-                                      tabWidth: null,
-                                      horizontalPadding: 0.0,
-                                      verticalPadding: 0.0,
-                                      quality:
-                                          DesignConstants.defaultGlassQuality,
-                                      // Drag-time bloom, unrelated to the
-                                      // indicator's resting inset.
-                                      indicatorExpansion:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
-                                      selectedIconColor:
-                                          theme.colorScheme.primary,
-                                      unselectedIconColor:
-                                          isDark ? Colors.white : Colors.black,
-                                      indicatorColor:
-                                          DesignConstants.floatingBarPillColor(
-                                        isDark,
-                                      ),
-                                      settings:
-                                          DesignConstants.liquidGlassSettings(
-                                        isDark,
-                                      ),
-                                      tabs: [
-                                        GlassTab(
-                                          label: l10n.diary,
-                                          icon: Icon(
-                                            LucideIcons.notebook,
-                                            key: _tourDiaryTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.notebook,
-                                          ),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.workout,
-                                          icon: Icon(
-                                            LucideIcons.dumbbell,
-                                            key: _tourWorkoutTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.dumbbell,
-                                          ),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.statistics,
-                                          icon: Icon(
-                                            LucideIcons.chart_no_axes_column,
-                                            key: _tourStatisticsTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.chart_no_axes_column,
-                                          ),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.nutrition,
-                                          icon: Icon(
-                                            LucideIcons.utensils,
-                                            key: _tourNutritionTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.utensils,
-                                          ),
-                                        ),
-                                      ],
+                                      diaryKey: _tourDiaryTabKey,
+                                      workoutKey: _tourWorkoutTabKey,
+                                      statisticsKey: _tourStatisticsTabKey,
+                                      nutritionKey: _tourNutritionTabKey,
                                     ),
                                   ),
                                 ),
@@ -2079,15 +2011,16 @@ class _MainScreenState extends State<MainScreen>
                                   },
                                   child: AdaptiveGlass(
                                     shape: const LiquidOval(),
-                                    settings:
-                                        DesignConstants.liquidGlassSettings(
-                                      isDark,
-                                    ),
+                                    settings: GlassPreferences.of(context)
+                                        .apply(
+                                          DesignConstants.liquidGlassSettings(
+                                            isDark,
+                                          ),
+                                        ),
                                     quality:
                                         DesignConstants.defaultGlassQuality,
                                     useOwnLayer: true,
-                                    isInteractive:
-                                        true, //false, // Force blur in minimal quality
+                                    isInteractive: true, //false, // Force blur in minimal quality
                                     child: Material(
                                       color: Colors.transparent,
                                       child: InkWell(

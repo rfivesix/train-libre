@@ -1,11 +1,12 @@
+import '../../util/glass_preferences.dart';
 // lib/widgets/common/platform_adaptive_pickers.dart
 
 export 'adaptive_timeframe_picker.dart';
 export 'adaptive_duration_picker.dart';
 export 'adaptive_target_rate_picker.dart';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -725,19 +726,24 @@ class _GlassPickerSheetContent extends StatelessWidget {
                     ),
                     child: RepaintBoundary(
                       child: AdaptiveGlass(
-                        settings: LiquidGlassSettings(
-                          thickness: 0,
-                          blur: 8,
-                          glassColor: effectiveGlass,
-                          lightIntensity: 0,
-                          saturation: 1.20,
+                        settings: GlassPreferences.of(context).apply(
+                          LiquidGlassSettings(
+                            thickness: 0,
+                            blur: 8,
+                            glassColor: effectiveGlass,
+                            lightIntensity: 0,
+                            saturation: 1.20,
+                          ),
                         ),
                         shape: const LiquidVerticalRoundedSuperellipse(
                           topRadius: r,
                           bottomRadius: 0,
                         ),
                         child: DecoratedBox(
-                          decoration: BoxDecoration(color: neutralTint),
+                          decoration: BoxDecoration(
+                            color: GlassPreferences.of(context)
+                                .tint(neutralTint),
+                          ),
                         ),
                       ),
                     ),
@@ -764,12 +770,14 @@ class _GlassPickerSheetContent extends StatelessWidget {
                   ),
                   RepaintBoundary(
                     child: AdaptiveGlass(
-                      settings: LiquidGlassSettings(
-                        thickness: 0,
-                        blur: 8,
-                        glassColor: effectiveGlass,
-                        lightIntensity: 0,
-                        saturation: 1.20,
+                      settings: GlassPreferences.of(context).apply(
+                        LiquidGlassSettings(
+                          thickness: 0,
+                          blur: 8,
+                          glassColor: effectiveGlass,
+                          lightIntensity: 0,
+                          saturation: 1.20,
+                        ),
                       ),
                       shape: const LiquidVerticalRoundedSuperellipse(
                         topRadius: r,
@@ -783,7 +791,8 @@ class _GlassPickerSheetContent extends StatelessWidget {
                               // circular tint would cut across the squircle
                               // glass corners.
                               decoration: ShapeDecoration(
-                                color: neutralTint,
+                                color: GlassPreferences.of(context)
+                                    .tint(neutralTint),
                                 shape: const RoundedSuperellipseBorder(
                                   borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(r),
@@ -794,16 +803,18 @@ class _GlassPickerSheetContent extends StatelessWidget {
                           ),
                           Positioned.fill(
                             child: CustomPaint(
-                              painter: GlassBorderPainter(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : theme.colorScheme.onSurface.withValues(
-                                        alpha: 0.08,
-                                      ),
-                                radius: r,
-                                strokeWidth: 0.5,
-                                bottomPadding: bottomInset,
-                              ),
+                              painter:
+                                  GlassPreferences.of(context).borderRemoved
+                                  ? null
+                                  : GlassBorderPainter(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.15)
+                                          : theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.08),
+                                      radius: r,
+                                      strokeWidth: 0.5,
+                                      bottomPadding: bottomInset,
+                                    ),
                             ),
                           ),
                           Padding(

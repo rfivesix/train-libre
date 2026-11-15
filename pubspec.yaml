@@ -2,7 +2,7 @@ name: train_libre
 description: "Train Libre is a modern, privacy-first fitness and nutrition
   tracking app. Offline-first, no cloud dependency, built with Flutter."
 publish_to: "none"
-version: 1.7.1+1007021
+version: 1.7.1+1007022
 environment:
   sdk: ">=3.14.0 <4.0.0"
   flutter: ">=3.50.0"
@@ -81,6 +81,8 @@ dependencies:
   posthog_flutter: ^5.60.1
   audioplayers: ^6.8.1
   speech_to_text: ^7.5.0
+  cupertino_ui: any
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

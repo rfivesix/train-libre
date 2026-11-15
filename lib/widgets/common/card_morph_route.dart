@@ -1,7 +1,7 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../util/design_constants.dart';
@@ -41,14 +41,11 @@ class CardMorphRoute<T> extends PageRoute<T> {
     this.morphOnPop = true,
     this.onSourceVisibilityChanged,
     super.settings,
-    Duration expandDuration = const Duration(milliseconds: 420),
-    Duration collapseDuration = const Duration(milliseconds: 360),
-    bool maintainState = true,
-    bool fullscreenDialog = false,
-  })  : _expandDuration = expandDuration,
-        _collapseDuration = collapseDuration,
-        _maintainState = maintainState,
-        _fullscreenDialog = fullscreenDialog;
+    this._expandDuration = const Duration(milliseconds: 420),
+    this._collapseDuration = const Duration(milliseconds: 360),
+    this._maintainState = true,
+    this._fullscreenDialog = false,
+  });
 
   final WidgetBuilder builder;
 

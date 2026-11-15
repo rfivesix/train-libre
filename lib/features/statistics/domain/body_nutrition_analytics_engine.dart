@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../analytics/domain/models/chart_data_point.dart';
 import 'body_nutrition_analytics_models.dart';

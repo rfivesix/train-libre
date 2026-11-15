@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum TimeframeBlock { day, week, month, threeMonths, sixMonths, year, maxBlock }
 

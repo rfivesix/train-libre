@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A custom painter that draws a glass sheet border that fades out vertically.
 ///

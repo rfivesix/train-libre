@@ -1,8 +1,7 @@
 // lib/features/exercise_catalog/presentation/exercise_catalog_screen.dart
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 

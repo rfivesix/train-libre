@@ -10,8 +10,7 @@ import '../domain/repositories/supplement_repository.dart';
 class SupplementRepositoryImpl implements SupplementRepository {
   final SupplementLocalDataSource _localDataSource;
 
-  SupplementRepositoryImpl({required SupplementLocalDataSource localDataSource})
-    : _localDataSource = localDataSource;
+  SupplementRepositoryImpl({required this._localDataSource});
 
   @override
   Stream<List<Supplement>> watchAllSupplements() {

@@ -27,11 +27,10 @@ class BayesianNutritionRecommendationEngine {
   final RateTrajectoryController _trajectoryController;
 
   const BayesianNutritionRecommendationEngine({
-    BayesianTdeeEstimator estimator = const BayesianTdeeEstimator(),
-    RateTrajectoryController trajectoryController =
+    this._estimator = const BayesianTdeeEstimator(),
+    this._trajectoryController =
         const RateTrajectoryController(),
-  }) : _estimator = estimator,
-       _trajectoryController = trajectoryController;
+  });
 
   BayesianNutritionRecommendationResult generate({
     required RecommendationGenerationInput input,

@@ -5,8 +5,7 @@ import 'dart:async';
 
 import '../../../widgets/common/seamless_loading_overlay.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';

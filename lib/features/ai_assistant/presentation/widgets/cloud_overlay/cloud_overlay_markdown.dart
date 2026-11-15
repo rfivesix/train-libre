@@ -1,6 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+// The Markdown package still uses Flutter's original Material theme.
+// ignore: deprecated_member_use
+import 'package:flutter/material.dart' as legacy;
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -77,100 +80,117 @@ class CloudOverlayMarkdown extends StatelessWidget {
       backgroundColor: softColor,
     );
 
-    return MarkdownBody(
-      data: normalized,
-      selectable: false,
-      onTapLink: (text, href, title) {
-        if (href == null || href.trim().isEmpty) return;
-        final uri = Uri.tryParse(href.trim());
-        if (uri != null) {
-          unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
-        }
-      },
-      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-        p: bodyStyle,
-        pPadding: const EdgeInsets.only(bottom: 8),
-        h1: theme.textTheme.titleLarge?.copyWith(
-          color: contrastColor,
-          fontWeight: FontWeight.w700,
-          height: 1.3,
-        ),
-        h2: theme.textTheme.titleMedium?.copyWith(
-          color: contrastColor,
-          fontWeight: FontWeight.w700,
-          height: 1.35,
-        ),
-        h3: theme.textTheme.titleSmall?.copyWith(
-          color: contrastColor,
-          fontWeight: FontWeight.w700,
-          height: 1.4,
-        ),
-        h4: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
-        h5: bodyStyle?.copyWith(fontWeight: FontWeight.w600),
-        h6: bodyStyle?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: contrastColor.withValues(alpha: 0.82),
-        ),
-        strong: bodyStyle?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: contrastColor,
-        ),
-        em: bodyStyle?.copyWith(
-          fontStyle: FontStyle.italic,
-          color: contrastColor,
-        ),
-        del: bodyStyle?.copyWith(
-          decoration: TextDecoration.lineThrough,
-          color: contrastColor.withValues(alpha: 0.72),
-        ),
-        a: bodyStyle?.copyWith(
-          color: theme.colorScheme.primary,
-          decoration: TextDecoration.underline,
-        ),
-        listBullet: bodyStyle,
-        listIndent: 18,
-        code: codeStyle,
-        codeblockPadding: const EdgeInsets.all(12),
-        codeblockDecoration: BoxDecoration(
-          color: softColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: contrastColor.withValues(alpha: 0.12),
-            width: 0.5,
+    // ignore: deprecated_member_use
+    return MaterialUiCompatibilityBridge(
+      child: Builder(
+        builder: (legacyContext) => MarkdownBody(
+          data: normalized,
+          selectable: false,
+          onTapLink: (text, href, title) {
+            if (href == null || href.trim().isEmpty) return;
+            final uri = Uri.tryParse(href.trim());
+            if (uri != null) {
+              unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
+            }
+          },
+          styleSheet:
+              MarkdownStyleSheet.fromTheme(legacy.Theme.of(legacyContext))
+                  .copyWith(
+                    p: bodyStyle,
+                    pPadding: const EdgeInsets.only(bottom: 8),
+                    h1: theme.textTheme.titleLarge?.copyWith(
+                      color: contrastColor,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                    ),
+                    h2: theme.textTheme.titleMedium?.copyWith(
+                      color: contrastColor,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+                    h3: theme.textTheme.titleSmall?.copyWith(
+                      color: contrastColor,
+                      fontWeight: FontWeight.w700,
+                      height: 1.4,
+                    ),
+                    h4: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
+                    h5: bodyStyle?.copyWith(fontWeight: FontWeight.w600),
+                    h6: bodyStyle?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: contrastColor.withValues(alpha: 0.82),
+                    ),
+                    strong: bodyStyle?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: contrastColor,
+                    ),
+                    em: bodyStyle?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: contrastColor,
+                    ),
+                    del: bodyStyle?.copyWith(
+                      decoration: TextDecoration.lineThrough,
+                      color: contrastColor.withValues(alpha: 0.72),
+                    ),
+                    a: bodyStyle?.copyWith(
+                      color: theme.colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                    listBullet: bodyStyle,
+                    listIndent: 18,
+                    code: codeStyle,
+                    codeblockPadding: const EdgeInsets.all(12),
+                    codeblockDecoration: BoxDecoration(
+                      color: softColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: contrastColor.withValues(alpha: 0.12),
+                        width: 0.5,
+                      ),
+                    ),
+                    blockquote: bodyStyle?.copyWith(
+                      color: contrastColor.withValues(alpha: 0.84),
+                    ),
+                    blockquotePadding: const EdgeInsets.only(
+                      left: 12,
+                      top: 2,
+                      bottom: 2,
+                    ),
+                    blockquoteDecoration: BoxDecoration(
+                      border: Border(
+                        left: BorderSide(
+                          color: contrastColor.withValues(alpha: 0.35),
+                          width: 3,
+                        ),
+                      ),
+                    ),
+                    tableHead: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
+                    tableBody: bodyStyle,
+                    tableBorder: TableBorder.all(
+                      color: contrastColor.withValues(alpha: 0.18),
+                      width: 0.5,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    horizontalRuleDecoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: contrastColor.withValues(alpha: 0.16),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+          builders: {'latex': LatexElementBuilder(textStyle: bodyStyle)},
+          extensionSet: md.ExtensionSet(
+            [
+              ...md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+              LatexBlockSyntax(),
+            ],
+            [
+              ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+              LatexInlineSyntax(),
+            ],
           ),
         ),
-        blockquote: bodyStyle?.copyWith(
-          color: contrastColor.withValues(alpha: 0.84),
-        ),
-        blockquotePadding: const EdgeInsets.only(left: 12, top: 2, bottom: 2),
-        blockquoteDecoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: contrastColor.withValues(alpha: 0.35),
-              width: 3,
-            ),
-          ),
-        ),
-        tableHead: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
-        tableBody: bodyStyle,
-        tableBorder: TableBorder.all(
-          color: contrastColor.withValues(alpha: 0.18),
-          width: 0.5,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        horizontalRuleDecoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: contrastColor.withValues(alpha: 0.16),
-              width: 1,
-            ),
-          ),
-        ),
-      ),
-      builders: {'latex': LatexElementBuilder(textStyle: bodyStyle)},
-      extensionSet: md.ExtensionSet(
-        [...md.ExtensionSet.gitHubFlavored.blockSyntaxes, LatexBlockSyntax()],
-        [...md.ExtensionSet.gitHubFlavored.inlineSyntaxes, LatexInlineSyntax()],
       ),
     );
   }

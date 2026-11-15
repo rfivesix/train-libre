@@ -4,11 +4,10 @@ import 'package:provider/provider.dart';
 // lib/screens/edit_routine_screen.dart
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'dart:async';
 
-import 'package:flutter/rendering.dart';
 
 import '../data/sources/workout_local_data_source.dart';
 import '../data/manual_training_plan_repository.dart';
@@ -1125,8 +1124,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                               onDeleteExercise: () {},
                                               onAddSet: () {},
                                               onShowSetTypePicker: (_) {},
-                                              onSetTypeChanged: (_, __) {},
-                                              onRemoveSet: (_, __) {},
+                                              onSetTypeChanged: (_, _) {},
+                                              onRemoveSet: (_, _) {},
                                             );
                                         return buildReorderDragProxy(
                                           context,

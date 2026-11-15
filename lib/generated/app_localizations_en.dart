@@ -9484,4 +9484,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aiFailureAppleTimeoutBody =>
       'The configured waiting time was reached. Increase it in AI settings or choose another provider.';
+
+  @override
+  String get glassCustomizationTitle => 'Glass appearance';
+
+  @override
+  String get glassBlur => 'Blur';
+
+  @override
+  String get glassBlurOff => 'Off';
+
+  @override
+  String get glassOpacity => 'Opacity';
+
+  @override
+  String get glassOpacityClear => '0% (Clear)';
+
+  @override
+  String get glassReset => 'Reset';
+
+  @override
+  String get glassLiquid => 'Liquid Glass';
+
+  @override
+  String get glassRemoveBorder => 'Remove border';
+
+  @override
+  String get glassCustomizationDescription =>
+      'Adjust blur, opacity, and borders across glass surfaces.';
 }

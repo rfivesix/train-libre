@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../util/design_constants.dart';
 import '../../domain/exercise_classification_labels.dart';
@@ -38,7 +38,7 @@ class ExerciseClassificationChips extends StatelessWidget {
         ExerciseClassificationLabels.laterality(context, exercise.laterality),
         ExerciseClassificationLabels.difficulty(context, exercise.difficulty),
       ])
-        if (label != null) label,
+        ?label,
     ];
     if (labels.isEmpty) return const SizedBox.shrink();
 

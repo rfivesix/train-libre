@@ -308,7 +308,7 @@ void main() {
           items: [AiMealCandidateItem(name: 'Rice', grams: 100)],
         ),
         mode: AiValidationMode.capture,
-        repairer: (_, __, ___) async {
+        repairer: (_, _, _) async {
           repairs += 1;
           return const AiMealCandidate(items: []);
         },
@@ -330,7 +330,7 @@ void main() {
           items: [AiMealCandidateItem(name: 'Unknown', grams: 100)],
         ),
         mode: AiValidationMode.capture,
-        repairer: (_, __, ___) async {
+        repairer: (_, _, _) async {
           return const AiMealCandidate(
             items: [AiMealCandidateItem(name: 'Rice', grams: 100)],
           );
@@ -355,7 +355,7 @@ void main() {
             items: [AiMealCandidateItem(name: 'Unknown', grams: 100)],
           ),
           mode: AiValidationMode.capture,
-          repairer: (_, __, ___) async {
+          repairer: (_, _, _) async {
             attempts += 1;
             return AiMealCandidate(
               items: [
@@ -398,7 +398,7 @@ void main() {
             ],
           ),
           mode: AiValidationMode.capture,
-          repairer: (_, __, ___) async => const AiMealCandidate(
+          repairer: (_, _, _) async => const AiMealCandidate(
             items: [
               AiMealCandidateItem(
                 name: 'Rice, dry',

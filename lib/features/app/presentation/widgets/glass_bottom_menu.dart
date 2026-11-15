@@ -1,6 +1,8 @@
+import '../../../../util/glass_preferences.dart';
+
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -42,9 +44,9 @@ class GlassMenuAction {
     required this.onTap,
     this.result,
   }) : assert(
-          icon != null || customIcon != null,
-          'Icon or customIcon must be provided',
-        );
+         icon != null || customIcon != null,
+         'Icon or customIcon must be provided',
+       );
 }
 
 /// Shows a premium glass-styled modal bottom sheet.
@@ -272,8 +274,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
               minHeight: expandToFullHeight ? maxAvailableHeight : 0,
             ),
             child: Column(
-              mainAxisSize:
-                  expandToFullHeight ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisSize: expandToFullHeight
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
               children: [
                 const SizedBox(height: DesignConstants.spacingS),
                 Container(
@@ -407,8 +410,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
               Positioned.fill(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(r)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(r),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.18),
@@ -422,12 +426,14 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
               ),
               RepaintBoundary(
                 child: AdaptiveGlass(
-                  settings: LiquidGlassSettings(
-                    thickness: 0,
-                    blur: 8,
-                    glassColor: effectiveGlass,
-                    lightIntensity: 0,
-                    saturation: 1.20,
+                  settings: GlassPreferences.of(context).apply(
+                    LiquidGlassSettings(
+                      thickness: 0,
+                      blur: 8,
+                      glassColor: effectiveGlass,
+                      lightIntensity: 0,
+                      saturation: 1.20,
+                    ),
                   ),
                   shape: const LiquidVerticalRoundedSuperellipse(
                     topRadius: r,
@@ -440,7 +446,8 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                           // Superellipse, not a plain circular radius: a circular
                           // tint would cut across the squircle glass corners.
                           decoration: ShapeDecoration(
-                            color: neutralTint,
+                            color: GlassPreferences.of(context)
+                                .tint(neutralTint),
                             shape: const RoundedSuperellipseBorder(
                               borderRadius: BorderRadius.vertical(
                                 top: Radius.circular(r),
@@ -451,16 +458,18 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                       ),
                       Positioned.fill(
                         child: CustomPaint(
-                          painter: GlassBorderPainter(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
-                                : theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.08,
-                                  ),
-                            radius: r,
-                            strokeWidth: 0.5,
-                            bottomPadding: bottomInset,
-                          ),
+                          painter: GlassPreferences.of(context).borderRemoved
+                              ? null
+                              : GlassBorderPainter(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.15)
+                                      : theme.colorScheme.onSurface.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                  radius: r,
+                                  strokeWidth: 0.5,
+                                  bottomPadding: bottomInset,
+                                ),
                         ),
                       ),
                       contentColumn(),
@@ -501,19 +510,24 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                         ),
                         child: RepaintBoundary(
                           child: AdaptiveGlass(
-                            settings: LiquidGlassSettings(
-                              thickness: 0,
-                              blur: 8,
-                              glassColor: effectiveGlass,
-                              lightIntensity: 0,
-                              saturation: 1.20,
+                            settings: GlassPreferences.of(context).apply(
+                              LiquidGlassSettings(
+                                thickness: 0,
+                                blur: 8,
+                                glassColor: effectiveGlass,
+                                lightIntensity: 0,
+                                saturation: 1.20,
+                              ),
                             ),
                             shape: const LiquidVerticalRoundedSuperellipse(
                               topRadius: r,
                               bottomRadius: 0,
                             ),
                             child: DecoratedBox(
-                              decoration: BoxDecoration(color: neutralTint),
+                              decoration: BoxDecoration(
+                                color: GlassPreferences.of(context)
+                                    .tint(neutralTint),
+                              ),
                             ),
                           ),
                         ),
@@ -528,7 +542,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
 
         if (onDisposed != null) {
           return _GlassMenuDisposalNotifier(
-              onDisposed: onDisposed!, child: sheet);
+            onDisposed: onDisposed!,
+            child: sheet,
+          );
         }
         return sheet;
       },
@@ -587,8 +603,9 @@ class _GlassTile extends StatelessWidget {
     final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
-    final Widget leadingWidget =
-        customIcon != null ? customIcon! : Icon(icon, size: 22);
+    final Widget leadingWidget = customIcon != null
+        ? customIcon!
+        : Icon(icon, size: 22);
 
     final tileContent = Padding(
       padding: const EdgeInsets.symmetric(
@@ -651,15 +668,16 @@ class _GlassTile extends StatelessWidget {
 
     return RepaintBoundary(
       child: AdaptiveGlass(
-        settings: LiquidGlassSettings(
-          // Changed here: thickness 0 removes distortion/shift.
-          thickness: 0,
-          blur:
-              2.0, // Restored blur for clear but properly diffused liquid-glass look
-          glassColor: effectiveGlass,
-          // Changed here: less light intensity reduces harsh edges.
-          lightIntensity: 0.1,
-          saturation: 1.20,
+        settings: GlassPreferences.of(context).apply(
+          LiquidGlassSettings(
+            // Changed here: thickness 0 removes distortion/shift.
+            thickness: 0,
+            blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+            glassColor: effectiveGlass,
+            // Changed here: less light intensity reduces harsh edges.
+            lightIntensity: 0.1,
+            saturation: 1.20,
+          ),
         ),
         shape: const LiquidRoundedSuperellipse(borderRadius: 18),
         child: Material(
@@ -677,7 +695,7 @@ class _GlassTile extends StatelessWidget {
                   child: DecoratedBox(
                     // BorderRadius also helps visual separation here.
                     decoration: BoxDecoration(
-                      color: neutralTint,
+                      color: GlassPreferences.of(context).tint(neutralTint),
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
@@ -856,9 +874,7 @@ Future<double?> showGlassNumberInput({
               ),
               autofocus: true,
               textAlign: TextAlign.center,
-              style: Theme.of(ctx)
-                  .textTheme
-                  .headlineMedium
+              style: Theme.of(ctx).textTheme.headlineMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 suffixText: unitSuffix,
@@ -951,20 +967,18 @@ Future<double?> showGlassRulerInput({
                   Text(
                     formatted,
                     style: Theme.of(ctx).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(ctx).colorScheme.onSurface,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(ctx).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
                   Text(
                     unit,
                     style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(ctx)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Theme.of(ctx).colorScheme.onSurface
+                          .withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

@@ -1,6 +1,6 @@
 // lib/screens/data_management_screen.dart (final and complete)
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:file_picker/file_picker.dart';
 
 import 'dart:convert';
@@ -56,10 +56,9 @@ import '../../../widgets/common/app_restart.dart';
 class DataManagementScreen extends StatefulWidget {
   const DataManagementScreen({
     super.key,
-    LocalAppDataResetter? localDataResetter,
-    VoidCallback? onResetComplete,
-  }) : _localDataResetter = localDataResetter,
-       _onResetComplete = onResetComplete;
+    this._localDataResetter,
+    this._onResetComplete,
+  });
 
   final LocalAppDataResetter? _localDataResetter;
   final VoidCallback? _onResetComplete;

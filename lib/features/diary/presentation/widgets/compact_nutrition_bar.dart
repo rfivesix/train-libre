@@ -1,6 +1,6 @@
 // lib/widgets/compact_nutrition_bar.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../domain/models/daily_nutrition.dart';
 import '../../../../util/design_constants.dart';

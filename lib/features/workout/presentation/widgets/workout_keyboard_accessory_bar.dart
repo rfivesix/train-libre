@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import '../../../../util/glass_preferences.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
@@ -270,7 +271,8 @@ class _KeyboardGlassButton extends StatelessWidget {
                     ? const LiquidOval()
                     : const LiquidRoundedSuperellipse(borderRadius: 18),
                 quality: DesignConstants.defaultGlassQuality,
-                settings: DesignConstants.liquidGlassSettings(isDark),
+                settings: GlassPreferences.of(context)
+                    .apply(DesignConstants.liquidGlassSettings(isDark)),
                 child: content,
               ),
             ),

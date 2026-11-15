@@ -4070,5 +4070,14 @@
   "aiFailureSettings": "Open AI settings",
   "aiFailureSlowHint": "This can take a little longer depending on the device and model.",
   "aiFailureUnsupportedImage": "Apple Intelligence cannot use photos on this device or iOS version. Describe the meal in text or choose another provider.",
-  "aiFailureAppleTimeoutBody": "The configured waiting time was reached. Increase it in AI settings or choose another provider."
+  "aiFailureAppleTimeoutBody": "The configured waiting time was reached. Increase it in AI settings or choose another provider.",
+  "glassCustomizationTitle": "Glass appearance",
+  "glassBlur": "Blur",
+  "glassBlurOff": "Off",
+  "glassOpacity": "Opacity",
+  "glassOpacityClear": "0% (Clear)",
+  "glassReset": "Reset",
+  "glassLiquid": "Liquid Glass",
+  "glassRemoveBorder": "Remove border",
+  "glassCustomizationDescription": "Adjust blur, opacity, and borders across glass surfaces."
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../pulse/application/pulse_tracking_service.dart';
 import '../../../generated/app_localizations.dart';
@@ -20,8 +20,8 @@ import 'dart:io';
 class PulseSettingsScreen extends StatefulWidget {
   const PulseSettingsScreen({
     super.key,
-    PulseTrackingSettingsService? trackingService,
-  }) : _trackingService = trackingService;
+    this._trackingService,
+  });
 
   final PulseTrackingSettingsService? _trackingService;
 

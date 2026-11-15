@@ -3,7 +3,7 @@
 // right afterwards, so that agreeing to the obligatory part cannot be read as
 // agreeing to the optional one.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/onboarding/data/telemetry_consent_prompt.dart';

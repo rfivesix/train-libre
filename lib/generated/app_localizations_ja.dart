@@ -9141,4 +9141,31 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get aiFailureAppleTimeoutBody =>
       '設定された待機時間を超えました。AI設定で延長するか、別のプロバイダーを選んでください。';
+
+  @override
+  String get glassCustomizationTitle => 'ガラスの外観';
+
+  @override
+  String get glassBlur => 'ぼかし';
+
+  @override
+  String get glassBlurOff => 'オフ';
+
+  @override
+  String get glassOpacity => '不透明度';
+
+  @override
+  String get glassOpacityClear => '0%（透明）';
+
+  @override
+  String get glassReset => 'リセット';
+
+  @override
+  String get glassLiquid => 'Liquid Glass';
+
+  @override
+  String get glassRemoveBorder => '境界線を削除';
+
+  @override
+  String get glassCustomizationDescription => 'ガラス面のぼかし、不透明度、境界線を調整します。';
 }

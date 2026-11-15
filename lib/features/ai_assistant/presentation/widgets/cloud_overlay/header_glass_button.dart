@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../../../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../../util/design_constants.dart';
@@ -42,17 +44,21 @@ class HeaderGlassButton extends StatelessWidget {
     final glassTheme = theme.copyWith(
       brightness: isDarkSurface ? Brightness.dark : Brightness.light,
     );
-    final settings = DesignConstants.liquidGlassSettings(isDarkSurface);
+    final settings = GlassPreferences.of(context)
+        .apply(DesignConstants.liquidGlassSettings(isDarkSurface));
+    final glassPreferences = GlassPreferences.of(context);
     final buttonSurface = Container(
       decoration: BoxDecoration(
         color: showBorder
-            ? backgroundColor ??
-                  (isDarkSurface
-                      ? DesignConstants.glassNeutralTint(true)
-                      : Colors.black.withValues(alpha: 0.04))
+            ? glassPreferences.tint(
+                backgroundColor ??
+                    (isDarkSurface
+                        ? DesignConstants.glassNeutralTint(true)
+                        : Colors.black.withValues(alpha: 0.04)),
+              )
             : Colors.transparent,
         shape: BoxShape.circle,
-        border: showBorder
+        border: showBorder && !glassPreferences.borderRemoved
             ? Border.all(color: foreground.withValues(alpha: 0.14), width: 0.5)
             : null,
       ),

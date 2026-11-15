@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';

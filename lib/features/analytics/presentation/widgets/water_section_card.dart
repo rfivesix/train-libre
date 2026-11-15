@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';

@@ -65,10 +65,9 @@ class LiveWorkoutLiveActivityCoordinator {
   int _restScheduleGeneration = 0;
 
   LiveWorkoutLiveActivityCoordinator({
-    required LiveWorkoutLiveActivityHost host,
+    required this._host,
     WorkoutLiveActivityService? liveActivityService,
-  }) : _host = host,
-       _liveActivityService =
+  }) : _liveActivityService =
            liveActivityService ?? WorkoutLiveActivityService.instance;
 
   bool get isRunning => _running;

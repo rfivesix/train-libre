@@ -8,8 +8,7 @@ import '../ai_service.dart';
 
 /// Service interfacing with Apple's native FoundationModels framework on iOS.
 class AppleFoundationService {
-  AppleFoundationService._({bool forceIosForTesting = false})
-      : _forceIosForTesting = forceIosForTesting;
+  AppleFoundationService._({this._forceIosForTesting = false});
   static final AppleFoundationService instance = AppleFoundationService._();
 
   @visibleForTesting
@@ -49,7 +48,7 @@ class AppleFoundationService {
     if (!_isIos) return false;
     try {
       return await _channel.invokeMethod<bool>('prewarm', {
-            if (systemPrompt != null) 'systemPrompt': systemPrompt,
+            'systemPrompt': ?systemPrompt,
           }) ??
           false;
     } catch (_) {
@@ -92,7 +91,7 @@ class AppleFoundationService {
       final generation = _channel.invokeMethod<String>('generateMealJson', {
         'requestId': requestId,
         'prompt': prompt,
-        if (systemPrompt != null) 'systemPrompt': systemPrompt,
+        'systemPrompt': ?systemPrompt,
         'images': imagesBase64 ?? const <String>[],
       });
       void cancelNative() {

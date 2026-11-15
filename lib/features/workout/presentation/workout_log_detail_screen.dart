@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'widgets/exercise_record_data.dart';
 import '../../../../services/unit_service.dart';
@@ -1696,7 +1696,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       onAddSet: () {},
                                       onDeleteSet: (_) {},
                                       onSetTypeTap: (_) {},
-                                      onSetTypeChanged: (_, __) {},
+                                      onSetTypeChanged: (_, _) {},
                                       index: index,
                                       supersetLabel: supersetStyle?.label,
                                       supersetColor: supersetStyle?.color,

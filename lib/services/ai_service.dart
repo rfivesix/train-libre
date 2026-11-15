@@ -40,10 +40,9 @@ typedef AiHttpGet = Future<http.Response> Function(
 class AiService {
   AiService._({
     FlutterSecureStorage? secureStorage,
-    DynamicModelIdsLoader? dynamicModelIdsLoader,
+    this._dynamicModelIdsLoader,
     AiHttpGet? httpGet,
   })  : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
-        _dynamicModelIdsLoader = dynamicModelIdsLoader,
         _httpGet = httpGet ?? http.get;
   static final AiService instance = AiService._();
 

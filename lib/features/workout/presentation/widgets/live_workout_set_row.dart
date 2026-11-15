@@ -1,7 +1,7 @@
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 

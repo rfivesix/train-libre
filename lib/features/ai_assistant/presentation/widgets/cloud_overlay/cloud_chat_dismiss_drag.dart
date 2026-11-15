@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Hands a downward drag at the top of the chat to the overlay dismiss gesture.
 /// Pointer observation lets the list retain its normal scrolling and controls.

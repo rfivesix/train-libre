@@ -3854,5 +3854,14 @@
   "aiFailureSettings": "Apri impostazioni IA",
   "aiFailureSlowHint": "Potrebbe volerci più tempo a seconda del dispositivo e del modello.",
   "aiFailureUnsupportedImage": "Apple Intelligence non può usare foto su questo dispositivo o versione di iOS. Descrivi il pasto o scegli un altro provider.",
-  "aiFailureAppleTimeoutBody": "Il tempo di attesa impostato è scaduto. Aumentalo nelle impostazioni IA o scegli un altro provider."
+  "aiFailureAppleTimeoutBody": "Il tempo di attesa impostato è scaduto. Aumentalo nelle impostazioni IA o scegli un altro provider.",
+  "glassCustomizationTitle": "Aspetto del vetro",
+  "glassBlur": "Sfocatura",
+  "glassBlurOff": "Disattivata",
+  "glassOpacity": "Opacità",
+  "glassOpacityClear": "0% (Trasparente)",
+  "glassReset": "Ripristina",
+  "glassLiquid": "Liquid Glass",
+  "glassRemoveBorder": "Rimuovi bordo",
+  "glassCustomizationDescription": "Regola sfocatura, opacità e bordi delle superfici in vetro."
 }

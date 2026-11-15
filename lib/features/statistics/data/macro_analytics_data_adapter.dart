@@ -1,6 +1,6 @@
 // lib/features/statistics/data/macro_analytics_data_adapter.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../../diary/data/sources/product_local_data_source.dart';

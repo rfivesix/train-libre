@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:drift/native.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
@@ -114,7 +114,7 @@ void main() {
                   onPrimary: Colors.black,
                 ),
           ),
-          navigatorObservers: [if (observer != null) observer],
+          navigatorObservers: [?observer],
           home: Scaffold(
             body: MediaQuery(
               data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
