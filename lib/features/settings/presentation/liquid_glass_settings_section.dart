@@ -7,6 +7,7 @@ import '../../../services/theme_service.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/main_navigation_bar.dart';
+import '../../diary/presentation/widgets/ai_camera_preview_fallbacks.dart';
 
 /// Controls the shared glass appearance and previews it over a colorful scene.
 class LiquidGlassSettingsSection extends StatelessWidget {
@@ -170,7 +171,6 @@ class _PreviewContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final l10n = AppLocalizations.of(context)!;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.brightness == Brightness.dark
@@ -178,68 +178,86 @@ class _PreviewContent extends StatelessWidget {
             : colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: ExcludeSemantics(
-        child: MediaQuery.withClampedTextScaling(
-          maxScaleFactor: 1.3,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.today,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Positioned(
+            right: 18,
+            top: 22,
+            child: ExcludeSemantics(
+              child: Opacity(
+                opacity: 0.72,
+                child: ClipOval(
+                  child: SizedBox.square(
+                    dimension: 108,
+                    child: AiSimulatorCameraDemo(),
                   ),
                 ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.startWorkout,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colors.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: colors.primary,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: SizedBox(
-                        width: 42,
-                        height: 28,
-                        child: Icon(
-                          Icons.play_arrow_rounded,
-                          size: 20,
-                          color: colors.onPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Text(
-                  l10n.workout,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          Positioned(
+            left: 25,
+            top: 10,
+            child: ExcludeSemantics(
+              child: CustomPaint(
+                key: const ValueKey('glass-preview-food-accent'),
+                size: const Size(132, 134),
+                painter: _FoodAccentPainter(colors.primary),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+/// A small herb sprig, echoing the simple shapes in the food illustration.
+class _FoodAccentPainter extends CustomPainter {
+  const _FoodAccentPainter(this.accent);
+
+  final Color accent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 112, size.height / 76);
+    final stem = Path()
+      ..moveTo(15, 67)
+      ..quadraticBezierTo(49, 46, 94, 12);
+    canvas.drawPath(
+      stem,
+      Paint()
+        ..color = accent.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round,
+    );
+    void leaf(Offset center, double angle, Color color) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: 30, height: 15),
+        Paint()..color = color,
+      );
+      canvas.restore();
+    }
+
+    leaf(const Offset(37, 45), 0.45, const Color(0xFF678249));
+    leaf(const Offset(52, 44), -0.65, accent.withValues(alpha: 0.75));
+    leaf(const Offset(66, 24), 0.45, const Color(0xFF719352));
+    leaf(const Offset(81, 23), -0.65, accent.withValues(alpha: 0.6));
+    canvas.drawCircle(
+      const Offset(24, 56),
+      4,
+      Paint()..color = const Color(0xFFE8AE58),
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_FoodAccentPainter oldDelegate) =>
+      accent != oldDelegate.accent;
 }

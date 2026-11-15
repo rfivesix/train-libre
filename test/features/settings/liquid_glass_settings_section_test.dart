@@ -38,16 +38,18 @@ void main() {
 
     final preview = find.byType(MainNavigationBar);
     expect(preview, findsOneWidget);
-    expect(find.text('Start Workout'), findsOneWidget);
-    final accentSize = tester.getSize(
-      find
-          .ancestor(
-            of: find.byIcon(Icons.play_arrow_rounded),
-            matching: find.byType(SizedBox),
-          )
-          .first,
+    expect(find.text('Start Workout'), findsNothing);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+    expect(
+      find.byKey(const ValueKey('glass-preview-food-accent')),
+      findsOneWidget,
     );
-    expect(accentSize, const Size(42, 28));
+    final accent = tester.getRect(
+      find.byKey(const ValueKey('glass-preview-food-accent')),
+    );
+    final navigation = tester.getRect(preview);
+    expect(accent.top, lessThan(navigation.top));
+    expect(accent.bottom, greaterThan(navigation.bottom));
     final glass = find.descendant(
       of: preview,
       matching: find.byType(GlassTabBar),
@@ -159,7 +161,10 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.byType(MainNavigationBar), findsOneWidget);
-      expect(find.text('Workout starten'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('glass-preview-food-accent')),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     }
     await tester.pumpWidget(const SizedBox.shrink());
