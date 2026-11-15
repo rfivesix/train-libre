@@ -216,6 +216,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                                 DesignConstants.liquidGlassSettings(
                                                                   isDarkLocal,
                                                                 ),
+                                                                premium: true,
                                                               ),
                                                           quality: DesignConstants
                                                               .defaultGlassQuality,
@@ -329,6 +330,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                             shape: const LiquidOval(),
                             settings: GlassPreferences.of(context).apply(
                               DesignConstants.liquidGlassSettings(isDarkLocal),
+                              premium: true,
                             ),
                             quality: DesignConstants.defaultGlassQuality,
                             useOwnLayer: true,

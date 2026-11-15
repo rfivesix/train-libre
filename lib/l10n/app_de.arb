@@ -3856,12 +3856,13 @@
   "aiFailureUnsupportedImage": "Apple Intelligence kann auf diesem Gerät oder dieser iOS-Version keine Fotos verwenden. Beschreibe die Mahlzeit als Text oder wähle einen anderen Anbieter.",
   "aiFailureAppleTimeoutBody": "Die eingestellte Wartezeit wurde erreicht. Erhöhe sie in den KI-Einstellungen oder wähle einen anderen Anbieter.",
   "glassCustomizationTitle": "Glasdarstellung",
+  "glassTint": "Glasfarbton",
+  "glassTintClear": "Klar",
+  "glassTintTinted": "Getönt",
   "glassBlur": "Unschärfe",
   "glassBlurOff": "Aus",
   "glassOpacity": "Deckkraft",
   "glassOpacityClear": "0 % (Klar)",
   "glassReset": "Zurücksetzen",
-  "glassLiquid": "Liquid Glass",
-  "glassRemoveBorder": "Rand entfernen",
-  "glassCustomizationDescription": "Passe Unschärfe, Deckkraft und Ränder aller Glasflächen an."
+  "glassCustomizationDescription": "Passe die Glasdarstellung von klar bis getönt an."
 }

@@ -1,4 +1,5 @@
 import '../../util/glass_preferences.dart';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../services/haptic_feedback_service.dart';
@@ -122,9 +123,7 @@ class _GlassPillButtonState extends State<GlassPillButton>
                 ),
                 foregroundDecoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(effectiveRadius),
-                  border: GlassPreferences.of(context).borderRemoved
-                      ? null
-                      : Border.all(color: rimColor, width: 0.5),
+                  border: Border.all(color: rimColor, width: 0.5),
                 ),
                 child: Center(widthFactor: 1.0, child: widget.child),
               ),

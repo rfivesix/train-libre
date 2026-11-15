@@ -9562,6 +9562,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get glassCustomizationTitle => 'Glasdarstellung';
 
   @override
+  String get glassTint => 'Glasfarbton';
+
+  @override
+  String get glassTintClear => 'Klar';
+
+  @override
+  String get glassTintTinted => 'Getönt';
+
+  @override
   String get glassBlur => 'Unschärfe';
 
   @override
@@ -9577,12 +9586,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get glassReset => 'Zurücksetzen';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => 'Rand entfernen';
-
-  @override
   String get glassCustomizationDescription =>
-      'Passe Unschärfe, Deckkraft und Ränder aller Glasflächen an.';
+      'Passe die Glasdarstellung von klar bis getönt an.';
 }

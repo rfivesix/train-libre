@@ -9638,6 +9638,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get glassCustomizationTitle => 'Apparence du verre';
 
   @override
+  String get glassTint => 'Teinte du verre';
+
+  @override
+  String get glassTintClear => 'Clair';
+
+  @override
+  String get glassTintTinted => 'Teinté';
+
+  @override
   String get glassBlur => 'Flou';
 
   @override
@@ -9653,12 +9662,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get glassReset => 'Réinitialiser';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => 'Supprimer la bordure';
-
-  @override
   String get glassCustomizationDescription =>
-      'Ajustez le flou, l’opacité et les bordures des surfaces en verre.';
+      'Réglez le verre de clair à teinté.';
 }

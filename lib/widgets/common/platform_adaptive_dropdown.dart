@@ -1,4 +1,5 @@
 import '../../util/glass_preferences.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -76,6 +77,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
         lightIntensity: isDark ? 0.55 : 0.80,
         saturation: 1.20,
       ),
+      premium: true,
     );
 
     final menuItems = <Widget>[];
@@ -184,6 +186,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
             lightIntensity: isDark ? 0.55 : 0.80,
             saturation: 1.20,
           ),
+          premium: true,
         );
 
         // Find the currently selected item or fall back to the first item
@@ -387,6 +390,7 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
         lightIntensity: isDark ? 0.55 : 0.80,
         saturation: 1.20,
       ),
+      premium: true,
     );
 
     // What the collapsed field says. The selected labels rather than a count:

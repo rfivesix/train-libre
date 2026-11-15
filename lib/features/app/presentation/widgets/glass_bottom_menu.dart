@@ -458,18 +458,16 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                       ),
                       Positioned.fill(
                         child: CustomPaint(
-                          painter: GlassPreferences.of(context).borderRemoved
-                              ? null
-                              : GlassBorderPainter(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.15)
-                                      : theme.colorScheme.onSurface.withValues(
-                                          alpha: 0.08,
-                                        ),
-                                  radius: r,
-                                  strokeWidth: 0.5,
-                                  bottomPadding: bottomInset,
-                                ),
+                          painter: GlassBorderPainter(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.08,
+                                  ),
+                            radius: r,
+                            strokeWidth: 0.5,
+                            bottomPadding: bottomInset,
+                          ),
                         ),
                       ),
                       contentColumn(),

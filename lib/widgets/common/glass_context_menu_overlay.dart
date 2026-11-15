@@ -249,14 +249,12 @@ class _GlassContextMenuOverlay extends StatelessWidget {
                     : cs.surface.withValues(alpha: 0.92),
               ),
               borderRadius: radius,
-              border: glassPreferences.borderRemoved
-                  ? null
-                  : Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : cs.onSurface.withValues(alpha: 0.1),
-                      width: 0.5,
-                    ),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : cs.onSurface.withValues(alpha: 0.1),
+                width: 0.5,
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

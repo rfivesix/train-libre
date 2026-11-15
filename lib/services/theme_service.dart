@@ -12,8 +12,7 @@ class ThemeService extends ChangeNotifier {
   static const _themeKey = 'theme_mode';
   static const _glassBlurKey = 'glass_blur';
   static const _glassOpacityKey = 'glass_opacity';
-  static const _liquidGlassEnabledKey = 'liquid_glass_enabled';
-  static const _glassBorderRemovedKey = 'glass_border_removed';
+  static const _glassAppearanceKey = 'glass_appearance';
   static const _styleKey = 'visual_style';
   static const _aiEnabledKey = 'ai_enabled';
   static const _materialColorsEnabledKey = 'material_colors_enabled';
@@ -22,19 +21,21 @@ class ThemeService extends ChangeNotifier {
   static const _hapticsEnabledKey = 'haptics_enabled';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
 
-  double _glassBlur = 1.0;
-  double _glassOpacity = 1.0;
-  bool _liquidGlassEnabled = true;
-  bool _glassBorderRemoved = false;
-  bool _glassBlurDirty = false;
-  bool _glassOpacityDirty = false;
-  bool _liquidGlassEnabledDirty = false;
-  bool _glassBorderRemovedDirty = false;
+  double _glassAppearance = 0.5;
+  bool _glassAppearanceDirty = false;
 
-  double get glassBlur => _glassBlur;
-  double get glassOpacity => _glassOpacity;
-  bool get liquidGlassEnabled => _liquidGlassEnabled;
-  bool get glassBorderRemoved => _glassBorderRemoved;
+  /// 0 is clear, 1 is tinted; only the strongest settings add extra blur.
+  double get glassAppearance => _glassAppearance;
+  // The lightly blurred copy stays crisp through most of the range. Toward
+  // the tinted end it softens gradually, in addition to the diffusion layer.
+  static const defaultGlassBlur = 0.08;
+  static const defaultGlassOpacity = 0.9;
+  double get glassBlur {
+    final upperRange = ((_glassAppearance - 0.7) / 0.3).clamp(0.0, 1.0);
+    return defaultGlassBlur + 1.42 * upperRange * upperRange;
+  }
+
+  double get glassOpacity => 0.3 + 1.2 * _glassAppearance;
 
   ThemeMode _themeMode = ThemeMode.dark;
   int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
@@ -88,54 +89,25 @@ class ThemeService extends ChangeNotifier {
 
   Future<void> _loadGlassPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!_glassBlurDirty) {
-      _glassBlur = (prefs.getDouble(_glassBlurKey) ?? 1.0).clamp(0.0, 2.0);
-    }
-    if (!_glassOpacityDirty) {
-      _glassOpacity = (prefs.getDouble(_glassOpacityKey) ?? 1.0).clamp(
-        0.0,
-        2.0,
-      );
-    }
-    if (!_liquidGlassEnabledDirty) {
-      _liquidGlassEnabled = prefs.getBool(_liquidGlassEnabledKey) ?? true;
-    }
-    if (!_glassBorderRemovedDirty) {
-      _glassBorderRemoved = prefs.getBool(_glassBorderRemovedKey) ?? false;
+    if (!_glassAppearanceDirty) {
+      // Approximate the previous independent settings with one slider. Keep
+      // their original values in storage so migration is non-destructive.
+      final oldBlur = prefs.getDouble(_glassBlurKey) ?? 1.0;
+      final oldOpacity = prefs.getDouble(_glassOpacityKey) ?? 1.0;
+      _glassAppearance =
+          (prefs.getDouble(_glassAppearanceKey) ??
+                  ((oldBlur + oldOpacity) / 2 - 0.5))
+              .clamp(0.0, 1.0);
     }
     notifyListeners();
   }
 
-  Future<void> setGlassBlur(double value) async {
-    _glassBlur = value.clamp(0.0, 2.0);
-    _glassBlurDirty = true;
+  Future<void> setGlassAppearance(double value) async {
+    _glassAppearance = value.clamp(0.0, 1.0);
+    _glassAppearanceDirty = true;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_glassBlurKey, _glassBlur);
-  }
-
-  Future<void> setGlassOpacity(double value) async {
-    _glassOpacity = value.clamp(0.0, 2.0);
-    _glassOpacityDirty = true;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_glassOpacityKey, _glassOpacity);
-  }
-
-  Future<void> setLiquidGlassEnabled(bool value) async {
-    _liquidGlassEnabled = value;
-    _liquidGlassEnabledDirty = true;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_liquidGlassEnabledKey, value);
-  }
-
-  Future<void> setGlassBorderRemoved(bool value) async {
-    _glassBorderRemoved = value;
-    _glassBorderRemovedDirty = true;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_glassBorderRemovedKey, value);
+    await prefs.setDouble(_glassAppearanceKey, _glassAppearance);
   }
 
   Future<void> _loadThemeMode() async {

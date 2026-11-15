@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/app/presentation/widgets/main_navigation_bar.dart';
 import 'package:train_libre/features/settings/presentation/liquid_glass_settings_section.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/services/theme_service.dart';
 
 void main() {
@@ -24,7 +25,8 @@ void main() {
         value: service,
         child: MaterialApp(
           locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          theme: ThemeData.dark(),
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const Scaffold(
             body: SingleChildScrollView(child: LiquidGlassSettingsSection()),
@@ -36,54 +38,130 @@ void main() {
 
     final preview = find.byType(MainNavigationBar);
     expect(preview, findsOneWidget);
+    expect(find.text('Start Workout'), findsOneWidget);
+    final accentSize = tester.getSize(
+      find
+          .ancestor(
+            of: find.byIcon(Icons.play_arrow_rounded),
+            matching: find.byType(SizedBox),
+          )
+          .first,
+    );
+    expect(accentSize, const Size(42, 28));
     final glass = find.descendant(
       of: preview,
       matching: find.byType(GlassTabBar),
     );
-    final initialBlur = tester.widget<GlassTabBar>(glass).settings!.blur;
+    final initialSettings = tester.widget<GlassTabBar>(glass).settings!;
+    final initialBlur = initialSettings.blur;
+    final initialFrostOpacity = initialSettings.frostOpacity;
+    final initialAlpha = tester
+        .widget<GlassTabBar>(glass)
+        .settings!
+        .glassColor
+        .a;
 
     final sliders = find.byType(Slider);
-    expect(sliders, findsNWidgets(2));
+    expect(sliders, findsOneWidget);
     final blurBounds = tester.getRect(sliders.at(0));
     await tester.tapAt(
       Offset(blurBounds.left + blurBounds.width * 0.8, blurBounds.center.dy),
     );
     await tester.pump();
-    expect(service.glassBlur, greaterThan(1));
+    expect(service.glassBlur, greaterThan(ThemeService.defaultGlassBlur));
     expect(
       tester.widget<GlassTabBar>(glass).settings!.blur,
       greaterThan(initialBlur),
     );
-
-    final opacityBounds = tester.getRect(sliders.at(1));
-    await tester.tapAt(
-      Offset(
-        opacityBounds.left + opacityBounds.width * 0.2,
-        opacityBounds.center.dy,
-      ),
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.glassColor.a,
+      greaterThan(initialAlpha),
     );
+    expect(tester.widget<GlassTabBar>(glass).settings!.frost, 14);
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
+      greaterThan(initialFrostOpacity),
+    );
+    expect(tester.widget<GlassTabBar>(glass).indicatorSettings, isNull);
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.thickness,
+      initialSettings.thickness,
+    );
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.refractiveIndex,
+      initialSettings.refractiveIndex,
+    );
+    await tester.tapAt(Offset(blurBounds.left + 1, blurBounds.center.dy));
     await tester.pump();
-    expect(service.glassOpacity, lessThan(1));
-
-    await tester.tap(find.text('Reset').first);
-    await tester.tap(find.text('Reset').last);
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.glassColor.a,
+      greaterThan(0),
+    );
+    expect(tester.widget<GlassTabBar>(glass).settings!.blur, initialBlur);
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
+      lessThan(initialFrostOpacity),
+    );
+    expect(tester.widget<GlassTabBar>(glass).indicatorSettings, isNull);
+    await tester.tapAt(Offset(blurBounds.right - 1, blurBounds.center.dy));
     await tester.pump();
-    expect(service.glassBlur, 1);
-    expect(service.glassOpacity, 1);
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.blur,
+      greaterThan(initialBlur * 8),
+    );
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
+      greaterThan(0.95),
+    );
+    await tester.tap(find.text('Reset'));
+    await tester.pump();
+    expect(service.glassBlur, closeTo(ThemeService.defaultGlassBlur, 0.0001));
+    expect(
+      service.glassOpacity,
+      closeTo(ThemeService.defaultGlassOpacity, 0.0001),
+    );
     expect(tester.widget<GlassTabBar>(glass).settings!.blur, initialBlur);
 
-    await tester.tap(find.text('Liquid Glass'));
-    await tester.tap(find.text('Remove border'));
-    await tester.pump();
-    expect(service.liquidGlassEnabled, isFalse);
-    expect(service.glassBorderRemoved, isTrue);
-    final configuredBar = tester.widget<GlassTabBar>(glass);
-    expect(configuredBar.settings!.lightIntensity, 0);
-    expect(configuredBar.settings!.thickness, 0);
-    expect(configuredBar.indicatorSettings, isNotNull);
-    expect(configuredBar.indicatorSettings!.rimLight, lessThan(0.001));
-    expect(configuredBar.indicatorSettings!.rimShade, lessThan(0.001));
+    expect(find.text('Liquid Glass'), findsNothing);
+    expect(find.text('Remove border'), findsNothing);
 
+    await tester.pumpWidget(const SizedBox.shrink());
+    service.dispose();
+  });
+
+  testWidgets('glass preview fits a narrow screen in light and dark themes', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final service = ThemeService();
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final theme in [ThemeData.light(), ThemeData.dark()]) {
+      await tester.pumpWidget(
+        ChangeNotifierProvider<ThemeService>.value(
+          value: service,
+          child: MaterialApp(
+            locale: const Locale('de'),
+            theme: theme,
+            localizationsDelegates: appLocalizationDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: LiquidGlassSettingsSection(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(MainNavigationBar), findsOneWidget);
+      expect(find.text('Workout starten'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
     await tester.pumpWidget(const SizedBox.shrink());
     service.dispose();
   });

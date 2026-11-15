@@ -67,8 +67,10 @@ class CloudOverlayComposer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final composerGlassSettings = GlassPreferences.of(context)
-        .apply(DesignConstants.liquidGlassSettings(cloudSurfaceDark));
+    final composerGlassSettings = GlassPreferences.of(context).apply(
+      DesignConstants.liquidGlassSettings(cloudSurfaceDark),
+      premium: true,
+    );
     final glassTheme = theme.copyWith(
       brightness: cloudSurfaceDark ? Brightness.dark : Brightness.light,
     );

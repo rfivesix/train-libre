@@ -4347,12 +4347,13 @@
   "aiFailureUnsupportedImage": "Apple Intelligence no puede usar fotos en este dispositivo o versión de iOS. Describe la comida o elige otro proveedor.",
   "aiFailureAppleTimeoutBody": "Se alcanzó el tiempo de espera. Auméntalo en los ajustes de IA o elige otro proveedor.",
   "glassCustomizationTitle": "Aspecto del cristal",
+  "glassTint": "Tono del cristal",
+  "glassTintClear": "Transparente",
+  "glassTintTinted": "Tintado",
   "glassBlur": "Desenfoque",
   "glassBlurOff": "Desactivado",
   "glassOpacity": "Opacidad",
   "glassOpacityClear": "0 % (Transparente)",
   "glassReset": "Restablecer",
-  "glassLiquid": "Liquid Glass",
-  "glassRemoveBorder": "Quitar borde",
-  "glassCustomizationDescription": "Ajusta el desenfoque, la opacidad y los bordes de las superficies de cristal."
+  "glassCustomizationDescription": "Ajusta el cristal de transparente a tintado."
 }

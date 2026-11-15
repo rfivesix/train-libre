@@ -1,4 +1,5 @@
 import '../../../../util/glass_preferences.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -64,8 +65,9 @@ class RunningWorkoutOverlay extends StatelessWidget {
               borderRadius: DesignConstants.workoutOverlayRadius,
             ),
             quality: DesignConstants.defaultGlassQuality,
-            settings: GlassPreferences.of(context)
-                .apply(DesignConstants.liquidGlassSettings(isDark)),
+            settings: GlassPreferences.of(
+              context,
+            ).apply(DesignConstants.liquidGlassSettings(isDark), premium: true),
             child: _RunningWorkoutRow(
               elapsedDuration: elapsedDuration,
               restDuration: restDuration,

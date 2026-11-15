@@ -16683,6 +16683,24 @@ abstract class AppLocalizations {
   /// **'Glass appearance'**
   String get glassCustomizationTitle;
 
+  /// No description provided for @glassTint.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass tint'**
+  String get glassTint;
+
+  /// No description provided for @glassTintClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get glassTintClear;
+
+  /// No description provided for @glassTintTinted.
+  ///
+  /// In en, this message translates to:
+  /// **'Tinted'**
+  String get glassTintTinted;
+
   /// No description provided for @glassBlur.
   ///
   /// In en, this message translates to:
@@ -16713,22 +16731,10 @@ abstract class AppLocalizations {
   /// **'Reset'**
   String get glassReset;
 
-  /// No description provided for @glassLiquid.
-  ///
-  /// In en, this message translates to:
-  /// **'Liquid Glass'**
-  String get glassLiquid;
-
-  /// No description provided for @glassRemoveBorder.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove border'**
-  String get glassRemoveBorder;
-
   /// No description provided for @glassCustomizationDescription.
   ///
   /// In en, this message translates to:
-  /// **'Adjust blur, opacity, and borders across glass surfaces.'**
+  /// **'Adjust the glass appearance from clear to tinted.'**
   String get glassCustomizationDescription;
 }
 

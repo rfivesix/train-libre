@@ -9641,6 +9641,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get glassCustomizationTitle => 'Aspecto del cristal';
 
   @override
+  String get glassTint => 'Tono del cristal';
+
+  @override
+  String get glassTintClear => 'Transparente';
+
+  @override
+  String get glassTintTinted => 'Tintado';
+
+  @override
   String get glassBlur => 'Desenfoque';
 
   @override
@@ -9656,12 +9665,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get glassReset => 'Restablecer';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => 'Quitar borde';
-
-  @override
   String get glassCustomizationDescription =>
-      'Ajusta el desenfoque, la opacidad y los bordes de las superficies de cristal.';
+      'Ajusta el cristal de transparente a tintado.';
 }

@@ -2016,6 +2016,7 @@ class _MainScreenState extends State<MainScreen>
                                           DesignConstants.liquidGlassSettings(
                                             isDark,
                                           ),
+                                          premium: true,
                                         ),
                                     quality:
                                         DesignConstants.defaultGlassQuality,

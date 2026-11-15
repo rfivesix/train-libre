@@ -9489,6 +9489,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glassCustomizationTitle => 'Glass appearance';
 
   @override
+  String get glassTint => 'Glass tint';
+
+  @override
+  String get glassTintClear => 'Clear';
+
+  @override
+  String get glassTintTinted => 'Tinted';
+
+  @override
   String get glassBlur => 'Blur';
 
   @override
@@ -9504,12 +9513,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glassReset => 'Reset';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => 'Remove border';
-
-  @override
   String get glassCustomizationDescription =>
-      'Adjust blur, opacity, and borders across glass surfaces.';
+      'Adjust the glass appearance from clear to tinted.';
 }

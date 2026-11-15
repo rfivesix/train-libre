@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/theme_service.dart';
 import '../../../widgets/common/app_section_header.dart';
-import '../../../widgets/common/app_settings_row.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/main_navigation_bar.dart';
 
@@ -24,30 +23,14 @@ class LiquidGlassSettingsSection extends StatelessWidget {
         const _GlassPreview(),
         const SizedBox(height: 16),
         _GlassSlider(
-          label: l10n.glassBlur,
-          value: service.glassBlur,
-          zeroLabel: l10n.glassBlurOff,
+          label: l10n.glassTint,
+          value: service.glassAppearance,
+          clearLabel: l10n.glassTintClear,
+          tintedLabel: l10n.glassTintTinted,
           resetLabel: l10n.glassReset,
-          onChanged: service.setGlassBlur,
+          onChanged: service.setGlassAppearance,
         ),
-        _GlassSlider(
-          label: l10n.glassOpacity,
-          value: service.glassOpacity,
-          zeroLabel: l10n.glassOpacityClear,
-          resetLabel: l10n.glassReset,
-          onChanged: service.setGlassOpacity,
-        ),
-        AppSettingsRow.switchTile(
-          title: l10n.glassLiquid,
-          value: service.liquidGlassEnabled,
-          onChanged: service.setLiquidGlassEnabled,
-        ),
-        AppSettingsRow.switchTile(
-          title: l10n.glassRemoveBorder,
-          value: service.glassBorderRemoved,
-          onChanged: service.setGlassBorderRemoved,
-        ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 12),
         Text(
           l10n.glassCustomizationDescription,
           style: Theme.of(context).textTheme.bodySmall
@@ -62,14 +45,16 @@ class _GlassSlider extends StatelessWidget {
   const _GlassSlider({
     required this.label,
     required this.value,
-    required this.zeroLabel,
+    required this.clearLabel,
+    required this.tintedLabel,
     required this.resetLabel,
     required this.onChanged,
   });
 
   final String label;
   final double value;
-  final String zeroLabel;
+  final String clearLabel;
+  final String tintedLabel;
   final String resetLabel;
   final ValueChanged<double> onChanged;
 
@@ -84,7 +69,7 @@ class _GlassSlider extends StatelessWidget {
           children: [
             Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
             TextButton(
-              onPressed: value == 1 ? null : () => onChanged(1),
+              onPressed: value == 0.5 ? null : () => onChanged(0.5),
               style: TextButton.styleFrom(
                 minimumSize: const Size(44, 40),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -93,7 +78,7 @@ class _GlassSlider extends StatelessWidget {
               child: Text(resetLabel),
             ),
             Text(
-              percentage == 0 ? zeroLabel : '$percentage%',
+              '$percentage%',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -106,12 +91,21 @@ class _GlassSlider extends StatelessWidget {
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
           ),
           child: Slider(
-            value: value.clamp(0, 2),
+            value: value.clamp(0, 1),
             min: 0,
-            max: 2,
-            divisions: 20,
-            label: percentage == 0 ? zeroLabel : '$percentage%',
+            max: 1,
+            label: '$percentage%',
             onChanged: onChanged,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(clearLabel, style: theme.textTheme.bodySmall),
+              Text(tintedLabel, style: theme.textTheme.bodySmall),
+            ],
           ),
         ),
       ],
@@ -132,7 +126,7 @@ class _GlassPreview extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const _PreviewDashboard(),
+            const _PreviewContent(),
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -168,75 +162,77 @@ class _GlassPreview extends StatelessWidget {
   static void _ignoreTab(int _) {}
 }
 
-/// An abstract diary card: aligned rows and progress bars give the glass
-/// meaningful, app-like content to blur without relying on personal data.
-class _PreviewDashboard extends StatelessWidget {
-  const _PreviewDashboard();
+/// A flat, app-like background with text and a small accent behind the glass.
+class _PreviewContent extends StatelessWidget {
+  const _PreviewContent();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final card = isDark ? const Color(0xFF30342D) : const Color(0xFFF7F5EC);
-    final line = isDark ? Colors.white : Colors.black;
+    final colors = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF20291B), const Color(0xFF101713)]
-              : [const Color(0xFFDCE8BF), const Color(0xFFB6CCBA)],
-        ),
+        color: theme.brightness == Brightness.dark
+            ? const Color(0xFF1B1B1E)
+            : colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: card,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: line.withValues(alpha: 0.08)),
-          ),
+      child: ExcludeSemantics(
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.3,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  l10n.today,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
                 Row(
                   children: [
-                    _PreviewLine(
-                      width: 80,
-                      color: line.withValues(alpha: 0.65),
+                    Expanded(
+                      child: Text(
+                        l10n.startWorkout,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    const Spacer(),
-                    _PreviewLine(width: 32, color: theme.colorScheme.primary),
+                    const SizedBox(width: 12),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colors.primary,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: SizedBox(
+                        width: 42,
+                        height: 28,
+                        child: Icon(
+                          Icons.play_arrow_rounded,
+                          size: 20,
+                          color: colors.onPrimary,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _PreviewMacro(
-                          color: theme.colorScheme.primary,
-                          fraction: .76,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Expanded(
-                        child: _PreviewMacro(
-                          color: Color(0xFF72B5E5),
-                          fraction: .57,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Expanded(
-                        child: _PreviewMacro(
-                          color: Color(0xFFF1A96B),
-                          fraction: .68,
-                        ),
-                      ),
-                    ],
+                const Spacer(),
+                Text(
+                  l10n.workout,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -246,53 +242,4 @@ class _PreviewDashboard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PreviewLine extends StatelessWidget {
-  const _PreviewLine({required this.width, required this.color});
-  final double width;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: width,
-    height: 5,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(4),
-    ),
-  );
-}
-
-class _PreviewMacro extends StatelessWidget {
-  const _PreviewMacro({required this.color, required this.fraction});
-  final Color color;
-  final double fraction;
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.25),
-      borderRadius: BorderRadius.circular(9),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _PreviewLine(width: 24, color: color.withValues(alpha: .8)),
-          const Spacer(),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(5),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: 7,
-              color: color,
-              backgroundColor: color.withValues(alpha: 0.2),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
 }

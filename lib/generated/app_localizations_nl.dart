@@ -9580,6 +9580,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get glassCustomizationTitle => 'Glasweergave';
 
   @override
+  String get glassTint => 'Glastint';
+
+  @override
+  String get glassTintClear => 'Helder';
+
+  @override
+  String get glassTintTinted => 'Getint';
+
+  @override
   String get glassBlur => 'Vervaging';
 
   @override
@@ -9595,12 +9604,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get glassReset => 'Herstellen';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => 'Rand verwijderen';
-
-  @override
   String get glassCustomizationDescription =>
-      'Pas vervaging, dekking en randen van glazen oppervlakken aan.';
+      'Pas de glasweergave aan van helder tot getint.';
 }

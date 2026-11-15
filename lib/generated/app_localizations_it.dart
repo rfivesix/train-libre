@@ -9612,6 +9612,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get glassCustomizationTitle => 'Aspetto del vetro';
 
   @override
+  String get glassTint => 'Tonalità del vetro';
+
+  @override
+  String get glassTintClear => 'Chiaro';
+
+  @override
+  String get glassTintTinted => 'Colorato';
+
+  @override
   String get glassBlur => 'Sfocatura';
 
   @override
@@ -9627,12 +9636,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get glassReset => 'Ripristina';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => 'Rimuovi bordo';
-
-  @override
   String get glassCustomizationDescription =>
-      'Regola sfocatura, opacità e bordi delle superfici in vetro.';
+      'Regola il vetro da chiaro a colorato.';
 }

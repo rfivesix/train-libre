@@ -31,27 +31,6 @@ class MainNavigationBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
     final preferences = GlassPreferences.of(context);
-    final customIndicator =
-        preferences.liquidEnabled &&
-            !preferences.borderRemoved &&
-            preferences.blur == 1 &&
-            preferences.opacity == 1
-        ? null
-        : preferences
-              .apply(LiquidGlassSettings.ios27Indicator)
-              .copyWith(
-                // The package treats exact zero as an unspecified partial override.
-                // A near-zero value suppresses these rims instead of restoring the
-                // preset's full rim during its settings merge.
-                rimLight:
-                    preferences.borderRemoved || !preferences.liquidEnabled
-                    ? 0.000001
-                    : null,
-                rimShade:
-                    preferences.borderRemoved || !preferences.liquidEnabled
-                    ? 0.000001
-                    : null,
-              );
     return GlassTabBar.bottom(
       selectedIndex: selectedIndex,
       onTabSelected: onTabSelected,
@@ -69,8 +48,10 @@ class MainNavigationBar extends StatelessWidget {
       selectedIconColor: theme.colorScheme.primary,
       unselectedIconColor: isDark ? Colors.white : Colors.black,
       indicatorColor: DesignConstants.floatingBarPillColor(isDark),
-      indicatorSettings: customIndicator,
-      settings: preferences.apply(DesignConstants.liquidGlassSettings(isDark)),
+      settings: preferences.apply(
+        DesignConstants.liquidGlassSettings(isDark),
+        premium: true,
+      ),
       tabs: [
         GlassTab(
           label: l10n.diary,

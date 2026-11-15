@@ -1,4 +1,5 @@
 import '../../util/glass_preferences.dart';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../services/haptic_feedback_service.dart';
@@ -110,8 +111,9 @@ class _GlassFabState extends State<GlassFab>
                 )
               : const LiquidOval(),
           quality: DesignConstants.defaultGlassQuality,
-          settings: GlassPreferences.of(context)
-              .apply(DesignConstants.liquidGlassSettings(isDark)),
+          settings: GlassPreferences.of(
+            context,
+          ).apply(DesignConstants.liquidGlassSettings(isDark), premium: true),
           child: hasLabel
               ? iconAndText
               : Center(

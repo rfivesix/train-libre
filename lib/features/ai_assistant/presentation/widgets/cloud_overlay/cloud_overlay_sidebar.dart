@@ -167,18 +167,16 @@ class CloudOverlaySidebar extends StatelessWidget {
     );
     const radius = 24.0;
     final settings = GlassPreferences.of(context)
-        .apply(DesignConstants.liquidGlassSettings(isDark));
+        .apply(DesignConstants.liquidGlassSettings(isDark), premium: true);
     final button = Container(
       height: 48,
       decoration: BoxDecoration(
         color: GlassPreferences.of(context).tint(controlFill),
         borderRadius: BorderRadius.circular(radius),
-        border: GlassPreferences.of(context).borderRemoved
-            ? null
-            : Border.all(
-                color: foregroundColor.withValues(alpha: 0.14),
-                width: 0.5,
-              ),
+        border: Border.all(
+          color: foregroundColor.withValues(alpha: 0.14),
+          width: 0.5,
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(

@@ -44,8 +44,10 @@ class HeaderGlassButton extends StatelessWidget {
     final glassTheme = theme.copyWith(
       brightness: isDarkSurface ? Brightness.dark : Brightness.light,
     );
-    final settings = GlassPreferences.of(context)
-        .apply(DesignConstants.liquidGlassSettings(isDarkSurface));
+    final settings = GlassPreferences.of(context).apply(
+      DesignConstants.liquidGlassSettings(isDarkSurface),
+      premium: !platformViewBackdrop,
+    );
     final glassPreferences = GlassPreferences.of(context);
     final buttonSurface = Container(
       decoration: BoxDecoration(
@@ -58,7 +60,7 @@ class HeaderGlassButton extends StatelessWidget {
               )
             : Colors.transparent,
         shape: BoxShape.circle,
-        border: showBorder && !glassPreferences.borderRemoved
+        border: showBorder
             ? Border.all(color: foreground.withValues(alpha: 0.14), width: 0.5)
             : null,
       ),

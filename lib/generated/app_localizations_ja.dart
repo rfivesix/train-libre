@@ -9146,6 +9146,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get glassCustomizationTitle => 'ガラスの外観';
 
   @override
+  String get glassTint => 'ガラスの色合い';
+
+  @override
+  String get glassTintClear => '透明';
+
+  @override
+  String get glassTintTinted => '色付き';
+
+  @override
   String get glassBlur => 'ぼかし';
 
   @override
@@ -9161,11 +9170,5 @@ class AppLocalizationsJa extends AppLocalizations {
   String get glassReset => 'リセット';
 
   @override
-  String get glassLiquid => 'Liquid Glass';
-
-  @override
-  String get glassRemoveBorder => '境界線を削除';
-
-  @override
-  String get glassCustomizationDescription => 'ガラス面のぼかし、不透明度、境界線を調整します。';
+  String get glassCustomizationDescription => 'ガラスの外観を透明から色付きまで調整します。';
 }

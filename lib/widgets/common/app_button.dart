@@ -1,4 +1,5 @@
 import '../../util/glass_preferences.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -273,9 +274,7 @@ class _AppButtonState extends State<AppButton>
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
-          border: GlassPreferences.of(context).borderRemoved
-              ? null
-              : Border.all(color: rimColor, width: 0.5),
+          border: Border.all(color: rimColor, width: 0.5),
         ),
         child: labelRow,
       );
