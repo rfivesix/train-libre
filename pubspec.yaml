@@ -51,7 +51,7 @@ dependencies:
   http: ^1.6.0
   # Version 11 removes the Android migration path for older encrypted data.
   # Users may skip releases, so retain v10 until a safe migration is possible.
-  flutter_secure_storage: ^10.3.4
+  flutter_secure_storage: ^11.2.0
   flutter_local_notifications: ^23.0.1
   timezone: ^0.11.2
   crypto: ^3.0.8
