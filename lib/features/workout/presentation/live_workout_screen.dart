@@ -1130,7 +1130,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         : "";
 
     return PrCelebrationBanner(
-      slideAnimation: _prSlideAnimation,
+      slideAnimation: MediaQuery.disableAnimationsOf(context)
+          ? const AlwaysStoppedAnimation(Offset.zero)
+          : _prSlideAnimation,
+      celebrationAnimation: _prAnimationController,
+      celebrate: pr.celebrate && !MediaQuery.disableAnimationsOf(context),
       exerciseName: pr.exerciseName,
       localizedRecordType: localizedRecordType,
       achievementText: achievementText,

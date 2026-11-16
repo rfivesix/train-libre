@@ -3,7 +3,6 @@ import "../../../services/unit_service.dart";
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine_exercise.dart';
@@ -202,6 +201,13 @@ class LiveWorkoutViewModel extends ChangeNotifier
   final StreamController<PRAlert> _prEventsController =
       StreamController<PRAlert>.broadcast();
   Stream<PRAlert> get prEvents => _prEventsController.stream;
+  final Map<int, DateTime> _recentPrCelebrations = {};
+
+  bool isCelebratingPr(int templateId) {
+    final created = _recentPrCelebrations[templateId];
+    return created != null &&
+        DateTime.now().difference(created) < const Duration(seconds: 2);
+  }
 
   /// The current session's performed volume, excluding unfinished rows.
   double get totalVolume => _setLogs.values.fold(0.0, (total, set) {
@@ -1388,9 +1394,23 @@ class LiveWorkoutViewModel extends ChangeNotifier
     _setLogs[templateId] = prResult.updatedSetLog;
 
     if (prResult.alerts.isNotEmpty) {
-      HapticFeedback.heavyImpact();
-      for (final alert in prResult.alerts) {
-        _prEventsController.add(alert);
+      _recentPrCelebrations.removeWhere(
+        (_, created) =>
+            DateTime.now().difference(created) >= const Duration(seconds: 2),
+      );
+      _recentPrCelebrations[templateId] = DateTime.now();
+      unawaited(HapticFeedbackService.instance.personalRecordFeedback());
+      for (var index = 0; index < prResult.alerts.length; index++) {
+        final alert = prResult.alerts[index];
+        _prEventsController.add(
+          PRAlert(
+            exerciseName: alert.exerciseName,
+            recordType: alert.recordType,
+            achievementValue: alert.achievementValue,
+            diff: alert.diff,
+            celebrate: index == 0,
+          ),
+        );
       }
     }
   }

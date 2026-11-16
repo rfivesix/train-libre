@@ -21,6 +21,7 @@ import '../../../../util/time_util.dart';
 import '../../../../util/design_constants.dart';
 import 'generated_value_morph.dart';
 import 'set_type_menu.dart';
+import 'pr_sparkle_burst.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -150,39 +151,57 @@ class LiveWorkoutSetRow extends StatelessWidget {
           "+${unitService.formatDisplayWeight(setLog.volumePRDiff!, fractionDigits: 0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";
     }
 
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 600),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.elasticOut,
-      builder: (context, value, child) {
-        return Transform.scale(scale: value, child: child);
-      },
-      child: Tooltip(
-        message: l10n.prBadgeTooltip,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.amber.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.amber,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+    final badge = Tooltip(
+      message: l10n.prBadgeTooltip,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.amber.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.amber,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+    if (!manager.isCelebratingPr(templateId) ||
+        MediaQuery.disableAnimationsOf(context)) {
+      return badge;
+    }
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 900),
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, value, child) => Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: PrSparkleBurst(
+              progress: value,
+              color: Colors.amber,
+              accentColor: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          Transform.scale(
+            scale: 1 + 0.16 * (1 - (2 * value - 1).abs()),
+            child: child,
+          ),
+        ],
+      ),
+      child: badge,
     );
   }
 

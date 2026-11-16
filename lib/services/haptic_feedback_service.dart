@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 
 /// Centralized, settings-aware haptic feedback service.
 class HapticFeedbackService {
@@ -60,6 +61,31 @@ class HapticFeedbackService {
   Future<void> vibrate() async {
     if (!_enabled) return;
     await HapticFeedback.vibrate();
+  }
+
+  /// A short rising rhythm for one completed record set, without audio.
+  Future<void> personalRecordFeedback() async {
+    if (!_enabled) return;
+    try {
+      final custom = await Vibration.hasCustomVibrationsSupport();
+      if (!_enabled) return;
+      if (custom) {
+        await Vibration.vibrate(
+          pattern: const [35, 85, 35, 80, 45, 100, 110],
+          intensities: const [90, 0, 130, 0, 175, 0, 240],
+          sharpness: 0.75,
+        );
+      } else {
+        await HapticFeedback.lightImpact();
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+        if (!_enabled) return;
+        await HapticFeedback.mediumImpact();
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        if (_enabled) await HapticFeedback.heavyImpact();
+      }
+    } catch (_) {
+      if (_enabled) await HapticFeedback.heavyImpact();
+    }
   }
 
   void startAiWaiting() {

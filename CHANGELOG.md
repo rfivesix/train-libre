@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
 
 ### Added
+- Added a brief personal-record celebration with animated badge and banner particles and a rising haptic pattern, respecting reduced-motion and haptic settings; multiple records from one set trigger the celebration once.
 - Added a live workout muscle overview showing completed and planned sets by muscle group, excluding cardio exercises.
 - Added a clear-to-tinted glass appearance slider with a live preview of the app's navigation bar and a food illustration.
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.

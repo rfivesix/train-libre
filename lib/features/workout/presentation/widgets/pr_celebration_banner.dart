@@ -5,10 +5,14 @@ import '../../../../util/design_constants.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import 'pr_sparkle_burst.dart';
+
 /// A premium, glassmorphic sliding banner that celebrates personal records (PRs).
 class PrCelebrationBanner extends StatelessWidget {
   /// The slide-in transition animation.
   final Animation<Offset> slideAnimation;
+  final Animation<double> celebrationAnimation;
+  final bool celebrate;
 
   /// The name of the exercise achieved.
   final String exerciseName;
@@ -25,6 +29,8 @@ class PrCelebrationBanner extends StatelessWidget {
   const PrCelebrationBanner({
     super.key,
     required this.slideAnimation,
+    required this.celebrationAnimation,
+    this.celebrate = true,
     required this.exerciseName,
     required this.localizedRecordType,
     required this.achievementText,
@@ -80,10 +86,38 @@ class PrCelebrationBanner extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
-                            LucideIcons.trophy,
-                            color: Colors.amber,
-                            size: 20,
+                          AnimatedBuilder(
+                            animation: celebrationAnimation,
+                            builder: (context, child) {
+                              final t = celebrate
+                                  ? celebrationAnimation.value.clamp(0.0, 1.0)
+                                  : 1.0;
+                              final scale = celebrate
+                                  ? 1.0 + 0.18 * (1 - (2 * t - 1).abs())
+                                  : 1.0;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                alignment: Alignment.center,
+                                children: [
+                                  if (celebrate)
+                                    Positioned.fill(
+                                      child: PrSparkleBurst(
+                                        progress: t,
+                                        color: Colors.amber,
+                                        accentColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
+                                    ),
+                                  Transform.scale(scale: scale, child: child),
+                                ],
+                              );
+                            },
+                            child: const Icon(
+                              LucideIcons.trophy,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
                           ),
                           const SizedBox(width: DesignConstants.spacingS),
                           Flexible(

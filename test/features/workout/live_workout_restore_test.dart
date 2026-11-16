@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/data/drift_database.dart' show AppDatabase;
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart'
@@ -11,6 +12,7 @@ import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/set_template.dart';
 import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 import 'package:train_libre/features/workout/presentation/live_workout_view_model.dart';
+import 'package:train_libre/services/haptic_feedback_service.dart';
 
 /// What survives when the app is killed mid-workout.
 ///
@@ -120,6 +122,33 @@ void main() {
     ]);
     return log;
   }
+
+  test('one set with multiple records emits one haptic pattern', () async {
+    const channel = MethodChannel('vibration');
+    var vibrationCount = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'hasCustomVibrationsSupport') return true;
+          if (call.method == 'vibrate') vibrationCount++;
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    HapticFeedbackService.instance.setEnabled(true);
+    await startSession();
+    await manager.updateSet(1001, weight: 100, reps: 5, isCompleted: true);
+    final events = <bool>[];
+    final subscription = manager.prEvents.listen(
+      (event) => events.add(event.celebrate),
+    );
+    await manager.updateSet(1002, weight: 110, reps: 6, isCompleted: true);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(events, [true, false, false]);
+    expect(vibrationCount, 1);
+    await subscription.cancel();
+  });
 
   test('foreground expiration plays the completion sound once', () async {
     await startSession();
