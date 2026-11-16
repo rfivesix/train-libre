@@ -36,6 +36,12 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
+typedef _ManualPlanSummary = ({
+  ManualTrainingPlan plan,
+  PlannedCalendarDay? today,
+  PlannedCalendarDay? next,
+});
+
 /// The central management screen for all workout-related activities.
 ///
 /// Features the active manual training plan hero, muscle readiness / recovery,
@@ -50,7 +56,7 @@ class WorkoutHubScreen extends StatefulWidget {
 
 class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   final _manualPlans = ManualTrainingPlanRepository();
-  int _manualPlanRefresh = 0;
+  late Future<_ManualPlanSummary?> _manualPlanFuture;
   late final Stream<List<Routine>> _routinesStream;
   late Future<RecoveryAnalyticsPayload> _recoveryFuture;
   late final l10n = AppLocalizations.of(context)!;
@@ -65,6 +71,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       listen: false,
     ).watchAllRoutinesWithDetails();
     _recoveryFuture = _loadRecovery();
+    _manualPlanFuture = _loadManualPlanSummary();
   }
 
   Future<RecoveryAnalyticsPayload> _loadRecovery() {
@@ -80,14 +87,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     setState(() => _recoveryFuture = _loadRecovery());
   }
 
-  Future<
-    ({
-      ManualTrainingPlan plan,
-      PlannedCalendarDay? today,
-      PlannedCalendarDay? next,
-    })?
-  >
-  _loadManualPlanSummary() async {
+  Future<_ManualPlanSummary?> _loadManualPlanSummary() async {
     final plan = await _manualPlans.activePlan();
     if (plan == null) return null;
     final now = DateTime.now();
@@ -312,174 +312,183 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       top: basePadding.top + appBarHeight,
     );
 
-    return ListView(
+    return SingleChildScrollView(
       padding: finalPadding,
-      children: [
-        // 1. Trainingsplan (Hero)
-        AppSectionHeader(title: ManualPlanText(context).get('plan')),
-        FutureBuilder(
-          key: ValueKey(_manualPlanRefresh),
-          future: _loadManualPlanSummary(),
-          builder: (context, snapshot) {
-            final summary = snapshot.data;
-            final plan = summary?.plan;
-            final today = summary?.today;
-            final next = summary?.next;
-            final text = ManualPlanText(context);
-            final locale = Localizations.localeOf(context).toString();
-            Future<void> openPlan({
-              BuildContext? sourceContext,
-              WidgetBuilder? sourceBuilder,
-              MorphSourceVisibilityCallback? onSourceVisibilityChanged,
-            }) async {
-              await Navigator.of(context).push(
-                CardMorphRoute(
-                  sourceContext: sourceContext,
-                  sourceBuilder: sourceBuilder,
-                  onSourceVisibilityChanged: onSourceVisibilityChanged,
-                  builder: (_) => const ManualPlanScreen(),
-                ),
-              );
-            }
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Trainingsplan (Hero)
+          AppSectionHeader(title: ManualPlanText(context).get('plan')),
+          FutureBuilder(
+            future: _manualPlanFuture,
+            builder: (context, snapshot) {
+              final summary = snapshot.data;
+              final plan = summary?.plan;
+              final today = summary?.today;
+              final next = summary?.next;
+              final text = ManualPlanText(context);
+              final locale = Localizations.localeOf(context).toString();
+              Future<void> openPlan({
+                BuildContext? sourceContext,
+                WidgetBuilder? sourceBuilder,
+                MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+              }) async {
+                await Navigator.of(context).push(
+                  CardMorphRoute(
+                    sourceContext: sourceContext,
+                    sourceBuilder: sourceBuilder,
+                    onSourceVisibilityChanged: onSourceVisibilityChanged,
+                    builder: (_) => const ManualPlanScreen(),
+                  ),
+                );
+              }
 
-            if (plan == null) {
-              Widget buildCard({VoidCallback? onTap}) => WorkoutPlanHeroCard(
-                eyebrow: text.get('plan'),
-                title: text.get('noPlan'),
-                subtitle: text.get('hubNoPlanDescription'),
-                onTap: onTap,
-              );
+              if (plan == null) {
+                Widget buildCard({VoidCallback? onTap}) => WorkoutPlanHeroCard(
+                  eyebrow: text.get('plan'),
+                  title: text.get('noPlan'),
+                  subtitle: text.get('hubNoPlanDescription'),
+                  onTap: onTap,
+                );
+                return MorphSourceScope(
+                  builder: (context, setHidden) => Builder(
+                    builder: (cardContext) => buildCard(
+                      onTap: () => openPlan(
+                        sourceContext: cardContext,
+                        sourceBuilder: (_) => buildCard(),
+                        onSourceVisibilityChanged: setHidden,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              final displayDay = today ?? next;
+              final isTodayWorkout = today != null && !today.day.isRest;
+              String subtitle;
+              if (displayDay == null) {
+                subtitle = text.get('hubNoUpcomingWorkout');
+              } else if (today?.day.isRest == true && next != null) {
+                subtitle =
+                    '${text.get('nextUp')}: ${next.day.routineName}'
+                    '${DesignConstants.metadataSeparator}'
+                    '${DateFormat.MMMEd(locale).format(next.date)}';
+              } else if (isTodayWorkout) {
+                subtitle = plannedDayMetadata(context, today.day);
+              } else {
+                final when =
+                    DateUtils.isSameDay(displayDay.date, DateTime.now())
+                    ? text.get('today')
+                    : DateFormat.MMMEd(locale).format(displayDay.date);
+                subtitle =
+                    '$when${DesignConstants.metadataSeparator}'
+                    '${plannedDayMetadata(context, displayDay.day)}';
+              }
+
+              final canStart =
+                  isTodayWorkout && today.status == PlannedDayStatus.planned;
+              Widget buildCard({VoidCallback? onTap, VoidCallback? onAction}) =>
+                  WorkoutPlanHeroCard(
+                    eyebrow: plan.name,
+                    title: displayDay?.day.routineName ?? text.get('rest'),
+                    subtitle: subtitle,
+                    status: displayDay?.status,
+                    onTap: onTap,
+                    actionLabel: canStart ? text.get('start') : null,
+                    onAction: onAction,
+                  );
+
               return MorphSourceScope(
                 builder: (context, setHidden) => Builder(
                   builder: (cardContext) => buildCard(
                     onTap: () => openPlan(
                       sourceContext: cardContext,
-                      sourceBuilder: (_) => buildCard(),
+                      sourceBuilder: (_) =>
+                          buildCard(onAction: canStart ? () {} : null),
                       onSourceVisibilityChanged: setHidden,
                     ),
+                    onAction: canStart
+                        ? () async {
+                            await startManualPlanDay(
+                              context,
+                              plan,
+                              today,
+                              sourceRect: CardMorphRoute.measureRect(
+                                cardContext,
+                              ),
+                              sourceBuilder: (_) => buildCard(onAction: () {}),
+                              onSourceVisibilityChanged: setHidden,
+                            );
+                            if (mounted) {
+                              setState(() {
+                                _manualPlanFuture = _loadManualPlanSummary();
+                              });
+                            }
+                          }
+                        : null,
                   ),
                 ),
               );
-            }
+            },
+          ),
+          const SizedBox(height: DesignConstants.spacingXL),
 
-            final displayDay = today ?? next;
-            final isTodayWorkout = today != null && !today.day.isRest;
-            String subtitle;
-            if (displayDay == null) {
-              subtitle = text.get('hubNoUpcomingWorkout');
-            } else if (today?.day.isRest == true && next != null) {
-              subtitle =
-                  '${text.get('nextUp')}: ${next.day.routineName}'
-                  '${DesignConstants.metadataSeparator}'
-                  '${DateFormat.MMMEd(locale).format(next.date)}';
-            } else if (isTodayWorkout) {
-              subtitle = plannedDayMetadata(context, today.day);
-            } else {
-              final when = DateUtils.isSameDay(displayDay.date, DateTime.now())
-                  ? text.get('today')
-                  : DateFormat.MMMEd(locale).format(displayDay.date);
-              subtitle =
-                  '$when${DesignConstants.metadataSeparator}'
-                  '${plannedDayMetadata(context, displayDay.day)}';
-            }
+          // 2. Recovery (Muscle Readiness)
+          AppSectionHeader(title: l10n.sectionRecovery),
+          _buildRecoveryCard(context, l10n),
+          const SizedBox(height: DesignConstants.spacingXL),
 
-            final canStart =
-                isTodayWorkout && today.status == PlannedDayStatus.planned;
-            Widget buildCard({VoidCallback? onTap, VoidCallback? onAction}) =>
-                WorkoutPlanHeroCard(
-                  eyebrow: plan.name,
-                  title: displayDay?.day.routineName ?? text.get('rest'),
-                  subtitle: subtitle,
-                  status: displayDay?.status,
-                  onTap: onTap,
-                  actionLabel: canStart ? text.get('start') : null,
-                  onAction: onAction,
+          // 3. Schnellstart (Duo-Row)
+          AppSectionHeader(title: l10n.workoutSectionStart),
+          _buildQuickStartRow(context, l10n),
+          const SizedBox(height: DesignConstants.spacingXL),
+
+          // 4. Routinen (Vertikale Liste)
+          StreamBuilder<List<Routine>>(
+            stream: _routinesStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(DesignConstants.spacingL),
+                    child: CircularProgressIndicator(),
+                  ),
                 );
+              }
+              final routines = (snapshot.data ?? [])
+                  .where((r) => !_dismissedRoutineIds.contains(r.id))
+                  .toList();
 
-            return MorphSourceScope(
-              builder: (context, setHidden) => Builder(
-                builder: (cardContext) => buildCard(
-                  onTap: () => openPlan(
-                    sourceContext: cardContext,
-                    sourceBuilder: (_) =>
-                        buildCard(onAction: canStart ? () {} : null),
-                    onSourceVisibilityChanged: setHidden,
-                  ),
-                  onAction: canStart
-                      ? () async {
-                          await startManualPlanDay(
-                            context,
-                            plan,
-                            today,
-                            sourceRect: CardMorphRoute.measureRect(cardContext),
-                            sourceBuilder: (_) => buildCard(onAction: () {}),
-                            onSourceVisibilityChanged: setHidden,
-                          );
-                          if (mounted) setState(() => _manualPlanRefresh++);
-                        }
-                      : null,
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: DesignConstants.spacingXL),
+              final routinesHeader = l10n.workoutAllRoutines;
+              final countBadge = routines.isNotEmpty
+                  ? ' (${routines.length})'
+                  : '';
 
-        // 2. Recovery (Muscle Readiness)
-        AppSectionHeader(title: l10n.sectionRecovery),
-        _buildRecoveryCard(context, l10n),
-        const SizedBox(height: DesignConstants.spacingXL),
-
-        // 3. Schnellstart (Duo-Row)
-        AppSectionHeader(title: l10n.workoutSectionStart),
-        _buildQuickStartRow(context, l10n),
-        const SizedBox(height: DesignConstants.spacingXL),
-
-        // 4. Routinen (Vertikale Liste)
-        StreamBuilder<List<Routine>>(
-          stream: _routinesStream,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(DesignConstants.spacingL),
-                  child: CircularProgressIndicator(),
-                ),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppSectionHeader(title: '$routinesHeader$countBadge'),
+                  if (routines.isEmpty)
+                    _buildEmptyRoutinesCard(context, l10n)
+                  else
+                    for (final routine in routines)
+                      _buildVerticalRoutineCard(context, routine, l10n),
+                ],
               );
-            }
-            final routines = (snapshot.data ?? [])
-                .where((r) => !_dismissedRoutineIds.contains(r.id))
-                .toList();
+            },
+          ),
 
-            final routinesHeader = l10n.workoutAllRoutines;
-            final countBadge = routines.isNotEmpty
-                ? ' (${routines.length})'
-                : '';
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppSectionHeader(title: '$routinesHeader$countBadge'),
-                if (routines.isEmpty)
-                  _buildEmptyRoutinesCard(context, l10n)
-                else
-                  for (final routine in routines)
-                    _buildVerticalRoutineCard(context, routine, l10n),
-              ],
-            );
-          },
-        ),
-
-        // 5. Übungskatalog (Dezent am Ende unterhalb der Routinenliste)
-        const SizedBox(height: DesignConstants.spacingL),
-        _buildNavigationTile(
-          context: context,
-          icon: LucideIcons.folder_open,
-          title: l10n.drawerExerciseCatalog,
-          destination: () => const ExerciseCatalogScreen(),
-        ),
-        const BottomContentSpacer(),
-      ],
+          // 5. Übungskatalog (Dezent am Ende unterhalb der Routinenliste)
+          const SizedBox(height: DesignConstants.spacingL),
+          _buildNavigationTile(
+            context: context,
+            icon: LucideIcons.folder_open,
+            title: l10n.drawerExerciseCatalog,
+            destination: () => const ExerciseCatalogScreen(),
+          ),
+          const BottomContentSpacer(),
+        ],
+      ),
     );
   }
 
