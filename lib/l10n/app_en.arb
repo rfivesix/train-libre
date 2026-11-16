@@ -4080,5 +4080,9 @@
   "glassOpacity": "Opacity",
   "glassOpacityClear": "0% (Clear)",
   "glassReset": "Reset",
-  "glassCustomizationDescription": "Adjust the glass appearance from clear to tinted."
+  "glassCustomizationDescription": "Adjust the glass appearance from clear to tinted.",
+  "sessionMusclesTitle": "What this session hits",
+  "sessionMusclesWorked": "Already worked",
+  "sessionMusclesRemaining": "Still to come",
+  "discardWorkoutAction": "Discard workout"
 }

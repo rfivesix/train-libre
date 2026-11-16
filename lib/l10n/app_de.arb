@@ -3864,5 +3864,9 @@
   "glassOpacity": "Deckkraft",
   "glassOpacityClear": "0 % (Klar)",
   "glassReset": "Zurücksetzen",
-  "glassCustomizationDescription": "Passe die Glasdarstellung von klar bis getönt an."
+  "glassCustomizationDescription": "Passe die Glasdarstellung von klar bis getönt an.",
+  "sessionMusclesTitle": "Beanspruchte Muskeln",
+  "sessionMusclesWorked": "Bereits trainiert",
+  "sessionMusclesRemaining": "Noch ausstehend",
+  "discardWorkoutAction": "Workout verwerfen"
 }

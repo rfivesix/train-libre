@@ -1487,8 +1487,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           },
                         ),
                       ],
-                      if (_heartRateSummary != null &&
-                          (_pulseTrackingEnabled || _heartRateSummary!.hasData))
+                      if (_heartRateSummary?.hasData == true)
                         Padding(
                           padding: DesignConstants.cardPadding.copyWith(top: 0),
                           child: WorkoutHeartRateSection(

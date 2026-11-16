@@ -100,7 +100,7 @@ import WidgetKit
           // the pill never freezes at 0:00. The red backing latches exactly at
           // the deadline without needing a re-render — see LAOverdueFill.
           Text(end, style: .timer)
-            .font(.system(size: 12, weight: .bold).monospacedDigit())
+            .font(.system(size: 15, weight: .bold).monospacedDigit())
             .foregroundStyle(.white)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
@@ -111,10 +111,10 @@ import WidgetKit
             // explicitly fixes both. `.fixedSize()` is not an option here: on
             // a system-animated timer it renders nothing at all.
             .multilineTextAlignment(.center)
-            .frame(width: 40, alignment: .center)
+            .frame(width: 45, alignment: .center)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
-            .background(LAOverdueBackground(deadline: end, cornerRadius: 7))
+            .background(LACompactOverdueBackground(deadline: end))
         } else {
           icon
         }
@@ -154,7 +154,7 @@ import WidgetKit
             .frame(width: 34, alignment: .center)
             .padding(.horizontal, 2)
             .padding(.vertical, 1)
-            .background(LAOverdueBackground(deadline: end, cornerRadius: 6))
+            .background(LACompactOverdueBackground(deadline: end))
         } else {
           icon
         }

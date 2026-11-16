@@ -9638,4 +9638,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get glassCustomizationDescription =>
       'Regola il vetro da chiaro a colorato.';
+
+  @override
+  String get sessionMusclesTitle => 'Muscoli della sessione';
+
+  @override
+  String get sessionMusclesWorked => 'Già allenati';
+
+  @override
+  String get sessionMusclesRemaining => 'Da allenare';
+
+  @override
+  String get discardWorkoutAction => 'Elimina allenamento';
 }

@@ -16736,6 +16736,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adjust the glass appearance from clear to tinted.'**
   String get glassCustomizationDescription;
+
+  /// No description provided for @sessionMusclesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this session hits'**
+  String get sessionMusclesTitle;
+
+  /// No description provided for @sessionMusclesWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already worked'**
+  String get sessionMusclesWorked;
+
+  /// No description provided for @sessionMusclesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Still to come'**
+  String get sessionMusclesRemaining;
+
+  /// No description provided for @discardWorkoutAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard workout'**
+  String get discardWorkoutAction;
 }
 
 class _AppLocalizationsDelegate

@@ -9171,4 +9171,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get glassCustomizationDescription => 'ガラスの外観を透明から色付きまで調整します。';
+
+  @override
+  String get sessionMusclesTitle => 'このセッションで鍛える筋肉';
+
+  @override
+  String get sessionMusclesWorked => 'トレーニング済み';
+
+  @override
+  String get sessionMusclesRemaining => 'これから';
+
+  @override
+  String get discardWorkoutAction => 'ワークアウトを破棄';
 }

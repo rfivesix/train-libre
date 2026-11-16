@@ -3864,5 +3864,9 @@
   "glassOpacity": "不透明度",
   "glassOpacityClear": "0%（透明）",
   "glassReset": "リセット",
-  "glassCustomizationDescription": "ガラスの外観を透明から色付きまで調整します。"
+  "glassCustomizationDescription": "ガラスの外観を透明から色付きまで調整します。",
+  "sessionMusclesTitle": "このセッションで鍛える筋肉",
+  "sessionMusclesWorked": "トレーニング済み",
+  "sessionMusclesRemaining": "これから",
+  "discardWorkoutAction": "ワークアウトを破棄"
 }

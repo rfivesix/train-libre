@@ -9606,4 +9606,16 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get glassCustomizationDescription =>
       'Pas de glasweergave aan van helder tot getint.';
+
+  @override
+  String get sessionMusclesTitle => 'Spieren in deze sessie';
+
+  @override
+  String get sessionMusclesWorked => 'Al getraind';
+
+  @override
+  String get sessionMusclesRemaining => 'Nog te trainen';
+
+  @override
+  String get discardWorkoutAction => 'Training verwerpen';
 }

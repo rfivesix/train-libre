@@ -21,7 +21,8 @@ import 'live_workout_view_model.dart';
 import 'reorder_scroll_anchor.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../../../services/unit_service.dart';
-import 'widgets/workout_summary_bar.dart';
+import 'widgets/live_workout_summary_bar.dart';
+import 'widgets/finish_workout_menu.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
 
@@ -664,82 +665,18 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     // Pre-fill the title with the routine name or "Free Workout"
     final defaultTitle =
         manager.workoutLog?.routineName ?? l10n.freeWorkoutTitle;
-    final titleController = TextEditingController(text: defaultTitle);
-    final notesController = TextEditingController();
-
-    final result = await showGlassBottomMenu<({String title, String notes})>(
-      context: context,
-      title: l10n.finishWorkoutButton,
-      contentBuilder: (ctx, close) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                l10n.dialogFinishWorkoutBody,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                labelText: l10n.finishWorkoutTitleLabel,
-                border: const OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: notesController,
-              decoration: InputDecoration(
-                labelText: l10n.finishWorkoutNotesLabel,
-                hintText: l10n.finishWorkoutNotesHint,
-                border: const OutlineInputBorder(),
-              ),
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: AppButton.secondary(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(null);
-                    },
-                    label: l10n.cancel,
-                    tooltip: l10n.cancel,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AppButton.primary(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop((
-                        title: titleController.text.trim(),
-                        notes: notesController.text.trim(),
-                      ));
-                    },
-                    label: l10n.finishWorkoutButton,
-                    tooltip: l10n.finishWorkoutButton,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-
-    titleController.dispose();
-    notesController.dispose();
+    final result = await showFinishWorkoutMenu(context, defaultTitle);
 
     if (result != null && mounted) {
       final logId = manager.workoutLog?.id;
+      if (result.discard) {
+        if (logId != null) {
+          await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+        }
+        await manager.clearLocalSessionState();
+        if (mounted) _handleBack();
+        return;
+      }
       await manager.finishWorkout(
         title: result.title.isNotEmpty ? result.title : null,
         notes: result.notes.isNotEmpty ? result.notes : null,
@@ -1363,28 +1300,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                         children: [
                           Consumer<LiveWorkoutViewModel>(
                             builder: (context, vm, _) {
-                              final planned = vm.setLogs.length;
-                              final completed = vm.setLogs.values
-                                  .where((s) => s.isCompleted == true)
-                                  .length;
-                              final progress = planned == 0
-                                  ? 0.0
-                                  : completed / planned;
-                              return WorkoutSummaryBar(
-                                duration: vm.elapsedDuration,
-                                volume: vm.totalVolume,
-                                sets: planned,
-                                progress: progress,
-                              );
+                              return LiveWorkoutSummaryBar(workout: vm);
                             },
-                          ),
-                          Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withValues(alpha: 0.1),
                           ),
                           Expanded(
                             child: exercises.isEmpty

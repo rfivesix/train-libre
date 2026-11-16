@@ -25,15 +25,20 @@ void main() {
   late AppDatabase database;
   late WorkoutLocalDataSource workoutDb;
   late LiveWorkoutViewModel manager;
+  late int restDoneSounds;
 
   LiveWorkoutViewModel buildManager() => LiveWorkoutViewModel.forTesting(
     workoutDb: WorkoutRepository(
       localDataSource: WorkoutLocalDataSource(database),
     ),
+    playRestDoneSound: () async {
+      restDoneSounds++;
+    },
   );
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    restDoneSounds = 0;
     database = AppDatabase(NativeDatabase.memory());
     workoutDb = WorkoutLocalDataSource.forTesting(database);
     manager = buildManager();
@@ -115,6 +120,92 @@ void main() {
     ]);
     return log;
   }
+
+  test('foreground expiration plays the completion sound once', () async {
+    await startSession();
+    manager.setRestDeadline(
+      DateTime.now().add(const Duration(milliseconds: 100)),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 1300));
+    expect(manager.showRestDone, isTrue);
+    expect(restDoneSounds, 1);
+    manager.setRestDeadline(
+      DateTime.now().subtract(const Duration(seconds: 1)),
+    );
+    expect(restDoneSounds, 1);
+  });
+
+  test('shortening a running rest to zero plays the sound once', () async {
+    await startSession();
+    manager.setRestDeadline(DateTime.now().add(const Duration(seconds: 10)));
+    manager.adjustRestTime(-15);
+    expect(manager.showRestDone, isTrue);
+    expect(restDoneSounds, 1);
+    manager.adjustRestTime(-15);
+    expect(restDoneSounds, 1);
+  });
+
+  test(
+    'an elapsed rest remains visible and can be extended or dismissed',
+    () async {
+      await startSession();
+      manager.setRestDeadline(
+        DateTime.now().subtract(const Duration(seconds: 5)),
+      );
+      expect(manager.showRestDone, isTrue);
+      expect(manager.remainingRestSeconds, 0);
+
+      manager.adjustRestTime(15);
+      expect(manager.showRestDone, isFalse);
+      expect(manager.remainingRestSeconds, inInclusiveRange(14, 15));
+      manager.adjustRestTime(-30);
+      expect(manager.showRestDone, isTrue);
+      expect(manager.remainingRestSeconds, 0);
+      manager.cancelRest();
+      expect(manager.showRestDone, isFalse);
+      expect(manager.targetRestEndTime, isNull);
+    },
+  );
+
+  test(
+    'volume follows completed sets when editing, unchecking and deleting',
+    () async {
+      await startSession();
+      await manager.updateSet(1001, weight: 100, reps: 5, isCompleted: true);
+      await manager.updateSet(1002, weight: 80, reps: 10);
+      expect(manager.totalVolume, 500);
+
+      await manager.removeSet(1002);
+      expect(manager.totalVolume, 500);
+      await manager.updateSet(1001, weight: 90, reps: 5);
+      expect(manager.totalVolume, 450);
+      await manager.updateSet(1001, isCompleted: false);
+      expect(manager.totalVolume, 0);
+      await manager.removeExercise(100);
+      expect(manager.totalVolume, 0);
+    },
+  );
+
+  test(
+    'restored volume excludes unfinished sets and updates on removal',
+    () async {
+      await startSession();
+      await manager.updateSet(1001, weight: 100, reps: 5, isCompleted: true);
+      await manager.updateSet(1002, weight: 80, reps: 10);
+      expect(manager.totalVolume, 500);
+
+      final restored = await restartApp();
+      expect(restored.totalVolume, 500);
+      final templates = restored.exercises.first.setTemplates;
+      final unfinishedId = templates
+          .firstWhere((t) => restored.setLogs[t.id]!.isCompleted != true)
+          .id!;
+      await restored.removeSet(unfinishedId);
+      expect(restored.totalVolume, 500);
+      await restored.removeExercise(restored.exercises.first.id!);
+      expect(restored.totalVolume, 0);
+    },
+  );
 
   test(
     'a killed session comes back with its exercises in the same order',

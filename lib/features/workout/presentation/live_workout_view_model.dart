@@ -38,6 +38,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
   final WorkoutProgressionService _progressionService;
   final TrainingAutonomyService? _trainingAutonomyService;
   final bool _registerLifecycleObserver;
+  final Future<void> Function() _playRestDoneSound;
   late final LiveWorkoutLiveActivityCoordinator _liveActivityCoordinator;
 
   // ignore: unused_field
@@ -55,7 +56,11 @@ class LiveWorkoutViewModel extends ChangeNotifier
     this._trainingAutonomyService,
     this._registerLifecycleObserver = true,
     LiveWorkoutLiveActivityCoordinator? liveActivityCoordinator,
+    Future<void> Function()? playRestDoneSound,
   }) : _repository = repository,
+       _playRestDoneSound =
+           playRestDoneSound ??
+           (() => SoundService.instance.playTimerDoneSound()),
        _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
        _logSetUseCase = logSetUseCase ?? LogWorkoutSetUseCase(),
        _progressionService =
@@ -80,6 +85,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
     WorkoutProgressionService? progressionService,
     TrainingAutonomyService? trainingAutonomyService,
     LiveWorkoutLiveActivityCoordinator? liveActivityCoordinator,
+    Future<void> Function()? playRestDoneSound,
   }) {
     final resolvedUnitService = unitService ?? UnitService();
     return LiveWorkoutViewModel(
@@ -94,6 +100,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
       trainingAutonomyService: trainingAutonomyService,
       registerLifecycleObserver: false,
       liveActivityCoordinator: liveActivityCoordinator,
+      playRestDoneSound: playRestDoneSound,
     );
   }
 
@@ -173,7 +180,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
   DateTime? _targetRestEndTime;
   DateTime? _restStartedAt;
   int _remainingRestSeconds = 0;
-  Timer? _restDoneBannerTimer;
   bool _showRestDone = false;
   int _autoAdvanceRevision = 0;
   int? _autoAdvanceExerciseIndex;
@@ -181,7 +187,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
   Timer? _workoutDurationTimer;
   Duration _elapsedDuration = Duration.zero;
 
-  double _totalVolume = 0.0;
   int _totalSets = 0;
 
   final Map<String, Map<String, double>> _exerciseBests = {};
@@ -198,7 +203,18 @@ class LiveWorkoutViewModel extends ChangeNotifier
       StreamController<PRAlert>.broadcast();
   Stream<PRAlert> get prEvents => _prEventsController.stream;
 
-  double get totalVolume => _totalVolume;
+  /// The current session's performed volume, excluding unfinished rows.
+  double get totalVolume => _setLogs.values.fold(0.0, (total, set) {
+    final weight = set.weightKg ?? 0;
+    final reps = set.reps ?? 0;
+    if (set.isCompleted != true ||
+        !weight.isFinite ||
+        weight <= 0 ||
+        reps <= 0) {
+      return total;
+    }
+    return total + weight * reps;
+  });
   int get totalSets => _totalSets;
   @override
   WorkoutLog? get workoutLog => _workoutLog;
@@ -408,6 +424,15 @@ class LiveWorkoutViewModel extends ChangeNotifier
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _appLifecycleState = state;
+    final end = _targetRestEndTime;
+    if (end == null || !end.isAfter(DateTime.now())) return;
+    if (state == AppLifecycleState.resumed) {
+      _cancelRestSound();
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      _scheduleRestSound(end);
+    }
   }
 
   Future<void> tryRestoreSession() async {
@@ -480,7 +505,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
   }
 
   Future<void> _createInitialSetLogs() async {
-    _totalVolume = 0;
     _totalSets = 0;
 
     // Both the position and the exercise it belongs to are written with the
@@ -560,7 +584,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
     _routineExerciseNoteTargetsByBlock.clear();
     _exercises = restoredExercises;
     pauseTimes.clear();
-    _totalVolume = 0;
     _totalSets = 0;
 
     if (savedSets.isEmpty) {
@@ -685,7 +708,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
             WorkoutSetPositionMapper.isWorking(s.setType)) {
           _completedWorkingOrder.add(templateId);
         }
-        _totalVolume += (s.weightKg ?? 0) * (s.reps ?? 0);
         _totalSets++;
       }
 
@@ -1026,13 +1048,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
     if (finalSet.rir != oldLog.rir) {
       rirControllers[templateId]?.text = finalSet.rir?.toString() ?? '';
     }
-    // Suggestions populate open rows before they are checked, so the generic
-    // use case sees no value delta on completion. Volume must instead track
-    // the completed state transition itself.
-    double completedVolume(SetLog set) =>
-        set.isCompleted == true ? (set.weightKg ?? 0) * (set.reps ?? 0) : 0;
-    _totalVolume += completedVolume(finalSet) - completedVolume(oldLog);
-
     if (isCompleted == true && oldLog.isCompleted != true) {
       if (WorkoutSetPositionMapper.isWorking(finalSet.setType)) {
         _completedWorkingOrder.remove(templateId);
@@ -1511,7 +1526,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
         break;
       }
     }
-    _totalVolume -= (log.weightKg ?? 0) * (log.reps ?? 0);
     _totalSets--;
 
     weightControllers[templateId]?.dispose();
@@ -1635,7 +1649,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
       final log = _setLogs[t.id];
       if (log != null) {
         if (log.id != null) idsToDelete.add(log.id!);
-        _totalVolume -= (log.weightKg ?? 0) * (log.reps ?? 0);
         _totalSets--;
         _setLogs.remove(t.id);
 
@@ -1879,22 +1892,23 @@ class LiveWorkoutViewModel extends ChangeNotifier
     notifyListeners();
   }
 
-  void _startRestTimer(int seconds) {
+  void _startRestTimer(int seconds, {DateTime? deadline}) {
     _restTimer?.cancel();
-    _restDoneBannerTimer?.cancel();
     _cancelRestSound();
     _showRestDone = false;
     _remainingRestSeconds = seconds;
     _restStartedAt = DateTime.now();
-    _targetRestEndTime = _restStartedAt!.add(Duration(seconds: seconds));
+    _targetRestEndTime =
+        deadline ?? _restStartedAt!.add(Duration(seconds: seconds));
 
-    _scheduleRestSound(_targetRestEndTime!);
+    if (!_isAppInForeground) _scheduleRestSound(_targetRestEndTime!);
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_targetRestEndTime != null) {
-        final remaining = _targetRestEndTime!
-            .difference(DateTime.now())
-            .inSeconds;
+        final remaining =
+            (_targetRestEndTime!.difference(DateTime.now()).inMilliseconds /
+                    1000)
+                .ceil();
         if (remaining > 0) {
           if (_remainingRestSeconds != remaining) {
             _remainingRestSeconds = remaining;
@@ -1905,26 +1919,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
           _remainingRestSeconds = 0;
           _showRestDone = true;
 
-          if (_isAppInForeground) {
-            try {
-              unawaited(HapticFeedbackService.instance.vibrate());
-              unawaited(SoundService.instance.playTimerDoneSound());
-              // A banner on top of a visible Live Activity is pure noise —
-              // the card already says the pause is over. Sound and haptics,
-              // which are the actual point, still fire.
-              if (!_liveActivityRunning) {
-                unawaited(
-                  LocalNotificationService.instance
-                      .showRestTimerDoneNotification(foreground: true),
-                );
-              }
-            } catch (_) {}
-          }
+          if (_isAppInForeground) _signalRestCompleted();
 
-          _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
-            _showRestDone = false;
-            notifyListeners();
-          });
           notifyListeners();
           // Push the overdue state the moment the pause ends. Without this the
           // Live Activity only switches when iOS gets around to honouring
@@ -1952,34 +1948,41 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
   @override
   void adjustRestTime(int deltaSeconds) {
-    if (_remainingRestSeconds <= 0) return;
-    _remainingRestSeconds += deltaSeconds;
-    if (_targetRestEndTime != null) {
-      _targetRestEndTime = _targetRestEndTime!.add(
-        Duration(seconds: deltaSeconds),
-      );
-    }
+    if (_targetRestEndTime == null) return;
+    final now = DateTime.now();
+    final base = _targetRestEndTime!.isAfter(now) ? _targetRestEndTime! : now;
+    setRestDeadline(base.add(Duration(seconds: deltaSeconds)));
+  }
 
+  @override
+  void setRestDeadline(DateTime deadline) {
+    final remaining =
+        (deadline.difference(DateTime.now()).inMilliseconds / 1000).ceil();
+    if (remaining > 0) {
+      _startRestTimer(remaining, deadline: deadline);
+      return;
+    }
+    final wasRunning = _remainingRestSeconds > 0;
+    _restTimer?.cancel();
     _cancelRestSound();
-
-    if (_remainingRestSeconds <= 0) {
-      _remainingRestSeconds = 0;
-      _restTimer?.cancel();
-      if (_isAppInForeground) {
-        try {
-          unawaited(HapticFeedbackService.instance.vibrate());
-        } catch (_) {}
-      }
-      _showRestDone = true;
-      _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
-        _showRestDone = false;
-        notifyListeners();
-      });
-    } else if (_targetRestEndTime != null) {
-      _scheduleRestSound(_targetRestEndTime!);
-    }
+    _targetRestEndTime = deadline;
+    _remainingRestSeconds = 0;
+    _showRestDone = true;
+    if (wasRunning && _isAppInForeground) _signalRestCompleted();
     notifyListeners();
     unawaited(_syncLiveActivity());
+  }
+
+  void _signalRestCompleted() {
+    unawaited(HapticFeedbackService.instance.vibrate());
+    unawaited(_playRestDoneSound());
+    if (!_liveActivityRunning) {
+      unawaited(
+        LocalNotificationService.instance.showRestTimerDoneNotification(
+          foreground: true,
+        ),
+      );
+    }
   }
 
   void _startWorkoutTimer() {
@@ -2092,7 +2095,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
       _pausedSetTimerId = null;
       _pausedSetTimerElapsedSeconds = 0;
       _restTimer?.cancel();
-      _restDoneBannerTimer?.cancel();
       _showRestDone = false;
       _remainingRestSeconds = 0;
       _targetRestEndTime = null;
@@ -2144,7 +2146,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
     _pausedSetTimerId = null;
     _pausedSetTimerElapsedSeconds = 0;
     _restTimer?.cancel();
-    _restDoneBannerTimer?.cancel();
     _cancelRestSound();
     // Covers the abort path — a discarded workout must not leave an activity
     // behind on the lock screen.
@@ -2161,7 +2162,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
     _remainingRestSeconds = 0;
     _showRestDone = false;
     _elapsedDuration = Duration.zero;
-    _totalVolume = 0.0;
     _totalSets = 0;
     _suggestions.clear();
     _suggestedTemplates.clear();
@@ -2201,7 +2201,6 @@ class LiveWorkoutViewModel extends ChangeNotifier
     _isDisposed = true;
     _trainingAutonomyService?.removeListener(_onAutonomyChanged);
     _restTimer?.cancel();
-    _restDoneBannerTimer?.cancel();
     _workoutDurationTimer?.cancel();
     _setTimerTicker?.cancel();
     _prEventsController.close();

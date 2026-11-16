@@ -9667,4 +9667,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get glassCustomizationDescription =>
       'Ajusta el cristal de transparente a tintado.';
+
+  @override
+  String get sessionMusclesTitle => 'Músculos de esta sesión';
+
+  @override
+  String get sessionMusclesWorked => 'Ya trabajados';
+
+  @override
+  String get sessionMusclesRemaining => 'Aún pendientes';
+
+  @override
+  String get discardWorkoutAction => 'Descartar entrenamiento';
 }

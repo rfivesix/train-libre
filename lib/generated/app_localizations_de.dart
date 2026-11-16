@@ -9588,4 +9588,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get glassCustomizationDescription =>
       'Passe die Glasdarstellung von klar bis getönt an.';
+
+  @override
+  String get sessionMusclesTitle => 'Beanspruchte Muskeln';
+
+  @override
+  String get sessionMusclesWorked => 'Bereits trainiert';
+
+  @override
+  String get sessionMusclesRemaining => 'Noch ausstehend';
+
+  @override
+  String get discardWorkoutAction => 'Workout verwerfen';
 }

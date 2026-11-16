@@ -10,6 +10,7 @@ import 'package:train_libre/features/workout/data/workout_repository.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/presentation/workout_log_detail_screen.dart';
 import 'package:train_libre/features/workout/presentation/widgets/workout_exercise_log_card.dart';
+import 'package:train_libre/features/workout/presentation/widgets/workout_heart_rate_section.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -67,6 +68,24 @@ void main() {
   tearDown(() async {
     await database.close();
   });
+
+  testWidgets(
+    'hides heart rate when tracking is enabled but no samples exist',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'unit_system': 'metric',
+        'pulse_tracking_enabled': true,
+      });
+      await tester.pumpWidget(
+        _wrap(WorkoutLogDetailScreen(logId: logId), repo),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(WorkoutHeartRateSection), findsNothing);
+      await tester.pumpWidget(Container());
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('reactive propagation in read-only mode', (tester) async {
     await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));

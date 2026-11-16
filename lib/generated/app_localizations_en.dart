@@ -9515,4 +9515,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get glassCustomizationDescription =>
       'Adjust the glass appearance from clear to tinted.';
+
+  @override
+  String get sessionMusclesTitle => 'What this session hits';
+
+  @override
+  String get sessionMusclesWorked => 'Already worked';
+
+  @override
+  String get sessionMusclesRemaining => 'Still to come';
+
+  @override
+  String get discardWorkoutAction => 'Discard workout';
 }

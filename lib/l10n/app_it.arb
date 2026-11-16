@@ -3864,5 +3864,9 @@
   "glassOpacity": "Opacità",
   "glassOpacityClear": "0% (Trasparente)",
   "glassReset": "Ripristina",
-  "glassCustomizationDescription": "Regola il vetro da chiaro a colorato."
+  "glassCustomizationDescription": "Regola il vetro da chiaro a colorato.",
+  "sessionMusclesTitle": "Muscoli della sessione",
+  "sessionMusclesWorked": "Già allenati",
+  "sessionMusclesRemaining": "Da allenare",
+  "discardWorkoutAction": "Elimina allenamento"
 }

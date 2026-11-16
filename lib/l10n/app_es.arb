@@ -4355,5 +4355,9 @@
   "glassOpacity": "Opacidad",
   "glassOpacityClear": "0 % (Transparente)",
   "glassReset": "Restablecer",
-  "glassCustomizationDescription": "Ajusta el cristal de transparente a tintado."
+  "glassCustomizationDescription": "Ajusta el cristal de transparente a tintado.",
+  "sessionMusclesTitle": "Músculos de esta sesión",
+  "sessionMusclesWorked": "Ya trabajados",
+  "sessionMusclesRemaining": "Aún pendientes",
+  "discardWorkoutAction": "Descartar entrenamiento"
 }

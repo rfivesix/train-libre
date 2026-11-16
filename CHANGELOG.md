@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Fixed iOS Live Activity rest adjustments being overwritten by stale app state, and synchronize their updated deadlines when returning to the app.
+- Restored the foreground rest-completion sound, including when shortening a running timer to zero, while scheduling notifications for the background separately.
+- Fixed live workout volume becoming negative or including unfinished sets after editing, deleting, or restoring a workout; the total now reflects completed sets.
+- Hid the heart-rate section in workout details when no samples are available.
 - Restored the original appearance of glass bottom sheets and date and time pickers, independent of the glass appearance setting.
 - Fixed diary sleep and pulse data not loading on initial screen entry and prevented empty health cards from briefly shifting the diary layout.
 - Fixed iOS step totals double-counting overlapping iPhone and Apple Watch records by importing HealthKit's source-merged hourly statistics and replacing previously imported Apple step records during migration.
@@ -22,10 +26,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
 
 ### Added
+- Added a live workout muscle overview showing completed and planned sets by muscle group, excluding cardio exercises.
 - Added a clear-to-tinted glass appearance slider with a live preview of the app's navigation bar and a food illustration.
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Keep the live workout rest bar visible after the timer ends, with controls to adjust the rest or dismiss it; enlarged the timer and refined the compact Dynamic Island appearance while retaining the expanded layout.
+- Redesigned the live workout summary with elapsed time, completed and planned sets, a muscle overview shortcut, and volume beside the progress bar; the workout detail summary remains unchanged.
+- Added a discard action to the finish workout menu with a separate confirmation before deleting the session.
 - Updated `liquid_glass_widgets` to 1.17.3 and use its iOS 27 light and dark presets for the default glass appearance. The appearance slider adjusts frost and blur around the preset, with a transparency fallback on renderers without premium frost.
 - Replaced sliders in Appearance, AI settings, and developer tools with platform-adaptive controls using Liquid Glass on iOS and Material styling elsewhere, including continuous and stepped values.
 - Updated Flutter and Dart requirements, refreshed app and development dependencies, and updated the screenshot editor and iOS release tooling.

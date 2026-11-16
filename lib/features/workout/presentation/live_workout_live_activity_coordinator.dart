@@ -32,6 +32,7 @@ abstract class LiveWorkoutLiveActivityHost {
 
   void cancelRest();
   void adjustRestTime(int deltaSeconds);
+  void setRestDeadline(DateTime deadline);
   Future<void> completeTimedSet(int timerTemplateId, {int? elapsedSeconds});
   void startSetTimer(
     int templateId, {
@@ -218,7 +219,14 @@ class LiveWorkoutLiveActivityCoordinator {
           _host.cancelRest();
         case 'adjustRest':
           final delta = command['deltaSeconds'];
-          if (delta is int) _host.adjustRestTime(delta);
+          final deadlineMs = command['restEndsAtEpochMs'];
+          if (deadlineMs is int) {
+            _host.setRestDeadline(
+              DateTime.fromMillisecondsSinceEpoch(deadlineMs),
+            );
+          } else if (delta is int) {
+            _host.adjustRestTime(delta);
+          }
         case 'completeSet':
           final timerTemplateId = command['timerTemplateId'];
           final elapsedSeconds = command['elapsedSeconds'];

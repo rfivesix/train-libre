@@ -4355,5 +4355,9 @@
   "glassOpacity": "Dekking",
   "glassOpacityClear": "0% (Helder)",
   "glassReset": "Herstellen",
-  "glassCustomizationDescription": "Pas de glasweergave aan van helder tot getint."
+  "glassCustomizationDescription": "Pas de glasweergave aan van helder tot getint.",
+  "sessionMusclesTitle": "Spieren in deze sessie",
+  "sessionMusclesWorked": "Al getraind",
+  "sessionMusclesRemaining": "Nog te trainen",
+  "discardWorkoutAction": "Training verwerpen"
 }

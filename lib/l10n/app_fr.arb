@@ -3864,5 +3864,9 @@
   "glassOpacity": "Opacité",
   "glassOpacityClear": "0 % (Transparent)",
   "glassReset": "Réinitialiser",
-  "glassCustomizationDescription": "Réglez le verre de clair à teinté."
+  "glassCustomizationDescription": "Réglez le verre de clair à teinté.",
+  "sessionMusclesTitle": "Muscles de cette séance",
+  "sessionMusclesWorked": "Déjà sollicités",
+  "sessionMusclesRemaining": "À venir",
+  "discardWorkoutAction": "Abandonner la séance"
 }
