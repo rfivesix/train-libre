@@ -73,7 +73,7 @@ dependencies:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^1.17.2
+  liquid_glass_widgets: ^1.17.3
   flutter_lucide: ^1.71.0 # 1.38 renamed LucideIcons.history to rotate_ccw_clock
   icloud_storage: ^2.2.0
   skeletonizer: ^3.0.0

@@ -79,10 +79,13 @@ void main() {
       tester.widget<GlassTabBar>(glass).settings!.glassColor.a,
       greaterThan(initialAlpha),
     );
-    expect(tester.widget<GlassTabBar>(glass).settings!.frost, 6);
+    expect(
+      tester.widget<GlassTabBar>(glass).settings!.frost,
+      initialSettings.frost,
+    );
     expect(
       tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
-      greaterThan(initialFrostOpacity),
+      initialFrostOpacity,
     );
     expect(tester.widget<GlassTabBar>(glass).indicatorSettings, isNull);
     expect(
@@ -102,18 +105,18 @@ void main() {
     expect(tester.widget<GlassTabBar>(glass).settings!.blur, initialBlur);
     expect(
       tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
-      lessThan(initialFrostOpacity),
+      initialFrostOpacity,
     );
     expect(tester.widget<GlassTabBar>(glass).indicatorSettings, isNull);
     await tester.tapAt(Offset(blurBounds.right - 1, blurBounds.center.dy));
     await tester.pump();
     expect(
       tester.widget<GlassTabBar>(glass).settings!.blur,
-      greaterThan(initialBlur * 8),
+      greaterThan(initialBlur + 1),
     );
     expect(
-      tester.widget<GlassTabBar>(glass).settings!.frostOpacity,
-      greaterThan(0.95),
+      tester.widget<GlassTabBar>(glass).settings!.glassColor.a,
+      greaterThan(initialAlpha),
     );
     await tester.tap(find.text('Reset'));
     await tester.pump();

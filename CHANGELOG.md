@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Updated `liquid_glass_widgets` to 1.17.3 and use its iOS 27 light and dark presets for the default glass appearance. The appearance slider adjusts frost and blur around the preset, with a transparency fallback on renderers without premium frost.
+- Replaced sliders in Appearance, AI settings, and developer tools with platform-adaptive controls using Liquid Glass on iOS and Material styling elsewhere, including continuous and stepped values.
 - Updated Flutter and Dart requirements, refreshed app and development dependencies, and updated the screenshot editor and iOS release tooling.
 - Replaced the diary step progress bar with a health summary card that shows the daily count and goal, or an empty state when no data is available, and opens the selected day's steps with a morph transition.
 

@@ -38,6 +38,35 @@ class GlassPreferences {
 
   LiquidGlassSettings apply(LiquidGlassSettings base, {bool premium = false}) {
     final color = base.glassColor;
+    // Keep the library's calibrated material intact at the default slider
+    // position. Its demo does not define presets for the intermediate levels:
+    // interpolate frost opacity around the supplied native-comparison value.
+    if (base.lensModel == GlassLensModel.paraxial && base.frost == 14) {
+      final level = ((opacity - 0.3) / 1.2).clamp(0.0, 1.0);
+      if ((level - 0.5).abs() < 0.000001) return base;
+      if (premium && supportsFrost) {
+        final frostOpacity = level < 0.5
+            ? base.frostOpacity * (0.25 + 1.5 * level)
+            : base.frostOpacity +
+                  (0.98 - base.frostOpacity) * (level - 0.5) * 2;
+        return base.copyWith(
+          frostOpacity: frostOpacity,
+          blur:
+              base.blur +
+              (blur - ThemeService.defaultGlassBlur).clamp(0.0, 2.0),
+        );
+      }
+      return base.copyWith(
+        blur:
+            base.blur + (blur - ThemeService.defaultGlassBlur).clamp(0.0, 2.0),
+        glassColor: color.withValues(
+          alpha: (color.a * (opacity / ThemeService.defaultGlassOpacity)).clamp(
+            0.0,
+            1.0,
+          ),
+        ),
+      );
+    }
     // A compact frost cloud softens fine detail without letting strong colours
     // spread too far into neighbouring parts of the backdrop.
     // Don't add a cloud to an indicator lens, whose base blur is deliberately 0.

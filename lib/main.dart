@@ -265,6 +265,7 @@ void main() async {
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(
     LiquidGlassWidgets.wrap(
+      theme: const GlassThemeData.ios27(),
       adaptiveQuality: true,
       adaptiveConfig: GlassAdaptiveScopeConfig(
         initialQuality:

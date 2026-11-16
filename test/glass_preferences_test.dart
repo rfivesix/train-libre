@@ -105,7 +105,7 @@ void main() {
       expect(tinted.glassColor, middle.glassColor);
       expect(clear.blur, middle.blur);
       expect(tinted.blur, middle.blur);
-      expect(clear.frost, 6);
+      expect(clear.frost, base.frost);
       expect(tinted.frost, clear.frost);
       expect(clear.frostOpacity, lessThan(middle.frostOpacity));
       expect(middle.frostOpacity, lessThan(tinted.frostOpacity));
@@ -137,7 +137,25 @@ void main() {
     expect(clear.blur, tinted.blur);
     expect(clear.glassColor.a, lessThan(tinted.glassColor.a));
     final standard = const GlassPreferences().apply(base);
-    expect(standard.frost, 0);
+    expect(standard.frost, base.frost);
+  });
+
+  test('default glass is the package iOS 27 preset in both themes', () {
+    for (final dark in [false, true]) {
+      final expected = dark
+          ? LiquidGlassSettings.ios27Dark
+          : LiquidGlassSettings.ios27Light;
+      final base = DesignConstants.liquidGlassSettings(dark);
+      expect(identical(base, expected), isTrue);
+      expect(
+        identical(
+          const GlassPreferences().apply(base, premium: true),
+          expected,
+        ),
+        isTrue,
+      );
+      expect(identical(const GlassPreferences().apply(base), expected), isTrue);
+    }
   });
 
   testWidgets('removed switches no longer affect saved glass preferences', (

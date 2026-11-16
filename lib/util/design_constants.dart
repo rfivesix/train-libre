@@ -260,20 +260,9 @@ class DesignConstants {
 
   /// Unified settings for liquid glassmorphic rendering.
   ///
-  /// Neutral, softly diffused navigation glass, adjusted by the user's
-  /// clear-to-tinted preference.
+  /// The package's native-comparison iOS 27 material, before user adjustments.
   static LiquidGlassSettings liquidGlassSettings(bool isDark) =>
-      LiquidGlassSettings(
-        thickness: 30,
-        blur: 4.0,
-        glassColor: glassColor(isDark),
-        lightIntensity: isDark ? 0.20 : 0.24,
-        saturation: 1.2,
-        ambientRim: 0.0,
-        fresnelStrength: 0.0,
-        whitenStrength: isDark ? 0.00 : 0.05,
-        whitenGated: !isDark,
-      );
+      isDark ? LiquidGlassSettings.ios27Dark : LiquidGlassSettings.ios27Light;
 
   /// The primary brand color for Train Libre, sourced from the app icon.
   static const Color brandAccentColor = Color(0xFFDDFF00);
