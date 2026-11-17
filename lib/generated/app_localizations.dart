@@ -10908,31 +10908,31 @@ abstract class AppLocalizations {
   /// No description provided for @infoSleepTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sleep Quality (SHS v3.5)'**
+  /// **'Sleep score'**
   String get infoSleepTitle;
 
   /// No description provided for @infoSleepExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Calculates a comprehensive sleep index from quantity, continuity, depth, timing, and daily regularity.'**
+  /// **'An estimate based on the available data.'**
   String get infoSleepExplanation;
 
   /// No description provided for @infoSleepKeyPoints.
   ///
   /// In en, this message translates to:
-  /// **'• Aggregates five clinical dimensions using a weighted sum.\n• Automatically scales requirements if your wearable does not provide specific stages or efficiency data.\n• Protects you via soft-cap multipliers that limit the total score if a critical domain (like REM or Deep sleep) is compromised.'**
+  /// **'Duration, continuity, deep sleep, REM and regularity contribute.\nMissing components are excluded.\nStage estimates are imperfect.'**
   String get infoSleepKeyPoints;
 
   /// No description provided for @infoSleepTechnicalTitle.
   ///
   /// In en, this message translates to:
-  /// **'Weighted Baseline & Continuous Soft-Caps'**
+  /// **'How it is calculated'**
   String get infoSleepTechnicalTitle;
 
   /// No description provided for @infoSleepTechnicalExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing.'**
+  /// **'Duration 45%, continuity 25%, deep 10%, REM 10%, regularity 10%. Short duration can cap the final score. This is not a clinical measurement.'**
   String get infoSleepTechnicalExplanation;
 
   /// No description provided for @tdeeRecalculationNotificationTitle.
@@ -16760,6 +16760,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard workout'**
   String get discardWorkoutAction;
+
+  /// No description provided for @sleepDashboardScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep score'**
+  String get sleepDashboardScore;
+
+  /// No description provided for @sleepDashboardGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep goal'**
+  String get sleepDashboardGoal;
+
+  /// No description provided for @sleepDashboardGoalEight.
+  ///
+  /// In en, this message translates to:
+  /// **'8 h goal'**
+  String get sleepDashboardGoalEight;
+
+  /// No description provided for @sleepDashboardSevenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String sleepDashboardSevenDays(int count);
+
+  /// No description provided for @sleepDashboardRecordedNights.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded nights'**
+  String get sleepDashboardRecordedNights;
+
+  /// No description provided for @sleepDashboardStageEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep stages are estimates.'**
+  String get sleepDashboardStageEstimate;
+
+  /// No description provided for @sleepDashboardStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the chart to inspect a stage.'**
+  String get sleepDashboardStageHint;
+
+  /// No description provided for @sleepDashboardEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency'**
+  String get sleepDashboardEfficiency;
+
+  /// No description provided for @sleepDashboardStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get sleepDashboardStart;
+
+  /// No description provided for @sleepDashboardEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get sleepDashboardEnd;
+
+  /// No description provided for @sleepDashboardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sleep data for this day.'**
+  String get sleepDashboardEmpty;
+
+  /// No description provided for @sleepDashboardNightHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate during sleep'**
+  String get sleepDashboardNightHeartRate;
+
+  /// No description provided for @sleepDashboardNightHrv.
+  ///
+  /// In en, this message translates to:
+  /// **'HRV during sleep'**
+  String get sleepDashboardNightHrv;
+
+  /// No description provided for @sleepDashboardSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Available measurements'**
+  String get sleepDashboardSamples;
+
+  /// No description provided for @sleepDashboardContributors.
+  ///
+  /// In en, this message translates to:
+  /// **'Score contributors'**
+  String get sleepDashboardContributors;
+
+  /// No description provided for @sleepDashboardInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data'**
+  String get sleepDashboardInsufficient;
+
+  /// No description provided for @sleepDashboardAsleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Time asleep'**
+  String get sleepDashboardAsleep;
+
+  /// No description provided for @hrvTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate variability'**
+  String get hrvTitle;
+
+  /// No description provided for @hrvUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No HRV data available'**
+  String get hrvUnavailable;
+
+  /// No description provided for @hrvMethodNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean of available Apple Health SDNN samples in milliseconds.'**
+  String get hrvMethodNote;
+
+  /// No description provided for @hrvNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No HRV data available'**
+  String get hrvNoData;
+
+  /// No description provided for @sleepDashboardDebtNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed nights only; not a physiological measure of sleep debt.'**
+  String get sleepDashboardDebtNote;
+
+  /// No description provided for @sleepDashboardEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate · limited data'**
+  String get sleepDashboardEstimate;
+
+  /// No description provided for @sleepDashboardDurationCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration limits the score'**
+  String get sleepDashboardDurationCap;
+
+  /// No description provided for @sleepDashboardHrvError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load HRV measurements.'**
+  String get sleepDashboardHrvError;
+
+  /// No description provided for @pulseSettingsEnableSubtitleIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads heart rate and Apple Health HRV when you enable pulse analysis.'**
+  String get pulseSettingsEnableSubtitleIos;
+
+  /// No description provided for @pulseSettingsPermissionSubtitleIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access to heart rate and HRV in Apple Health.'**
+  String get pulseSettingsPermissionSubtitleIos;
+
+  /// No description provided for @pulseHealthStatusIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health does not reveal read permissions. If values are missing, check access in Health.'**
+  String get pulseHealthStatusIos;
+
+  /// No description provided for @sleepDashboardTonightDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight vs. goal'**
+  String get sleepDashboardTonightDelta;
+
+  /// No description provided for @sleepDashboardMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum'**
+  String get sleepDashboardMinimum;
+
+  /// No description provided for @sleepDashboardAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get sleepDashboardAverage;
+
+  /// No description provided for @sleepDashboardPersonalBaseline.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal baseline (previous 30 days)'**
+  String get sleepDashboardPersonalBaseline;
+
+  /// No description provided for @sleepDashboardBaselineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough comparable nights for a baseline'**
+  String get sleepDashboardBaselineUnavailable;
+
+  /// No description provided for @hrvQueryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load HRV. Try again.'**
+  String get hrvQueryFailed;
 }
 
 class _AppLocalizationsDelegate

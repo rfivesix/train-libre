@@ -443,6 +443,7 @@ class BackupManager {
     payload['pulse_aggregate_metadata'] = await _fetchTable(
       'pulse_aggregate_metadata',
     );
+    payload['pulse_hrv_samples'] = await _fetchTable('pulse_hrv_samples');
     token?.throwIfCancelled();
 
     // Raw rows rather than a typed model: this table still moves with the AI
@@ -907,6 +908,7 @@ class BackupManager {
           await dbInst.customStatement('DELETE FROM sleep_raw_imports');
           await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
           await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
+          await dbInst.customStatement('DELETE FROM pulse_hrv_samples');
           await dbInst.customStatement('DELETE FROM user_food_overrides');
           await dbInst.customStatement(
             'DELETE FROM user_food_override_translations',
@@ -1365,6 +1367,7 @@ class BackupManager {
             'pulse_aggregate_metadata',
             payload['pulse_aggregate_metadata'],
           );
+          await _importTable('pulse_hrv_samples', payload['pulse_hrv_samples']);
           token?.throwIfCancelled();
 
           onProgress?.call('cardio_data', 0.999);

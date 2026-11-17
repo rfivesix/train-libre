@@ -1,21 +1,31 @@
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
-
-import '../../../../util/design_constants.dart';
-
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../../../generated/app_localizations.dart';
-import '../../domain/sleep_domain.dart';
+import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_section_header.dart';
 import '../../data/sleep_day_repository.dart';
+import '../../domain/sleep_domain.dart';
 
-class SleepTimelineCard extends StatelessWidget {
+class SleepTimelineCard extends StatefulWidget {
   const SleepTimelineCard({super.key, required this.overview});
 
   final SleepDayOverviewData overview;
 
   @override
+  State<SleepTimelineCard> createState() => _SleepTimelineCardState();
+}
+
+class _SleepTimelineCardState extends State<SleepTimelineCard> {
+  _ChartStageSegment? _selected;
+  SleepDayOverviewData get overview => widget.overview;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final chartSegments = _toChartSegments(overview.timelineSegments);
     if (chartSegments.isEmpty) {
       return Padding(
@@ -25,51 +35,251 @@ class SleepTimelineCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.sleepTimelineTitle,
-              style: Theme.of(context).textTheme.titleMedium,
+            AppSectionHeader(
+              title: l10n.sleepTimelineTitle,
+              padding: EdgeInsets.zero,
             ),
             const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.sleepTimelineUnavailable),
+            Text(
+              l10n.sleepTimelineUnavailable,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       );
     }
+
     final chartStart = chartSegments.first.startAtUtc;
     final chartEnd = chartSegments.last.endAtUtc;
-    final labels = _timelineLegend(chartSegments, l10n);
     final colors = _sleepStageColors();
+    final stages = _allStageRows(l10n, colors);
     final use24h = MediaQuery.of(context).alwaysUse24HourFormat;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.spacingL,
+    final timeFormatter = use24h ? DateFormat.Hm() : DateFormat.jm();
+
+    Duration stageDuration(_SleepChartStage stage) => chartSegments
+        .where((segment) => segment.stage == stage)
+        .fold(
+          Duration.zero,
+          (total, segment) =>
+              total + segment.endAtUtc.difference(segment.startAtUtc),
+        );
+
+    final totalStageSeconds = stages.fold<int>(
+      0,
+      (sum, entry) => sum + stageDuration(entry.$1).inSeconds,
+    );
+    int stagePercent(_SleepChartStage stage) => totalStageSeconds > 0
+        ? ((stageDuration(stage).inSeconds / totalStageSeconds) * 100).round()
+        : 0;
+
+    final axisTextStyle = (theme.textTheme.bodySmall ?? const TextStyle())
+        .copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurfaceVariant,
+        );
+
+    const double rowHeight = 36.0;
+    const double totalChartHeight = rowHeight * 4;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppSectionHeader(
+            title: l10n.sleepTimelineTitle,
+            padding: EdgeInsets.zero,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.sleepTimelineTitle,
-                style: Theme.of(context).textTheme.titleMedium,
+          const SizedBox(height: DesignConstants.spacingS),
+          SizedBox(
+            height: totalChartHeight,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _DashedHorizontalRowsPainter(
+                rowCount: 4,
+                gridColor: theme.colorScheme.outlineVariant,
               ),
-              const SizedBox(height: DesignConstants.spacingM),
-              _SleepTimelineLegend(labels: labels),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        right: DesignConstants.spacingM,
+                      ),
+                      child: Column(
+                        children: [
+                          for (final (stage, label, color) in stages)
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 5,
+                                    child: Text(
+                                      label,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: color,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      '${stagePercent(stage)}%',
+                                      textAlign: TextAlign.right,
+                                      maxLines: 1,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 5,
+                                    child: Text(
+                                      _formatStageDuration(
+                                        stageDuration(stage),
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      maxLines: 1,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: theme.colorScheme.onSurface,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: _SleepTimelinePlot(
+                      onSelected: (segment) =>
+                          setState(() => _selected = segment),
+                      segments: chartSegments,
+                      startAtUtc: chartStart,
+                      endAtUtc: chartEnd,
+                      colors: colors,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXS),
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: _selected == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(
+                          right: DesignConstants.spacingM,
+                        ),
+                        child: Text(
+                          '${stages.firstWhere((e) => e.$1 == _selected!.stage).$2} · ${timeFormatter.format(_selected!.startAtUtc.toLocal())} – ${timeFormatter.format(_selected!.endAtUtc.toLocal())}',
+                          style: axisTextStyle,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+              ),
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  key: const Key('sleep-timeline-axis'),
+                  height: 20,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        timeFormatter.format(chartStart.toLocal()),
+                        key: const Key('sleep-timeline-tick-0'),
+                        style: axisTextStyle,
+                      ),
+                      Text(
+                        timeFormatter.format(chartEnd.toLocal()),
+                        key: const Key('sleep-timeline-tick-1'),
+                        style: axisTextStyle,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
-        ),
-        const SizedBox(height: 14),
-        _SleepTimelinePlot(
-          segments: chartSegments,
-          startAtUtc: chartStart,
-          endAtUtc: chartEnd,
-          colors: colors,
-          gridColor: Theme.of(context).colorScheme.outlineVariant,
-          use24HourFormat: use24h,
-        ),
-      ],
+        ],
+      ),
     );
+  }
+}
+
+class _DashedHorizontalRowsPainter extends CustomPainter {
+  const _DashedHorizontalRowsPainter({
+    required this.rowCount,
+    required this.gridColor,
+  });
+
+  final int rowCount;
+  final Color gridColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (rowCount <= 0) return;
+    final rowHeight = size.height / rowCount;
+    final paint = Paint()
+      ..color = gridColor.withValues(alpha: 0.45)
+      ..strokeWidth = 1.0;
+
+    for (var i = 1; i <= rowCount; i++) {
+      final y = i * rowHeight;
+      _drawDashedHorizontalLine(
+        canvas,
+        y: y,
+        left: 0,
+        right: size.width,
+        paint: paint,
+      );
+    }
+  }
+
+  void _drawDashedHorizontalLine(
+    Canvas canvas, {
+    required double y,
+    required double left,
+    required double right,
+    required Paint paint,
+  }) {
+    const dashLength = 3.0;
+    const gapLength = 3.0;
+    var x = left;
+    while (x < right) {
+      final x2 = (x + dashLength).clamp(left, right);
+      canvas.drawLine(Offset(x, y), Offset(x2, y), paint);
+      x += dashLength + gapLength;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedHorizontalRowsPainter oldDelegate) {
+    return oldDelegate.rowCount != rowCount ||
+        oldDelegate.gridColor != gridColor;
   }
 }
 
@@ -79,223 +289,72 @@ class _SleepTimelinePlot extends StatelessWidget {
     required this.startAtUtc,
     required this.endAtUtc,
     required this.colors,
-    required this.gridColor,
-    required this.use24HourFormat,
+    required this.onSelected,
   });
 
   final List<_ChartStageSegment> segments;
   final DateTime startAtUtc;
   final DateTime endAtUtc;
   final Map<_SleepChartStage, Color> colors;
-  final Color gridColor;
-  final bool use24HourFormat;
+  final ValueChanged<_ChartStageSegment?> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final axisTextStyle = (theme.textTheme.bodySmall ?? const TextStyle())
-        .copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: theme.colorScheme.onSurfaceVariant,
-        );
     return LayoutBuilder(
       builder: (context, constraints) {
-        final ticks = _buildTimelineTicks(
-          startAtUtc: startAtUtc,
-          endAtUtc: endAtUtc,
-          use24HourFormat: use24HourFormat,
-          availableWidth: constraints.maxWidth,
-          textStyle: axisTextStyle,
-        );
-        return Column(
-          children: [
-            SizedBox(
-              height: 136,
-              width: double.infinity,
-              child: CustomPaint(
-                painter: _SleepStagesPainter(
-                  segments: segments,
-                  startAtUtc: startAtUtc,
-                  endAtUtc: endAtUtc,
-                  colors: colors,
-                  gridColor: gridColor,
-                  timestampTicksUtc: ticks
-                      .map((tick) => tick.timestampUtc)
-                      .toList(growable: false),
-                ),
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (details) {
+            final ratio = (details.localPosition.dx / constraints.maxWidth)
+                .clamp(0.0, 1.0);
+            final time = startAtUtc.add(
+              Duration(
+                milliseconds:
+                    (endAtUtc.difference(startAtUtc).inMilliseconds * ratio)
+                        .round(),
+              ),
+            );
+            final matches = segments.where(
+              (s) => !time.isBefore(s.startAtUtc) && time.isBefore(s.endAtUtc),
+            );
+            onSelected(matches.isEmpty ? null : matches.first);
+          },
+          child: SizedBox.expand(
+            child: CustomPaint(
+              painter: _SleepStagesPainter(
+                segments: segments,
+                startAtUtc: startAtUtc,
+                endAtUtc: endAtUtc,
+                colors: colors,
               ),
             ),
-            const SizedBox(height: DesignConstants.spacingS),
-            SizedBox(
-              key: const Key('sleep-timeline-axis'),
-              height: 20,
-              width: double.infinity,
-              child: Stack(
-                children: [
-                  for (var i = 0; i < ticks.length; i++)
-                    Positioned(
-                      left: ticks[i].left,
-                      child: Text(
-                        ticks[i].label,
-                        key: Key('sleep-timeline-tick-$i'),
-                        style: axisTextStyle,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
+          ),
         );
       },
     );
   }
 }
 
-List<_TimelineAxisTick> _buildTimelineTicks({
-  required DateTime startAtUtc,
-  required DateTime endAtUtc,
-  required bool use24HourFormat,
-  required double availableWidth,
-  required TextStyle textStyle,
-}) {
-  final totalMinutes = endAtUtc.difference(startAtUtc).inMinutes;
-  if (totalMinutes <= 0 || availableWidth <= 0) {
-    return [];
-  }
-  final intervalMinutes = _selectTickIntervalMinutes(
-    totalMinutes: totalMinutes,
-    availableWidth: availableWidth,
-  );
-  final formatter = use24HourFormat ? DateFormat.Hm() : DateFormat.jm();
-
-  final startLocal = startAtUtc.toLocal();
-  final endLocal = endAtUtc.toLocal();
-  final rawTicksLocal = <DateTime>{startLocal, endLocal};
-  final startMinutes = startLocal.hour * 60 + startLocal.minute;
-  final firstBoundaryMinute =
-      ((startMinutes + intervalMinutes - 1) ~/ intervalMinutes) *
-      intervalMinutes;
-  var current = DateTime(
-    startLocal.year,
-    startLocal.month,
-    startLocal.day,
-    0,
-    firstBoundaryMinute,
-  );
-  if (current.isBefore(startLocal)) {
-    current = current.add(Duration(minutes: intervalMinutes));
-  }
-  while (current.isBefore(endLocal)) {
-    rawTicksLocal.add(current);
-    current = current.add(Duration(minutes: intervalMinutes));
-  }
-
-  final sortedTicksUtc =
-      rawTicksLocal.map((tick) => tick.toUtc()).toList(growable: false)
-        ..sort((a, b) => a.compareTo(b));
-
-  if (sortedTicksUtc.isEmpty) return [];
-
-  final effectiveWidth = availableWidth - 4;
-  final candidates = <_TimelineAxisTick>[];
-  for (final tickUtc in sortedTicksUtc) {
-    final ratio = tickUtc.difference(startAtUtc).inMinutes / totalMinutes;
-    final anchorX = ratio * effectiveWidth + 2;
-    final label = formatter.format(tickUtc.toLocal());
-    final painter = TextPainter(
-      text: TextSpan(text: label, style: textStyle),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final labelWidth = painter.width;
-    final left = (anchorX - (labelWidth / 2)).clamp(
-      DesignConstants.spacingL,
-      availableWidth - labelWidth - DesignConstants.spacingL,
-    );
-    candidates.add(
-      _TimelineAxisTick(timestampUtc: tickUtc, label: label, left: left),
-    );
-  }
-
-  if (candidates.length <= 2) return candidates;
-
-  const minimumDistance = 56.0;
-  final selected = <_TimelineAxisTick>[candidates.first];
-  for (var i = 1; i < candidates.length - 1; i++) {
-    final tick = candidates[i];
-    final spacingFromPrevious = tick.left - selected.last.left;
-    if (spacingFromPrevious >= minimumDistance) {
-      selected.add(tick);
-    }
-  }
-  final endTick = candidates.last;
-  while (selected.length > 1 &&
-      (endTick.left - selected.last.left) < minimumDistance) {
-    selected.removeLast();
-  }
-  if ((endTick.left - selected.last.left) >= minimumDistance) {
-    selected.add(endTick);
-  }
-  return selected;
-}
-
-int _selectTickIntervalMinutes({
-  required int totalMinutes,
-  required double availableWidth,
-}) {
-  final maxLabels = (availableWidth / 82).floor().clamp(4, 10);
-  const candidates = [30, 45, 60, 90, 120, 180, 240, 360];
-  for (final interval in candidates) {
-    final interior = (totalMinutes / interval).floor();
-    final estimatedLabels = interior + 2;
-    if (estimatedLabels <= maxLabels) return interval;
-  }
-  return candidates.last;
-}
-
-class _TimelineAxisTick {
-  const _TimelineAxisTick({
-    required this.timestampUtc,
-    required this.label,
-    required this.left,
+class _ResolvedStageLayout {
+  const _ResolvedStageLayout({
+    required this.stage,
+    required this.transitionLeft,
+    required this.transitionRight,
+    required this.yCenter,
+    required this.innerRect,
+    required this.haloRect,
+    required this.connectedToPrev,
+    required this.connectedToNext,
   });
 
-  final DateTime timestampUtc;
-  final String label;
-  final double left;
-}
-
-class _SleepTimelineLegend extends StatelessWidget {
-  const _SleepTimelineLegend({required this.labels});
-
-  final List<(_SleepChartStage, String, Color)> labels;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 18,
-      runSpacing: 6,
-      children: labels
-          .map(
-            (item) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: item.$3,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(item.$2),
-              ],
-            ),
-          )
-          .toList(growable: false),
-    );
-  }
+  final _SleepChartStage stage;
+  final double transitionLeft;
+  final double transitionRight;
+  final double yCenter;
+  final Rect innerRect;
+  final Rect haloRect;
+  final bool connectedToPrev;
+  final bool connectedToNext;
 }
 
 class _SleepStagesPainter extends CustomPainter {
@@ -304,104 +363,337 @@ class _SleepStagesPainter extends CustomPainter {
     required this.startAtUtc,
     required this.endAtUtc,
     required this.colors,
-    required this.gridColor,
-    required this.timestampTicksUtc,
   });
 
   final List<_ChartStageSegment> segments;
   final DateTime startAtUtc;
   final DateTime endAtUtc;
   final Map<_SleepChartStage, Color> colors;
-  final Color gridColor;
-  final List<DateTime> timestampTicksUtc;
 
   @override
   void paint(Canvas canvas, Size size) {
     final totalMs =
         endAtUtc.millisecondsSinceEpoch - startAtUtc.millisecondsSinceEpoch;
-    if (totalMs <= 0) return;
+    if (totalMs <= 0 || segments.isEmpty || size.width <= 0) return;
 
-    const chartTop = 6.0;
-    final chartBottom = size.height - 10.0;
-    final chartHeight = chartBottom - chartTop;
     const stageCount = 4;
-    final barThickness = chartHeight / stageCount;
-    final segmentPaint = Paint()..style = PaintingStyle.fill;
+    final rowHeight = size.height / stageCount;
+    const haloPad = 2.5;
+    const verticalInset = 6.5;
+    final blockHeight = math.max(6.0, rowHeight - (verticalInset * 2));
 
-    final gridPaint = Paint()
-      ..color = gridColor.withValues(alpha: 0.35)
-      ..strokeWidth = 1;
+    final trackLeft = haloPad / 2;
+    final trackRight = math.max(trackLeft + 1.0, size.width - (haloPad / 2));
+    final trackWidth = trackRight - trackLeft;
 
-    for (var i = 0; i < 4; i++) {
-      final y = chartTop + ((i + 1) * barThickness);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    double xFor(DateTime value) {
+    double rawXFor(DateTime value) {
       final elapsed =
           value.millisecondsSinceEpoch - startAtUtc.millisecondsSinceEpoch;
-      return (elapsed / totalMs) * size.width;
+      return trackLeft + ((elapsed / totalMs).clamp(0.0, 1.0) * trackWidth);
     }
 
-    double yFor(_SleepChartStage stage) {
-      final centerOffset = barThickness / 2;
+    int rowIndexFor(_SleepChartStage stage) {
       return switch (stage) {
-        _SleepChartStage.awake => chartTop + centerOffset,
-        _SleepChartStage.rem => chartTop + centerOffset + barThickness,
-        _SleepChartStage.light => chartTop + centerOffset + (barThickness * 2),
-        _SleepChartStage.deep => chartTop + centerOffset + (barThickness * 3),
+        _SleepChartStage.awake => 0,
+        _SleepChartStage.rem => 1,
+        _SleepChartStage.light => 2,
+        _SleepChartStage.deep => 3,
       };
     }
 
-    final timestampGridPaint = Paint()
-      ..color = gridColor.withValues(alpha: 0.42)
-      ..strokeWidth = 1;
-    for (final tick in timestampTicksUtc) {
-      final x = xFor(tick);
-      _drawDottedVerticalLine(
-        canvas,
-        x: x,
-        top: chartTop,
-        bottom: chartBottom,
-        paint: timestampGridPaint,
-      );
+    double yCenterFor(_SleepChartStage stage) {
+      return (rowIndexFor(stage) + 0.5) * rowHeight;
     }
 
-    for (var i = 0; i < segments.length; i++) {
-      final segment = segments[i];
-      final x1 = xFor(segment.startAtUtc);
-      final x2 = xFor(segment.endAtUtc);
-      final yCenter = yFor(segment.stage);
-      final yTop = yCenter - (barThickness / 2);
-      segmentPaint.color = colors[segment.stage] ?? const Color(0xFF3F6FD8);
-      canvas.drawRect(
-        Rect.fromLTRB(x1, yTop, x2, yTop + barThickness),
-        segmentPaint,
+    final layouts = _resolveSegmentLayouts(
+      rawXFor: rawXFor,
+      yCenterFor: yCenterFor,
+      blockHeight: blockHeight,
+      haloPad: haloPad,
+      minX: trackLeft,
+      maxX: trackRight,
+    );
+
+    // Layer 1: Unified translucent ribbon path.
+    // At every transition t between segment i and segment i+1:
+    // - Segment i's inner pill ends at t - haloPad/2, so its right halo border is [t - haloPad/2, t + haloPad/2].
+    // - Segment i+1's inner pill starts at t + haloPad/2, so its left halo border is [t - haloPad/2, t + haloPad/2].
+    // - The vertical bridge is [t - haloPad/2, t + haloPad/2] from yCenter_i to yCenter_{i+1},
+    //   which is 100% collinear with both halo borders without ever intruding into innerRect!
+    var ribbonPath = Path();
+    for (var i = 0; i < layouts.length; i++) {
+      final current = layouts[i];
+      final innerR = math.min(
+        5.5,
+        math.min(current.innerRect.width / 2, current.innerRect.height / 2),
+      );
+      final outerR = Radius.circular(innerR + haloPad);
+
+      final prevUp =
+          current.connectedToPrev &&
+          i > 0 &&
+          layouts[i - 1].yCenter < current.yCenter;
+      final prevDown =
+          current.connectedToPrev &&
+          i > 0 &&
+          layouts[i - 1].yCenter > current.yCenter;
+      final nextUp =
+          current.connectedToNext &&
+          i + 1 < layouts.length &&
+          layouts[i + 1].yCenter < current.yCenter;
+      final nextDown =
+          current.connectedToNext &&
+          i + 1 < layouts.length &&
+          layouts[i + 1].yCenter > current.yCenter;
+
+      final segmentHaloPath = Path()
+        ..addRRect(
+          RRect.fromRectAndCorners(
+            current.haloRect,
+            topLeft: prevUp ? Radius.zero : outerR,
+            bottomLeft: prevDown ? Radius.zero : outerR,
+            topRight: nextUp ? Radius.zero : outerR,
+            bottomRight: nextDown ? Radius.zero : outerR,
+          ),
+        );
+      ribbonPath = Path.combine(
+        PathOperation.union,
+        ribbonPath,
+        segmentHaloPath,
       );
 
-      if (i + 1 < segments.length) {
-        final next = segments[i + 1];
-        final transitionX = xFor(segment.endAtUtc);
-        final nextYCenter = yFor(next.stage);
-        final minCenter = yCenter < nextYCenter ? yCenter : nextYCenter;
-        final maxCenter = yCenter > nextYCenter ? yCenter : nextYCenter;
-        final connectorWidth = (barThickness * 0.08).clamp(1.0, 2.0);
-        final connectorLeft = transitionX - (connectorWidth / 2);
-        final connectorRight = transitionX + (connectorWidth / 2);
-        final connectorTop = minCenter - (barThickness / 2);
-        final connectorBottom = maxCenter + (barThickness / 2);
-        segmentPaint.color = colors[next.stage] ?? const Color(0xFF3F6FD8);
-        canvas.drawRect(
-          Rect.fromLTRB(
-            connectorLeft,
-            connectorTop,
-            connectorRight,
-            connectorBottom,
-          ),
-          segmentPaint,
+      // Add smooth concave inner fillets where a vertical bridge wall meets the horizontal top/bottom of haloRect.
+      final filletR = math.min(
+        3.5,
+        math.min(current.innerRect.width / 2, current.innerRect.height / 2),
+      );
+      if (filletR > 0.5) {
+        if (prevUp) {
+          ribbonPath = Path.combine(
+            PathOperation.union,
+            ribbonPath,
+            _concaveFillet(
+              corner: Offset(current.innerRect.left, current.haloRect.top),
+              dx: filletR,
+              dy: -filletR,
+              radius: filletR,
+              clockwise: true,
+            ),
+          );
+        }
+        if (prevDown) {
+          ribbonPath = Path.combine(
+            PathOperation.union,
+            ribbonPath,
+            _concaveFillet(
+              corner: Offset(current.innerRect.left, current.haloRect.bottom),
+              dx: filletR,
+              dy: filletR,
+              radius: filletR,
+              clockwise: false,
+            ),
+          );
+        }
+        if (nextUp) {
+          ribbonPath = Path.combine(
+            PathOperation.union,
+            ribbonPath,
+            _concaveFillet(
+              corner: Offset(current.innerRect.right, current.haloRect.top),
+              dx: -filletR,
+              dy: -filletR,
+              radius: filletR,
+              clockwise: false,
+            ),
+          );
+        }
+        if (nextDown) {
+          ribbonPath = Path.combine(
+            PathOperation.union,
+            ribbonPath,
+            _concaveFillet(
+              corner: Offset(current.innerRect.right, current.haloRect.bottom),
+              dx: -filletR,
+              dy: filletR,
+              radius: filletR,
+              clockwise: true,
+            ),
+          );
+        }
+      }
+
+      if (current.connectedToNext && i + 1 < layouts.length) {
+        final next = layouts[i + 1];
+        final transitionX = current.transitionRight;
+        final bridgeTop = math.min(current.yCenter, next.yCenter);
+        final bridgeBottom = math.max(current.yCenter, next.yCenter);
+        final bridgeRect = Rect.fromLTRB(
+          transitionX - (haloPad / 2),
+          bridgeTop,
+          transitionX + (haloPad / 2),
+          bridgeBottom,
         );
+        final bridgePath = Path()..addRect(bridgeRect);
+        ribbonPath = Path.combine(PathOperation.union, ribbonPath, bridgePath);
       }
     }
+
+    final awakeColor =
+        colors[_SleepChartStage.awake] ?? const Color(0xFFFF6B57);
+    final remColor = colors[_SleepChartStage.rem] ?? const Color(0xFF32ADE6);
+    final lightColor =
+        colors[_SleepChartStage.light] ?? const Color(0xFF0A84FF);
+    final deepColor = colors[_SleepChartStage.deep] ?? const Color(0xFF5E5CE6);
+
+    final ribbonPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          awakeColor.withValues(alpha: 0.32),
+          remColor.withValues(alpha: 0.32),
+          lightColor.withValues(alpha: 0.32),
+          deepColor.withValues(alpha: 0.32),
+        ],
+        stops: const [0.12, 0.38, 0.62, 0.88],
+      ).createShader(Offset.zero & size);
+
+    canvas.drawPath(ribbonPath, ribbonPaint);
+
+    // Layer 2: Crisp solid inner stage pills, concentric with the outer halo curves.
+    final segmentPaint = Paint()..style = PaintingStyle.fill;
+    for (final item in layouts) {
+      final radius = math.min(
+        5.5,
+        math.min(item.innerRect.width / 2, item.innerRect.height / 2),
+      );
+      segmentPaint.color = colors[item.stage] ?? const Color(0xFF0A84FF);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(item.innerRect, Radius.circular(radius)),
+        segmentPaint,
+      );
+    }
+  }
+
+  Path _concaveFillet({
+    required Offset corner,
+    required double dx,
+    required double dy,
+    required double radius,
+    required bool clockwise,
+  }) {
+    return Path()
+      ..moveTo(corner.dx, corner.dy + dy)
+      ..lineTo(corner.dx, corner.dy)
+      ..lineTo(corner.dx + dx, corner.dy)
+      ..arcToPoint(
+        Offset(corner.dx, corner.dy + dy),
+        radius: Radius.circular(radius),
+        clockwise: clockwise,
+      )
+      ..close();
+  }
+
+  List<_ResolvedStageLayout> _resolveSegmentLayouts({
+    required double Function(DateTime) rawXFor,
+    required double Function(_SleepChartStage) yCenterFor,
+    required double blockHeight,
+    required double haloPad,
+    required double minX,
+    required double maxX,
+  }) {
+    final count = segments.length;
+    final x1List = List<double>.filled(count, 0.0);
+    final x2List = List<double>.filled(count, 0.0);
+    final connected = List<bool>.filled(count, false);
+
+    for (var i = 0; i < count; i++) {
+      x1List[i] = rawXFor(segments[i].startAtUtc);
+      x2List[i] = rawXFor(segments[i].endAtUtc);
+      if (i + 1 < count &&
+          segments[i + 1].startAtUtc
+                  .difference(segments[i].endAtUtc)
+                  .inSeconds
+                  .abs() <=
+              1) {
+        connected[i] = true;
+      }
+    }
+
+    // Each segment needs at least haloPad (for the shared border walls) + 2.4px (for the inner pill).
+    const desiredMinSlot = 5.0;
+    var runStart = 0;
+    while (runStart < count) {
+      var runEnd = runStart;
+      while (runEnd < count - 1 && connected[runEnd]) {
+        runEnd++;
+      }
+      final segCount = runEnd - runStart + 1;
+      final runLeft = x1List[runStart];
+      final runRight = math.max(runLeft + desiredMinSlot, x2List[runEnd]);
+      final availableWidth = math.max(desiredMinSlot, maxX - minX);
+      final minSegWidth = math.min(desiredMinSlot, availableWidth / segCount);
+
+      final boundaries = List<double>.filled(segCount + 1, 0.0);
+      boundaries[0] = runLeft;
+      boundaries[segCount] = runRight;
+      for (var j = 1; j < segCount; j++) {
+        boundaries[j] = x2List[runStart + j - 1];
+      }
+
+      for (var j = 1; j <= segCount; j++) {
+        if (boundaries[j] < boundaries[j - 1] + minSegWidth) {
+          boundaries[j] = boundaries[j - 1] + minSegWidth;
+        }
+      }
+      if (boundaries[segCount] > maxX) {
+        boundaries[segCount] = maxX;
+        for (var j = segCount - 1; j >= 0; j--) {
+          if (boundaries[j] > boundaries[j + 1] - minSegWidth) {
+            boundaries[j] = math.max(minX, boundaries[j + 1] - minSegWidth);
+          }
+        }
+      }
+
+      for (var j = 0; j < segCount; j++) {
+        x1List[runStart + j] = boundaries[j];
+        x2List[runStart + j] = boundaries[j + 1];
+      }
+
+      runStart = runEnd + 1;
+    }
+
+    final result = <_ResolvedStageLayout>[];
+    for (var i = 0; i < count; i++) {
+      final stage = segments[i].stage;
+      final yCenter = yCenterFor(stage);
+      final yTop = yCenter - (blockHeight / 2);
+      final tLeft = x1List[i];
+      final tRight = x2List[i];
+      final innerLeft = tLeft + (haloPad / 2);
+      final innerRight = math.max(innerLeft + 1.5, tRight - (haloPad / 2));
+      final innerRect = Rect.fromLTRB(
+        innerLeft,
+        yTop,
+        innerRight,
+        yTop + blockHeight,
+      );
+      final haloRect = innerRect.inflate(haloPad);
+      result.add(
+        _ResolvedStageLayout(
+          stage: stage,
+          transitionLeft: tLeft,
+          transitionRight: tRight,
+          yCenter: yCenter,
+          innerRect: innerRect,
+          haloRect: haloRect,
+          connectedToPrev: i > 0 && connected[i - 1],
+          connectedToNext: connected[i],
+        ),
+      );
+    }
+    return result;
   }
 
   @override
@@ -409,26 +701,7 @@ class _SleepStagesPainter extends CustomPainter {
     return oldDelegate.segments != segments ||
         oldDelegate.startAtUtc != startAtUtc ||
         oldDelegate.endAtUtc != endAtUtc ||
-        oldDelegate.colors != colors ||
-        oldDelegate.gridColor != gridColor ||
-        oldDelegate.timestampTicksUtc != timestampTicksUtc;
-  }
-
-  void _drawDottedVerticalLine(
-    Canvas canvas, {
-    required double x,
-    required double top,
-    required double bottom,
-    required Paint paint,
-  }) {
-    const dashLength = 3.0;
-    const gapLength = 4.0;
-    var y = top;
-    while (y < bottom) {
-      final y2 = (y + dashLength).clamp(top, bottom);
-      canvas.drawLine(Offset(x, y), Offset(x, y2), paint);
-      y += dashLength + gapLength;
-    }
+        oldDelegate.colors != colors;
   }
 }
 
@@ -455,14 +728,30 @@ List<_ChartStageSegment> _toChartSegments(List<SleepStageSegment> segments) {
       CanonicalSleepStage.awake ||
       CanonicalSleepStage.outOfBed => _SleepChartStage.awake,
       CanonicalSleepStage.rem => _SleepChartStage.rem,
-      CanonicalSleepStage.light ||
-      CanonicalSleepStage.asleepUnspecified => _SleepChartStage.light,
+      CanonicalSleepStage.light => _SleepChartStage.light,
       CanonicalSleepStage.deep => _SleepChartStage.deep,
       _ => null,
     };
     if (chartStage == null) continue;
     if (segment.endAtUtc.isBefore(segment.startAtUtc) ||
         segment.endAtUtc.isAtSameMomentAs(segment.startAtUtc)) {
+      continue;
+    }
+    if (result.isNotEmpty &&
+        result.last.stage == chartStage &&
+        segment.startAtUtc.difference(result.last.endAtUtc).inSeconds.abs() <=
+            1) {
+      final previous = result.removeLast();
+      final mergedEnd = segment.endAtUtc.isAfter(previous.endAtUtc)
+          ? segment.endAtUtc
+          : previous.endAtUtc;
+      result.add(
+        _ChartStageSegment(
+          startAtUtc: previous.startAtUtc,
+          endAtUtc: mergedEnd,
+          stage: chartStage,
+        ),
+      );
       continue;
     }
     result.add(
@@ -476,35 +765,48 @@ List<_ChartStageSegment> _toChartSegments(List<SleepStageSegment> segments) {
   return result;
 }
 
-List<(_SleepChartStage, String, Color)> _timelineLegend(
-  List<_ChartStageSegment> chartSegments,
+List<(_SleepChartStage, String, Color)> _allStageRows(
   AppLocalizations l10n,
+  Map<_SleepChartStage, Color> colors,
 ) {
-  final usedStages = chartSegments.map((segment) => segment.stage).toSet();
-  final allLabels = [
+  return [
     (
       _SleepChartStage.awake,
       l10n.sleepStageAwakeLabel,
-      const Color(0xFFB8C7E0),
+      colors[_SleepChartStage.awake]!,
     ),
-    (_SleepChartStage.rem, l10n.sleepStageRemLabel, const Color(0xFF85A8FF)),
+    (
+      _SleepChartStage.rem,
+      l10n.sleepStageRemLabel,
+      colors[_SleepChartStage.rem]!,
+    ),
     (
       _SleepChartStage.light,
       l10n.sleepStageLightLabel,
-      const Color(0xFF3F6FD8),
+      colors[_SleepChartStage.light]!,
     ),
-    (_SleepChartStage.deep, l10n.sleepStageDeepLabel, const Color(0xFF2A5AF3)),
+    (
+      _SleepChartStage.deep,
+      l10n.sleepStageDeepLabel,
+      colors[_SleepChartStage.deep]!,
+    ),
   ];
-  return allLabels
-      .where((entry) => usedStages.contains(entry.$1))
-      .toList(growable: false);
 }
 
 Map<_SleepChartStage, Color> _sleepStageColors() {
-  return {
-    _SleepChartStage.awake: const Color(0xFFB8C7E0),
-    _SleepChartStage.rem: const Color(0xFF85A8FF),
-    _SleepChartStage.light: const Color(0xFF3F6FD8),
-    _SleepChartStage.deep: const Color(0xFF2A5AF3),
+  return const {
+    _SleepChartStage.awake: Color(0xFFFF6B57),
+    _SleepChartStage.rem: Color(0xFF32ADE6),
+    _SleepChartStage.light: Color(0xFF0A84FF),
+    _SleepChartStage.deep: Color(0xFF5E5CE6),
   };
+}
+
+String _formatStageDuration(Duration value) {
+  final hours = value.inHours;
+  final minutes = value.inMinutes % 60;
+  if (hours <= 0) {
+    return '${minutes}m';
+  }
+  return '${hours}h ${minutes}m';
 }

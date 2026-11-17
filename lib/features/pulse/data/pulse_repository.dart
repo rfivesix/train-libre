@@ -11,6 +11,7 @@ import '../application/pulse_tracking_service.dart';
 import '../domain/pulse_analysis_engine.dart';
 import '../domain/pulse_models.dart';
 import 'pulse_aggregate_store.dart';
+import 'hrv_repository.dart';
 
 abstract class PulseAnalysisRepository {
   Future<bool> isTrackingEnabled();
@@ -43,6 +44,21 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
 
   @override
   Future<PulseAnalysisSummary> getAnalysis({
+    required PulseAnalysisWindow window,
+  }) async {
+    final summary = await _getPulseAnalysis(window: window);
+    try {
+      final hrv = await HealthHrvRepository(
+        database: _database,
+        trackingService: _trackingService,
+      ).getSummary(fromUtc: window.startUtc, toUtc: window.endUtc);
+      return summary.withHrv(hrv);
+    } catch (_) {
+      return summary;
+    }
+  }
+
+  Future<PulseAnalysisSummary> _getPulseAnalysis({
     required PulseAnalysisWindow window,
   }) async {
     final stopwatch = Stopwatch()..start();

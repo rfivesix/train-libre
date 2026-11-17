@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/pulse/data/pulse_repository.dart';
 import 'package:train_libre/features/pulse/domain/pulse_models.dart';
+import 'package:train_libre/features/pulse/domain/hrv_models.dart';
 import 'package:train_libre/features/pulse/presentation/pulse_analysis_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/profile/presentation/widgets/measurement_chart_widget.dart';
@@ -65,6 +66,49 @@ PulseAnalysisSummary _summaryWithSamples(PulseAnalysisWindow window) {
 }
 
 void main() {
+  testWidgets('shows SDNN value and chart when HRV is available', (
+    tester,
+  ) async {
+    final repository = _FakePulseRepository(
+      (window) => _summaryWithSamples(window).withHrv(
+        HrvSummary(
+          state: HrvState.available,
+          samples: [
+            HrvSample(
+              startUtc: window.startUtc.add(const Duration(hours: 1)),
+              endUtc: window.startUtc.add(const Duration(hours: 1, minutes: 1)),
+              sdnnMs: 45,
+              sourceId: 'watch',
+              nativeId: 'one',
+            ),
+            HrvSample(
+              startUtc: window.startUtc.add(const Duration(hours: 2)),
+              endUtc: window.startUtc.add(const Duration(hours: 2, minutes: 1)),
+              sdnnMs: 55,
+              sourceId: 'watch',
+              nativeId: 'two',
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      _wrap(
+        PulseAnalysisScreen(
+          repository: repository,
+          initialDate: DateTime(2026, 4, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('50 ms'), findsWidgets);
+    expect(find.byType(MeasurementChartWidget), findsNWidgets(2));
+    final hrvChart = tester
+        .widgetList<MeasurementChartWidget>(find.byType(MeasurementChartWidget))
+        .singleWhere((chart) => chart.unit == 'ms');
+    expect(hrvChart.connectDataPoints, isFalse);
+  });
+
   testWidgets('renders KPI metrics and reused measurement chart', (
     tester,
   ) async {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../data/database_helper.dart';
 import '../../../data/drift_database.dart';
 import '../domain/sleep_domain.dart';
+import '../domain/main_sleep_sessions.dart';
 import '../domain/scoring/sleep_scoring_engine.dart';
 import '../domain/metrics/heart_rate_metrics.dart';
 import '../domain/metrics/nightly_metrics_calculator.dart';
@@ -10,6 +11,7 @@ import 'persistence/dao/sleep_canonical_dao.dart';
 import 'persistence/dao/sleep_nightly_analyses_dao.dart';
 import 'persistence/sleep_persistence_models.dart';
 import 'processing/timeline_repair.dart';
+import 'processing/sleep_pipeline_service.dart';
 
 class SleepRegularityNight {
   const SleepRegularityNight({
@@ -115,6 +117,7 @@ class SleepDayRepository implements SleepDayDataRepository {
   SleepCanonicalSessionsDao? _sessionsDao;
   SleepCanonicalStageSegmentsDao? _segmentsDao;
   SleepCanonicalHeartRateSamplesDao? _hrDao;
+  Future<int>? _historyMigration;
 
   @override
   Stream<SleepDayOverviewData?> watchOverview(DateTime day) async* {
@@ -143,6 +146,8 @@ class SleepDayRepository implements SleepDayDataRepository {
   @override
   Future<SleepDayOverviewData?> fetchOverview(DateTime day) async {
     await _ensureDaos();
+    await (_historyMigration ??= SleepPipelineService(database: _database!)
+        .recomputeStoredHistory());
     final key = _nightKey(day);
     final analyses = await _analysesDao!.findByNightRange(
       fromNightDateInclusive: key,
@@ -150,11 +155,24 @@ class SleepDayRepository implements SleepDayDataRepository {
     );
     if (analyses.isEmpty) return null;
 
+    final sessionDurations = <String, Duration>{};
+    for (final record in analyses) {
+      final session = await _sessionsDao!.findById(record.sessionId);
+      if (session != null) {
+        sessionDurations[record.sessionId] = session.endedAt.difference(
+          session.startedAt,
+        );
+      }
+    }
     final sortedAnalysesRecords =
         List<SleepNightlyAnalysisRecord>.from(analyses)..sort((a, b) {
           if (a.score != null && b.score == null) return -1;
           if (b.score != null && a.score == null) return 1;
-          return b.analyzedAt.compareTo(a.analyzedAt);
+          final byLength = (sessionDurations[b.sessionId] ?? Duration.zero)
+              .compareTo(sessionDurations[a.sessionId] ?? Duration.zero);
+          return byLength != 0
+              ? byLength
+              : b.analyzedAt.compareTo(a.analyzedAt);
         });
 
     final primaryRecord = sortedAnalysesRecords.first;
@@ -277,6 +295,34 @@ class SleepDayRepository implements SleepDayDataRepository {
       metrics: primaryMetrics,
     );
 
+    final mainIds = selectMainSleepFragments(allSessions)
+        .map((s) => s.id)
+        .toSet();
+    allSegments.removeWhere((segment) => !mainIds.contains(segment.sessionId));
+    allHrSamples.removeWhere((sample) => !mainIds.contains(sample.sessionId));
+    final mainSessions = allSessions.where((s) => mainIds.contains(s.id));
+    if (mainSessions.isNotEmpty) {
+      final start = mainSessions
+          .map((s) => s.startAtUtc)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      final end = mainSessions
+          .map((s) => s.endAtUtc)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      final merged = SleepSession(
+        id: primarySession.id,
+        startAtUtc: start,
+        endAtUtc: end,
+        sessionType: SleepSessionType.mainSleep,
+        sourcePlatform: primarySession.sourcePlatform,
+      );
+      final repaired = repairSleepTimeline(
+        session: merged,
+        segments: allSegments,
+      );
+      allSegments
+        ..clear()
+        ..addAll(repaired);
+    }
     allSegments.sort((a, b) => a.startAtUtc.compareTo(b.startAtUtc));
     allHrSamples.sort((a, b) => a.sampledAtUtc.compareTo(b.sampledAtUtc));
 
@@ -478,19 +524,21 @@ class SleepDayRepository implements SleepDayDataRepository {
     return heartRates;
   }
 
-  Duration _sumStageDuration(
+  Duration? _sumStageDuration(
     List<SleepStageSegment> segments,
     CanonicalSleepStage stage,
   ) {
     // BOLT OPTIMIZATION: Replaced .where().fold() with a standard loop
     // to avoid intermediate Iterator and closure allocations.
     var total = Duration.zero;
+    var observed = false;
     for (final segment in segments) {
       if (segment.stage == stage) {
+        observed = true;
         total += segment.endAtUtc.difference(segment.startAtUtc);
       }
     }
-    return total;
+    return observed ? total : null;
   }
 
   String _nightKey(DateTime date) {

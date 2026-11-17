@@ -92,6 +92,11 @@ void main() {
       expect(overview.deltaSleepHr, isNotNull);
       expect(overview.heartRateSamples, isNotEmpty);
       expect(overview.heartRateSamples.length, 6);
+      // This source supplied light and awake segments only. It did not
+      // establish that deep or REM sleep lasted zero minutes.
+      expect(overview.lightDuration, isNotNull);
+      expect(overview.deepDuration, isNull);
+      expect(overview.remDuration, isNull);
       expect(overview.heartRateSamples.first.bpm, closeTo(51, 0.001));
       expect(
         overview.heartRateSamples.first.sampledAtUtc.isBefore(

@@ -6251,23 +6251,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
-  String get infoSleepTitle => 'Schlafqualität (SHS v3.5)';
+  String get infoSleepTitle => 'Schlafscore';
 
   @override
   String get infoSleepExplanation =>
-      'Berechnet einen umfassenden Schlafindex aus Schlafmenge, Kontinuität, Schlafphasen-Tiefe, Timing und der täglichen Regelmäßigkeit.';
+      'Eine Schätzung anhand der verfügbaren Daten.';
 
   @override
   String get infoSleepKeyPoints =>
-      '• Aggregiert fünf klinische Dimensionen über eine gewichtete Summe.\n• Reduziert automatisch die Anforderungen, wenn dein Wearable keine Wachphasen (WASO) oder Effizienz aufzeichnet.\n• Schützt dich durch stufenlose Soft-Cap-Multiplikatoren, die die Gesamtnote begrenzen, wenn ein wichtiger Wert (wie REM oder Tiefschlaf) gefährlich niedrig ist.';
+      'Dauer, Kontinuität, Tiefschlaf, REM und Regelmäßigkeit fließen ein.\nFehlende Beiträge werden ausgelassen.\nSchlafphasen sind ungenaue Schätzungen.';
 
   @override
-  String get infoSleepTechnicalTitle =>
-      'Gewichtete Basis & Kontinuierliche Soft-Caps';
+  String get infoSleepTechnicalTitle => 'So wird gerechnet';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      'Aggregiert fünf Primärbereiche über eine gewichtete lineare Summe: Schlafdauer (30%), Kontinuität (20%), Architektur (25%), Timing (15%) und Regelmäßigkeit (10%) mit dynamischer Matrix-Normalisierung bei fehlenden Datenströmen. Zum Schutz vor verzerrenden Durchschnittswerten bei fatalen Einbrüchen wird der Endwert abgewertet, wenn klinische Engpässe in den Schlafphasen oder im Timing erkannt werden.';
+      'Dauer 45 %, Kontinuität 25 %, Tiefschlaf 10 %, REM 10 %, Regelmäßigkeit 10 %. Kurze Dauer kann den Gesamtscore begrenzen. Kein klinischer Messwert.';
 
   @override
   String get tdeeRecalculationNotificationTitle =>
@@ -9600,4 +9599,119 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get discardWorkoutAction => 'Workout verwerfen';
+
+  @override
+  String get sleepDashboardScore => 'Schlafscore';
+
+  @override
+  String get sleepDashboardGoal => 'Schlafziel';
+
+  @override
+  String get sleepDashboardGoalEight => '8-Stunden-Ziel';
+
+  @override
+  String sleepDashboardSevenDays(int count) {
+    return 'Letzte $count Tage';
+  }
+
+  @override
+  String get sleepDashboardRecordedNights => 'Erfasste Nächte';
+
+  @override
+  String get sleepDashboardStageEstimate => 'Schlafphasen sind Schätzungen.';
+
+  @override
+  String get sleepDashboardStageHint =>
+      'Tippe auf das Diagramm, um eine Phase anzusehen.';
+
+  @override
+  String get sleepDashboardEfficiency => 'Effizienz';
+
+  @override
+  String get sleepDashboardStart => 'Beginn';
+
+  @override
+  String get sleepDashboardEnd => 'Ende';
+
+  @override
+  String get sleepDashboardEmpty =>
+      'Für diesen Tag sind keine Schlafdaten vorhanden.';
+
+  @override
+  String get sleepDashboardNightHeartRate => 'Puls im Schlaf';
+
+  @override
+  String get sleepDashboardNightHrv => 'HRV im Schlaf';
+
+  @override
+  String get sleepDashboardSamples => 'Verfügbare Messungen';
+
+  @override
+  String get sleepDashboardContributors => 'Score-Beiträge';
+
+  @override
+  String get sleepDashboardInsufficient => 'Nicht genügend Daten';
+
+  @override
+  String get sleepDashboardAsleep => 'Schlafdauer';
+
+  @override
+  String get hrvTitle => 'Herzfrequenzvariabilität';
+
+  @override
+  String get hrvUnavailable => 'Keine HRV-Daten verfügbar';
+
+  @override
+  String get hrvMethodNote =>
+      'Mittelwert der verfügbaren Apple-Health-SDNN-Messungen in Millisekunden.';
+
+  @override
+  String get hrvNoData => 'Keine HRV-Daten verfügbar';
+
+  @override
+  String get sleepDashboardDebtNote =>
+      'Nur erfasste Nächte; kein physiologisches Maß für Schlafschuld.';
+
+  @override
+  String get sleepDashboardEstimate => 'Schätzung · eingeschränkte Datenbasis';
+
+  @override
+  String get sleepDashboardDurationCap => 'Schlafdauer begrenzt den Score';
+
+  @override
+  String get sleepDashboardHrvError =>
+      'HRV-Messungen konnten nicht geladen werden.';
+
+  @override
+  String get pulseSettingsEnableSubtitleIos =>
+      'Liest Puls und HRV aus Apple Health, wenn du die Pulsauswertung aktivierst.';
+
+  @override
+  String get pulseSettingsPermissionSubtitleIos =>
+      'Erlaube den Zugriff auf Puls und HRV in Apple Health.';
+
+  @override
+  String get pulseHealthStatusIos =>
+      'Apple Health gibt nicht preis, ob Lesezugriff erlaubt wurde. Prüfe bei fehlenden Werten die Freigaben in Health.';
+
+  @override
+  String get sleepDashboardTonightDelta => 'Diese Nacht gegenüber dem Ziel';
+
+  @override
+  String get sleepDashboardMinimum => 'Minimum';
+
+  @override
+  String get sleepDashboardAverage => 'Durchschnitt';
+
+  @override
+  String get sleepDashboardPersonalBaseline =>
+      'Persönlicher Vergleich (vorherige 30 Tage)';
+
+  @override
+  String get sleepDashboardBaselineUnavailable =>
+      'Nicht genügend vergleichbare Nächte für einen Vergleich';
+
+  @override
+  String get hrvQueryFailed =>
+      'HRV konnte nicht geladen werden. Versuche es erneut.';
 }

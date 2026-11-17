@@ -75,6 +75,23 @@ void main() {
       await db.close();
     });
 
+    test('HRV measurements survive a backup restore', () async {
+      await db.customStatement(
+        "INSERT INTO pulse_hrv_samples (native_id, source_id, start_ms, end_ms, sdnn_ms) VALUES ('sample', 'watch', 1, 2, 42.5)",
+      );
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      expect(payload['pulse_hrv_samples'], hasLength(1));
+      expect(
+        await backupManager.importBackupPayloadForTesting(payload),
+        isTrue,
+      );
+      final restored = await db
+          .customSelect('SELECT * FROM pulse_hrv_samples')
+          .getSingle();
+      expect(restored.read<String>('native_id'), 'sample');
+      expect(restored.read<double>('sdnn_ms'), 42.5);
+    });
+
     test(
       'manual plan revisions and occurrence history survive restore',
       () async {

@@ -98,6 +98,14 @@ class DatabaseHelper {
         await dbInst.customStatement('DELETE FROM sleep_raw_imports');
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
         await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
+        final hrvTable = await dbInst
+            .customSelect(
+              "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'pulse_hrv_samples'",
+            )
+            .getSingleOrNull();
+        if (hrvTable != null) {
+          await dbInst.customStatement('DELETE FROM pulse_hrv_samples');
+        }
         await dbInst.customStatement('DELETE FROM user_food_overrides');
         await dbInst.delete(dbInst.cardioSamples).go();
         await dbInst.delete(dbInst.cardioActivities).go();

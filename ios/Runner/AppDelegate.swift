@@ -334,6 +334,8 @@ import UserNotifications
       readStepSegments(call: call, result: result)
     case "readHeartRateSamples":
       readHeartRateSamples(call: call, result: result)
+    case "readHrvSamples":
+      readHrvSamples(call: call, result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -365,18 +367,59 @@ import UserNotifications
       return
     }
 
-    guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
+    guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate),
+          let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
       result(FlutterError(code: "not_available", message: "Heart rate type unavailable", details: nil))
       return
     }
 
-    healthStore.requestAuthorization(toShare: nil, read: [heartRateType]) { success, error in
+    healthStore.requestAuthorization(toShare: nil, read: [heartRateType, hrvType]) { success, error in
       if let error = error {
         result(FlutterError(code: "permission_denied", message: error.localizedDescription, details: nil))
         return
       }
       result(success)
     }
+  }
+
+  private func readHrvSamples(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard HKHealthStore.isHealthDataAvailable() else {
+      result(FlutterError(code: "not_available", message: "HealthKit unavailable", details: nil))
+      return
+    }
+    guard let args = call.arguments as? [String: Any],
+          let fromIso = args["fromUtcIso"] as? String,
+          let toIso = args["toUtcIso"] as? String else {
+      result(FlutterError(code: "invalid_arguments", message: "Missing HRV date range", details: nil))
+      return
+    }
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let from = formatter.date(from: fromIso), let to = formatter.date(from: toIso),
+          let type = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+      result(FlutterError(code: "invalid_arguments", message: "Invalid HRV date range", details: nil))
+      return
+    }
+    let predicate = HKQuery.predicateForSamples(withStart: from, end: to, options: [.strictStartDate])
+    let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit,
+      sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, samples, error in
+      if let error = error {
+        result(FlutterError(code: "query_failed", message: error.localizedDescription, details: nil))
+        return
+      }
+      let output = ISO8601DateFormatter()
+      output.timeZone = TimeZone(secondsFromGMT: 0)
+      output.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      let rows = (samples as? [HKQuantitySample] ?? []).map { sample in
+        ["startUtcIso": output.string(from: sample.startDate),
+         "endUtcIso": output.string(from: sample.endDate),
+         "sdnnMs": sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)),
+         "sourceId": sample.sourceRevision.source.bundleIdentifier,
+         "nativeId": sample.uuid.uuidString] as [String: Any]
+      }
+      result(rows)
+    }
+    healthStore.execute(query)
   }
 
   private func readStepSegments(call: FlutterMethodCall, result: @escaping FlutterResult) {

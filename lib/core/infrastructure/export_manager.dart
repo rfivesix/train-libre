@@ -366,6 +366,11 @@ class ExportManager {
       excludedColumns: {'source_app_id', 'source_record_hash'},
     ),
     _WorkbookTableSpec('pulse_hourly_aggregates', 'pulse_hourly_aggregates'),
+    _WorkbookTableSpec(
+      'pulse_hrv_samples',
+      'pulse_hrv_samples',
+      excludedColumns: {'native_id', 'source_id'},
+    ),
     _WorkbookTableSpec('posts', 'shared_posts'),
     _WorkbookTableSpec('social_interactions', 'social_interactions'),
   ];

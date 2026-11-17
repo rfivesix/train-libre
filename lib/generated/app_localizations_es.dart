@@ -6306,23 +6306,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'En el modo de catálogo, las sugerencias de IA se comparan con alimentos locales. El modo de estimación directa puede usar valores nutricionales estimados por IA. Revisa los resultados antes de guardarlos.';
 
   @override
-  String get infoSleepTitle => 'Calidad del sueño (SHS v3.5)';
+  String get infoSleepTitle => 'Puntuación del sueño';
 
   @override
   String get infoSleepExplanation =>
-      'Calcula un índice global de sueño a partir de la cantidad, continuidad, profundidad, horario y regularidad diaria.';
+      'Una estimación basada en los datos disponibles.';
 
   @override
   String get infoSleepKeyPoints =>
-      '• Combina cinco dimensiones clínicas mediante una suma ponderada.\n• Ajusta automáticamente los requisitos si tu dispositivo no proporciona datos de determinadas fases o de la eficiencia del sueño.\n• Te protege con multiplicadores de límite flexible que restringen la puntuación total si una dimensión crítica, como el sueño REM o profundo, está comprometida.';
+      'Contribuyen la duración, continuidad, sueño profundo, REM y regularidad.\nSe omiten los componentes ausentes.\nLas fases son estimaciones.';
 
   @override
-  String get infoSleepTechnicalTitle =>
-      'Referencia ponderada y límites flexibles continuos';
+  String get infoSleepTechnicalTitle => 'Cómo se calcula';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      'Combina cinco dimensiones principales mediante una suma lineal ponderada: duración (30 %), continuidad (20 %), estructura (25 %), horario (15 %) y regularidad (10 %). Para evitar promedios engañosos cuando una dimensión clínica está comprometida, la puntuación final se reduce si se detectan problemas importantes en las fases del sueño o en el ritmo circadiano.';
+      'Duración 45 %, continuidad 25 %, profundo 10 %, REM 10 %, regularidad 10 %. Una duración corta puede limitar la puntuación. No es una medición clínica.';
 
   @override
   String get tdeeRecalculationNotificationTitle => 'TDEE recalculado';
@@ -9679,4 +9678,117 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get discardWorkoutAction => 'Descartar entrenamiento';
+
+  @override
+  String get sleepDashboardScore => 'Puntuación del sueño';
+
+  @override
+  String get sleepDashboardGoal => 'Objetivo de sueño';
+
+  @override
+  String get sleepDashboardGoalEight => 'Objetivo de 8 h';
+
+  @override
+  String sleepDashboardSevenDays(int count) {
+    return 'Últimos $count días';
+  }
+
+  @override
+  String get sleepDashboardRecordedNights => 'Noches registradas';
+
+  @override
+  String get sleepDashboardStageEstimate =>
+      'Las fases del sueño son estimaciones.';
+
+  @override
+  String get sleepDashboardStageHint => 'Toca el gráfico para ver una fase.';
+
+  @override
+  String get sleepDashboardEfficiency => 'Eficiencia';
+
+  @override
+  String get sleepDashboardStart => 'Inicio';
+
+  @override
+  String get sleepDashboardEnd => 'Fin';
+
+  @override
+  String get sleepDashboardEmpty => 'No hay datos de sueño para este día.';
+
+  @override
+  String get sleepDashboardNightHeartRate => 'Pulso durante el sueño';
+
+  @override
+  String get sleepDashboardNightHrv => 'VFC durante el sueño';
+
+  @override
+  String get sleepDashboardSamples => 'Mediciones disponibles';
+
+  @override
+  String get sleepDashboardContributors => 'Factores de la puntuación';
+
+  @override
+  String get sleepDashboardInsufficient => 'Datos insuficientes';
+
+  @override
+  String get sleepDashboardAsleep => 'Tiempo dormido';
+
+  @override
+  String get hrvTitle => 'Variabilidad de la frecuencia cardíaca';
+
+  @override
+  String get hrvUnavailable => 'No hay datos de VFC';
+
+  @override
+  String get hrvMethodNote =>
+      'Media de las mediciones SDNN disponibles de Apple Health en milisegundos.';
+
+  @override
+  String get hrvNoData => 'No hay datos de VFC';
+
+  @override
+  String get sleepDashboardDebtNote =>
+      'Solo noches registradas; no es una medida fisiológica de la deuda de sueño.';
+
+  @override
+  String get sleepDashboardEstimate => 'Estimación · datos limitados';
+
+  @override
+  String get sleepDashboardDurationCap => 'La duración limita la puntuación';
+
+  @override
+  String get sleepDashboardHrvError =>
+      'No se pudieron cargar las mediciones de VFC.';
+
+  @override
+  String get pulseSettingsEnableSubtitleIos =>
+      'Lee la frecuencia cardíaca y la VFC de Apple Health al activar el análisis del pulso.';
+
+  @override
+  String get pulseSettingsPermissionSubtitleIos =>
+      'Permite el acceso a la frecuencia cardíaca y la VFC en Apple Health.';
+
+  @override
+  String get pulseHealthStatusIos =>
+      'Apple Health no revela los permisos de lectura. Si faltan valores, comprueba el acceso en Salud.';
+
+  @override
+  String get sleepDashboardTonightDelta => 'Esta noche frente al objetivo';
+
+  @override
+  String get sleepDashboardMinimum => 'Mínimo';
+
+  @override
+  String get sleepDashboardAverage => 'Media';
+
+  @override
+  String get sleepDashboardPersonalBaseline =>
+      'Referencia personal (30 días anteriores)';
+
+  @override
+  String get sleepDashboardBaselineUnavailable =>
+      'No hay suficientes noches comparables';
+
+  @override
+  String get hrvQueryFailed => 'No se pudo cargar la VFC. Inténtalo de nuevo.';
 }

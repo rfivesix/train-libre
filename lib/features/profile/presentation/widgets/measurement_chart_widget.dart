@@ -44,6 +44,8 @@ class MeasurementChartWidget extends StatefulWidget {
     this.trajectoryStart,
     this.trajectoryEnd,
     this.smoothWeightTrend,
+    this.connectDataPoints = true,
+    this.trailingSummaryLabel,
   }) : dataPoints = null,
        axisMode = MeasurementChartAxisMode.day;
 
@@ -67,6 +69,8 @@ class MeasurementChartWidget extends StatefulWidget {
     this.trajectoryStart,
     this.trajectoryEnd,
     this.smoothWeightTrend,
+    this.connectDataPoints = true,
+    this.trailingSummaryLabel,
   }) : chartType = null,
        dateRange = null;
 
@@ -125,6 +129,12 @@ class MeasurementChartWidget extends StatefulWidget {
   /// Whether to render an EWMA smoothed weight trend curve alongside a ghost
   /// line connecting raw measurements. Defaults to true when [chartType] is 'weight' or 'body_weight'.
   final bool? smoothWeightTrend;
+
+  /// Whether consecutive measurements should be joined by a line.
+  final bool connectDataPoints;
+
+  /// Optional summary text displayed at the trailing end of the header row.
+  final String? trailingSummaryLabel;
 
   bool get usesExternalData => dataPoints != null;
 
@@ -459,6 +469,21 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         .withValues(alpha: 0.6),
                   ),
                 ),
+                if (widget.trailingSummaryLabel != null) ...[
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Expanded(
+                    child: Text(
+                      widget.trailingSummaryLabel!,
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -662,17 +687,20 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                     LineChartBarData(
                       spots: spots,
                       isCurved: false,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: widget.connectDataPoints
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.transparent,
                       barWidth: widget.edgeToEdge ? 3.5 : 4.0,
                       isStrokeCapRound: true,
                       dotData: FlDotData(
                         show: true,
                         checkToShowDot: (spot, bar) =>
+                            !widget.connectDataPoints ||
                             spots.length == 1 ||
                             (touchedSpot != null && spot == touchedSpot),
                         getDotPainter: (spot, percent, bar, index) =>
                             FlDotCirclePainter(
-                              radius: 6,
+                              radius: widget.connectDataPoints ? 6 : 3,
                               color: Theme.of(context).colorScheme.primary,
                               strokeWidth: 2,
                               strokeColor: Theme.of(context)
@@ -680,7 +708,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                             ),
                       ),
                       belowBarData: BarAreaData(
-                        show: true,
+                        show: widget.connectDataPoints,
                         gradient: LinearGradient(
                           colors: [
                             Theme.of(context).colorScheme.primary

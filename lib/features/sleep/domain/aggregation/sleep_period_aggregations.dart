@@ -79,7 +79,11 @@ class SleepPeriodAggregationEngine {
     final days = <SleepDayAggregate>[];
     final windows = <SleepWindowSegment>[];
     for (var i = 0; i < 7; i++) {
-      final date = normalizedStart.add(Duration(days: i));
+      final date = DateTime(
+        normalizedStart.year,
+        normalizedStart.month,
+        normalizedStart.day + i,
+      );
       final analysis = byDate[date];
       days.add(
         SleepDayAggregate(
@@ -117,7 +121,7 @@ class SleepPeriodAggregationEngine {
     for (
       var date = normalizedMonthStart;
       !date.isAfter(monthEnd);
-      date = date.add(const Duration(days: 1))
+      date = DateTime(date.year, date.month, date.day + 1)
     ) {
       final analysis = byDate[date];
       days.add(
@@ -176,17 +180,7 @@ class SleepPeriodAggregationEngine {
         return b.analyzedAtUtc.compareTo(a.analyzedAtUtc);
       });
 
-      final primary = uniqueSessions.first;
-      int totalMinutes = 0;
-      for (final analysis in uniqueSessions) {
-        totalMinutes += analysis.totalSleepMinutes ?? 0;
-      }
-
-      byDate[key] = primary.copyWith(
-        totalSleepMinutes: totalMinutes > 0
-            ? totalMinutes
-            : primary.totalSleepMinutes,
-      );
+      byDate[key] = uniqueSessions.first;
     }
     return byDate;
   }

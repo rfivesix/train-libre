@@ -6304,23 +6304,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'En mode catalogue, les suggestions de l’IA sont rapprochées des aliments locaux. Le mode d’estimation directe peut utiliser des valeurs nutritionnelles estimées par l’IA. Vérifiez les résultats avant l’enregistrement.';
 
   @override
-  String get infoSleepTitle => 'Qualité du sommeil (SHS v3.5)';
+  String get infoSleepTitle => 'Score de sommeil';
 
   @override
   String get infoSleepExplanation =>
-      'Calcule un indice de sommeil complet à partir de la quantité, de la continuité, de la profondeur, du timing et de la régularité quotidienne.';
+      'Une estimation basée sur les données disponibles.';
 
   @override
   String get infoSleepKeyPoints =>
-      '• Regroupe cinq dimensions cliniques à l\'aide d\'une somme pondérée.\n• Ajuste automatiquement les exigences si votre portable ne fournit pas d\'étapes spécifiques ou de données d\'efficacité.\n• Vous protège via des multiplicateurs à plafond souple qui limitent le score total si un domaine critique (comme le sommeil paradoxal ou profond) est compromis.';
+      'Durée, continuité, sommeil profond, REM et régularité contribuent au score.\nLes éléments manquants sont exclus.\nLes phases sont des estimations.';
 
   @override
-  String get infoSleepTechnicalTitle =>
-      'Base de référence pondérée et soft-caps continus';
+  String get infoSleepTechnicalTitle => 'Méthode de calcul';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      'Agrége cinq domaines principaux à l\'aide d\'une somme linéaire pondérée : durée (30 %), continuité (20 %), architecture (25 %), synchronisation (15 %) et régularité (10 %). Pour éviter des moyennes trompeuses lorsqu\'un domaine clinique est compromis, le score final est dégradé si des goulots d\'étranglement importants sont détectés au cours des phases de sommeil ou du timing circadien.';
+      'Durée 45 %, continuité 25 %, profond 10 %, REM 10 %, régularité 10 %. Une courte durée peut limiter le score. Ce n’est pas une mesure clinique.';
 
   @override
   String get tdeeRecalculationNotificationTitle => 'TDEE recalculé';
@@ -9676,4 +9675,118 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get discardWorkoutAction => 'Abandonner la séance';
+
+  @override
+  String get sleepDashboardScore => 'Score de sommeil';
+
+  @override
+  String get sleepDashboardGoal => 'Objectif de sommeil';
+
+  @override
+  String get sleepDashboardGoalEight => 'Objectif de 8 h';
+
+  @override
+  String sleepDashboardSevenDays(int count) {
+    return '$count derniers jours';
+  }
+
+  @override
+  String get sleepDashboardRecordedNights => 'Nuits enregistrées';
+
+  @override
+  String get sleepDashboardStageEstimate =>
+      'Les phases de sommeil sont des estimations.';
+
+  @override
+  String get sleepDashboardStageHint =>
+      'Touchez le graphique pour examiner une phase.';
+
+  @override
+  String get sleepDashboardEfficiency => 'Efficacité';
+
+  @override
+  String get sleepDashboardStart => 'Début';
+
+  @override
+  String get sleepDashboardEnd => 'Fin';
+
+  @override
+  String get sleepDashboardEmpty => 'Aucune donnée de sommeil pour ce jour.';
+
+  @override
+  String get sleepDashboardNightHeartRate => 'Pouls pendant le sommeil';
+
+  @override
+  String get sleepDashboardNightHrv => 'VFC pendant le sommeil';
+
+  @override
+  String get sleepDashboardSamples => 'Mesures disponibles';
+
+  @override
+  String get sleepDashboardContributors => 'Facteurs du score';
+
+  @override
+  String get sleepDashboardInsufficient => 'Données insuffisantes';
+
+  @override
+  String get sleepDashboardAsleep => 'Temps de sommeil';
+
+  @override
+  String get hrvTitle => 'Variabilité de la fréquence cardiaque';
+
+  @override
+  String get hrvUnavailable => 'Aucune donnée VFC';
+
+  @override
+  String get hrvMethodNote =>
+      'Moyenne des mesures SDNN disponibles dans Apple Santé, en millisecondes.';
+
+  @override
+  String get hrvNoData => 'Aucune donnée VFC';
+
+  @override
+  String get sleepDashboardDebtNote =>
+      'Nuits enregistrées uniquement ; ce n’est pas une mesure physiologique de la dette de sommeil.';
+
+  @override
+  String get sleepDashboardEstimate => 'Estimation · données limitées';
+
+  @override
+  String get sleepDashboardDurationCap => 'La durée limite le score';
+
+  @override
+  String get sleepDashboardHrvError => 'Impossible de charger les mesures VFC.';
+
+  @override
+  String get pulseSettingsEnableSubtitleIos =>
+      'Lit le pouls et la VFC dans Apple Santé lorsque l’analyse du pouls est activée.';
+
+  @override
+  String get pulseSettingsPermissionSubtitleIos =>
+      'Autorisez l’accès au pouls et à la VFC dans Apple Santé.';
+
+  @override
+  String get pulseHealthStatusIos =>
+      'Apple Santé ne révèle pas les autorisations de lecture. Vérifiez les accès si les valeurs manquent.';
+
+  @override
+  String get sleepDashboardTonightDelta =>
+      'Cette nuit par rapport à l’objectif';
+
+  @override
+  String get sleepDashboardMinimum => 'Minimum';
+
+  @override
+  String get sleepDashboardAverage => 'Moyenne';
+
+  @override
+  String get sleepDashboardPersonalBaseline =>
+      'Référence personnelle (30 jours précédents)';
+
+  @override
+  String get sleepDashboardBaselineUnavailable =>
+      'Pas assez de nuits comparables';
+
+  @override
+  String get hrvQueryFailed => 'Impossible de charger la VFC. Réessayez.';
 }

@@ -1106,7 +1106,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 47;
+  int get schemaVersion => 48;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1270,6 +1270,7 @@ class AppDatabase extends _$AppDatabase {
           )
         ''');
       await _createPulsePersistenceSchema(this);
+      await _createHrvPersistenceSchema(this);
       await customStatement(
         'CREATE INDEX IF NOT EXISTS exercises_usage_count_idx ON exercises (usage_count);',
       );
@@ -2264,6 +2265,9 @@ class AppDatabase extends _$AppDatabase {
             () => m.addColumn(foodCategories, foodCategories.nameNl),
           );
         }
+        if (from < 48) {
+          await _createHrvPersistenceSchema(this);
+        }
         unawaited(
           TelemetryService.instance.trackDbMigrationStatus(
             fromVersion: from,
@@ -2297,6 +2301,21 @@ class AppDatabase extends _$AppDatabase {
       )
     ''');
   }
+}
+
+Future<void> _createHrvPersistenceSchema(GeneratedDatabase db) async {
+  await db.customStatement('''
+    CREATE TABLE IF NOT EXISTS pulse_hrv_samples (
+      native_id TEXT PRIMARY KEY NOT NULL,
+      source_id TEXT NOT NULL,
+      start_ms INTEGER NOT NULL,
+      end_ms INTEGER NOT NULL,
+      sdnn_ms REAL NOT NULL
+    )
+  ''');
+  await db.customStatement(
+    'CREATE INDEX IF NOT EXISTS idx_pulse_hrv_start ON pulse_hrv_samples(start_ms)',
+  );
 }
 
 Future<void> _createPulsePersistenceSchema(GeneratedDatabase db) async {

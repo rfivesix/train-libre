@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/sleep/data/processing/sleep_pipeline_service.dart';
 import 'package:train_libre/features/sleep/platform/ingestion/sleep_ingestion_models.dart';
@@ -93,14 +94,14 @@ void main() {
       ''').getSingle();
       expect(
         analysis.read<String>('analysis_version'),
-        'sleep-health-score-v3',
+        'sleep-health-score-v4',
       );
       expect(analysis.readNullable<double>('score'), isNotNull);
       expect(analysis.readNullable<int>('interruptions_count'), 1);
       expect(analysis.readNullable<int>('interruptions_wake_minutes'), 5);
       expect(
         analysis.readNullable<double>('score_completeness'),
-        closeTo(0.65, 0.0001),
+        closeTo(0.70, 0.0001),
       );
       expect(analysis.readNullable<double>('regularity_sri'), isNull);
       expect(analysis.readNullable<int>('regularity_valid_days'), lessThan(5));
@@ -165,7 +166,7 @@ void main() {
     expect(score, isNotNull);
     expect(
       analysis.readNullable<double>('score_completeness'),
-      closeTo(0.65, 0.0001),
+      closeTo(0.80, 0.0001),
     );
 
     await db.close();
@@ -301,9 +302,9 @@ void main() {
       expect(latest.readNullable<double>('score'), isNotNull);
       expect(
         latest.readNullable<double>('score_completeness'),
-        closeTo(0.75, 0.0001),
+        closeTo(0.80, 0.0001),
       );
-      expect(latest.readNullable<double>('regularity_sri'), isNotNull);
+      expect(latest.readNullable<double>('regularity_sri'), isNull);
       expect(
         latest.readNullable<int>('regularity_valid_days'),
         greaterThanOrEqualTo(7),
@@ -521,7 +522,7 @@ void main() {
       (a) => a.read<String>('session_id') == 'core-session',
     );
     expect(coreAnalysis.readNullable<double>('score'), isNotNull);
-    expect(coreAnalysis.readNullable<int>('total_sleep_minutes'), 525);
+    expect(coreAnalysis.readNullable<int>('total_sleep_minutes'), 480);
 
     final napAnalysis = dbAnalyses.firstWhere(
       (a) => a.read<String>('session_id') == 'nap-session',
@@ -625,4 +626,161 @@ void main() {
 
     await db.close();
   });
+  test(
+    'asleep-only data remains partial and offline history migrates atomically',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+        ),
+      );
+      final service = SleepPipelineService(database: db);
+      final start = DateTime.utc(2026, 1, 1, 22);
+      final batch = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 'old',
+            startAtUtc: start,
+            endAtUtc: start.add(const Duration(hours: 8)),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        stageSegments: [
+          SleepIngestionStageSegment(
+            recordId: 'old-stage',
+            sessionRecordId: 'old',
+            startAtUtc: start,
+            endAtUtc: start.add(const Duration(hours: 8)),
+            platformStage: 'asleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        heartRateSamples: const [],
+      );
+      await service.runImport(batch: batch, analysisVersion: 'old');
+      final before = await db
+          .customSelect(
+            "SELECT * FROM sleep_nightly_analyses WHERE session_id = 'old'",
+          )
+          .getSingle();
+      expect(
+        before.readNullable<double>('score_completeness'),
+        closeTo(.45, .0001),
+      );
+      expect(before.readNullable<double>('sleep_efficiency_pct'), isNull);
+      expect(before.readNullable<int>('interruptions_wake_minutes'), isNull);
+      final token = CancellationToken();
+      await expectLater(
+        service.recomputeStoredHistory(
+          token: token,
+          onProgress: (index, total) {
+            if (index == 1) token.cancel();
+          },
+        ),
+        throwsA(isA<OperationCanceledException>()),
+      );
+      final afterCancellation = await db
+          .customSelect(
+            "SELECT * FROM sleep_nightly_analyses WHERE session_id = 'old'",
+          )
+          .getSingle();
+      expect(afterCancellation.read<String>('analysis_version'), 'old');
+      expect(
+        afterCancellation.readNullable<double>('score'),
+        before.readNullable<double>('score'),
+      );
+      expect(await service.recomputeStoredHistory(), 1);
+      final migrated = await db
+          .customSelect(
+            "SELECT * FROM sleep_nightly_analyses WHERE session_id = 'old'",
+          )
+          .getSingle();
+      expect(
+        migrated.read<String>('analysis_version'),
+        'sleep-health-score-v4',
+      );
+      expect(
+        migrated.readNullable<double>('score_completeness'),
+        closeTo(.45, .0001),
+      );
+      expect(await service.recomputeStoredHistory(), 0);
+      expect(
+        (await db
+                .customSelect(
+                  'SELECT COUNT(*) AS n FROM sleep_canonical_stage_segments',
+                )
+                .getSingle())
+            .read<int>('n'),
+        1,
+      );
+      expect(
+        (await db
+                .customSelect('SELECT COUNT(*) AS n FROM sleep_raw_imports')
+                .getSingle())
+            .read<int>('n'),
+        1,
+      );
+      await db.close();
+    },
+  );
+  test(
+    'overlapping main fragments count once while a distant nap is excluded',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+        ),
+      );
+      final service = SleepPipelineService(database: db);
+      SleepIngestionSession session(String id, DateTime start, DateTime end) =>
+          SleepIngestionSession(
+            recordId: id,
+            startAtUtc: start,
+            endAtUtc: end,
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          );
+      SleepIngestionStageSegment segment(
+        String id,
+        DateTime start,
+        DateTime end,
+      ) => SleepIngestionStageSegment(
+        recordId: '$id-stage',
+        sessionRecordId: id,
+        startAtUtc: start,
+        endAtUtc: end,
+        platformStage: 'asleep',
+        sourcePlatform: 'healthkit',
+      );
+      final start = DateTime.utc(2026, 1, 1, 22);
+      final s2 = start.add(const Duration(hours: 3, minutes: 30));
+      final end1 = start.add(const Duration(hours: 4));
+      final end = start.add(const Duration(hours: 8));
+      final nap = start.add(const Duration(hours: 15));
+      final napEnd = nap.add(const Duration(hours: 1));
+      await service.runImport(
+        batch: SleepRawIngestionBatch(
+          sessions: [
+            session('one', start, end1),
+            session('two', s2, end),
+            session('nap', nap, napEnd),
+          ],
+          stageSegments: [
+            segment('one', start, end1),
+            segment('two', s2, end),
+            segment('nap', nap, napEnd),
+          ],
+          heartRateSamples: const [],
+        ),
+      );
+      final scored = await db
+          .customSelect(
+            'SELECT total_sleep_minutes FROM sleep_nightly_analyses WHERE score IS NOT NULL',
+          )
+          .getSingle();
+      expect(scored.read<int>('total_sleep_minutes'), 480);
+      await db.close();
+    },
+  );
 }

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:train_libre/widgets/common/value_summary_card.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/generated/app_localizations.dart';
@@ -14,7 +17,9 @@ import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/features/profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:intl/intl.dart';
-import 'package:train_libre/widgets/common/empty_states/active_gap_overlay.dart';
+import 'package:train_libre/features/sleep/presentation/widgets/sleep_dashboard_details.dart';
+import 'package:train_libre/features/sleep/presentation/widgets/sleep_score_breakdown_card.dart';
+import 'package:train_libre/features/sleep/domain/scoring/sleep_scoring_engine.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -281,6 +286,30 @@ SleepDayOverviewData _lowConfidenceDepthOverview() {
 }
 
 void main() {
+  testWidgets('night heart chart reveals the selected measurement', (
+    tester,
+  ) async {
+    final model = SleepDayViewModel(
+      repository: _FakeSleepDayRepository(_sampleOverview()),
+    );
+    await tester.pumpWidget(
+      _testApp(home: SleepDayOverviewPage(viewModel: model)),
+    );
+    await tester.pumpAndSettle();
+    final chart = find.byKey(const ValueKey('sleep-heart-chart-bpm'));
+    await tester.ensureVisible(chart);
+    await tester.pumpAndSettle();
+    expect(find.text('Min: 52 bpm · Avg: 54 bpm'), findsOneWidget);
+    final rect = tester.getRect(chart);
+    final gesture = await tester.startGesture(
+      Offset(rect.left + 8, rect.center.dy),
+    );
+    await tester.pump();
+    expect(find.text('56 bpm'), findsOneWidget);
+    await gesture.up();
+    await tester.pump();
+  });
+
   setUp(() {
     PackageInfo.setMockInitialValues(
       appName: 'Train Libre',
@@ -310,34 +339,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapMetricTile(tester, 'Duration');
-    expect(find.text('Duration'), findsWidgets);
-    expect(
-      find.text(
-        'Adults often do best with roughly 7–9 hours. This benchmark helps you see where your night sits in that range.',
-      ),
-      findsOneWidget,
+    final cards = tester.widgetList<ValueSummaryCard>(
+      find.byType(ValueSummaryCard),
     );
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-
-    await _tapMetricTile(tester, 'Heart rate');
-    expect(find.text('Heart rate'), findsWidgets);
-    expect(find.byType(MeasurementChartWidget), findsOneWidget);
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    await _tapMetricTile(tester, 'Regularity');
-    expect(find.text('Average bedtime'), findsOneWidget);
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    await _tapMetricTile(tester, 'Depth');
-    expect(find.text('Depth'), findsWidgets);
-
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+    expect(cards.map((card) => card.label), ['Interruptions']);
     await _tapMetricTile(tester, 'Interruptions');
     expect(find.text('Interruptions'), findsWidgets);
   });
@@ -493,7 +498,56 @@ void main() {
       ),
     );
     await _pumpRouteTransition(tester);
-    expect(find.byType(ActiveGapOverlay), findsOneWidget);
+    expect(find.text('No data available for this period'), findsOneWidget);
+  });
+
+  testWidgets('goal comparison includes only recorded nights', (tester) async {
+    final overview = _sampleOverview();
+    final analysis = NightlySleepAnalysis(
+      id: 'night',
+      sessionId: 'session',
+      nightDate: DateTime(2026, 3, 31),
+      analysisVersion: 'v4',
+      normalizationVersion: '1',
+      analyzedAtUtc: DateTime.utc(2026, 3, 31),
+      totalSleepMinutes: 420,
+    );
+    await tester.pumpWidget(
+      _testApp(
+        home: Scaffold(
+          body: SleepGoalCard(
+            overview: overview,
+            repository: _FakeSleepQueryRepository([analysis]),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Last 1 days'), findsOneWidget);
+    expect(find.text('−1h 0m'), findsOneWidget);
+    expect(find.textContaining('88%'), findsOneWidget);
+  });
+
+  testWidgets('missing score components stay unavailable', (tester) async {
+    const result = SleepScoringResult(
+      score: 75,
+      state: SleepScoreState.average,
+      completeness: .45,
+      durationScore: 75,
+      regularityValidDays: 0,
+      regularityUsed: false,
+      regularityStable: false,
+    );
+    await tester.pumpWidget(
+      _testApp(
+        home: const Scaffold(
+          body: SleepScoreBreakdownCard(scoringResult: result),
+        ),
+      ),
+    );
+    expect(find.text('75 / 100'), findsOneWidget);
+    expect(find.text('Unavailable'), findsNWidgets(4));
+    expect(find.text('0 / 100'), findsNothing);
   });
 
   testWidgets('heart-rate detail shows neutral baseline-missing state', (
@@ -513,9 +567,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapMetricTile(tester, 'Heart rate');
+    unawaited(
+      tester
+          .state<NavigatorState>(find.byType(Navigator).first)
+          .pushNamed(
+            SleepRouteNames.heartRateDetail,
+            arguments: _baselineMissingOverview(),
+          ),
+    );
+    await _pumpRouteTransition(tester);
     expect(find.text('Baseline not established'), findsOneWidget);
-    expect(find.byType(MeasurementChartWidget), findsOneWidget);
+    expect(find.byType(MeasurementChartWidget), findsWidgets);
   });
 
   testWidgets('heart-rate detail shows fallback when samples are missing', (
@@ -554,7 +616,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapMetricTile(tester, 'Heart rate');
+    unawaited(
+      tester
+          .state<NavigatorState>(find.byType(Navigator).first)
+          .pushNamed(SleepRouteNames.heartRateDetail, arguments: noSamples),
+    );
+    await _pumpRouteTransition(tester);
     expect(
       find.text(
         'No heart-rate samples were stored for this night. Trend chart is unavailable.',
@@ -579,7 +646,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapMetricTile(tester, 'Depth');
+    unawaited(
+      tester
+          .state<NavigatorState>(find.byType(Navigator).first)
+          .pushNamed(
+            SleepRouteNames.depthDetail,
+            arguments: _lowConfidenceDepthOverview(),
+          ),
+    );
+    await _pumpRouteTransition(tester);
     expect(
       find.text('Stage confidence is too low for a reliable depth breakdown.'),
       findsOneWidget,
@@ -769,7 +844,7 @@ void main() {
             'sleep-timeline-tick-',
           ),
     );
-    expect(tickFinder, findsAtLeastNWidgets(3));
+    expect(tickFinder, findsNWidgets(2));
   });
 
   testWidgets('day timeline axis tick color adapts for light and dark mode', (

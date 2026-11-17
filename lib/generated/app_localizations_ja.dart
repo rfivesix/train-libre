@@ -6007,21 +6007,21 @@ class AppLocalizationsJa extends AppLocalizations {
       'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
-  String get infoSleepTitle => '睡眠の質 (SHS v3.5)';
+  String get infoSleepTitle => '睡眠スコア';
 
   @override
-  String get infoSleepExplanation => '量、継続性、深さ、タイミング、毎日の規則性から総合的な睡眠指数を計算します。';
+  String get infoSleepExplanation => '利用可能なデータに基づく推定値です。';
 
   @override
   String get infoSleepKeyPoints =>
-      '• 加重合計を使用して 5 つの臨床的側面を集計します。\n• ウェアラブルが特定の段階や効率データを提供しない場合、要件を自動的にスケールします。\n• 重要なドメイン (REM やディープ スリープなど) が侵害された場合に、合計スコアを制限するソフト キャップ乗数によってユーザーを保護します。';
+      '睡眠時間、連続性、深い睡眠、REM、規則性を使用します。\n欠損項目は除外されます。\n睡眠段階は推定値です。';
 
   @override
-  String get infoSleepTechnicalTitle => '加重ベースラインと連続ソフトキャップ';
+  String get infoSleepTechnicalTitle => '計算方法';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      '加重線形和を使用して 5 つのプライマリ ドメインを集計します: 期間 (30%)、継続性 (20%)、アーキテクチャ (25%)、タイミング (15%)、および規則性 (10%)。臨床領域が侵害された場合に誤解を招く平均値を防ぐため、睡眠段階または概日タイミングで重大なボトルネックが検出された場合、最終スコアは低下します。';
+      '睡眠時間45%、連続性25%、深い睡眠10%、REM 10%、規則性10%。短い睡眠時間はスコアの上限となる場合があります。臨床測定値ではありません。';
 
   @override
   String get tdeeRecalculationNotificationTitle => 'TDEEの再計算';
@@ -9183,4 +9183,111 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get discardWorkoutAction => 'ワークアウトを破棄';
+
+  @override
+  String get sleepDashboardScore => '睡眠スコア';
+
+  @override
+  String get sleepDashboardGoal => '睡眠目標';
+
+  @override
+  String get sleepDashboardGoalEight => '8時間の目標';
+
+  @override
+  String sleepDashboardSevenDays(int count) {
+    return '過去$count日間';
+  }
+
+  @override
+  String get sleepDashboardRecordedNights => '記録された夜';
+
+  @override
+  String get sleepDashboardStageEstimate => '睡眠段階は推定値です。';
+
+  @override
+  String get sleepDashboardStageHint => 'グラフをタップして睡眠段階を確認します。';
+
+  @override
+  String get sleepDashboardEfficiency => '効率';
+
+  @override
+  String get sleepDashboardStart => '開始';
+
+  @override
+  String get sleepDashboardEnd => '終了';
+
+  @override
+  String get sleepDashboardEmpty => 'この日の睡眠データはありません。';
+
+  @override
+  String get sleepDashboardNightHeartRate => '睡眠中の心拍数';
+
+  @override
+  String get sleepDashboardNightHrv => '睡眠中のHRV';
+
+  @override
+  String get sleepDashboardSamples => '利用可能な測定値';
+
+  @override
+  String get sleepDashboardContributors => 'スコアの内訳';
+
+  @override
+  String get sleepDashboardInsufficient => 'データ不足';
+
+  @override
+  String get sleepDashboardAsleep => '睡眠時間';
+
+  @override
+  String get hrvTitle => '心拍変動';
+
+  @override
+  String get hrvUnavailable => 'HRVデータがありません';
+
+  @override
+  String get hrvMethodNote => 'Appleヘルスケアの利用可能なSDNN測定値の平均（ミリ秒）。';
+
+  @override
+  String get hrvNoData => 'HRVデータがありません';
+
+  @override
+  String get sleepDashboardDebtNote => '記録された夜のみ。睡眠負債の生理学的な指標ではありません。';
+
+  @override
+  String get sleepDashboardEstimate => '推定値 · データ不足';
+
+  @override
+  String get sleepDashboardDurationCap => '睡眠時間によりスコアが制限されます';
+
+  @override
+  String get sleepDashboardHrvError => 'HRV測定値を読み込めませんでした。';
+
+  @override
+  String get pulseSettingsEnableSubtitleIos =>
+      '心拍分析を有効にすると、Appleヘルスケアの心拍数とHRVを読み取ります。';
+
+  @override
+  String get pulseSettingsPermissionSubtitleIos =>
+      'Appleヘルスケアで心拍数とHRVへのアクセスを許可してください。';
+
+  @override
+  String get pulseHealthStatusIos =>
+      'Appleヘルスケアは読み取り権限を開示しません。値がない場合はヘルスケアでアクセスを確認してください。';
+
+  @override
+  String get sleepDashboardTonightDelta => '今夜の目標との差';
+
+  @override
+  String get sleepDashboardMinimum => '最低';
+
+  @override
+  String get sleepDashboardAverage => '平均';
+
+  @override
+  String get sleepDashboardPersonalBaseline => '個人の基準値（過去30日間）';
+
+  @override
+  String get sleepDashboardBaselineUnavailable => '比較可能な夜が不足しています';
+
+  @override
+  String get hrvQueryFailed => 'HRVを読み込めませんでした。もう一度お試しください。';
 }

@@ -8,6 +8,7 @@ import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import '../../../widgets/common/value_summary_card.dart';
 import '../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../data/pulse_repository.dart';
+import '../data/hrv_repository.dart';
 import '../domain/pulse_models.dart';
 
 import 'dart:async';
@@ -273,6 +274,66 @@ class _PulseAnalysisContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
+        if (summary.hrv != null &&
+            summary.hrv!.state != HrvState.unavailable) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
+            ),
+            child: Text(
+              l10n.hrvTitle,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          if (summary.hrv!.samples.isNotEmpty)
+            MeasurementChartWidget.fromData(
+              dataPoints: summary.hrv!.samples
+                  .map(
+                    (sample) => ChartDataPoint(
+                      date: sample.startUtc.toLocal(),
+                      value: sample.sdnnMs,
+                    ),
+                  )
+                  .toList(growable: false),
+              unit: 'ms',
+              connectDataPoints: false,
+              axisMode: MeasurementChartAxisMode.time,
+              valueFractionDigits: 0,
+              selectedDateLabelBuilder: (value) => scope == SleepPeriodScope.day
+                  ? timeFormatter.format(value)
+                  : DateFormat.MMMd(locale).format(value),
+              axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
+                  ? timeFormatter.format(value)
+                  : DateFormat.MMMd(locale).format(value),
+              emptyStateLabel: l10n.hrvNoData,
+              edgeToEdge: true,
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: Text(
+                summary.hrv!.state == HrvState.queryFailed
+                    ? l10n.hrvQueryFailed
+                    : l10n.hrvNoData,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
+              vertical: DesignConstants.spacingS,
+            ),
+            child: Text(
+              '${l10n.pulseSampleCount(summary.hrv!.sampleCount)} · ${l10n.hrvMethodNote}',
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.screenPaddingHorizontal,
@@ -353,6 +414,13 @@ class _KpiCard extends StatelessWidget {
               ? resting
               : '$resting ${l10n.sleepBpmUnit}',
         ),
+        if (summary.hrv != null && summary.hrv!.state != HrvState.unavailable)
+          ValueSummaryCard(
+            label: l10n.hrvTitle,
+            value: summary.hrv!.averageMs == null
+                ? '--'
+                : '${summary.hrv!.averageMs!.round()} ms',
+          ),
       ]),
     );
   }

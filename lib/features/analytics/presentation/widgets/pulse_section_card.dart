@@ -6,6 +6,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../pulse/domain/pulse_models.dart';
+import '../../../pulse/data/hrv_repository.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
 
@@ -101,6 +102,16 @@ class PulseSectionCard extends StatelessWidget {
                   disableShadow: true,
                   useSecondarySurface: true,
                 ),
+                if (summary?.hrv != null &&
+                    summary!.hrv!.state != HrvState.unavailable)
+                  ValueSummaryCard(
+                    label: l10n.hrvTitle,
+                    value: summary.hrv!.averageMs == null
+                        ? '--'
+                        : '${summary.hrv!.averageMs!.round()} ms',
+                    disableShadow: true,
+                    useSecondarySurface: true,
+                  ),
               ]),
               const SizedBox(height: DesignConstants.spacingS),
               Text(

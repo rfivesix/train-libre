@@ -346,11 +346,15 @@ class SleepSyncService implements SleepSettingsService {
   }) async {
     final db = _database ??= await _databaseFuture;
     final pipeline = SleepPipelineService(database: db);
-    return pipeline.runImport(
+    final result = await pipeline.runImport(
       batch: batch,
       token: token,
       onProgress: onProgress,
     );
+    if (result.importedSessions > 0) {
+      await pipeline.recomputeStoredHistory(force: true, token: token);
+    }
+    return result;
   }
 
   @override

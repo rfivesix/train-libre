@@ -7,6 +7,7 @@ import 'persistence/dao/sleep_canonical_dao.dart';
 import 'persistence/dao/sleep_nightly_analyses_dao.dart';
 import 'persistence/sleep_persistence_models.dart';
 import 'processing/timeline_repair.dart';
+import 'processing/sleep_pipeline_service.dart';
 import '../domain/metrics/nightly_metrics_calculator.dart';
 import '../domain/sleep_domain.dart';
 
@@ -46,6 +47,7 @@ class SleepHubSummaryRepository {
   SleepNightlyAnalysesDao? _analysesDao;
   SleepCanonicalSessionsDao? _sessionsDao;
   SleepCanonicalStageSegmentsDao? _segmentsDao;
+  Future<int>? _historyMigration;
 
   Future<SleepHubSummary> fetchSummary({
     required DateTime endDate,
@@ -55,6 +57,8 @@ class SleepHubSummaryRepository {
     var segmentRowCount = 0;
     if (daysBack <= 0) return const SleepHubSummary();
     await _ensureDaos();
+    await (_historyMigration ??= SleepPipelineService(database: _database!)
+        .recomputeStoredHistory());
 
     final endLocal = DateTime(endDate.year, endDate.month, endDate.day);
     final startLocal = endLocal.subtract(Duration(days: daysBack - 1));

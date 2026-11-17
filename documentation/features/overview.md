@@ -58,9 +58,9 @@ Platform adapters exchange supported records with HealthKit or Health Connect af
 
 * [Health Sync & Export](health_sync_export.md)
 
-### 5. Sleep Health Score (SHS v3)
+### 5. Sleep Health Score
 
-The score combines five sleep domains using the current v3 formulas and score caps. Imported records are mapped into the sleep inputs; missing or partial stage data can affect completeness and the result. The score is a software heuristic, not a diagnosis or a measure of medical sleep health.
+The score combines available measures of sleep duration, continuity, sleep stages, and regularity. Imported records are mapped into the sleep inputs; missing or partial stage data can affect the result. The score is a software heuristic, not a diagnosis or a validated clinical measure.
 
 * [Sleep Health Score engine](sleep_scoring_engine.md)
 

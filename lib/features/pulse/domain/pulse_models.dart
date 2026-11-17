@@ -1,3 +1,5 @@
+import 'hrv_models.dart';
+
 enum PulseScope { day, week, month }
 
 enum PulseDataQuality { ready, limited, insufficient, noData }
@@ -39,6 +41,7 @@ class PulseAnalysisSummary {
     this.minBpm,
     this.maxBpm,
     this.restingBpm,
+    this.hrv,
   });
 
   final PulseAnalysisWindow window;
@@ -51,6 +54,21 @@ class PulseAnalysisSummary {
   final double? minBpm;
   final double? maxBpm;
   final double? restingBpm;
+  final HrvSummary? hrv;
+
+  PulseAnalysisSummary withHrv(HrvSummary? value) => PulseAnalysisSummary(
+    window: window,
+    samples: samples,
+    chartSamples: chartSamples,
+    sampleCount: sampleCount,
+    quality: quality,
+    noDataReason: noDataReason,
+    averageBpm: averageBpm,
+    minBpm: minBpm,
+    maxBpm: maxBpm,
+    restingBpm: restingBpm,
+    hrv: value,
+  );
 
   bool get hasData => sampleCount > 0;
 

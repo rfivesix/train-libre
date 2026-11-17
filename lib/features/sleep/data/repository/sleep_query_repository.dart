@@ -4,6 +4,7 @@ import '../../domain/derived/nightly_sleep_analysis.dart';
 import '../../domain/sleep_enums.dart';
 import '../persistence/dao/sleep_nightly_analyses_dao.dart';
 import '../persistence/sleep_persistence_models.dart';
+import '../processing/sleep_pipeline_service.dart';
 
 abstract class SleepQueryRepository {
   Future<NightlySleepAnalysis?> getNightlyAnalysisByDate(DateTime day);
@@ -26,9 +27,16 @@ class DriftSleepQueryRepository implements SleepQueryRepository {
   final bool _ownsDatabase;
   late final SleepNightlyAnalysesDao _dao;
   late final SleepCanonicalSessionsDao _sessionsDao;
+  Future<int>? _historyMigration;
+
+  Future<void> _ensureHistory() async {
+    await (_historyMigration ??= SleepPipelineService(database: _database)
+        .recomputeStoredHistory());
+  }
 
   @override
   Future<NightlySleepAnalysis?> getNightlyAnalysisByDate(DateTime day) async {
+    await _ensureHistory();
     final key = _nightKey(day);
     final rows = await _dao.findByNightRange(
       fromNightDateInclusive: key,
@@ -36,32 +44,11 @@ class DriftSleepQueryRepository implements SleepQueryRepository {
     );
     if (rows.isEmpty) return null;
 
+    final sessionsById = await _loadSessionsById(rows.map((r) => r.sessionId));
     final sortedRows = List<SleepNightlyAnalysisRecord>.from(rows)
-      ..sort((a, b) {
-        if (a.score != null && b.score == null) return -1;
-        if (b.score != null && a.score == null) return 1;
-        return b.analyzedAt.compareTo(a.analyzedAt);
-      });
-
+      ..sort((a, b) => _comparePrimary(a, b, sessionsById));
     final primaryRow = sortedRows.first;
-    final sessionsById = await _loadSessionsById(
-      sortedRows.map((r) => r.sessionId),
-    );
-
-    int totalSleep = 0;
-    for (final row in sortedRows) {
-      totalSleep += row.totalSleepMinutes ?? 0;
-    }
-
-    final domainAnalysis = _toDomain(
-      primaryRow,
-      sessionsById[primaryRow.sessionId],
-    );
-    return domainAnalysis.copyWith(
-      totalSleepMinutes: totalSleep > 0
-          ? totalSleep
-          : primaryRow.totalSleepMinutes,
-    );
+    return _toDomain(primaryRow, sessionsById[primaryRow.sessionId]);
   }
 
   @override
@@ -69,15 +56,41 @@ class DriftSleepQueryRepository implements SleepQueryRepository {
     required DateTime fromInclusive,
     required DateTime toInclusive,
   }) async {
+    await _ensureHistory();
     final rows = await _dao.findByNightRange(
       fromNightDateInclusive: _nightKey(fromInclusive),
       toNightDateInclusive: _nightKey(toInclusive),
     );
     final sessionIds = rows.map((row) => row.sessionId).toSet();
     final sessionsById = await _loadSessionsById(sessionIds);
-    return rows
+    final byNight = <String, SleepNightlyAnalysisRecord>{};
+    for (final row in rows) {
+      final current = byNight[row.nightDate];
+      if (current == null || _comparePrimary(row, current, sessionsById) < 0) {
+        byNight[row.nightDate] = row;
+      }
+    }
+    return byNight.values
         .map((row) => _toDomain(row, sessionsById[row.sessionId]))
         .toList(growable: false);
+  }
+
+  int _comparePrimary(
+    SleepNightlyAnalysisRecord a,
+    SleepNightlyAnalysisRecord b,
+    Map<String, SleepCanonicalSessionRecord> sessions,
+  ) {
+    if (a.score != null && b.score == null) return -1;
+    if (b.score != null && a.score == null) return 1;
+    Duration length(SleepNightlyAnalysisRecord row) {
+      final session = sessions[row.sessionId];
+      return session == null
+          ? Duration.zero
+          : session.endedAt.difference(session.startedAt);
+    }
+
+    final byLength = length(b).compareTo(length(a));
+    return byLength != 0 ? byLength : b.analyzedAt.compareTo(a.analyzedAt);
   }
 
   Future<Map<String, SleepCanonicalSessionRecord>> _loadSessionsById(

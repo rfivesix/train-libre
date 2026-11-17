@@ -18,10 +18,7 @@ import '../../sleep/platform/sleep_platform_channel.dart';
 import 'dart:io';
 
 class PulseSettingsScreen extends StatefulWidget {
-  const PulseSettingsScreen({
-    super.key,
-    this._trackingService,
-  });
+  const PulseSettingsScreen({super.key, this._trackingService});
 
   final PulseTrackingSettingsService? _trackingService;
 
@@ -87,7 +84,8 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
       SleepPermissionState.partial => LucideIcons.triangle_exclamation_point,
       SleepPermissionState.unavailable => LucideIcons.signal_zero,
       SleepPermissionState.notInstalled => LucideIcons.download,
-      SleepPermissionState.technicalError => LucideIcons.triangle_exclamation_point,
+      SleepPermissionState.technicalError =>
+        LucideIcons.triangle_exclamation_point,
     };
   }
 
@@ -142,26 +140,31 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                     subtitleWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_statusSubtitle(permission, l10n)),
-                        const SizedBox(height: 4),
                         Text(
-                          permission.state == SleepPermissionState.ready
-                              ? (Platform.isIOS
-                                    ? l10n.sleepDataStatusSubtitleIos
-                                    : l10n.sleepDataStatusSubtitle)
-                              : (permission.state ==
-                                            SleepPermissionState.denied ||
-                                        permission.state ==
-                                            SleepPermissionState.partial
-                                    ? l10n.sleepNoPermissionSubtitle
-                                    : l10n.sleepFeatureUnavailableSubtitle),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
+                          Platform.isIOS
+                              ? l10n.pulseHealthStatusIos
+                              : _statusSubtitle(permission, l10n),
                         ),
+                        const SizedBox(height: 4),
+                        if (!Platform.isIOS)
+                          Text(
+                            permission.state == SleepPermissionState.ready
+                                ? (Platform.isIOS
+                                      ? l10n.sleepDataStatusSubtitleIos
+                                      : l10n.sleepDataStatusSubtitle)
+                                : (permission.state ==
+                                              SleepPermissionState.denied ||
+                                          permission.state ==
+                                              SleepPermissionState.partial
+                                      ? l10n.sleepNoPermissionSubtitle
+                                      : l10n.sleepFeatureUnavailableSubtitle),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
                       ],
                     ),
                     trailing: _requesting
@@ -170,6 +173,8 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
+                        : Platform.isIOS
+                        ? const Icon(LucideIcons.info)
                         : Icon(
                             permission.state == SleepPermissionState.ready
                                 ? LucideIcons.circle_check
@@ -183,7 +188,8 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                           ),
                     onTap:
                         (_requesting ||
-                            permission.state == SleepPermissionState.ready)
+                            (!Platform.isIOS &&
+                                permission.state == SleepPermissionState.ready))
                         ? null
                         : _requestAccess,
                   ),
@@ -211,7 +217,9 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
       final confirmed = await showPrePermissionDialog(
         context: context,
         title: currentL10n.pulseSettingsPermissionTitle,
-        body: currentL10n.pulseSettingsPermissionSubtitle,
+        body: Platform.isIOS
+            ? currentL10n.pulseSettingsPermissionSubtitleIos
+            : currentL10n.pulseSettingsPermissionSubtitle,
         continueLabel: currentL10n.health_permission_continue,
         cancelLabel: '',
       );
@@ -245,7 +253,9 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
     final confirmed = await showPrePermissionDialog(
       context: context,
       title: currentL10n.pulseSettingsPermissionTitle,
-      body: currentL10n.pulseSettingsPermissionSubtitle,
+      body: Platform.isIOS
+          ? currentL10n.pulseSettingsPermissionSubtitleIos
+          : currentL10n.pulseSettingsPermissionSubtitle,
       continueLabel: currentL10n.health_permission_continue,
       cancelLabel: '',
     );
@@ -260,7 +270,9 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
       SnackBar(
         content: Text(
           granted
-              ? _PulseSettingsCopy(context).permissionGranted
+              ? (Platform.isIOS
+                    ? currentL10n.pulseHealthStatusIos
+                    : _PulseSettingsCopy(context).permissionGranted)
               : _PulseSettingsCopy(context).permissionFailed,
         ),
       ),
@@ -276,7 +288,9 @@ class _PulseSettingsCopy {
 
   String get title => l10n.pulseTitle;
   String get enableTitle => l10n.pulseSettingsEnableTitle;
-  String get enableSubtitle => l10n.pulseSettingsEnableSubtitle;
+  String get enableSubtitle => Platform.isIOS
+      ? l10n.pulseSettingsEnableSubtitleIos
+      : l10n.pulseSettingsEnableSubtitle;
   String get permissionTitle => l10n.pulseSettingsPermissionTitle;
   String get permissionSubtitle => l10n.pulseSettingsPermissionSubtitle;
   String get honestTitle => l10n.analysis;
