@@ -42,6 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Replaced sliders in Appearance, AI settings, and developer tools with platform-adaptive controls using Liquid Glass on iOS and Material styling elsewhere, including continuous and stepped values.
 - Updated Flutter and Dart requirements, refreshed app and development dependencies, and updated the screenshot editor and iOS release tooling.
 - Replaced the diary step progress bar with a health summary card that shows the daily count and goal, or an empty state when no data is available, and opens the selected day's steps with a morph transition.
+- Reduced Apple Health and Health Connect export telemetry to at most one event per platform and device per day, only after a successful export writes data.
 
 ## [1.7.0] - 2026-11-03
 

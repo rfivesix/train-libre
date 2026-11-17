@@ -20,6 +20,7 @@ class PostHogTelemetryService implements TelemetryService {
   static const String _prefDeviceIdKey = 'telemetry_persistent_device_id';
   static const String _prefFoodLogCountKey = 'telemetry_daily_food_count';
   static const String _prefFoodLogSourcesKey = 'telemetry_daily_food_sources';
+  static const String _healthExportDatePrefix = 'telemetry_health_export_date_';
 
   static const String _defaultApiKey = String.fromEnvironment(
     'POSTHOG_API_KEY',
@@ -237,6 +238,14 @@ class PostHogTelemetryService implements TelemetryService {
       await prefs.remove(_prefDeviceIdKey);
       await prefs.remove(_prefFoodLogCountKey);
       await prefs.remove(_prefFoodLogSourcesKey);
+      await _serializeHealthExport(() async {
+        for (final feature in [
+          FeatureKey.appleHealthExported,
+          FeatureKey.healthConnectExported,
+        ]) {
+          await prefs.remove('$_healthExportDatePrefix$feature');
+        }
+      });
 
       // Re-generate fresh persistent device ID and reset PostHog SDK identity
       _persistentDeviceId = const Uuid().v4();
@@ -502,13 +511,41 @@ class PostHogTelemetryService implements TelemetryService {
     required String featureKey,
     Map<String, dynamic>? extraProps,
   }) async {
-    await track(
+    Future<void> capture() => track(
       'feature_used',
       properties: {
         'feature_key': _sanitizeEnumValue(featureKey),
         ...?extraProps,
       },
     );
+    if (featureKey != FeatureKey.appleHealthExported &&
+        featureKey != FeatureKey.healthConnectExported) {
+      await capture();
+      return;
+    }
+    if (!_optedIn) return;
+    await _serializeHealthExport(() async {
+      if (!_optedIn) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (!_optedIn) return;
+      final now = DateTime.now();
+      final date = '${now.year}-${now.month}-${now.day}';
+      final key = '$_healthExportDatePrefix$featureKey';
+      if (prefs.getString(key) == date) return;
+      // Store before capture to prevent duplicate events if capture fails.
+      await prefs.setString(key, date);
+      if (_optedIn) await capture();
+    });
+  }
+
+  Future<void> _healthExportQueue = Future<void>.value();
+
+  Future<void> _serializeHealthExport(Future<void> Function() action) {
+    final result = _healthExportQueue.then((_) => action());
+    _healthExportQueue = result.catchError((Object error) {
+      debugPrint('health export telemetry error: $error');
+    });
+    return result;
   }
 
   /// Serializes the read-modify-write cycles on the food-log counter.
