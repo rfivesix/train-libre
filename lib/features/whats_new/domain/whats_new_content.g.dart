@@ -20,14 +20,29 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Apple Health pulse fix',
-          body: 'Heart-rate samples can now be read from Apple Health.',
+          icon: LucideIcons.moon,
+          title: 'Sleep and recovery at a glance',
+          body: 'The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Sync pulse manually',
-          body: 'Refresh heart-rate samples from the last 365 days in Health settings.',
+          icon: LucideIcons.dumbbell,
+          title: 'More insight during workouts',
+          body: 'See completed and planned sets by muscle group, along with elapsed time, progress, and training volume.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: 'Celebrate personal records',
+          body: 'New personal records are highlighted with an animation and haptic feedback.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Glass your way',
+          body: 'Adjust the glass appearance with a slider and see changes immediately in the preview.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Health and timers improved',
+          body: 'Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.',
         ),
       ],
     ),
@@ -318,14 +333,29 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Apple-Health-Puls repariert',
-          body: 'Pulsmessungen können wieder aus Apple Health gelesen werden.',
+          icon: LucideIcons.moon,
+          title: 'Schlaf und Erholung im Blick',
+          body: 'Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Puls manuell synchronisieren',
-          body: 'In den Health-Einstellungen kannst du die Pulswerte der letzten 365 Tage aktualisieren.',
+          icon: LucideIcons.dumbbell,
+          title: 'Mehr Überblick im Workout',
+          body: 'Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: 'Bestleistungen feiern',
+          body: 'Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Glas nach deinem Geschmack',
+          body: 'Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Gesundheit und Timer verbessert',
+          body: 'Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.',
         ),
       ],
     ),
@@ -616,14 +646,29 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Correction du pouls Apple Health',
-          body: 'Les mesures de fréquence cardiaque peuvent désormais être lues dans Apple Health.',
+          icon: LucideIcons.moon,
+          title: 'Sommeil et récupération en un coup d’œil',
+          body: 'La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Synchroniser le pouls manuellement',
-          body: 'Actualisez les mesures des 365 derniers jours dans les réglages Santé.',
+          icon: LucideIcons.dumbbell,
+          title: 'Une meilleure vue pendant l’entraînement',
+          body: 'Consultez les séries terminées et prévues par groupe musculaire, le temps écoulé, la progression et le volume.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: 'Célébrez vos records personnels',
+          body: 'Une animation et un retour haptique mettent en valeur vos nouveaux records.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Le verre à votre goût',
+          body: 'Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Santé et minuteurs améliorés',
+          body: 'Les données de fréquence cardiaque d’Apple Health peuvent à nouveau être lues et synchronisées manuellement. Le comptage des pas, les minuteurs de repos et d’autres fonctions ont été corrigés.',
         ),
       ],
     ),
@@ -914,14 +959,29 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Correzione del battito in Apple Health',
-          body: 'Le misurazioni della frequenza cardiaca possono ora essere lette da Apple Health.',
+          icon: LucideIcons.moon,
+          title: 'Sonno e recupero a colpo d’occhio',
+          body: 'La nuova panoramica mostra le fasi del sonno, la durata e la frequenza cardiaca. Con Apple Health puoi vedere anche la variabilità della frequenza cardiaca (HRV).',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Sincronizza il battito manualmente',
-          body: 'Aggiorna le misurazioni degli ultimi 365 giorni nelle impostazioni Salute.',
+          icon: LucideIcons.dumbbell,
+          title: 'Più informazioni durante l’allenamento',
+          body: 'Visualizza le serie completate e previste per gruppo muscolare, il tempo trascorso, i progressi e il volume.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: 'Festeggia i record personali',
+          body: 'I nuovi record sono evidenziati da un’animazione e da un feedback aptico.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Vetro come piace a te',
+          body: 'Regola l’aspetto del vetro con un cursore e osserva subito le modifiche nell’anteprima.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Salute e timer migliorati',
+          body: 'I dati della frequenza cardiaca di Apple Health possono essere nuovamente letti e sincronizzati manualmente. Corretti anche il conteggio dei passi, i timer di riposo e altre funzioni.',
         ),
       ],
     ),
@@ -1212,14 +1272,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Apple Healthの心拍数を修正',
-          body: 'Apple Healthから心拍数データを読み込めるようになりました。',
+          icon: LucideIcons.moon,
+          title: '睡眠と回復をひと目で',
+          body: '新しい睡眠の概要で、睡眠段階、睡眠時間、心拍数を確認できます。Apple Healthを使えば心拍変動（HRV）も表示されます。',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: '心拍数を手動で同期',
-          body: 'ヘルス設定から過去365日間の心拍数データを更新できます。',
+          icon: LucideIcons.dumbbell,
+          title: 'ワークアウトをより詳しく',
+          body: '筋肉グループ別の完了セットと予定セット、経過時間、進捗、トレーニングボリュームを確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: '自己記録をお祝い',
+          body: '新しい自己記録をアニメーションと触覚フィードバックでお知らせします。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'ガラスの見た目を自分好みに',
+          body: 'スライダーでガラスの見た目を調整し、プレビューですぐに確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'ヘルスとタイマーを改善',
+          body:
+              'Apple Healthの心拍数データを再び読み込み、手動で同期できるようになりました。歩数、休憩タイマーなども修正しました。',
         ),
       ],
     ),
@@ -1512,14 +1588,29 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Corrección del pulso en Apple Health',
-          body: 'Ahora se pueden leer las mediciones de frecuencia cardíaca de Apple Health.',
+          icon: LucideIcons.moon,
+          title: 'Sueño y recuperación de un vistazo',
+          body: 'La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Sincroniza el pulso manualmente',
-          body: 'Actualiza las mediciones de los últimos 365 días en los ajustes de Salud.',
+          icon: LucideIcons.dumbbell,
+          title: 'Más información durante el entrenamiento',
+          body: 'Consulta las series completadas y previstas por grupo muscular, el tiempo transcurrido, el progreso y el volumen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: 'Celebra tus récords personales',
+          body: 'Los nuevos récords destacan con una animación y respuesta háptica.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Cristal a tu gusto',
+          body: 'Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Mejoras en salud y temporizadores',
+          body: 'Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.',
         ),
       ],
     ),
@@ -1561,14 +1652,29 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Hartslag in Apple Health hersteld',
-          body: 'Hartslagmetingen kunnen nu uit Apple Health worden gelezen.',
+          icon: LucideIcons.moon,
+          title: 'Slaap en herstel in één oogopslag',
+          body: 'Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Hartslag handmatig synchroniseren',
-          body: 'Werk metingen van de afgelopen 365 dagen bij in de gezondheidsinstellingen.',
+          icon: LucideIcons.dumbbell,
+          title: 'Meer inzicht tijdens je training',
+          body: 'Bekijk voltooide en geplande sets per spiergroep, de verstreken tijd, je voortgang en trainingsvolume.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.star,
+          title: 'Vier persoonlijke records',
+          body: 'Nieuwe persoonlijke records worden uitgelicht met een animatie en haptische feedback.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Glas naar jouw smaak',
+          body: 'Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Gezondheid en timers verbeterd',
+          body: 'Hartslaggegevens uit Apple Health kunnen weer worden gelezen en handmatig gesynchroniseerd. Ook de stappentelling, rusttimers en andere functies zijn verbeterd.',
         ),
       ],
     ),

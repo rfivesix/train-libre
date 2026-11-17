@@ -67,7 +67,13 @@ https://trainlibre.com
 https://trainlibre.com/privacy-policy/
 
 ## Release Notes (What's New / Release Notes in this version)
-Corrección del pulso en Apple Health: Ahora se pueden leer las mediciones de frecuencia cardíaca de Apple Health.
+Sueño y recuperación de un vistazo: La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).
 
-Sincroniza el pulso manualmente: Actualiza las mediciones de los últimos 365 días en los ajustes de Salud.
+Más información durante el entrenamiento: Consulta las series completadas y previstas por grupo muscular, el tiempo transcurrido, el progreso y el volumen.
+
+Celebra tus récords personales: Los nuevos récords destacan con una animación y respuesta háptica.
+
+Cristal a tu gusto: Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.
+
+Mejoras en salud y temporizadores: Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.
 

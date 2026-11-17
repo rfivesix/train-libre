@@ -8,9 +8,15 @@
 
 ## 1.7.1 (2026-11-09)
 
-{heart} Corrección del pulso en Apple Health: Ahora se pueden leer las mediciones de frecuencia cardíaca de Apple Health.
+{moon} Sueño y recuperación de un vistazo: La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).
 
-{activity} Sincroniza el pulso manualmente: Actualiza las mediciones de los últimos 365 días en los ajustes de Salud.
+{dumbbell} Más información durante el entrenamiento: Consulta las series completadas y previstas por grupo muscular, el tiempo transcurrido, el progreso y el volumen.
+
+{star} Celebra tus récords personales: Los nuevos récords destacan con una animación y respuesta háptica.
+
+{sparkles} Cristal a tu gusto: Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.
+
+{heart} Mejoras en salud y temporizadores: Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.
 
 ## 1.7.0 (2026-11-03)
 

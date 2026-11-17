@@ -58,9 +58,15 @@ OPEN SOURCE ET DONNÉES OUVERTES :
 Train Libre s’appuie sur les catalogues communautaires Open Food Facts et OpenExerciseDB. Le code source complet est public pour vous permettre de vérifier nos engagements en matière de confidentialité.
 
 ## Release Notes (What's New / Release Notes in this version)
-Correction du pouls Apple Health: Les mesures de fréquence cardiaque peuvent désormais être lues dans Apple Health.
+Sommeil et récupération en un coup d’œil: La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).
 
-Synchroniser le pouls manuellement: Actualisez les mesures des 365 derniers jours dans les réglages Santé.
+Une meilleure vue pendant l’entraînement: Consultez les séries terminées et prévues par groupe musculaire, le temps écoulé, la progression et le volume.
+
+Célébrez vos records personnels: Une animation et un retour haptique mettent en valeur vos nouveaux records.
+
+Le verre à votre goût: Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.
+
+Santé et minuteurs améliorés: Les données de fréquence cardiaque d’Apple Health peuvent à nouveau être lues et synchronisées manuellement. Le comptage des pas, les minuteurs de repos et d’autres fonctions ont été corrigés.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

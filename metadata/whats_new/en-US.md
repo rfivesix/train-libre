@@ -8,9 +8,15 @@
 
 ## 1.7.1 (2026-11-09)
 
-{heart} Apple Health pulse fix: Heart-rate samples can now be read from Apple Health.
+{moon} Sleep and recovery at a glance: The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).
 
-{activity} Sync pulse manually: Refresh heart-rate samples from the last 365 days in Health settings.
+{dumbbell} More insight during workouts: See completed and planned sets by muscle group, along with elapsed time, progress, and training volume.
+
+{star} Celebrate personal records: New personal records are highlighted with an animation and haptic feedback.
+
+{sparkles} Glass your way: Adjust the glass appearance with a slider and see changes immediately in the preview.
+
+{heart} Health and timers improved: Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.
 
 ## 1.7.0 (2026-11-03)
 

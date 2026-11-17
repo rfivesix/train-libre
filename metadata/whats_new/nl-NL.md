@@ -8,9 +8,15 @@
 
 ## 1.7.1 (2026-11-09)
 
-{heart} Hartslag in Apple Health hersteld: Hartslagmetingen kunnen nu uit Apple Health worden gelezen.
+{moon} Slaap en herstel in één oogopslag: Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).
 
-{activity} Hartslag handmatig synchroniseren: Werk metingen van de afgelopen 365 dagen bij in de gezondheidsinstellingen.
+{dumbbell} Meer inzicht tijdens je training: Bekijk voltooide en geplande sets per spiergroep, de verstreken tijd, je voortgang en trainingsvolume.
+
+{star} Vier persoonlijke records: Nieuwe persoonlijke records worden uitgelicht met een animatie en haptische feedback.
+
+{sparkles} Glas naar jouw smaak: Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.
+
+{heart} Gezondheid en timers verbeterd: Hartslaggegevens uit Apple Health kunnen weer worden gelezen en handmatig gesynchroniseerd. Ook de stappentelling, rusttimers en andere functies zijn verbeterd.
 
 ## 1.7.0 (2026-11-03)
 

@@ -58,9 +58,15 @@ OPEN SOURCE AND OPEN DATA:
 Train Libre uses the community catalogues Open Food Facts and OpenExerciseDB. The complete source code is public, so you can verify our privacy commitments for yourself.
 
 ## Release Notes (What's New / Release Notes in this version)
-Apple Health pulse fix: Heart-rate samples can now be read from Apple Health.
+Sleep and recovery at a glance: The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).
 
-Sync pulse manually: Refresh heart-rate samples from the last 365 days in Health settings.
+More insight during workouts: See completed and planned sets by muscle group, along with elapsed time, progress, and training volume.
+
+Celebrate personal records: New personal records are highlighted with an animation and haptic feedback.
+
+Glass your way: Adjust the glass appearance with a slider and see changes immediately in the preview.
+
+Health and timers improved: Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

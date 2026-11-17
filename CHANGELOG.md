@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Refreshed the five localized 1.7.1 release highlights and updated the website's project timeline through 1.7.1.
 - Redesigned the sleep overview and statistics card with a contributor score ring, sleep-stage timeline, eight-hour goal comparison, and heart-rate and HRV charts. The overview now keeps only the interruptions detail card; the other detail screens remain in the project for later review.
 - Replaced the sleep score with a transparent, duration-focused heuristic and recalculate locally retained nights without deleting source data. Nights with recorded sleep stages and no detected awakenings receive a full wake-time continuity score.
 - Keep the live workout rest bar visible after the timer ends, with controls to adjust the rest or dismiss it; enlarged the timer and refined the compact Dynamic Island appearance while retaining the expanded layout.

@@ -8,9 +8,15 @@
 
 ## 1.7.1 (2026-11-09)
 
-{heart} Apple-Health-Puls repariert: Pulsmessungen können wieder aus Apple Health gelesen werden.
+{moon} Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).
 
-{activity} Puls manuell synchronisieren: In den Health-Einstellungen kannst du die Pulswerte der letzten 365 Tage aktualisieren.
+{dumbbell} Mehr Überblick im Workout: Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.
+
+{star} Bestleistungen feiern: Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.
+
+{sparkles} Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
+
+{heart} Gesundheit und Timer verbessert: Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.
 
 ## 1.7.0 (2026-11-03)
 

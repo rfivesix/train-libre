@@ -8,9 +8,15 @@
 
 ## 1.7.1 (2026-11-09)
 
-{heart} Correzione del battito in Apple Health: Le misurazioni della frequenza cardiaca possono ora essere lette da Apple Health.
+{moon} Sonno e recupero a colpo d’occhio: La nuova panoramica mostra le fasi del sonno, la durata e la frequenza cardiaca. Con Apple Health puoi vedere anche la variabilità della frequenza cardiaca (HRV).
 
-{activity} Sincronizza il battito manualmente: Aggiorna le misurazioni degli ultimi 365 giorni nelle impostazioni Salute.
+{dumbbell} Più informazioni durante l’allenamento: Visualizza le serie completate e previste per gruppo muscolare, il tempo trascorso, i progressi e il volume.
+
+{star} Festeggia i record personali: I nuovi record sono evidenziati da un’animazione e da un feedback aptico.
+
+{sparkles} Vetro come piace a te: Regola l’aspetto del vetro con un cursore e osserva subito le modifiche nell’anteprima.
+
+{heart} Salute e timer migliorati: I dati della frequenza cardiaca di Apple Health possono essere nuovamente letti e sincronizzati manualmente. Corretti anche il conteggio dei passi, i timer di riposo e altre funzioni.
 
 ## 1.7.0 (2026-11-03)
 
