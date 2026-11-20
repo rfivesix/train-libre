@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 
 import 'util/design_constants.dart';
+import 'theme/app_glass_theme.dart';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
@@ -1174,42 +1175,45 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             );
           },
           builder: (context, child) {
-            return Overlay(
-              initialEntries: [
-                OverlayEntry(
-                  builder: (overlayContext) => GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      final focusedNode = FocusManager.instance.primaryFocus;
-                      if (focusedNode?.debugLabel == 'ai-overlay-composer') {
-                        return;
-                      }
-                      focusedNode?.unfocus();
-                    },
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ?child,
-                        ValueListenableBuilder<AiOverlayDemoConfiguration>(
-                          valueListenable: AiOverlayDemoSettings.configuration,
-                          builder: (context, settings, _) =>
-                              ValueListenableBuilder<int>(
-                                valueListenable:
-                                    AiGlobalCloudVisibility.suppressionCount,
-                                builder: (context, suppressionCount, _) =>
-                                    _GlobalAiCloudHost(
-                                      settings: settings,
-                                      aiEnabled: themeService.isAiEnabled,
-                                      suppressionCount: suppressionCount,
-                                      navigatorKey: _navigatorKey,
-                                    ),
-                              ),
-                        ),
-                      ],
+            return AppGlassTheme(
+              child: Overlay(
+                initialEntries: [
+                  OverlayEntry(
+                    builder: (overlayContext) => GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () {
+                        final focusedNode = FocusManager.instance.primaryFocus;
+                        if (focusedNode?.debugLabel == 'ai-overlay-composer') {
+                          return;
+                        }
+                        focusedNode?.unfocus();
+                      },
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ?child,
+                          ValueListenableBuilder<AiOverlayDemoConfiguration>(
+                            valueListenable:
+                                AiOverlayDemoSettings.configuration,
+                            builder: (context, settings, _) =>
+                                ValueListenableBuilder<int>(
+                                  valueListenable:
+                                      AiGlobalCloudVisibility.suppressionCount,
+                                  builder: (context, suppressionCount, _) =>
+                                      _GlobalAiCloudHost(
+                                        settings: settings,
+                                        aiEnabled: themeService.isAiEnabled,
+                                        suppressionCount: suppressionCount,
+                                        navigatorKey: _navigatorKey,
+                                      ),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
           home: widget.home,
