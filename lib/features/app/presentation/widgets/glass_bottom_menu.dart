@@ -107,6 +107,8 @@ Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
   required bool expandToFullHeight,
   required Color barrierColor,
 }) async {
+  // The presenting screen may already have consumed its top safe area.
+  final navigatorContext = Navigator.of(context, rootNavigator: true).context;
   final result = await showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
@@ -123,7 +125,7 @@ Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
         padding: EdgeInsets.only(bottom: kb),
         child: GlassBottomMenuSheet(
           title: title,
-          topSafeInset: MediaQuery.viewPaddingOf(context).top,
+          topSafeInset: MediaQuery.viewPaddingOf(navigatorContext).top,
           headerTrailing: headerTrailing,
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,

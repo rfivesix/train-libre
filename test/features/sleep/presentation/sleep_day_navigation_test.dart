@@ -299,6 +299,8 @@ void main() {
     final chart = find.byKey(const ValueKey('sleep-heart-chart-bpm'));
     await tester.ensureVisible(chart);
     await tester.pumpAndSettle();
+    final average = find.descendant(of: chart, matching: find.text('54 bpm'));
+    expect(average, findsOneWidget);
     expect(find.text('Min: 52 bpm · Avg: 54 bpm'), findsOneWidget);
     final rect = tester.getRect(chart);
     final gesture = await tester.startGesture(
@@ -308,6 +310,7 @@ void main() {
     expect(find.text('56 bpm'), findsOneWidget);
     await gesture.up();
     await tester.pump();
+    expect(average, findsOneWidget);
   });
 
   setUp(() {

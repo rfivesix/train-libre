@@ -14,6 +14,8 @@ void main() {
     WidgetTester tester, {
     required List<ChartDataPoint> points,
     required MeasurementChartAxisMode axisMode,
+    String? idleValueLabel,
+    bool edgeToEdge = false,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -24,12 +26,75 @@ void main() {
             dataPoints: points,
             unit: '%',
             axisMode: axisMode,
+            idleValueLabel: idleValueLabel,
+            idleDateLabel: idleValueLabel == null ? null : 'Average',
+            edgeToEdge: edgeToEdge,
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('time axis keeps the end label clear of the preceding label', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(402, 600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpChart(
+      tester,
+      points: [
+        ChartDataPoint(date: DateTime(2026, 11, 19, 4, 3), value: 50),
+        ChartDataPoint(date: DateTime(2026, 11, 19, 10, 15), value: 70),
+      ],
+      axisMode: MeasurementChartAxisMode.time,
+      edgeToEdge: true,
+      idleValueLabel: '60.0 %',
+    );
+
+    final chart = find.byType(LineChart);
+    final timeLabels = find.descendant(
+      of: chart,
+      matching: find.textContaining(':'),
+    );
+    final bounds = [
+      for (final label in timeLabels.evaluate())
+        tester.getRect(find.byWidget(label.widget)),
+    ]..sort((a, b) => a.left.compareTo(b.left));
+    expect(bounds, hasLength(4));
+    for (var i = 1; i < bounds.length; i++) {
+      expect(bounds[i].left, greaterThan(bounds[i - 1].right));
+    }
+  });
+
+  testWidgets('shows a measurement during touch and restores the idle value', (
+    tester,
+  ) async {
+    final date = DateTime(2026, 11, 19, 4, 3);
+    await pumpChart(
+      tester,
+      points: [
+        ChartDataPoint(date: date, value: 50),
+        ChartDataPoint(date: date.add(const Duration(hours: 1)), value: 70),
+      ],
+      axisMode: MeasurementChartAxisMode.time,
+      idleValueLabel: '60.0 %',
+    );
+    expect(find.text('60.0 %'), findsOneWidget);
+    expect(find.text('Average'), findsOneWidget);
+
+    final bounds = tester.getRect(find.byType(LineChart));
+    final gesture = await tester.startGesture(
+      bounds.centerLeft + const Offset(8, 0),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('50.0 %'), findsOneWidget);
+    expect(find.text('Average'), findsNothing);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.text('60.0 %'), findsOneWidget);
+  });
 
   testWidgets('a month-wide time axis stays at a handful of labels', (
     tester,

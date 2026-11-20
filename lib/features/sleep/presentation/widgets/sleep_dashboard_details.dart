@@ -325,6 +325,8 @@ class _SleepNightHeartChartsState extends State<SleepNightHeartCharts> {
             unit: l10n.sleepBpmUnit,
             axisMode: MeasurementChartAxisMode.time,
             valueFractionDigits: 0,
+            idleValueLabel: '$hrAvg ${l10n.sleepBpmUnit}',
+            idleDateLabel: '',
             referenceLineValue: overview.hasHeartRateBaseline
                 ? overview.baselineSleepHr
                 : null,
@@ -398,6 +400,8 @@ class _SleepNightHeartChartsState extends State<SleepNightHeartCharts> {
                       unit: 'ms',
                       axisMode: MeasurementChartAxisMode.time,
                       valueFractionDigits: 0,
+                      idleValueLabel: '$hrvAvg ms',
+                      idleDateLabel: '',
                       referenceLineValue: summary?.baseline,
                       valueLabelBuilder: (value, unit) =>
                           '${value.round()} $unit',

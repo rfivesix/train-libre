@@ -3,16 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/app/presentation/widgets/glass_bottom_menu.dart';
 
 void main() {
-  testWidgets('full-height sheet respects safe area and keyboard', (tester) async {
+  testWidgets('full-height sheet uses the navigator safe area and avoids the keyboard', (tester) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.view.viewPadding = FakeViewPadding(top: 44, bottom: 20);
+    tester.view.padding = FakeViewPadding(top: 44, bottom: 20);
     addTearDown(tester.view.resetViewPadding);
+    addTearDown(tester.view.resetPadding);
     addTearDown(tester.view.resetViewInsets);
     await tester.pumpWidget(MaterialApp(
-      home: Builder(builder: (context) => Scaffold(body: TextButton(
+      home: SafeArea(child: Builder(builder: (context) => Scaffold(body: TextButton(
         onPressed: () => showGlassBottomMenu<void>(
           context: context,
           title: 'Sheet',
@@ -20,7 +22,7 @@ void main() {
           contentBuilder: (_, _) => const SizedBox.expand(key: Key('content')),
         ),
         child: const Text('Open'),
-      ))),
+      )))),
     ));
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();

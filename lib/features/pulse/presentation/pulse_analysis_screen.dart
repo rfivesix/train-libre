@@ -186,8 +186,38 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
 class _PulseAnalysisContent extends StatelessWidget {
   const _PulseAnalysisContent({required this.summary, required this.scope});
 
+  static const double _chartHeight = 220;
+
   final PulseAnalysisSummary summary;
   final SleepPeriodScope scope;
+
+  List<ChartDataPoint> _hrvChartPoints(HrvSummary hrv) {
+    if (scope == SleepPeriodScope.day) {
+      return [
+        for (final sample in hrv.samples)
+          ChartDataPoint(date: sample.startUtc.toLocal(), value: sample.sdnnMs),
+      ];
+    }
+
+    final samplesByDay = <DateTime, List<HrvSample>>{};
+    for (final sample in hrv.samples) {
+      final local = sample.startUtc.toLocal();
+      final day = DateTime(local.year, local.month, local.day, 12);
+      samplesByDay.putIfAbsent(day, () => []).add(sample);
+    }
+    return [
+      for (final entry in samplesByDay.entries)
+        ChartDataPoint(
+          date: entry.key,
+          value:
+              entry.value.fold<double>(
+                0,
+                (sum, sample) => sum + sample.sdnnMs,
+              ) /
+              entry.value.length,
+        ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,6 +233,14 @@ class _PulseAnalysisContent extends StatelessWidget {
           ),
         )
         .toList(growable: false);
+    final averagePulse = scope == SleepPeriodScope.day
+        ? summary.averageBpm
+        : points.isEmpty
+        ? null
+        : points.fold<double>(0, (sum, point) => sum + point.value) /
+              points.length;
+    final hrv = summary.hrv;
+    final averageHrv = hrv?.averageMs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,6 +269,11 @@ class _PulseAnalysisContent extends StatelessWidget {
                 unit: l10n.sleepBpmUnit,
                 axisMode: MeasurementChartAxisMode.time,
                 valueFractionDigits: 0,
+                height: _chartHeight,
+                idleValueLabel: averagePulse == null
+                    ? null
+                    : '${averagePulse.round()} ${l10n.sleepBpmUnit}',
+                idleDateLabel: averagePulse == null ? null : copy.averageLabel,
                 valueLabelBuilder: (value, unit) => '${value.round()} $unit',
                 selectedDateLabelBuilder: (value) =>
                     scope == SleepPeriodScope.day
@@ -248,7 +291,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                   horizontal: DesignConstants.screenPaddingHorizontal,
                 ),
                 child: SizedBox(
-                  height: 220,
+                  height: _chartHeight,
                   child: Center(
                     child: Text(
                       summary.hasData
@@ -274,8 +317,7 @@ class _PulseAnalysisContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        if (summary.hrv != null &&
-            summary.hrv!.state != HrvState.unavailable) ...[
+        if (hrv != null && hrv.state != HrvState.unavailable) ...[
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: DesignConstants.screenPaddingHorizontal,
@@ -287,20 +329,17 @@ class _PulseAnalysisContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          if (summary.hrv!.samples.isNotEmpty)
+          if (hrv.samples.isNotEmpty)
             MeasurementChartWidget.fromData(
-              dataPoints: summary.hrv!.samples
-                  .map(
-                    (sample) => ChartDataPoint(
-                      date: sample.startUtc.toLocal(),
-                      value: sample.sdnnMs,
-                    ),
-                  )
-                  .toList(growable: false),
+              dataPoints: _hrvChartPoints(hrv),
               unit: 'ms',
-              connectDataPoints: false,
               axisMode: MeasurementChartAxisMode.time,
               valueFractionDigits: 0,
+              height: _chartHeight,
+              idleValueLabel: averageHrv == null
+                  ? null
+                  : '${averageHrv.round()} ms',
+              idleDateLabel: copy.averageLabel,
               selectedDateLabelBuilder: (value) => scope == SleepPeriodScope.day
                   ? timeFormatter.format(value)
                   : DateFormat.MMMd(locale).format(value),
@@ -316,7 +355,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
               child: Text(
-                summary.hrv!.state == HrvState.queryFailed
+                hrv.state == HrvState.queryFailed
                     ? l10n.hrvQueryFailed
                     : l10n.hrvNoData,
               ),
@@ -327,7 +366,7 @@ class _PulseAnalysisContent extends StatelessWidget {
               vertical: DesignConstants.spacingS,
             ),
             child: Text(
-              '${l10n.pulseSampleCount(summary.hrv!.sampleCount)} · ${l10n.hrvMethodNote}',
+              '${l10n.pulseSampleCount(hrv.sampleCount)} · ${l10n.hrvMethodNote}',
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),

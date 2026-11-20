@@ -88,6 +88,18 @@ void main() {
               sourceId: 'watch',
               nativeId: 'two',
             ),
+            if (window.duration > const Duration(days: 1))
+              HrvSample(
+                startUtc: window.startUtc.add(
+                  const Duration(days: 1, hours: 1),
+                ),
+                endUtc: window.startUtc.add(
+                  const Duration(days: 1, hours: 1, minutes: 1),
+                ),
+                sdnnMs: 80,
+                sourceId: 'watch',
+                nativeId: 'three',
+              ),
           ],
         ),
       ),
@@ -101,12 +113,18 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('50 ms'), findsWidgets);
+    expect(find.text('50 ms'), findsNWidgets(2));
     expect(find.byType(MeasurementChartWidget), findsNWidgets(2));
-    final hrvChart = tester
+    MeasurementChartWidget hrvChart() => tester
         .widgetList<MeasurementChartWidget>(find.byType(MeasurementChartWidget))
         .singleWhere((chart) => chart.unit == 'ms');
-    expect(hrvChart.connectDataPoints, isFalse);
+    expect(hrvChart().connectDataPoints, isTrue);
+    expect(hrvChart().dataPoints!.map((point) => point.value), [45, 55]);
+
+    await tester.tap(find.text('Week'));
+    await tester.pumpAndSettle();
+    expect(hrvChart().dataPoints!.map((point) => point.value), [50, 80]);
+    expect(find.text('60 ms'), findsNWidgets(2));
   });
 
   testWidgets('renders KPI metrics and reused measurement chart', (
@@ -126,8 +144,8 @@ void main() {
 
     expect(find.text('Range'), findsOneWidget);
     expect(find.text('60-80 bpm'), findsOneWidget);
-    expect(find.text('Average'), findsOneWidget);
-    expect(find.text('70 bpm'), findsWidgets);
+    expect(find.text('Average'), findsNWidgets(2));
+    expect(find.text('70 bpm'), findsNWidgets(2));
     expect(find.text('Resting'), findsOneWidget);
     expect(find.byType(MeasurementChartWidget), findsOneWidget);
   });

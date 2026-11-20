@@ -46,6 +46,7 @@ class MeasurementChartWidget extends StatefulWidget {
     this.smoothWeightTrend,
     this.connectDataPoints = true,
     this.trailingSummaryLabel,
+    this.height = 250,
   }) : dataPoints = null,
        axisMode = MeasurementChartAxisMode.day;
 
@@ -71,6 +72,7 @@ class MeasurementChartWidget extends StatefulWidget {
     this.smoothWeightTrend,
     this.connectDataPoints = true,
     this.trailingSummaryLabel,
+    this.height = 250,
   }) : chartType = null,
        dateRange = null;
 
@@ -135,6 +137,8 @@ class MeasurementChartWidget extends StatefulWidget {
 
   /// Optional summary text displayed at the trailing end of the header row.
   final String? trailingSummaryLabel;
+
+  final double height;
 
   bool get usesExternalData => dataPoints != null;
 
@@ -273,9 +277,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
   }
 
   void _handleTouchCallback(FlTouchEvent event, LineTouchResponse? response) {
-    if (event is FlPanEndEvent || event is FlTapUpEvent) {
-      _touchedIndex = null;
-      if (mounted) setState(() {});
+    if (!event.isInterestedForInteractions || event is FlTapUpEvent) {
+      _setTouchedIndexWithHaptics(null);
       return;
     }
 
@@ -295,14 +298,14 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     final l10n = AppLocalizations.of(context)!;
 
     if (_isLoadingChart && _dataPoints.isEmpty) {
-      return const SizedBox(
-        height: 250,
-        child: Center(child: CircularProgressIndicator()),
+      return SizedBox(
+        height: widget.height,
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_dataPoints.isEmpty) {
       return SizedBox(
-        height: 250,
+        height: widget.height,
         child: Center(
           child: Text(widget.emptyStateLabel ?? l10n.chart_no_data_for_period),
         ),
@@ -348,8 +351,16 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     final int spanUnits = widget.axisMode == MeasurementChartAxisMode.day
         ? lastDate.difference(firstDate).inDays
         : lastDate.difference(firstDate).inMinutes;
-    final double lastX = spanUnits.toDouble();
-    final int labelEvery = _labelInterval(spanUnits, widget.axisMode);
+    final double lastX = widget.axisMode == MeasurementChartAxisMode.day
+        ? spanUnits.toDouble()
+        : _minutesBetween(firstDate, lastDate);
+    // Evenly spaced time labels keep the endpoints clear when the visible
+    // period ends just after a regular tick.
+    final double labelInterval = widget.axisMode == MeasurementChartAxisMode.day
+        ? math.max(1, (spanUnits / 3).ceil()).toDouble()
+        : lastX >= 3
+        ? lastX / 3
+        : math.max(1.0, lastX);
 
     double xForPoint(ChartDataPoint point) {
       if (widget.axisMode == MeasurementChartAxisMode.day) {
@@ -358,14 +369,18 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
             .inDays
             .toDouble();
       }
-      return point.date.difference(firstDate).inMinutes.toDouble();
+      return _minutesBetween(firstDate, point.date);
     }
 
-    DateTime dateAtAxisValue(int value) {
+    DateTime dateAtAxisValue(double value) {
       if (widget.axisMode == MeasurementChartAxisMode.day) {
-        return firstDate.add(Duration(days: value));
+        return firstDate.add(Duration(days: value.round()));
       }
-      return firstDate.add(Duration(minutes: value));
+      return firstDate.add(
+        Duration(
+          microseconds: (value * Duration.microsecondsPerMinute).round(),
+        ),
+      );
     }
 
     String axisLabelFor(DateTime value) {
@@ -443,7 +458,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     ];
 
     final chartWidget = SizedBox(
-      height: 250,
+      height: widget.height,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -461,14 +476,16 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                   style: Theme.of(context).textTheme.headlineMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: DesignConstants.spacingS),
-                Text(
-                  displayDate,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface
-                        .withValues(alpha: 0.6),
+                if (displayDate.isNotEmpty) ...[
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Text(
+                    displayDate,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.6),
+                    ),
                   ),
-                ),
+                ],
                 if (widget.trailingSummaryLabel != null) ...[
                   const SizedBox(width: DesignConstants.spacingS),
                   Expanded(
@@ -561,27 +578,20 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 42,
+                      reservedSize: 32,
                       // fl_chart materialises one widget per axis step between
                       // minX and maxX. With `interval: 1` a chart in `time`
                       // mode asks for a widget per minute — tens of thousands
                       // of them for a month-wide range, which blocks the UI
                       // isolate for seconds. Stepping by the interval that is
-                      // actually labelled yields the same labels (fl_chart adds
-                      // minX and maxX itself) for a handful of widgets.
-                      interval: labelEvery.toDouble(),
+                      // actually labelled keeps this to a handful of widgets.
+                      interval: labelInterval,
                       getTitlesWidget: (value, meta) {
-                        final int v = value.round();
-                        if (v < 0 || v > spanUnits) {
+                        if (value < 0 || value > lastX) {
                           return const SizedBox.shrink();
                         }
 
-                        final bool isEdge = (v == 0) || (v == spanUnits);
-                        final bool show = isEdge || (v % labelEvery == 0);
-
-                        if (!show) return const SizedBox.shrink();
-
-                        final date = dateAtAxisValue(v);
+                        final date = dateAtAxisValue(value);
                         return SideTitleWidget(
                           meta: meta,
                           space: 8,
@@ -732,12 +742,12 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     if (widget.edgeToEdge) {
       return SizedBox(
         width: double.infinity,
-        height: 250,
+        height: widget.height,
         child: OverflowBox(
           maxWidth: MediaQuery.of(context).size.width,
           minWidth: MediaQuery.of(context).size.width,
-          maxHeight: 250,
-          minHeight: 250,
+          maxHeight: widget.height,
+          minHeight: widget.height,
           child: chartWidget,
         ),
       );
@@ -778,20 +788,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
   DateTime _atStartOfDay(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 
-  int _labelInterval(int spanUnits, MeasurementChartAxisMode mode) {
-    if (spanUnits <= 1) return 1;
-    if (mode == MeasurementChartAxisMode.day) {
-      const desiredLabels =
-          3; // Force max 3 labels to guarantee they never overlap
-      return (spanUnits / desiredLabels).ceil().clamp(1, 100000);
-    }
-    final raw = (spanUnits / 3).ceil();
-    const candidates = <int>[5, 10, 15, 20, 30, 45, 60, 90, 120];
-    for (final candidate in candidates) {
-      if (raw <= candidate) return candidate;
-    }
-    return ((raw / 60).ceil() * 60).clamp(1, 100000);
-  }
+  double _minutesBetween(DateTime start, DateTime end) =>
+      end.difference(start).inMicroseconds / Duration.microsecondsPerMinute;
 
   String _defaultSelectedDateLabel(BuildContext context, DateTime value) {
     if (widget.axisMode == MeasurementChartAxisMode.day) {
