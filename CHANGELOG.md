@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed Apple Health heart-rate reads being blocked by an incorrect write-authorization check.
 - Fixed Android predictive back gestures for card and workout morph transitions so they follow the swipe and return to the open screen when cancelled.
 - Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
+- Kept the What's New sheet below the status bar with a 16-point gap, even when the presenting screen has already consumed the top safe area.
+- Prevented time labels near the end of sleep and pulse charts from overlapping.
+
 
 ### Added
 - Added Apple Health heart rate variability (SDNN) to pulse statistics and sleep analysis when pulse tracking is enabled, with local persistence and backup support.
@@ -44,7 +47,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated Flutter and Dart requirements, refreshed app and development dependencies, and updated the screenshot editor and iOS release tooling.
 - Replaced the diary step progress bar with a health summary card that shows the daily count and goal, or an empty state when no data is available, and opens the selected day's steps with a morph transition.
 - Reduced Apple Health and Health Connect export telemetry to at most one event per platform and device per day, only after a successful export writes data.
-
+- Sleep and Pulse charts show average values when no point is selected and display the selected value during touch. Pulse charts take up less vertical space, and the HRV line connects individual readings in the day view and daily averages in the week and month views.
+- Made food and recipe cards in Add Food more compact with the Statistics Hub's 16-point side insets and plain Lucide plus icons. Centered the food title and subtitle as a block and placed the recipe menu beside the add button.
+- 
 ## [1.7.0] - 2026-11-03
 
 ### Fixed

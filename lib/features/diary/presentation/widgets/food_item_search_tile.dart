@@ -26,57 +26,72 @@ class FoodItemSearchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final themeService = Provider.of<ThemeService>(context);
     final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
       choice: themeService.baseFoodLanguage,
       context: context,
     );
+    final name = item.source == FoodItemSource.base
+        ? item.getLocalizedName(context, languageCode: baseFoodLang)
+        : item.getLocalizedName(context);
+    final calories = l10n
+        .foodItemSubtitle('', item.calories)
+        .replaceFirst(RegExp(r'^.*?-\s*'), '');
+    final hasBrand =
+        item.brand.isNotEmpty &&
+        item.brand != 'Keine Marke' &&
+        item.brand != l10n.noBrand;
 
     return SummaryCard(
+      margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+      padding: EdgeInsets.zero,
       child: ListTile(
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(() {
-                final name = item.source == FoodItemSource.base
-                    ? item.getLocalizedName(context, languageCode: baseFoodLang)
-                    : item.getLocalizedName(context);
-                return name.isNotEmpty ? name : l10n.unknown;
-              }(), style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            if (item.isCustom) ...[
-              const SizedBox(width: DesignConstants.spacingS),
-              _buildSourceBadge(context),
-            ],
-          ],
+        contentPadding: const EdgeInsetsDirectional.only(
+          start: DesignConstants.cardPaddingInternal,
+          end: DesignConstants.spacingS,
         ),
-        subtitle: Row(
+        minTileHeight: 64,
+        minVerticalPadding: DesignConstants.spacingS,
+        // Center both lines together within the compact tile.
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n
-                  .foodItemSubtitle('', item.calories)
-                  .replaceFirst(RegExp(r'^.*?-\s*'), ''),
-            ),
-            if (item.brand.isNotEmpty &&
-                item.brand != 'Keine Marke' &&
-                item.brand != l10n.noBrand) ...[
-              const Text(' • '),
-              Expanded(
-                child: Text(
-                  item.brand,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name.isNotEmpty ? name : l10n.unknown,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-            ],
+                if (item.isCustom) ...[
+                  const SizedBox(width: DesignConstants.spacingS),
+                  _buildSourceBadge(context),
+                ],
+              ],
+            ),
+            Text(
+              hasBrand
+                  ? '$calories${DesignConstants.metadataSeparator}${item.brand}'
+                  : calories,
+              style:
+                  ListTileTheme.of(context).subtitleTextStyle ??
+                  theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
         trailing: IconButton(
           tooltip: l10n.add_button,
           icon: Icon(
-            LucideIcons.circle_plus,
+            LucideIcons.plus,
             color: colorScheme.primary,
             size: 28,
           ),
