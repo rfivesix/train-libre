@@ -1,9 +1,9 @@
-Conoce el nuevo chat de IA: pregunta sobre nutrición y entrenamiento. Puede crear borradores de planes de entrenamiento, rutinas y recetas. Tus datos personales solo se comparten con tu permiso y puedes revisar las propuestas antes de aplicarlas.
+Sueño y recuperación de un vistazo: La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).
 
-¡Hola, España! ¡Hola, Países Bajos!: Train Libre y su catálogo de ejercicios ya están disponibles en español y neerlandés. Los catálogos BLS y de ejercicios también incluyen nombres traducidos. Open Food Facts añade catálogos de Países Bajos, España y Australia.
+Más información durante el entrenamiento: Consulta las series completadas y previstas por grupo muscular, el tiempo transcurrido, el progreso y el volumen.
 
-Reconocimiento de comidas mejorado: las comidas se registran con más fiabilidad y mucha más rapidez. La IA ahora también reconoce y registra bebidas y cafeína.
+Celebra tus récords personales: Los nuevos récords destacan con una animación y respuesta háptica.
 
-Sincroniza la nutrición con Health: importa y exporta calorías y macronutrientes con Apple Health y Health Connect. Los entrenamientos no se sincronizan.
+Cristal a tu gusto: Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.
 
-Más personalización: elige un color de acento personalizado y qué tarjetas aparecen en el centro de estadísticas.
+Mejoras en salud y temporizadores: Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.

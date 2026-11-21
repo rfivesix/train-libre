@@ -1,6 +1,6 @@
 Dear App Review Team,
 
-Train Libre 1.7.0 is a private, open-source workout and nutrition tracker. Core logging works without an account, subscription, or purchase. The app is available in English, German, French, Italian, Japanese, Spanish, and Dutch. The 1.7.0 store listing also includes Spanish and Dutch localizations.
+Train Libre 1.7.1 is a private, open-source workout and nutrition tracker. Core logging works without an account, subscription, or purchase. The app is available in English, German, French, Italian, Japanese, Spanish, and Dutch. The store listing also includes Spanish and Dutch localizations.
 
 REVIEW PATHS
 
@@ -14,7 +14,7 @@ REVIEW PATHS
 
 5. AI Chat: Open AI Chat from the Add menu. The assistant can answer questions and prepare reviewable drafts for meals, routines, training plans, and recipes. When a request needs personal app data, the app presents the requested data scope for approval. Proposed changes are not saved until the user reviews and applies them.
 
-6. Health and recovery: Open Statistics to review workout and recovery summaries. Profile > Settings > Health contains optional Apple Health or Health Connect permissions and nutrition sync controls. Health access is requested only through the system permission flow.
+6. Health and recovery: Open Statistics to review workout and recovery summaries, including the redesigned sleep overview. With Apple Health permission and available data, heart rate and heart rate variability are shown in sleep and pulse statistics. Profile > Settings > Health contains optional Apple Health or Health Connect permissions and nutrition sync controls. Health access is requested only through the system permission flow.
 
 7. Data and backups: Profile > Settings > Data backup & import opens the Data Hub. Users can create or restore a backup and import supported workout exports. Import previews are shown before changes are applied.
 

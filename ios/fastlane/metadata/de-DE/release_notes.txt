@@ -1,9 +1,9 @@
-Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
+Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).
 
-Hallo, Spanien! Hallo, Niederlande!: Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.
+Mehr Überblick im Workout: Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.
 
-Verbesserte Mahlzeitenerkennung: Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.
+Bestleistungen feiern: Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.
 
-Ernährung mit Health synchronisieren: Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.
+Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
 
-Mehr Personalisierung: Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.
+Gesundheit und Timer verbessert: Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.

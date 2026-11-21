@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Restored theme-appropriate icon colors for menus and other app content affected by the Cupertino glass theme.
 - Fixed iOS Live Activity rest adjustments being overwritten by stale app state, and synchronize their updated deadlines when returning to the app.
 - Restored the foreground rest-completion sound, including when shortening a running timer to zero, while scheduling notifications for the background separately.
 - Fixed live workout volume becoming negative or including unfinished sets after editing, deleting, or restoring a workout; the total now reflects completed sets.

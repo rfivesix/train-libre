@@ -31,5 +31,26 @@ void main() {
         appBrightness == Brightness.dark ? greaterThan(0.8) : lessThan(0.2),
       );
     });
+
+    testWidgets('glass theme preserves app icon color in $appBrightness', (
+      tester,
+    ) async {
+      final iconColor = appBrightness == Brightness.dark
+          ? Colors.white
+          : Colors.black;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            brightness: appBrightness,
+            iconTheme: IconThemeData(color: iconColor),
+          ),
+          builder: (context, child) => AppGlassTheme(child: child!),
+          home: const Scaffold(body: Icon(Icons.more_vert)),
+        ),
+      );
+
+      final iconContext = tester.element(find.byIcon(Icons.more_vert));
+      expect(IconTheme.of(iconContext).color, iconColor);
+    });
   }
 }

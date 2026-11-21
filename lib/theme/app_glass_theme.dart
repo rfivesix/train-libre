@@ -17,7 +17,9 @@ class AppGlassTheme extends StatelessWidget {
       data: GlassThemeData.ios27(brightness: brightness),
       child: CupertinoTheme(
         data: CupertinoTheme.of(context).copyWith(brightness: brightness),
-        child: child,
+        // CupertinoTheme installs its blue primary color as the default icon
+        // color. Keep the surrounding Material icon theme for app content.
+        child: IconTheme(data: IconTheme.of(context), child: child),
       ),
     );
   }
