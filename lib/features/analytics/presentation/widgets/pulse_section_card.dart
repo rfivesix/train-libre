@@ -77,7 +77,7 @@ class PulseSectionCard extends StatelessWidget {
                 chipText: chipLabel,
               ),
               const SizedBox(height: DesignConstants.spacingL),
-              _buildTwoColumnGrid([
+              _buildKpiGrid([
                 ValueSummaryCard(
                   label: l10n.pulseRangeLabel,
                   value: summary?.minBpm == null
@@ -126,7 +126,21 @@ class PulseSectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTwoColumnGrid(List<Widget> items) {
+  Widget _buildKpiGrid(List<Widget> items) {
+    if (items.length == 3) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: items[0]),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(child: items[1]),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(child: items[2]),
+          ],
+        ),
+      );
+    }
     final rows = <Widget>[];
     for (var i = 0; i < items.length; i += 2) {
       final left = items[i];

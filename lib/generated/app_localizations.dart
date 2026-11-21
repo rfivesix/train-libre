@@ -17174,6 +17174,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logged days'**
   String get analyticsWaterLoggedDays;
+
+  /// No description provided for @statisticsOverviewTotalWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Total workouts'**
+  String get statisticsOverviewTotalWorkouts;
+
+  /// No description provided for @statisticsOverviewWorkouts30d.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts (30d)'**
+  String get statisticsOverviewWorkouts30d;
+
+  /// No description provided for @sleepHubNightsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 night logged} other{{count} nights logged}}'**
+  String sleepHubNightsLogged(int count);
+
+  /// No description provided for @statisticsMicronutrientsHubSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} logged days · {count} nutrients'**
+  String statisticsMicronutrientsHubSummary(int days, int count);
+
+  /// No description provided for @statisticsResetDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get statisticsResetDefaults;
+
+  /// No description provided for @statisticsBestPerformancesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No new PRs} =1{1 new PR} other{{count} new PRs}}'**
+  String statisticsBestPerformancesCount(int count);
 }
 
 class _AppLocalizationsDelegate

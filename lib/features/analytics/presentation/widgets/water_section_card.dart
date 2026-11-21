@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -22,6 +21,7 @@ import '../../../../widgets/common/platform_adaptive_pickers.dart'
 import '../../../analytics/domain/models/chart_data_point.dart';
 import '../../../profile/presentation/widgets/measurement_chart_widget.dart';
 import '../../../../services/unit_service.dart';
+import 'analytics_card_base.dart';
 import 'analytics_chart_defaults.dart';
 import '../../../statistics/data/water_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
@@ -86,6 +86,9 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
         final target = data?.targetMilliliters ?? 3000;
         final progress = target > 0 ? (average / target * 100).round() : 0;
         final hasData = data != null && data.trackedDays > 0;
+        final chipLabel = widget.isRolling
+            ? TimeframeLabelFormatter.formatRolling(widget.block, l10n)
+            : TimeframeLabelFormatter.format(widget.block, widget.anchor, l10n);
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
           margin: EdgeInsets.zero,
           padding: EdgeInsets.zero,
@@ -95,18 +98,10 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.water,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Icon(LucideIcons.chevron_right, size: 18),
-                  ],
+                AnalyticsCardBase.buildHeaderWithChevron(
+                  context,
+                  label: l10n.water,
+                  chipText: chipLabel,
                 ),
                 const SizedBox(height: DesignConstants.spacingS),
                 if (snapshot.connectionState != ConnectionState.done)

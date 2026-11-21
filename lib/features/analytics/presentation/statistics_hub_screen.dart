@@ -5,7 +5,6 @@ import 'dart:async';
 import 'statistics_hub_preferences.dart';
 
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
 import '../../statistics/data/statistics_hub_data_adapter.dart';
@@ -16,6 +15,7 @@ import '../../sleep/data/sleep_hub_summary_repository.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
@@ -365,7 +365,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       case StatisticsHubCardId.bodyNutrition:
         return _buildBodyMetricsSection(context, viewModel, l10n);
       case StatisticsHubCardId.bodyMeasurements:
-        return _buildMeasurementsShortcutCard(context, l10n);
+        return _buildMeasurementsShortcutCard(context, viewModel, l10n);
       case StatisticsHubCardId.consistency:
         return _buildConsistencySection(context, viewModel, l10n);
       case StatisticsHubCardId.performance:
@@ -376,9 +376,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
         return _buildMacroSection(context, viewModel, l10n);
       case StatisticsHubCardId.water:
         return WaterSectionCard(
-          block: TimeframeBlock.day,
+          block: TimeframeBlock.week,
           anchor: DateTime.now(),
-          isRolling: false,
+          isRolling: true,
         );
       case StatisticsHubCardId.micronutrients:
         return MicronutrientSectionCard(
@@ -393,8 +393,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
     BuildContext context,
     String title,
     String message,
-    Widget Function() destination,
-  ) {
+    Widget Function() destination, {
+    String? chipText,
+  }) {
     final theme = Theme.of(context);
     return SummaryCard(
       margin: EdgeInsets.zero,
@@ -404,7 +405,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AnalyticsCardBase.buildHeaderWithChevron(context, label: title),
+          AnalyticsCardBase.buildHeaderWithChevron(
+            context,
+            label: title,
+            chipText: chipText,
+          ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             message,
@@ -475,22 +480,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     final subtitleRange = _unifiedRangeLabel(viewModel, l10n);
     final stepsTitle = l10n.steps;
 
-    final displayRange = hasData
-        ? range!
-        : RangeStepsAggregation(
-            start: DateTime.now().subtract(const Duration(days: 7)),
-            end: DateTime.now(),
-            dailyTotals: List.generate(7, (i) {
-              return StepsBucket(
-                start: DateTime.now().subtract(Duration(days: 7 - i)),
-                steps: showAllData
-                    ? 0
-                    : [6200, 8100, 7300, 5400, 9200, 10500, 8500][i],
-              );
-            }),
-            totalSteps: showAllData ? 0 : 55200,
-            averageDailySteps: showAllData ? 0 : 7885.0,
-          );
+    if (!hasData && !section.isLoading && !section.hasError) {
+      return AnalyticsCardBase.decorateSectionCard(
+        context,
+        state: section,
+        child: _emptyCard(
+          context,
+          l10n.steps,
+          l10n.statisticsEmptySteps,
+          () => const StepsModuleScreen(initialScope: StepsScope.week),
+          chipText: subtitleRange,
+        ),
+      );
+    }
+
+    final displayRange = range ??
+        RangeStepsAggregation(
+          start: DateTime.now().subtract(const Duration(days: 7)),
+          end: DateTime.now(),
+          dailyTotals: const [],
+          totalSteps: 0,
+          averageDailySteps: 0.0,
+        );
 
     // In 7-day mode we show today's steps; in longer ranges we show total steps.
     final bool isSevenDays = viewModel.activeBlockType == TimeframeBlock.week;
@@ -498,11 +509,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
     int currentSteps = 0;
     String stepsSubtitle = l10n.today;
 
-    if (isSevenDays) {
+    if (isSevenDays && displayRange.dailyTotals.isNotEmpty) {
       final todayBucket = displayRange.dailyTotals.lastWhere(
         (bucket) =>
             bucket.start.isBefore(DateTime.now().add(const Duration(days: 1))),
-        orElse: () => displayRange.dailyTotals.last, // fallback
+        orElse: () => displayRange.dailyTotals.last,
       );
       currentSteps = todayBucket.steps;
     } else {
@@ -510,7 +521,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       stepsSubtitle = l10n.statisticsTotalSteps;
     }
 
-    Widget cardChild = MorphSourceScope(
+    final Widget cardChild = MorphSourceScope(
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => StatisticsStepsCard(
           onTap: () {
@@ -542,17 +553,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
         ),
       ),
     );
-
-    if (!hasData) {
-      if (!section.isLoading && !section.hasError) {
-        cardChild = _emptyCard(
-          context,
-          l10n.steps,
-          l10n.statisticsEmptySteps,
-          () => const StepsModuleScreen(initialScope: StepsScope.week),
-        );
-      }
-    }
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -609,6 +609,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       l10n.sleepHubScoreLabel,
       l10n.statisticsEmptySleep,
       () => SleepDayOverviewPage(selectedDay: DateTime.now()),
+      chipText: _unifiedRangeLabel(viewModel, l10n),
     );
   }
 
@@ -655,6 +656,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       l10n.pulseTitle,
       l10n.statisticsEmptyPulse,
       () => const PulseAnalysisScreen(),
+      chipText: rangeLabel,
     );
   }
 
@@ -698,6 +700,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       l10n.consistencyTrackerTitle,
       l10n.statisticsEmptyTraining,
       () => const ConsistencyTrackerScreen(),
+      chipText: l10n.analyticsLastWeeks(6),
     );
   }
 
@@ -744,6 +747,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       l10n.analyticsNewBestPerformances,
       l10n.statisticsEmptyRecords,
       () => const PRDashboardScreen(),
+      chipText: l10n.statisticsOverview30Days,
     );
   }
 
@@ -793,6 +797,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       () => const MuscleGroupAnalyticsScreen(
         initialBlock: TimeframeBlock.threeMonths,
       ),
+      chipText: l10n.analyticsLastWeeks(8),
     );
   }
 
@@ -846,6 +851,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
         initialAnchorDate: DateTime.now(),
         initialIsRolling: true,
       ),
+      chipText: l10n.statisticsOverview30Days,
     );
   }
 
@@ -889,31 +895,54 @@ class _StatisticsHubScreenView extends StatelessWidget {
 
   Widget _buildMeasurementsShortcutCard(
     BuildContext context,
+    StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
+    final unitService = context.watch<UnitService>();
+    final weightKg = viewModel.bodyNutrition?.currentWeightKg;
+    final changeKg = viewModel.bodyNutrition?.weightChangeKg;
+    final weightUnit = unitService.suffixFor(UnitDimension.weight);
+    final weightText = weightKg == null
+        ? null
+        : '${unitService.convertDisplayValue(weightKg, UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+    final changeText = changeKg == null
+        ? null
+        : '${changeKg >= 0 ? '+' : '-'}${unitService.convertDisplayValue(changeKg.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit (${l10n.statisticsOverview30Days})';
+
     Widget buildShortcutContent() => Padding(
       padding: const EdgeInsets.all(DesignConstants.spacingL),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.body_measurements,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  l10n.all_measurements_no_cap,
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
-                ),
-              ],
-            ),
+          AnalyticsCardBase.buildHeaderWithChevron(
+            context,
+            label: l10n.body_measurements,
+            chipText: weightText != null ? l10n.statisticsOverview30Days : null,
           ),
-          const Icon(LucideIcons.chevron_right),
+          if (weightText != null) ...[
+            const SizedBox(height: DesignConstants.spacingXS),
+            Text(
+              weightText,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              changeText ?? l10n.all_measurements_no_cap,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: DesignConstants.spacingXS),
+            Text(
+              l10n.all_measurements_no_cap,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -7,6 +7,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../util/timeframe_label_formatter.dart';
+import '../../../../widgets/common/macro_badge_row.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
@@ -136,36 +138,35 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     return SummaryCard(
       margin: EdgeInsets.zero,
       padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap:
-            widget.onTap ??
-            () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => MacroStatisticsScreen(
-                    initialBlock: widget.activeBlockType,
-                    initialAnchorDate: widget.anchorDate,
-                    initialIsRolling: widget.isRolling,
-                  ),
+      onTap:
+          widget.onTap ??
+          () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MacroStatisticsScreen(
+                  initialBlock: widget.activeBlockType,
+                  initialAnchorDate: widget.anchorDate,
+                  initialIsRolling: widget.isRolling,
                 ),
-              );
-            },
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        child: Padding(
-          padding: DesignConstants.cardPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AnalyticsCardBase.buildHeaderWithChevron(
-                context,
-                label: l10n.foodDetailMacronutrientsGroup,
-                chipText:
-                    widget.rangeLabel ??
-                    (widget.activeBlockType == TimeframeBlock.week
-                        ? l10n.statisticsLast7Days
-                        : widget.activeBlockType.name),
-                trailingIcon: true,
               ),
+            );
+          },
+      child: Padding(
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnalyticsCardBase.buildHeaderWithChevron(
+              context,
+              label: l10n.foodDetailMacronutrientsGroup,
+              chipText:
+                  widget.rangeLabel ??
+                  TimeframeLabelFormatter.formatRolling(
+                    widget.activeBlockType,
+                    l10n,
+                  ),
+              trailingIcon: true,
+            ),
               if (!_isLoading &&
                   _summary != null &&
                   _summary!.trackedDays == 0) ...[
@@ -316,18 +317,36 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                 ),
                 const SizedBox(height: DesignConstants.spacingM),
 
-                // Bottom: average kcal
-                Text(
-                  avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                // Bottom: average kcal + average P/KH/F badges
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_summary != null && _summary!.trackedDays > 0) ...[
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: MacroBadgeRow(
+                            protein: _summary!.avgProtein,
+                            carbs: _summary!.avgCarbs,
+                            fat: _summary!.avgFat,
+                            useBadges: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ],
           ),
         ),
-      ),
     );
   }
 }

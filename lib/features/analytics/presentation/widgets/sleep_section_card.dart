@@ -98,7 +98,9 @@ class SleepSectionCard extends StatelessWidget {
                         ),
                         const SizedBox(height: DesignConstants.spacingXS),
                         Text(
-                          l10n.sleepMeanScoreLabel(scoreText),
+                          summary != null && summary.nightsCount > 0
+                              ? l10n.sleepHubNightsLogged(summary.nightsCount)
+                              : l10n.sleepMeanScoreLabel(scoreText),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

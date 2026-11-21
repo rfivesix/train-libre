@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../data/database_helper.dart';
 import '../../../../generated/app_localizations.dart';
@@ -76,10 +77,6 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
       builder: (context, snapshot) {
         if (snapshot.hasError) return const SizedBox.shrink();
         final data = snapshot.data;
-        if (data == null) return const SizedBox.shrink();
-        String weight(double value, {int digits = 0}) =>
-            '${units.formatDisplayWeight(value, fractionDigits: digits)} ${units.suffixFor(UnitDimension.weight)}';
-        final delta = data.weightChange;
         Widget row(Widget left, Widget right) => IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -90,22 +87,87 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
             ],
           ),
         );
+        if (data == null) {
+          return Skeletonizer(
+            enabled: true,
+            child: Column(
+              children: [
+                row(
+                  ValueSummaryCard(
+                    label: l10n.statisticsOverviewTotalWorkouts,
+                    value: '42',
+                    subtitle: l10n.statisticsOverview30Days,
+                  ),
+                  ValueSummaryCard(
+                    label: l10n.statisticsOverviewWorkouts30d,
+                    value: '12',
+                    subtitle: l10n.statisticsOverview30Days,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                row(
+                  ValueSummaryCard(
+                    label: l10n.statisticsOverviewVolume,
+                    value: '12.4 t',
+                    subtitle: '240 ${l10n.statisticsOverviewSets} · 14.5 h',
+                  ),
+                  ValueSummaryCard(
+                    label: l10n.statisticsOverviewWeightChange,
+                    value: '-1.2 kg',
+                    subtitle: l10n.statisticsOverview30Days,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                row(
+                  ValueSummaryCard(
+                    label: l10n.statisticsOverviewCalories,
+                    value: '2,400 kcal',
+                    subtitle: l10n.statisticsOverview30Days,
+                  ),
+                  ValueSummaryCard(
+                    label: l10n.statisticsOverviewProtein,
+                    value: '170 g',
+                    subtitle: l10n.statisticsOverview30Days,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        final locale = Localizations.localeOf(context).toString();
+        String weight(double value, {int digits = 0}) {
+          final display = units.convertDisplayValue(value, UnitDimension.weight);
+          if (units.isMetric && display.abs() >= 10000 && digits == 0) {
+            final tons = NumberFormat.decimalPatternDigits(
+              locale: locale,
+              decimalDigits: 1,
+            ).format(display / 1000);
+            return '$tons t';
+          }
+          final formatted = digits == 0
+              ? NumberFormat.decimalPattern(locale).format(display.round())
+              : NumberFormat.decimalPatternDigits(
+                  locale: locale,
+                  decimalDigits: digits,
+                ).format(display);
+          return '$formatted ${units.suffixFor(UnitDimension.weight)}';
+        }
+        final delta = data.weightChange;
         return Column(
           children: [
             row(
               ValueSummaryCard(
-                label: l10n.statisticsOverviewWorkouts,
+                label: l10n.statisticsOverviewTotalWorkouts,
                 value: number.format(data.workouts.workouts),
                 subtitle: data.workouts.firstWorkout == null
                     ? null
                     : l10n.statisticsOverviewSince(
-                        DateFormat.yMMMd(
-                          Localizations.localeOf(context).toString(),
-                        ).format(data.workouts.firstWorkout!),
+                        DateFormat.yMMMd(locale)
+                            .format(data.workouts.firstWorkout!),
                       ),
               ),
               ValueSummaryCard(
-                label: l10n.statisticsOverviewWorkouts,
+                label: l10n.statisticsOverviewWorkouts30d,
                 value: number.format(data.workouts.recentWorkouts),
                 subtitle: l10n.statisticsOverview30Days,
               ),

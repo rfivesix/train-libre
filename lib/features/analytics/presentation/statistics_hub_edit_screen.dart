@@ -74,6 +74,19 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
     }
   }
 
+  String _cardSubtitle(StatisticsHubCardId card, AppLocalizations l10n) {
+    return _categoryName(card.categoryId, l10n);
+  }
+
+  bool _matchesDefaultPinned() {
+    const defaults = StatisticsHubPreferences.defaultPinnedCards;
+    if (_pinned.length != defaults.length) return false;
+    for (var i = 0; i < _pinned.length; i++) {
+      if (_pinned[i] != defaults[i]) return false;
+    }
+    return true;
+  }
+
   Future<void> _save() {
     final snapshot = List<StatisticsHubCardId>.of(_pinned);
     _pendingSave = _pendingSave.then(
@@ -133,6 +146,19 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
                   child: _sectionHeader(
                     l10n.statisticsPinnedTitle,
                     first: true,
+                    action: _matchesDefaultPinned()
+                        ? null
+                        : TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _pinned = List.of(
+                                  StatisticsHubPreferences.defaultPinnedCards,
+                                );
+                              });
+                              _save();
+                            },
+                            child: Text(l10n.statisticsResetDefaults),
+                          ),
                   ),
                 ),
               ),
@@ -208,8 +234,8 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
     );
   }
 
-  Widget _sectionHeader(String title, {bool first = false}) =>
-      AppSectionHeader(title: title, isFirst: first);
+  Widget _sectionHeader(String title, {bool first = false, Widget? action}) =>
+      AppSectionHeader(title: title, isFirst: first, action: action);
 
   Widget _buildPinnedRow(
     BuildContext context,
@@ -254,9 +280,25 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    _cardName(card, l10n),
-                    style: theme.textTheme.bodyLarge,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _cardName(card, l10n),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                      Text(
+                        _cardSubtitle(card, l10n),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(

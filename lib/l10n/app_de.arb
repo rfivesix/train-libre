@@ -3961,5 +3961,27 @@
   "analyticsAllTimeBadge": "Allzeit",
   "stepsModuleGoalProgress": "Zielerreichung",
   "analyticsWaterTargetLabel": "Tagesziel",
-  "analyticsWaterLoggedDays": "Erfasste Tage"
+  "analyticsWaterLoggedDays": "Erfasste Tage",
+  "statisticsOverviewTotalWorkouts": "Workouts gesamt",
+  "statisticsOverviewWorkouts30d": "Workouts (30T)",
+  "sleepHubNightsLogged": "{count, plural, =1{1 Nacht erfasst} other{{count} Nächte erfasst}}",
+  "@sleepHubNightsLogged": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsMicronutrientsHubSummary": "{days} erfasste Tage · {count} Nährstoffe",
+  "@statisticsMicronutrientsHubSummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsResetDefaults": "Standard wiederherstellen",
+  "statisticsBestPerformancesCount": "{count, plural, =0{Keine neuen Bestleistungen} =1{1 neue Bestleistung} other{{count} neue Bestleistungen}}",
+  "@statisticsBestPerformancesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

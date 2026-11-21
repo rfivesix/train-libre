@@ -1,6 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -15,6 +14,7 @@ import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/time_range_filter.dart';
 import '../../../statistics/data/bls_micronutrient_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
+import 'analytics_card_base.dart';
 
 class MicronutrientSectionCard extends StatefulWidget {
   const MicronutrientSectionCard({
@@ -83,6 +83,10 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
       future: _summary,
       builder: (context, snapshot) {
         final summary = snapshot.data;
+        final chipLabel = widget.isRolling
+            ? TimeframeLabelFormatter.formatRolling(widget.block, l10n)
+            : TimeframeLabelFormatter.format(widget.block, widget.anchor, l10n);
+        final hasNutrients = summary != null && summary.nutrients.isNotEmpty;
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
           margin: EdgeInsets.zero,
           padding: EdgeInsets.zero,
@@ -92,30 +96,55 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.statisticsMicronutrientsTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      LucideIcons.chevron_right,
-                      size: 18,
-                      color: theme.colorScheme.outline,
-                    ),
-                  ],
+                AnalyticsCardBase.buildHeaderWithChevron(
+                  context,
+                  label: l10n.statisticsMicronutrientsTitle,
+                  chipText: chipLabel,
                 ),
                 const SizedBox(height: DesignConstants.spacingXS),
                 Text(
-                  l10n.statisticsMicronutrientsPreviewSubtitle,
+                  hasNutrients
+                      ? l10n.statisticsMicronutrientsHubSummary(
+                          summary.blsLoggedDays,
+                          summary.nutrients.length,
+                        )
+                      : l10n.statisticsMicronutrientsPreviewSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.outline,
+                    color: hasNutrients
+                        ? theme.colorScheme.onSurfaceVariant
+                        : theme.colorScheme.outline,
+                    fontWeight: hasNutrients ? FontWeight.w600 : null,
                   ),
                 ),
+                if (hasNutrients) ...[
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: summary.nutrients
+                        .take(3)
+                        .map(
+                          (n) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingS,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              '${n.name}: ${NumberFormat('0.#', l10n.localeName).format(n.averagePerLoggedDay)} ${n.unit}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
+                ],
               ],
             ),
           ),

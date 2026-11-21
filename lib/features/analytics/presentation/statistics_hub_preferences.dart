@@ -33,8 +33,8 @@ class StatisticsHubPreferences {
 
   static const defaultPinnedCards = <StatisticsHubCardId>[
     StatisticsHubCardId.bodyNutrition,
-    StatisticsHubCardId.macros,
     StatisticsHubCardId.bodyMeasurements,
+    StatisticsHubCardId.macros,
     StatisticsHubCardId.consistency,
     StatisticsHubCardId.muscleGroups,
     StatisticsHubCardId.performance,

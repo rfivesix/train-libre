@@ -53,13 +53,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
     final weightChangeValue = body?.weightChangeKg == null
         ? '-'
         : '${body!.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(body.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
-    final slopePerWeekKg = body?.weightTrend.slopePerWeek;
-    final weightRateValue = slopePerWeekKg == null
-        ? '-'
-        : l10n.analyticsSlopePerWeekUnit(
-            '${slopePerWeekKg >= 0 ? '+' : '-'}${unitService.convertDisplayValue(slopePerWeekKg.abs(), UnitDimension.weight).toStringAsFixed(1)}',
-            weightUnit,
-          );
     final caloriesValue = body == null || body.loggedCalorieDays <= 0
         ? '-'
         : '${body.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
@@ -93,70 +86,62 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 label: title,
                 chipText: rangeLabel,
               ),
-              const SizedBox(height: DesignConstants.spacingL),
-              _buildTwoColumnGrid([
-                ValueSummaryCard(
-                  label: l10n.metricsCurrentWeight,
-                  value: weightValue,
-                  disableShadow: true,
-                  useSecondarySurface: true,
+              const SizedBox(height: DesignConstants.spacingM),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ValueSummaryCard(
+                        label: l10n.metricsCurrentWeight,
+                        value: weightValue,
+                        disableShadow: true,
+                        useSecondarySurface: true,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Expanded(
+                      child: ValueSummaryCard(
+                        label: l10n.metricsWeightChange,
+                        value: weightChangeValue,
+                        disableShadow: true,
+                        useSecondarySurface: true,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Expanded(
+                      child: ValueSummaryCard(
+                        label: l10n.metricsAvgCalories,
+                        value: caloriesValue,
+                        disableShadow: true,
+                        useSecondarySurface: true,
+                      ),
+                    ),
+                  ],
                 ),
-                ValueSummaryCard(
-                  label: l10n.metricsWeightChange,
-                  value: weightChangeValue,
-                  disableShadow: true,
-                  useSecondarySurface: true,
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              SizedBox(
+                height: 76,
+                child: BodyNutritionNormalizedTrendChart(
+                  range: body?.range,
+                  weightSeries: body?.weightDaily ?? const [],
+                  calorieSeries: body?.caloriesDaily ?? const [],
+                  compact: true,
                 ),
-                ValueSummaryCard(
-                  label: l10n.analyticsWeightSlopePerWeek,
-                  value: weightRateValue,
-                  disableShadow: true,
-                  useSecondarySurface: true,
-                ),
-                ValueSummaryCard(
-                  label: l10n.metricsAvgCalories,
-                  value: caloriesValue,
-                  disableShadow: true,
-                  useSecondarySurface: true,
-                ),
-                ValueSummaryCard(
-                  label: l10n.analyticsWeightTrendLabel(weightUnit),
-                  value: body == null
-                      ? l10n.analyticsTrendUnclear
-                      : StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
-                          l10n,
-                          body.weightTrend.direction,
-                        ),
-                  disableShadow: true,
-                  useSecondarySurface: true,
-                ),
-                ValueSummaryCard(
-                  label: l10n.analyticsCaloriesTrendLabel,
-                  value: body == null
-                      ? l10n.analyticsTrendUnclear
-                      : StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
-                          l10n,
-                          body.calorieTrend.direction,
-                        ),
-                  disableShadow: true,
-                  useSecondarySurface: true,
-                ),
-              ]),
-              const SizedBox(height: 10),
-              Text(relationship, style: Theme.of(context).textTheme.bodyMedium),
+              ),
               const SizedBox(height: DesignConstants.spacingS),
-              Wrap(
-                spacing: DesignConstants.spacingM,
-                runSpacing: DesignConstants.spacingXS,
+              Row(
                 children: [
                   _legendDot(
                     context,
                     color: Theme.of(context).colorScheme.primary,
                     label: l10n.analyticsBodyNutritionTotalWeightLabel(
-                      unitService.suffixFor(UnitDimension.weight),
+                      weightUnit,
                     ),
                     shape: BoxShape.circle,
                   ),
+                  const SizedBox(width: DesignConstants.spacingM),
                   _legendDot(
                     context,
                     color: const Color(0xFFF97316),
@@ -165,21 +150,11 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: DesignConstants.spacingS),
-              SizedBox(
-                height: 84,
-                child: BodyNutritionNormalizedTrendChart(
-                  range: body?.range,
-                  weightSeries: body?.weightDaily ?? const [],
-                  calorieSeries: body?.caloriesDaily ?? const [],
-                  compact: true,
-                ),
-              ),
               const SizedBox(height: 6),
               Text(
-                body == null
-                    ? confidenceLabel
-                    : '$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(body.weightDays, body.loggedCalorieDays)}',
+                '$relationship · $confidenceLabel',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall
                     ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
@@ -188,30 +163,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildTwoColumnGrid(List<Widget> items) {
-    final rows = <Widget>[];
-    for (var i = 0; i < items.length; i += 2) {
-      final left = items[i];
-      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
-      rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: left),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(child: right),
-            ],
-          ),
-        ),
-      );
-      if (i + 2 < items.length) {
-        rows.add(const SizedBox(height: DesignConstants.spacingS));
-      }
-    }
-    return Column(children: rows);
   }
 
   Widget _legendDot(

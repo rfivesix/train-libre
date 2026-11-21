@@ -49,6 +49,13 @@ class ConsistencySectionCard extends StatelessWidget {
     final streakText = trainingStats == null
         ? '${l10n.streakLabel}: -'
         : '${l10n.streakLabel}: ${trainingStats.streakWeeks} ${l10n.weeksLabel}';
+    final weeklyBarValues = (data?.weeklyConsistencyMetrics.isNotEmpty ?? false)
+        ? data!.weeklyConsistencyMetrics
+              .map((w) => w.count.toDouble())
+              .toList(growable: false)
+        : workoutsPerWeek
+              .map((w) => ((w['count'] as num?)?.toDouble() ?? 0.0))
+              .toList(growable: false);
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -67,19 +74,48 @@ class ConsistencySectionCard extends StatelessWidget {
                 label: title,
                 chipText: _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
               ),
-              const SizedBox(height: DesignConstants.spacingXS),
-              Text(
-                trainingStats == null
-                    ? '-'
-                    : '$totalWorkouts ${l10n.workoutsLabel}',
-                style: Theme.of(context).textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                streakText,
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
+              const SizedBox(height: DesignConstants.spacingS),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          trainingStats == null
+                              ? '-'
+                              : '$totalWorkouts ${l10n.workoutsLabel}',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          streakText,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (weeklyBarValues.isNotEmpty) ...[
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      flex: 2,
+                      child: SizedBox(
+                        height: 36,
+                        child: AnalyticsCardBase.buildMiniBars(
+                          context,
+                          values: weeklyBarValues,
+                          color: Theme.of(context).colorScheme.primary,
+                          semanticsLabel: title,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

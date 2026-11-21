@@ -53,18 +53,18 @@ class MuscleVolumeSectionCard extends StatelessWidget {
             (a, b) => ((b['equivalentSets'] as num?)?.toDouble() ?? 0)
                 .compareTo((a['equivalentSets'] as num?)?.toDouble() ?? 0),
           );
-    final topMuscle = muscles.isNotEmpty ? muscles.first : null;
+    final topMuscles = muscles.take(3).toList(growable: false);
+    final topMuscle = topMuscles.isNotEmpty ? topMuscles.first : null;
     final totalEquivalentSets = muscles.fold<double>(
       0,
       (total, muscle) =>
           total + ((muscle['equivalentSets'] as num?)?.toDouble() ?? 0),
     );
-    final weeklySets = muscles.isEmpty
-        ? 0.0
-        : totalEquivalentSets / _fixedMuscleWeeks / muscles.length;
+    final weeklySets = totalEquivalentSets / _fixedMuscleWeeks;
     final topMuscleSets =
         ((topMuscle?['equivalentSets'] as num?)?.toDouble() ?? 0) /
         _fixedMuscleWeeks;
+    final theme = Theme.of(context);
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -89,21 +89,94 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                 topMuscle == null
                     ? '–'
                     : '${weeklySets.toStringAsFixed(1)} ${l10n.analyticsUnitSets} / ${l10n.analyticsPerWeekAbbrev}',
-                style: Theme.of(context).textTheme.titleLarge
+                style: theme.textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 6),
-              Text(
-                topMuscle == null
-                    ? l10n.exerciseAnalyticsNoData
-                    : '${_formatMuscleLabel(l10n, topMuscle['muscleGroup'] as String?)} · ${topMuscleSets.toStringAsFixed(1)} ${l10n.analyticsUnitSets} / ${l10n.analyticsPerWeekAbbrev}',
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
-              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              if (topMuscles.isEmpty)
+                Text(
+                  l10n.exerciseAnalyticsNoData,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.outline),
+                )
+              else
+                Column(
+                  children: [
+                    for (var i = 0; i < topMuscles.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 6),
+                      _buildMuscleBarRow(
+                        context,
+                        label: _formatMuscleLabel(
+                          l10n,
+                          topMuscles[i]['muscleGroup'] as String?,
+                        ),
+                        setsPerWeek:
+                            ((topMuscles[i]['equivalentSets'] as num?)
+                                    ?.toDouble() ??
+                                0) /
+                            _fixedMuscleWeeks,
+                        maxSetsPerWeek: topMuscleSets > 0 ? topMuscleSets : 1.0,
+                      ),
+                    ],
+                  ],
+                ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMuscleBarRow(
+    BuildContext context, {
+    required String label,
+    required double setsPerWeek,
+    required double maxSetsPerWeek,
+  }) {
+    final theme = Theme.of(context);
+    final ratio = (setsPerWeek / maxSetsPerWeek).clamp(0.08, 1.0);
+    return Row(
+      children: [
+        SizedBox(
+          width: 112,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(width: DesignConstants.spacingS),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 6,
+              backgroundColor: theme.colorScheme.onSurface.withValues(
+                alpha: 0.08,
+              ),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                theme.colorScheme.primary.withValues(alpha: 0.85),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: DesignConstants.spacingS),
+        SizedBox(
+          width: 44,
+          child: Text(
+            setsPerWeek.toStringAsFixed(1),
+            textAlign: TextAlign.right,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -115,7 +188,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     if (StatisticsPresentationFormatter.isOtherCategoryLabel(normalized)) {
       return _noClearFocusLabel(l10n);
     }
-    return normalized;
+    return StatisticsPresentationFormatter.muscleGroupLabel(l10n, normalized);
   }
 
   String _noClearFocusLabel(AppLocalizations l10n) {

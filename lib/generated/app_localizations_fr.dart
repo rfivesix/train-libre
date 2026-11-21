@@ -9911,4 +9911,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get analyticsWaterLoggedDays => 'Jours saisis';
+
+  @override
+  String get statisticsOverviewTotalWorkouts => 'Séances totales';
+
+  @override
+  String get statisticsOverviewWorkouts30d => 'Séances (30j)';
+
+  @override
+  String sleepHubNightsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nuits enregistrées',
+      one: '1 nuit enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statisticsMicronutrientsHubSummary(int days, int count) {
+    return '$days jours · $count nutriments';
+  }
+
+  @override
+  String get statisticsResetDefaults => 'Rétablir par défaut';
+
+  @override
+  String statisticsBestPerformancesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouveaux records',
+      one: '1 nouveau record',
+      zero: 'Aucun nouveau record',
+    );
+    return '$_temp0';
+  }
 }

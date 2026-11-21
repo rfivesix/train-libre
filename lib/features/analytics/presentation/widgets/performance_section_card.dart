@@ -78,16 +78,28 @@ class PerformanceSectionCard extends StatelessWidget {
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
-                '${notableImprovements.length} ${l10n.analyticsInTimeframe.toLowerCase()}',
+                l10n.statisticsBestPerformancesCount(notableImprovements.length),
                 style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              Text(
-                '${l10n.analyticsTop}: $topExerciseName · $momentumValue',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: momentumColor,
-                  fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: momentumColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${l10n.analyticsTop}: $topExerciseName · $momentumValue',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: momentumColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],

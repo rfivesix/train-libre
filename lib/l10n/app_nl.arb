@@ -4452,5 +4452,27 @@
   "analyticsAllTimeBadge": "Altijd",
   "stepsModuleGoalProgress": "Doelbereik",
   "analyticsWaterTargetLabel": "Dagdoel",
-  "analyticsWaterLoggedDays": "Gelogde dagen"
+  "analyticsWaterLoggedDays": "Gelogde dagen",
+  "statisticsOverviewTotalWorkouts": "Workouts totaal",
+  "statisticsOverviewWorkouts30d": "Workouts (30d)",
+  "sleepHubNightsLogged": "{count, plural, =1{1 nacht gelogd} other{{count} nachten gelogd}}",
+  "@sleepHubNightsLogged": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsMicronutrientsHubSummary": "{days} gelogde dagen · {count} voedingsstoffen",
+  "@statisticsMicronutrientsHubSummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsResetDefaults": "Standaard herstellen",
+  "statisticsBestPerformancesCount": "{count, plural, =0{Geen nieuwe records} =1{1 nieuw record} other{{count} nieuwe records}}",
+  "@statisticsBestPerformancesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

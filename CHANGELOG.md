@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Fixed `MuscleVolumeSectionCard` dividing weekly sets by muscle count and displaying unlocalized raw muscle keys.
+- Fixed `WaterSectionCard` on the Statistics hub loading only a single day instead of the 7-day trend, and added consistent header chips and localized step formatting (`StatisticsStepsCard`).
 - Fixed localized date and number formatting in Measurement and Body & Nutrition trend charts (`May 31, 2026`, English thousand commas, hardcoded nutrition labels, and lowercase axis captions).
 - Fixed `TimeRangeFilter` rolling defaults, forward navigation (`nextEnabled`) in rolling mode, and excessive vertical top padding across statistics detail screens.
 - Removed the orphaned `"ZEITRAUM"` header in Muscle Group Analytics and duplicated interpretation summary text in Body & Nutrition Trends.
@@ -36,6 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ### Added
+- Added `StatisticsSampleDataSeeder` and Developer Settings actions (`Statistik-Beispieldaten laden` / `Statistik-Beispieldaten entfernen`) to populate and clear 45 days of realistic statistics sample data (macros, BLS micronutrients, calorie goal history, measurements, water, workouts/sets, steps, pulse, and sleep) for emulator/simulator testing without overwriting existing user data.
 - Added a Statistics summary grid with lifetime workout and volume totals, the first workout date, and recent workout, weight and nutrition metrics.
 - Added Apple Health heart rate variability (SDNN) to pulse statistics and sleep analysis when pulse tracking is enabled, with local persistence and backup support.
 - Added a brief personal-record celebration with animated badge and banner particles and a rising haptic pattern, respecting reduced-motion and haptic settings; multiple records from one set trigger the celebration once.
@@ -44,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Redesigned and thematically reordered Statistics hub preview cards: compact 3-metric Body & Nutrition summary, macro gram badges on `MacroSectionCard`, 6-week mini bar chart on `ConsistencySectionCard`, top-3 muscle bars on `MuscleVolumeSectionCard`, latest weight preview on Measurements, 3-column Pulse fallback when HRV is unavailable, nutrient highlights on Micronutrients, clearer overview workout labels with skeleton loading, and a reset-to-defaults action in `StatisticsHubEditScreen`.
 - Redesigned the Nutrition (`MacroStatisticsScreen`) header into four compact, color-outlined KPI cards, added a dashed historical calorie-target line to the macro bar chart, and added a MAX period date range label.
 - Added a sixth KPI card (weekly weight rate) to Body & Nutrition Trends and completed 2x2 KPI grids in Steps (`Day`/`Week`) and Water statistics, while showing `StatisticsStepsCard` across all step scopes.
 - Simplified Consistency Tracker KPIs to four non-redundant cards, added subtle zero-week bar caps, and made calendar days open the day's workout detail view (or a workout picker when multiple sessions exist).

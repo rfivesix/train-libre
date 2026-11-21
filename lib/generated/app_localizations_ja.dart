@@ -9403,4 +9403,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get analyticsWaterLoggedDays => '記録日数';
+
+  @override
+  String get statisticsOverviewTotalWorkouts => '合計ワークアウト';
+
+  @override
+  String get statisticsOverviewWorkouts30d => 'ワークアウト (30日)';
+
+  @override
+  String sleepHubNightsLogged(int count) {
+    return '$count晩記録済み';
+  }
+
+  @override
+  String statisticsMicronutrientsHubSummary(int days, int count) {
+    return '$days日記録 · $count栄養素';
+  }
+
+  @override
+  String get statisticsResetDefaults => 'デフォルトに戻す';
+
+  @override
+  String statisticsBestPerformancesCount(int count) {
+    return '$count件の新記録';
+  }
 }

@@ -3961,5 +3961,27 @@
   "analyticsAllTimeBadge": "全期間",
   "stepsModuleGoalProgress": "目標達成率",
   "analyticsWaterTargetLabel": "1日の目標",
-  "analyticsWaterLoggedDays": "記録日数"
+  "analyticsWaterLoggedDays": "記録日数",
+  "statisticsOverviewTotalWorkouts": "合計ワークアウト",
+  "statisticsOverviewWorkouts30d": "ワークアウト (30日)",
+  "sleepHubNightsLogged": "{count}晩記録済み",
+  "@sleepHubNightsLogged": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsMicronutrientsHubSummary": "{days}日記録 · {count}栄養素",
+  "@statisticsMicronutrientsHubSummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsResetDefaults": "デフォルトに戻す",
+  "statisticsBestPerformancesCount": "{count}件の新記録",
+  "@statisticsBestPerformancesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

@@ -37,7 +37,9 @@ class StatisticsStepsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final numberFormat = NumberFormat.decimalPattern();
+    final numberFormat = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toString(),
+    );
 
     return SummaryCard(
       margin: EdgeInsets.zero,
