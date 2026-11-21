@@ -9636,4 +9636,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hrvQueryFailed => 'Could not load HRV. Try again.';
+
+  @override
+  String get statisticsOverviewTitle => 'Overview';
+
+  @override
+  String get statisticsOverviewWorkouts => 'Workouts';
+
+  @override
+  String get statisticsOverviewAllTime => 'All time';
+
+  @override
+  String get statisticsOverview30Days => 'Last 30 days';
+
+  @override
+  String get statisticsOverviewWeightChange => 'Weight change';
+
+  @override
+  String get statisticsOverviewVolume => 'Volume';
+
+  @override
+  String get statisticsOverviewSets => 'sets';
+
+  @override
+  String get statisticsOverviewCalories => 'Calories / day';
+
+  @override
+  String get statisticsOverviewProtein => 'Protein / day';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30 days · tracked days';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String get statisticsEmptySteps => 'No steps recorded in the last 7 days.';
+
+  @override
+  String get statisticsEmptySleep => 'No sleep recorded in the last 7 days.';
+
+  @override
+  String get statisticsEmptyPulse =>
+      'No pulse data recorded in the last 7 days.';
+
+  @override
+  String get statisticsEmptyTraining =>
+      'Complete a workout to see your training rhythm.';
+
+  @override
+  String get statisticsEmptyRecords =>
+      'No new personal bests in the last 30 days.';
+
+  @override
+  String get statisticsEmptyMuscles =>
+      'Complete strength sets to see your muscle groups.';
+
+  @override
+  String get statisticsEmptyBody =>
+      'Log weight or nutrition to see your trends.';
+
+  @override
+  String get statisticsEmptyNutrition =>
+      'No nutrition logged in the last 7 days.';
 }

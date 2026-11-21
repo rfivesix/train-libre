@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Fixed Statistics muscle-group averages and the six-week workout count to use their stated periods, and improved hub scrolling.
+- Fixed rolling date ranges including one extra calendar day.
 - Restored theme-appropriate icon colors for menus and other app content affected by the Cupertino glass theme.
 - Fixed iOS Live Activity rest adjustments being overwritten by stale app state, and synchronize their updated deadlines when returning to the app.
 - Restored the foreground rest-completion sound, including when shortening a running timer to zero, while scheduling notifications for the background separately.
@@ -30,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ### Added
+- Added a Statistics summary grid with lifetime workout and volume totals, the first workout date, and recent workout, weight and nutrition metrics.
 - Added Apple Health heart rate variability (SDNN) to pulse statistics and sleep analysis when pulse tracking is enabled, with local persistence and backup support.
 - Added a brief personal-record celebration with animated badge and banner particles and a rising haptic pattern, respecting reduced-motion and haptic settings; multiple records from one set trigger the celebration once.
 - Added a live workout muscle overview showing completed and planned sets by muscle group, excluding cardio exercises.
@@ -37,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Replaced obscured Statistics hub placeholders with clear, tappable empty cards explaining what data is missing.
+- Gave Statistics hub cards fixed, metric-specific timeframes; date selection remains available in their detail screens.
 - Refreshed the five localized 1.7.1 release highlights and updated the website's project timeline through 1.7.1.
 - Redesigned the sleep overview and statistics card with a contributor score ring, sleep-stage timeline, eight-hour goal comparison, and heart-rate and HRV charts. The overview now keeps only the interruptions detail card; the other detail screens remain in the project for later review.
 - Replaced the sleep score with a transparent, duration-focused heuristic and recalculate locally retained nights without deleting source data. Nights with recorded sleep stages and no detected awakenings receive a full wake-time continuity score.

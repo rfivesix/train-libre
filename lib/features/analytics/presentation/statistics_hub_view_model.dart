@@ -99,11 +99,13 @@ class ConsistencySectionData {
   final List<Map<String, dynamic>> workoutsPerWeek;
   final List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics;
   final TrainingStatsPayload trainingStats;
+  final int? recentWorkoutCount;
 
   const ConsistencySectionData({
     required this.workoutsPerWeek,
     required this.weeklyConsistencyMetrics,
     required this.trainingStats,
+    this.recentWorkoutCount,
   });
 }
 
@@ -703,24 +705,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   Future<HubRangeContext> _resolveHubRangeContext({
     required TimeframeBlock selectedBlockType,
-  }) async {
-    final earliest = await PerfDebugTimer.time(
-      area: 'statistics',
-      label: 'stepsEarliest',
-      action: _stepsRepository.getEarliestAvailableDate,
-    );
-    final resolvedRange = _rangePolicy.resolve(
-      metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedBlockType: selectedBlockType,
-      now: _anchorDate,
-      earliestAvailableDay: earliest,
-    );
-    return HubRangeContext(
-      selectedBlockType: selectedBlockType,
-      daysBack: resolvedRange.effectiveDays ?? 30,
-      endDate: resolvedRange.dateRange?.end ?? DateTime.now(),
-    );
-  }
+  }) async => HubRangeContext(
+    selectedBlockType: TimeframeBlock.week,
+    daysBack: 7,
+    endDate: DateTime.now(),
+  );
 
   Future<void> _loadStepsSection(
     int generation,
@@ -995,6 +984,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       _consistencyState = _consistencyState.success(
         ConsistencySectionData(
           workoutsPerWeek: data.workoutsPerWeek,
+          recentWorkoutCount: data.recentWorkoutCount,
           weeklyConsistencyMetrics: data.weeklyConsistencyMetrics,
           trainingStats: data.trainingStats,
         ),
@@ -1025,9 +1015,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchPerformanceRecords(
-        selectedBlockType: _activeBlockType,
-        anchorDate: _anchorDate,
-        isRolling: _isRolling,
+        selectedBlockType: TimeframeBlock.month,
+        anchorDate: DateTime.now(),
+        isRolling: true,
       );
       if (!_isCurrentPerformanceLoad(generation)) return;
       _performanceState = _performanceState.success(
@@ -1110,9 +1100,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
         : 'block';
     try {
       final data = await _hubDataAdapter.fetchBodyNutrition(
-        selectedBlockType: _activeBlockType,
-        anchorDate: _anchorDate,
-        isRolling: _isRolling,
+        selectedBlockType: TimeframeBlock.month,
+        anchorDate: DateTime.now(),
+        isRolling: true,
       );
       if (!_isCurrentBodyNutritionLoad(generation)) return;
       _bodyNutritionState = _bodyNutritionState.success(data, generation);

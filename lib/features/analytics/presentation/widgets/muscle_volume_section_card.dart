@@ -59,7 +59,9 @@ class MuscleVolumeSectionCard extends StatelessWidget {
       (total, muscle) =>
           total + ((muscle['equivalentSets'] as num?)?.toDouble() ?? 0),
     );
-    final weeklySets = totalEquivalentSets / _fixedMuscleWeeks;
+    final weeklySets = muscles.isEmpty
+        ? 0.0
+        : totalEquivalentSets / _fixedMuscleWeeks / muscles.length;
     final topMuscleSets =
         ((topMuscle?['equivalentSets'] as num?)?.toDouble() ?? 0) /
         _fixedMuscleWeeks;

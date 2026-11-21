@@ -1331,7 +1331,6 @@ class _MainScreenState extends State<MainScreen>
             ),
             _profileAppBarButton(context),
           ],
-          bottom: _statsKey.currentState?.buildPinnedTimeframeFilter(context),
         );
       case 3: // Nutrition Hub
         return GlobalAppBar(

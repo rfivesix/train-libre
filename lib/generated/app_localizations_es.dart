@@ -9791,4 +9791,71 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get hrvQueryFailed => 'No se pudo cargar la VFC. Inténtalo de nuevo.';
+
+  @override
+  String get statisticsOverviewTitle => 'Resumen';
+
+  @override
+  String get statisticsOverviewWorkouts => 'Entrenamientos';
+
+  @override
+  String get statisticsOverviewAllTime => 'Histórico';
+
+  @override
+  String get statisticsOverview30Days => 'Últimos 30 días';
+
+  @override
+  String get statisticsOverviewWeightChange => 'Cambio de peso';
+
+  @override
+  String get statisticsOverviewVolume => 'Volumen';
+
+  @override
+  String get statisticsOverviewSets => 'series';
+
+  @override
+  String get statisticsOverviewCalories => 'Calorías / día';
+
+  @override
+  String get statisticsOverviewProtein => 'Proteína / día';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30 días · días registrados';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String get statisticsEmptySteps =>
+      'No hay pasos registrados en los últimos 7 días.';
+
+  @override
+  String get statisticsEmptySleep =>
+      'No hay sueño registrado en los últimos 7 días.';
+
+  @override
+  String get statisticsEmptyPulse =>
+      'No hay datos de pulso en los últimos 7 días.';
+
+  @override
+  String get statisticsEmptyTraining =>
+      'Completa un entrenamiento para ver tu ritmo.';
+
+  @override
+  String get statisticsEmptyRecords =>
+      'No hay récords nuevos en los últimos 30 días.';
+
+  @override
+  String get statisticsEmptyMuscles =>
+      'Completa series de fuerza para ver tus grupos musculares.';
+
+  @override
+  String get statisticsEmptyBody =>
+      'Registra tu peso o alimentación para ver tus tendencias.';
+
+  @override
+  String get statisticsEmptyNutrition =>
+      'No hay alimentación registrada en los últimos 7 días.';
 }

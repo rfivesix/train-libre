@@ -9731,4 +9731,71 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get hrvQueryFailed =>
       'HRV kon niet worden geladen. Probeer het opnieuw.';
+
+  @override
+  String get statisticsOverviewTitle => 'Overzicht';
+
+  @override
+  String get statisticsOverviewWorkouts => 'Trainingen';
+
+  @override
+  String get statisticsOverviewAllTime => 'Totaal';
+
+  @override
+  String get statisticsOverview30Days => 'Laatste 30 dagen';
+
+  @override
+  String get statisticsOverviewWeightChange => 'Gewichtsverandering';
+
+  @override
+  String get statisticsOverviewVolume => 'Volume';
+
+  @override
+  String get statisticsOverviewSets => 'sets';
+
+  @override
+  String get statisticsOverviewCalories => 'Calorieën / dag';
+
+  @override
+  String get statisticsOverviewProtein => 'Eiwit / dag';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30 dagen · geregistreerde dagen';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return 'Sinds $date';
+  }
+
+  @override
+  String get statisticsEmptySteps =>
+      'Geen stappen geregistreerd in de afgelopen 7 dagen.';
+
+  @override
+  String get statisticsEmptySleep =>
+      'Geen slaap geregistreerd in de afgelopen 7 dagen.';
+
+  @override
+  String get statisticsEmptyPulse =>
+      'Geen hartslaggegevens in de afgelopen 7 dagen.';
+
+  @override
+  String get statisticsEmptyTraining =>
+      'Voltooi een training om je trainingsritme te zien.';
+
+  @override
+  String get statisticsEmptyRecords =>
+      'Geen nieuwe records in de afgelopen 30 dagen.';
+
+  @override
+  String get statisticsEmptyMuscles =>
+      'Voltooi krachtsets om je spiergroepen te zien.';
+
+  @override
+  String get statisticsEmptyBody =>
+      'Registreer gewicht of voeding om je trends te zien.';
+
+  @override
+  String get statisticsEmptyNutrition =>
+      'Geen voeding geregistreerd in de afgelopen 7 dagen.';
 }

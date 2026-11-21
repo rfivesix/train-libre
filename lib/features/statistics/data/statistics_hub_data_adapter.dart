@@ -16,8 +16,7 @@ class StatisticsHubDataAdapter {
 
   const StatisticsHubDataAdapter({
     required this._workoutDatabaseHelper,
-    this._rangePolicy =
-        StatisticsRangePolicyService.instance,
+    this._rangePolicy = StatisticsRangePolicyService.instance,
   });
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> fetch({
@@ -202,6 +201,7 @@ class StatisticsHubDataAdapter {
       List<Map<String, dynamic>> workoutsPerWeek,
       List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics,
       TrainingStatsPayload trainingStats,
+      int recentWorkoutCount,
     })
   >
   fetchConsistency({
@@ -237,6 +237,7 @@ class StatisticsHubDataAdapter {
           weeksBack: consistencyRange.effectiveWeeks ?? 6,
         ),
       ),
+      _workoutDatabaseHelper.getRecentCompletedWorkoutCount(days: 42),
       PerfDebugTimer.time(
         area: 'statistics',
         label: 'trainingStats',
@@ -249,8 +250,9 @@ class StatisticsHubDataAdapter {
       weeklyConsistencyMetrics: (results[1] as List<Map<String, dynamic>>)
           .map(WeeklyConsistencyMetricPayload.fromMap)
           .toList(),
+      recentWorkoutCount: results[2] as int,
       trainingStats: TrainingStatsPayload.fromMap(
-        results[2] as Map<String, dynamic>,
+        results[3] as Map<String, dynamic>,
       ),
     );
   }
@@ -331,7 +333,7 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'muscleAnalytics',
         action: () => _workoutDatabaseHelper.getMuscleGroupAnalytics(
-          daysBack: muscleRange.effectiveDays ?? 30,
+          daysBack: (muscleRange.effectiveWeeks ?? 8) * 7,
           weeksBack: muscleRange.effectiveWeeks ?? 8,
         ),
       ),

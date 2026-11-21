@@ -16964,6 +16964,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load HRV. Try again.'**
   String get hrvQueryFailed;
+
+  /// No description provided for @statisticsOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get statisticsOverviewTitle;
+
+  /// No description provided for @statisticsOverviewWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts'**
+  String get statisticsOverviewWorkouts;
+
+  /// No description provided for @statisticsOverviewAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get statisticsOverviewAllTime;
+
+  /// No description provided for @statisticsOverview30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get statisticsOverview30Days;
+
+  /// No description provided for @statisticsOverviewWeightChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight change'**
+  String get statisticsOverviewWeightChange;
+
+  /// No description provided for @statisticsOverviewVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get statisticsOverviewVolume;
+
+  /// No description provided for @statisticsOverviewSets.
+  ///
+  /// In en, this message translates to:
+  /// **'sets'**
+  String get statisticsOverviewSets;
+
+  /// No description provided for @statisticsOverviewCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories / day'**
+  String get statisticsOverviewCalories;
+
+  /// No description provided for @statisticsOverviewProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein / day'**
+  String get statisticsOverviewProtein;
+
+  /// No description provided for @statisticsOverviewTrackedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days · tracked days'**
+  String get statisticsOverviewTrackedDays;
+
+  /// No description provided for @statisticsOverviewSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String statisticsOverviewSince(String date);
+
+  /// No description provided for @statisticsEmptySteps.
+  ///
+  /// In en, this message translates to:
+  /// **'No steps recorded in the last 7 days.'**
+  String get statisticsEmptySteps;
+
+  /// No description provided for @statisticsEmptySleep.
+  ///
+  /// In en, this message translates to:
+  /// **'No sleep recorded in the last 7 days.'**
+  String get statisticsEmptySleep;
+
+  /// No description provided for @statisticsEmptyPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'No pulse data recorded in the last 7 days.'**
+  String get statisticsEmptyPulse;
+
+  /// No description provided for @statisticsEmptyTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a workout to see your training rhythm.'**
+  String get statisticsEmptyTraining;
+
+  /// No description provided for @statisticsEmptyRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No new personal bests in the last 30 days.'**
+  String get statisticsEmptyRecords;
+
+  /// No description provided for @statisticsEmptyMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete strength sets to see your muscle groups.'**
+  String get statisticsEmptyMuscles;
+
+  /// No description provided for @statisticsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log weight or nutrition to see your trends.'**
+  String get statisticsEmptyBody;
+
+  /// No description provided for @statisticsEmptyNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'No nutrition logged in the last 7 days.'**
+  String get statisticsEmptyNutrition;
 }
 
 class _AppLocalizationsDelegate

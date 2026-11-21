@@ -890,6 +890,84 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
   /// Weekly tonnage (kg) for the last [weeksBack] weeks.
   /// Each entry: {weekStart: DateTime, weekLabel: String, tonnage: double, setCount: int}
+  /// Lifetime completed workout totals, using the same load rules as volume charts.
+  Future<
+    ({
+      int workouts,
+      int recentWorkouts,
+      int sets,
+      int seconds,
+      double volume,
+      DateTime? firstWorkout,
+    })
+  >
+  getOverviewTotals(DateTime now) async {
+    final database = await this.database;
+    final workouts = await (database.select(
+      database.workoutLogs,
+    )..where((w) => w.status.equals('completed'))).get();
+    final start = DateTime(now.year, now.month, now.day - 29);
+    final end = DateTime(now.year, now.month, now.day + 1);
+    final rows =
+        await (database.select(database.setLogs).join([
+              drift.innerJoin(
+                database.workoutLogs,
+                database.workoutLogs.id.equalsExp(
+                  database.setLogs.workoutLogId,
+                ),
+              ),
+              drift.leftOuterJoin(
+                database.exercises,
+                database.exercises.id.equalsExp(database.setLogs.exerciseId),
+              ),
+            ])..where(
+              database.workoutLogs.status.equals('completed') &
+                  database.setLogs.isCompleted.equals(true),
+            ))
+            .get();
+    final bodyweights = await _loadBodyweightHistory(database);
+    var volume = 0.0;
+    for (final row in rows) {
+      final set = row.readTable(database.setLogs);
+      final exercise = row.readTableOrNull(database.exercises);
+      if (set.setType != 'warmup' &&
+          exercise?.categoryName?.toLowerCase() != 'cardio' &&
+          (set.reps ?? 0) > 0) {
+        volume += _rowTonnage(
+          database,
+          row,
+          bodyweights,
+          row.readTable(database.workoutLogs).startTime,
+        );
+      }
+    }
+    var seconds = 0;
+    for (final workout in workouts) {
+      if (workout.endTime != null) {
+        final duration = workout.endTime!
+            .difference(workout.startTime)
+            .inSeconds;
+        if (duration > 0) seconds += duration;
+      }
+    }
+    return (
+      workouts: workouts.length,
+      firstWorkout: workouts.isEmpty
+          ? null
+          : workouts
+                .map((w) => w.startTime)
+                .reduce((a, b) => a.isBefore(b) ? a : b),
+      recentWorkouts: workouts
+          .where(
+            (w) => !w.startTime.isBefore(start) && w.startTime.isBefore(end),
+          )
+          .length,
+      sets: rows.length,
+      seconds: seconds,
+      volume: volume,
+    );
+  }
+
   Future<List<Map<String, dynamic>>> getWeeklyVolumeData({
     int weeksBack = 8,
   }) async {
@@ -1401,6 +1479,22 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   }
 
   /// Workouts logged per week for the last [weeksBack] weeks.
+  Future<int> getRecentCompletedWorkoutCount({required int days}) async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day - days + 1);
+    final end = DateTime(now.year, now.month, now.day + 1);
+    final database = await this.database;
+    final rows =
+        await (database.select(database.workoutLogs)..where(
+              (w) =>
+                  w.status.equals('completed') &
+                  w.startTime.isBiggerOrEqualValue(start) &
+                  w.startTime.isSmallerThanValue(end),
+            ))
+            .get();
+    return rows.length;
+  }
+
   Future<List<Map<String, dynamic>>> getWorkoutsPerWeek({
     int weeksBack = 12,
   }) async {

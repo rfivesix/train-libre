@@ -40,10 +40,12 @@ class ConsistencySectionCard extends StatelessWidget {
     final data = state.data;
     final workoutsPerWeek = data?.workoutsPerWeek ?? const [];
     final trainingStats = data?.trainingStats;
-    final totalWorkouts = workoutsPerWeek.fold<int>(
-      0,
-      (total, week) => total + ((week['count'] as num?)?.toInt() ?? 0),
-    );
+    final totalWorkouts =
+        data?.recentWorkoutCount ??
+        workoutsPerWeek.fold<int>(
+          0,
+          (total, week) => total + ((week['count'] as num?)?.toInt() ?? 0),
+        );
     final streakText = trainingStats == null
         ? '${l10n.streakLabel}: -'
         : '${l10n.streakLabel}: ${trainingStats.streakWeeks} ${l10n.weeksLabel}';

@@ -9714,4 +9714,71 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get hrvQueryFailed =>
       'HRV konnte nicht geladen werden. Versuche es erneut.';
+
+  @override
+  String get statisticsOverviewTitle => 'Überblick';
+
+  @override
+  String get statisticsOverviewWorkouts => 'Trainings';
+
+  @override
+  String get statisticsOverviewAllTime => 'Gesamt';
+
+  @override
+  String get statisticsOverview30Days => 'Letzte 30 Tage';
+
+  @override
+  String get statisticsOverviewWeightChange => 'Gewichtsänderung';
+
+  @override
+  String get statisticsOverviewVolume => 'Volumen';
+
+  @override
+  String get statisticsOverviewSets => 'Sätze';
+
+  @override
+  String get statisticsOverviewCalories => 'Kalorien / Tag';
+
+  @override
+  String get statisticsOverviewProtein => 'Protein / Tag';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30 Tage · erfasste Tage';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return 'Seit $date';
+  }
+
+  @override
+  String get statisticsEmptySteps =>
+      'Keine Schritte in den letzten 7 Tagen erfasst.';
+
+  @override
+  String get statisticsEmptySleep =>
+      'Kein Schlaf in den letzten 7 Tagen erfasst.';
+
+  @override
+  String get statisticsEmptyPulse =>
+      'Keine Pulswerte in den letzten 7 Tagen erfasst.';
+
+  @override
+  String get statisticsEmptyTraining =>
+      'Schließe ein Training ab, um deinen Trainingsrhythmus zu sehen.';
+
+  @override
+  String get statisticsEmptyRecords =>
+      'Keine neuen Bestleistungen in den letzten 30 Tagen.';
+
+  @override
+  String get statisticsEmptyMuscles =>
+      'Schließe Kraftsätze ab, um deine Muskelgruppen zu sehen.';
+
+  @override
+  String get statisticsEmptyBody =>
+      'Erfasse Gewicht oder Ernährung, um deine Trends zu sehen.';
+
+  @override
+  String get statisticsEmptyNutrition =>
+      'Keine Ernährung in den letzten 7 Tagen erfasst.';
 }

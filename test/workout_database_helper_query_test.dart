@@ -59,6 +59,66 @@ void main() {
       },
     );
 
+    test(
+      'overview counts completed workouts and sets with fixed 30-day bounds',
+      () async {
+        final now = DateTime(2026, 11, 21, 12);
+        Future<void> workout(DateTime start, {bool completed = true}) async {
+          final log = await helper.startWorkout(routineName: 'Overview');
+          await (database.update(
+            database.workoutLogs,
+          )..where((t) => t.localId.equals(log.id!))).write(
+            db.WorkoutLogsCompanion(
+              status: drift.Value(completed ? 'completed' : 'ongoing'),
+              startTime: drift.Value(start),
+              endTime: drift.Value(start.add(const Duration(hours: 1))),
+            ),
+          );
+          for (final isCompleted in [true, false]) {
+            await helper.insertSetLog(
+              domain_set.SetLog(
+                workoutLogId: log.id!,
+                exerciseName: 'Bench',
+                setType: 'normal',
+                weightKg: 50,
+                reps: 10,
+                isCompleted: isCompleted,
+              ),
+            );
+          }
+        }
+
+        await workout(DateTime(2026, 10, 23));
+        await workout(DateTime(2026, 10, 22));
+        await workout(DateTime(2026, 11, 22));
+        await workout(now, completed: false);
+        final totals = await helper.getOverviewTotals(now);
+        expect(totals.workouts, 3);
+        expect(totals.recentWorkouts, 1);
+        expect(totals.sets, 3);
+        expect(totals.seconds, 3 * 3600);
+        expect(totals.volume, 1500);
+      },
+    );
+
+    test('recent workout count includes only completed workouts in the last six weeks', () async {
+      final now = DateTime.now();
+      for (final entry in [(0, true), (41, true), (42, true), (0, false)]) {
+        final log = await helper.startWorkout(routineName: 'Recent');
+        await (database.update(
+          database.workoutLogs,
+        )..where((t) => t.localId.equals(log.id!))).write(
+          db.WorkoutLogsCompanion(
+            status: drift.Value(entry.$2 ? 'completed' : 'ongoing'),
+            startTime: drift.Value(
+              DateTime(now.year, now.month, now.day - entry.$1),
+            ),
+          ),
+        );
+      }
+      expect(await helper.getRecentCompletedWorkoutCount(days: 42), 2);
+    });
+
     test('getExercisePRs calculates correct brackets and estimated 1RM', () async {
       final log = await helper.startWorkout(routineName: 'PR Test');
 

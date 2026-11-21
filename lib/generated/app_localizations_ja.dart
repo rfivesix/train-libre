@@ -9290,4 +9290,63 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get hrvQueryFailed => 'HRVを読み込めませんでした。もう一度お試しください。';
+
+  @override
+  String get statisticsOverviewTitle => '概要';
+
+  @override
+  String get statisticsOverviewWorkouts => 'ワークアウト';
+
+  @override
+  String get statisticsOverviewAllTime => '全期間';
+
+  @override
+  String get statisticsOverview30Days => '過去30日間';
+
+  @override
+  String get statisticsOverviewWeightChange => '体重の変化';
+
+  @override
+  String get statisticsOverviewVolume => 'ボリューム';
+
+  @override
+  String get statisticsOverviewSets => 'セット';
+
+  @override
+  String get statisticsOverviewCalories => 'カロリー / 日';
+
+  @override
+  String get statisticsOverviewProtein => 'たんぱく質 / 日';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30日間・記録した日';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return '$dateから';
+  }
+
+  @override
+  String get statisticsEmptySteps => '過去7日間の歩数の記録はありません。';
+
+  @override
+  String get statisticsEmptySleep => '過去7日間の睡眠の記録はありません。';
+
+  @override
+  String get statisticsEmptyPulse => '過去7日間の脈拍データはありません。';
+
+  @override
+  String get statisticsEmptyTraining => 'ワークアウトを完了するとトレーニングのリズムが表示されます。';
+
+  @override
+  String get statisticsEmptyRecords => '過去30日間の新記録はありません。';
+
+  @override
+  String get statisticsEmptyMuscles => '筋力トレーニングのセットを完了すると筋肉群が表示されます。';
+
+  @override
+  String get statisticsEmptyBody => '体重や栄養を記録すると傾向が表示されます。';
+
+  @override
+  String get statisticsEmptyNutrition => '過去7日間の栄養の記録はありません。';
 }

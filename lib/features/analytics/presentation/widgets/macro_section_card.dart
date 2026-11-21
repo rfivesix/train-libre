@@ -162,147 +162,164 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                         : widget.activeBlockType.name),
                 trailingIcon: true,
               ),
-              const SizedBox(height: DesignConstants.spacingM),
+              if (!_isLoading &&
+                  _summary != null &&
+                  _summary!.trackedDays == 0) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  l10n.statisticsEmptyNutrition,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: DesignConstants.spacingM),
 
-              // 7 Mini Bars
-              SizedBox(
-                height: 56,
-                child: _isLoading
-                    ? const Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: List.generate(
-                          displayDays.isEmpty ? 7 : displayDays.length,
-                          (index) {
-                            if (index >= displayDays.length) {
-                              return Expanded(
-                                child: Container(
-                                  height: 4,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 2,
-                                  ),
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                ),
-                              );
-                            }
-                            final item = displayDays[index];
-                            if (item.calories <= 0) {
-                              return Expanded(
-                                child: Container(
-                                  height: 4,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 2,
-                                  ),
-                                  decoration: BoxDecoration(
+                // 7 Mini Bars
+                SizedBox(
+                  height: 56,
+                  child: _isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: List.generate(
+                            displayDays.isEmpty ? 7 : displayDays.length,
+                            (index) {
+                              if (index >= displayDays.length) {
+                                return Expanded(
+                                  child: Container(
+                                    height: 4,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                    ),
                                     color: theme.colorScheme.onSurface
                                         .withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                );
+                              }
+                              final item = displayDays[index];
+                              if (item.calories <= 0) {
+                                return Expanded(
+                                  child: Container(
+                                    height: 4,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              final ratio = (item.calories / maxKcal).clamp(
+                                0.1,
+                                1.0,
+                              );
+                              final carbsKcal = max(0.0, item.carbsGrams * 4);
+                              final proteinKcal = max(
+                                0.0,
+                                item.proteinGrams * 4,
+                              );
+                              final fatKcal = max(0.0, item.fatGrams * 9);
+                              final totalMacroKcal =
+                                  carbsKcal + proteinKcal + fatKcal;
+
+                              final cFlex = totalMacroKcal > 0
+                                  ? max(
+                                      1,
+                                      (carbsKcal / totalMacroKcal * 100)
+                                          .round(),
+                                    )
+                                  : 33;
+                              final fFlex = totalMacroKcal > 0
+                                  ? max(
+                                      1,
+                                      (fatKcal / totalMacroKcal * 100).round(),
+                                    )
+                                  : 33;
+                              final pFlex = totalMacroKcal > 0
+                                  ? max(
+                                      1,
+                                      (proteinKcal / totalMacroKcal * 100)
+                                          .round(),
+                                    )
+                                  : 34;
+
+                              return Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: displayDays.length <= 7
+                                        ? 3.0
+                                        : (displayDays.length <= 31
+                                              ? 1.0
+                                              : 0.5),
+                                  ),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final barHeight =
+                                          constraints.maxHeight * ratio;
+                                      return Align(
+                                        alignment: Alignment.bottomCenter,
+                                        child: SizedBox(
+                                          height: barHeight,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              2,
+                                            ),
+                                            child: Column(
+                                              verticalDirection:
+                                                  VerticalDirection.up,
+                                              children: [
+                                                Expanded(
+                                                  flex: cFlex,
+                                                  child: Container(
+                                                    color: carbsColor,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  flex: fFlex,
+                                                  child: Container(
+                                                    color: fatColor,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  flex: pFlex,
+                                                  child: Container(
+                                                    color: proteinColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               );
-                            }
-
-                            final ratio = (item.calories / maxKcal).clamp(
-                              0.1,
-                              1.0,
-                            );
-                            final carbsKcal = max(0.0, item.carbsGrams * 4);
-                            final proteinKcal = max(0.0, item.proteinGrams * 4);
-                            final fatKcal = max(0.0, item.fatGrams * 9);
-                            final totalMacroKcal =
-                                carbsKcal + proteinKcal + fatKcal;
-
-                            final cFlex = totalMacroKcal > 0
-                                ? max(
-                                    1,
-                                    (carbsKcal / totalMacroKcal * 100).round(),
-                                  )
-                                : 33;
-                            final fFlex = totalMacroKcal > 0
-                                ? max(
-                                    1,
-                                    (fatKcal / totalMacroKcal * 100).round(),
-                                  )
-                                : 33;
-                            final pFlex = totalMacroKcal > 0
-                                ? max(
-                                    1,
-                                    (proteinKcal / totalMacroKcal * 100)
-                                        .round(),
-                                  )
-                                : 34;
-
-                            return Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: displayDays.length <= 7
-                                      ? 3.0
-                                      : (displayDays.length <= 31 ? 1.0 : 0.5),
-                                ),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final barHeight =
-                                        constraints.maxHeight * ratio;
-                                    return Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: SizedBox(
-                                        height: barHeight,
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
-                                          child: Column(
-                                            verticalDirection:
-                                                VerticalDirection.up,
-                                            children: [
-                                              Expanded(
-                                                flex: cFlex,
-                                                child: Container(
-                                                  color: carbsColor,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                flex: fFlex,
-                                                child: Container(
-                                                  color: fatColor,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                flex: pFlex,
-                                                child: Container(
-                                                  color: proteinColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
+                            },
+                          ),
                         ),
-                      ),
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-
-              // Bottom: average kcal
-              Text(
-                avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
+                const SizedBox(height: DesignConstants.spacingM),
+
+                // Bottom: average kcal
+                Text(
+                  avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
