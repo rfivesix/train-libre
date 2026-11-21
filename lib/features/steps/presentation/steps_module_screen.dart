@@ -184,7 +184,6 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
-    final showSummaryCard = _scope == StepsScope.month;
     final timeframeFilter = TimeRangeFilter(
       ranges: _timeRanges(AppLocalizations.of(context)!),
       selectedIndex: _validBlocks.indexOf(_activeBlock),
@@ -249,15 +248,12 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
         bottom: timeframeFilter,
       ),
       body: Padding(
-        padding: DesignConstants.screenPadding.copyWith(
-          top: DesignConstants.screenPadding.top + topPadding,
-          left: 0,
-          right: 0,
+        padding: EdgeInsets.only(
+          top: topPadding + DesignConstants.spacingS,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: DesignConstants.spacingS),
             Expanded(
               child: SeamlessLoadingOverlay(
                 isLoading: _isLoading,
@@ -278,12 +274,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                         monthData: _monthData,
                         dailyGoal: _targetSteps,
                       ),
-                      if (showSummaryCard) ...[
-                        const SizedBox(height: DesignConstants.spacingS),
-                        _buildScopeSummaryCard(context),
-                      ],
-                      if (!showSummaryCard)
-                        const SizedBox(height: DesignConstants.spacingS),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      _buildScopeSummaryCard(context),
                       if (_lastUpdatedAtUtc != null)
                         Padding(
                           padding: const EdgeInsets.symmetric(

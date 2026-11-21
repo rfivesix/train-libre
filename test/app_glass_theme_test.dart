@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/cupertino.dart' as cupertino;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:train_libre/theme/app_glass_theme.dart';
@@ -51,6 +52,39 @@ void main() {
 
       final iconContext = tester.element(find.byIcon(Icons.more_vert));
       expect(IconTheme.of(iconContext).color, iconColor);
+    });
+
+    testWidgets('Cupertino controls use the app accent in $appBrightness', (
+      tester,
+    ) async {
+      const accent = Color(0xFFAA3366);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            cupertino.DefaultCupertinoLocalizations.delegate,
+          ],
+          theme: ThemeData(
+            brightness: appBrightness,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: accent,
+              brightness: appBrightness,
+            ).copyWith(primary: accent),
+          ),
+          builder: (context, child) => AppGlassTheme(child: child!),
+          home: Scaffold(
+            body: cupertino.CupertinoNavigationBarBackButton(onPressed: () {}),
+          ),
+        ),
+      );
+
+      final context = tester.element(
+        find.byType(cupertino.CupertinoNavigationBarBackButton),
+      );
+      expect(cupertino.CupertinoTheme.of(context).primaryColor, accent);
+      expect(
+        cupertino.CupertinoTheme.of(context).textTheme.navActionTextStyle.color,
+        accent,
+      );
     });
   }
 }

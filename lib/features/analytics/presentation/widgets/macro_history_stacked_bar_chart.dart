@@ -100,6 +100,8 @@ class _MacroHistoryStackedBarChartState
       double carbs = 0;
       double fat = 0;
       int tracked = 0;
+      int targetSum = 0;
+      int targetCount = 0;
 
       for (final day in chunk) {
         cals += day.calories;
@@ -107,6 +109,10 @@ class _MacroHistoryStackedBarChartState
         carbs += day.carbsGrams;
         fat += day.fatGrams;
         if (day.hasData) tracked++;
+        if (day.targetCalories != null && day.targetCalories! > 0) {
+          targetSum += day.targetCalories!;
+          targetCount++;
+        }
       }
 
       final divisor = tracked > 0 ? tracked : chunk.length;
@@ -120,6 +126,7 @@ class _MacroHistoryStackedBarChartState
             proteinGrams: protein / divisor,
             carbsGrams: carbs / divisor,
             fatGrams: fat / divisor,
+            targetCalories: targetCount > 0 ? (targetSum / targetCount).round() : null,
           ),
         ),
       );
@@ -202,11 +209,15 @@ class _MacroHistoryStackedBarChartState
         final barsWidth = max(1.0, totalWidth - _yAxisWidth);
         final displayBars = _buildDisplayBars(barsWidth);
 
-        // Calculate maximum calories from rendered bars so bar heights and Y-axis match
+        // Calculate maximum calories from rendered bars (and active targets) so bar heights and Y-axis match
         int maxBarKcal = 0;
         for (final bar in displayBars) {
           if (bar.intake.calories > maxBarKcal) {
             maxBarKcal = bar.intake.calories;
+          }
+          final target = bar.intake.targetCalories ?? 0;
+          if (target > maxBarKcal) {
+            maxBarKcal = target;
           }
         }
 
@@ -418,6 +429,27 @@ class _MacroHistoryStackedBarChartState
                     bottom: 0,
                     child: _buildXAxisLabels(context, showDetails: showDetails),
                   ),
+
+                  // Dashed Calorie Target Line (follows historical targets per bar)
+                  if (displayBars.any((b) => (b.intake.targetCalories ?? 0) > 0))
+                    Positioned(
+                      left: 0,
+                      right: _yAxisWidth,
+                      top: 8,
+                      bottom: 20,
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: _MacroTargetLinePainter(
+                            targets: displayBars
+                                .map((b) => b.intake.targetCalories)
+                                .toList(growable: false),
+                            gridCeiling: gridCeiling,
+                            lineColor: (macroColors?.calories ?? Colors.orange)
+                                .withValues(alpha: 0.75),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -640,7 +672,7 @@ class _MacroHistoryStackedBarChartState
                               ? FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Text(
-                                    '${item.carbsGrams.round()}C',
+                                    '${item.carbsGrams.round()}${_carbsShortLetter(context)}',
                                     maxLines: 1,
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -748,6 +780,88 @@ class _MacroHistoryStackedBarChartState
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: labels,
     );
+  }
+  String _carbsShortLetter(BuildContext context) =>
+      switch (Localizations.localeOf(context).languageCode) {
+        'de' || 'nl' => 'KH',
+        'es' => 'HC',
+        _ => 'C',
+      };
+}
+
+class _MacroTargetLinePainter extends CustomPainter {
+  final List<int?> targets;
+  final int gridCeiling;
+  final Color lineColor;
+
+  const _MacroTargetLinePainter({
+    required this.targets,
+    required this.gridCeiling,
+    required this.lineColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (targets.isEmpty || gridCeiling <= 0) return;
+
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final slotWidth = size.width / targets.length;
+    final path = Path();
+    bool hasCurrentSegment = false;
+    double? lastY;
+
+    for (var i = 0; i < targets.length; i++) {
+      final target = targets[i];
+      if (target == null || target <= 0) {
+        hasCurrentSegment = false;
+        lastY = null;
+        continue;
+      }
+
+      final ratio = (target / gridCeiling).clamp(0.0, 1.0);
+      final y = size.height * (1.0 - ratio);
+      final xStart = i * slotWidth;
+      final xEnd = (i + 1) * slotWidth;
+
+      if (!hasCurrentSegment) {
+        path.moveTo(xStart, y);
+        hasCurrentSegment = true;
+      } else if (lastY != null && (lastY - y).abs() > 0.5) {
+        path.lineTo(xStart, lastY);
+        path.lineTo(xStart, y);
+      }
+      path.lineTo(xEnd, y);
+      lastY = y;
+    }
+
+    const dashWidth = 5.0;
+    const dashGap = 4.0;
+    for (final metric in path.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = min(distance + dashWidth, metric.length);
+        canvas.drawPath(metric.extractPath(distance, next), paint);
+        distance += dashWidth + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MacroTargetLinePainter oldDelegate) {
+    if (oldDelegate.gridCeiling != gridCeiling ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.targets.length != targets.length) {
+      return true;
+    }
+    for (var i = 0; i < targets.length; i++) {
+      if (oldDelegate.targets[i] != targets[i]) return true;
+    }
+    return false;
   }
 }
 

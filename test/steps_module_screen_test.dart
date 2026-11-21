@@ -146,13 +146,13 @@ void main() {
     await _pumpUntilScopeLoaded(tester);
 
     expect(find.text('Hourly Timeline'), findsOneWidget);
-    expect(find.byType(StatisticsStepsCard), findsNothing);
+    expect(find.byType(StatisticsStepsCard), findsOneWidget);
 
     await tester.tap(find.text('7D'));
     await _pumpScopeTransition(tester);
 
     expect(find.text('Hourly Timeline'), findsNothing);
-    expect(find.byType(StatisticsStepsCard), findsNothing);
+    expect(find.byType(StatisticsStepsCard), findsOneWidget);
 
     await tester.tap(find.text('1M'));
     await _pumpScopeTransition(tester);

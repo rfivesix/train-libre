@@ -527,7 +527,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   dailyGoal: viewModel.targetSteps,
                 ),
                 onSourceVisibilityChanged: setHidden,
-                builder: (_) => const StepsModuleScreen(),
+                builder: (_) => const StepsModuleScreen(
+                  initialScope: StepsScope.week,
+                ),
               ),
             );
           },
@@ -547,7 +549,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
           context,
           l10n.steps,
           l10n.statisticsEmptySteps,
-          () => const StepsModuleScreen(),
+          () => const StepsModuleScreen(initialScope: StepsScope.week),
         );
       }
     }
@@ -765,7 +767,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   onTap: () {},
                 ),
                 onSourceVisibilityChanged: setHidden,
-                builder: (_) => const MuscleGroupAnalyticsScreen(),
+                builder: (_) => const MuscleGroupAnalyticsScreen(
+                  initialBlock: TimeframeBlock.threeMonths,
+                ),
               ),
             );
           },
@@ -786,7 +790,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
       context,
       l10n.analyticsMuscleGroups,
       l10n.statisticsEmptyMuscles,
-      () => const MuscleGroupAnalyticsScreen(),
+      () => const MuscleGroupAnalyticsScreen(
+        initialBlock: TimeframeBlock.threeMonths,
+      ),
     );
   }
 

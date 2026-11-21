@@ -4420,5 +4420,37 @@
   "statisticsEmptyRecords": "Geen nieuwe records in de afgelopen 30 dagen.",
   "statisticsEmptyMuscles": "Voltooi krachtsets om je spiergroepen te zien.",
   "statisticsEmptyBody": "Registreer gewicht of voeding om je trends te zien.",
-  "statisticsEmptyNutrition": "Geen voeding geregistreerd in de afgelopen 7 dagen."
+  "statisticsEmptyNutrition": "Geen voeding geregistreerd in de afgelopen 7 dagen.",
+  "analyticsDailyBreakdown": "Dagelijks overzicht",
+  "analyticsCarbsShort": "KH",
+  "analyticsCalorieTargetLine": "Caloriedoel",
+  "analyticsWeightSlopePerWeek": "Gewichtstempo",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/wk",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "Deze week: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Actieve dagen: {days}/wk",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 trainingen / wk",
+  "analyticsConsecutiveWeeks": "Opeenvolgende weken",
+  "analyticsSelectWorkout": "Training kiezen",
+  "analyticsNoWorkoutsOnDay": "Geen trainingen op deze dag",
+  "analyticsPrImprovementsWindowHint": "e1RM-winst t.o.v. vorige periode",
+  "analyticsAllTimeBadge": "Altijd",
+  "stepsModuleGoalProgress": "Doelbereik",
+  "analyticsWaterTargetLabel": "Dagdoel",
+  "analyticsWaterLoggedDays": "Gelogde dagen"
 }

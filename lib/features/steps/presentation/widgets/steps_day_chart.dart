@@ -110,6 +110,10 @@ class StepsDayChart extends StatelessWidget {
             label: l10n.stepsModuleTotal,
           ),
           ValueSummaryCard(
+            value: '${((total / safeGoal) * 100).round()}%',
+            label: l10n.stepsModuleGoalProgress,
+          ),
+          ValueSummaryCard(
             value: activeHours.toString(),
             label: l10n.stepsModuleActiveHours,
           ),

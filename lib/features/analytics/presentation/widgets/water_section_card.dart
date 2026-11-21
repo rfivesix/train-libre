@@ -13,6 +13,8 @@ import '../../../../widgets/common/global_app_bar.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/time_range_filter.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
+import '../../../../widgets/common/bottom_content_spacer.dart';
 import '../../../../widgets/common/morph_source.dart';
 import '../../../../widgets/common/app_section_header.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
@@ -369,7 +371,8 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
   }
 
   bool get _nextEnabled {
-    if (_block == TimeframeBlock.maxBlock || _rolling) return false;
+    if (_block == TimeframeBlock.maxBlock) return false;
+    if (_rolling) return true;
     final now = DateTime.now();
     final currentBounds = _block.getBounds(now, DateTime(2020));
     final selectedBounds = _block.getBounds(_anchor, DateTime(2020));
@@ -395,8 +398,9 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
     return Scaffold(
-      extendBodyBehindAppBar: false,
+      extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
         title: l10n.water,
         actions: [
@@ -442,85 +446,154 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
           final trackedDays =
               summary.dailyIntakes.where((day) => day.isTracked).toList()
                 ..sort((a, b) => b.date.compareTo(a.date));
+          final avgDisplay = _displayWaterValue(
+            summary.averageMilliliters,
+            units,
+          );
+          final targetDisplay = _displayWaterValue(
+            summary.targetMilliliters,
+            units,
+          );
+          final waterUnit = _waterUnit(units);
+          final progressPct = summary.targetMilliliters > 0
+              ? (summary.averageMilliliters / summary.targetMilliliters * 100)
+                    .round()
+              : 0;
           return CupertinoScrollbar(
             controller: _scrollController,
             thumbVisibility: true,
             thickness: 4,
             thicknessWhileDragging: 8,
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverPadding(
-                    padding: EdgeInsets.only(
-                      top: DesignConstants.spacingS,
-                      bottom: DesignConstants.spacingS,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MeasurementChartWidget.fromData(
-                            dataPoints: [
-                              for (final day in summary.dailyIntakes)
-                                if (day.isTracked)
-                                  ChartDataPoint(
-                                    date: day.date,
-                                    value: _displayWaterValue(
-                                      day.milliliters,
-                                      units,
-                                    ),
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                    top: topPadding + DesignConstants.spacingS,
+                    bottom: DesignConstants.spacingS,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MeasurementChartWidget.fromData(
+                          dataPoints: [
+                            for (final day in summary.dailyIntakes)
+                              if (day.isTracked)
+                                ChartDataPoint(
+                                  date: day.date,
+                                  value: _displayWaterValue(
+                                    day.milliliters,
+                                    units,
                                   ),
+                                ),
+                          ],
+                          axisMode: MeasurementChartAxisMode.day,
+                          domainDateRange: summary.range,
+                          unit: waterUnit,
+                          edgeToEdge: true,
+                          smoothWeightTrend: false,
+                          referenceLineValue: targetDisplay,
+                          idleValueLabel:
+                              '${avgDisplay.toStringAsFixed(1)} $waterUnit',
+                          idleDateLabel: l10n.statisticsWaterDailyAverage,
+                          selectedDateLabelBuilder: (date) =>
+                              DateFormat.yMMMd(l10n.localeName).format(date),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingM),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.screenPaddingHorizontal,
+                          ),
+                          child: Column(
+                            children: [
+                              IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: ValueSummaryCard(
+                                        label: l10n.statisticsWaterDailyAverage,
+                                        value:
+                                            '${avgDisplay.toStringAsFixed(1)} $waterUnit',
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: DesignConstants.spacingS,
+                                    ),
+                                    Expanded(
+                                      child: ValueSummaryCard(
+                                        label: l10n.stepsModuleGoalProgress,
+                                        value: '$progressPct%',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: DesignConstants.spacingS),
+                              IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: ValueSummaryCard(
+                                        label: l10n.analyticsWaterTargetLabel,
+                                        value:
+                                            '${targetDisplay.toStringAsFixed(1)} $waterUnit',
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: DesignConstants.spacingS,
+                                    ),
+                                    Expanded(
+                                      child: ValueSummaryCard(
+                                        label: l10n.analyticsWaterLoggedDays,
+                                        value: '${summary.trackedDays}',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
-                            axisMode: MeasurementChartAxisMode.day,
-                            domainDateRange: summary.range,
-                            unit: _waterUnit(units),
-                            edgeToEdge: true,
-                            smoothWeightTrend: false,
-                            referenceLineValue: _displayWaterValue(
-                              summary.targetMilliliters,
-                              units,
-                            ),
-                            idleValueLabel:
-                                '${_displayWaterValue(summary.averageMilliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
-                            idleDateLabel: l10n.statisticsWaterDailyAverage,
-                            selectedDateLabelBuilder: (date) =>
-                                DateFormat.yMMMd(l10n.localeName).format(date),
                           ),
-                          const SizedBox(height: DesignConstants.spacingXL),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal:
-                                  DesignConstants.screenPaddingHorizontal,
-                            ),
-                            child: AppSectionHeader(
-                              title: l10n.all_measurements,
-                            ),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingL),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.screenPaddingHorizontal,
                           ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                        ],
-                      ),
+                          child: AppSectionHeader(title: l10n.all_measurements),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingS),
+                      ],
                     ),
                   ),
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(
-                      DesignConstants.screenPaddingHorizontal,
-                      0,
-                      DesignConstants.screenPaddingHorizontal,
-                      DesignConstants.cardPadding.bottom,
-                    ),
-                    sliver: SliverList.builder(
-                      itemCount: trackedDays.length,
-                      itemBuilder: (context, index) {
-                        final day = trackedDays[index];
-                        return Padding(
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    DesignConstants.screenPaddingHorizontal,
+                    0,
+                    DesignConstants.screenPaddingHorizontal,
+                    DesignConstants.cardPadding.bottom,
+                  ),
+                  sliver: SliverList.builder(
+                    itemCount: trackedDays.length,
+                    itemBuilder: (context, index) {
+                      final day = trackedDays[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: DesignConstants.spacingS,
+                        ),
+                        child: SummaryCard(
+                          margin: EdgeInsets.zero,
                           padding: const EdgeInsets.symmetric(
-                            vertical: DesignConstants.spacingS,
+                            horizontal: DesignConstants.spacingM,
+                            vertical: DesignConstants.spacingM,
                           ),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
                                 child: Text(
@@ -532,19 +605,20 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
                               ),
                               const SizedBox(width: DesignConstants.spacingM),
                               Text(
-                                '${_displayWaterValue(day.milliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
+                                '${_displayWaterValue(day.milliliters, units).toStringAsFixed(1)} $waterUnit',
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                                 textAlign: TextAlign.end,
                               ),
                             ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+                const SliverToBoxAdapter(child: BottomContentSpacer()),
+              ],
             ),
           );
         },

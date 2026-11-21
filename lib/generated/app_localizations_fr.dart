@@ -9856,4 +9856,59 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get statisticsEmptyNutrition =>
       'Aucune alimentation enregistrée ces 7 derniers jours.';
+
+  @override
+  String get analyticsDailyBreakdown => 'Détail journalier';
+
+  @override
+  String get analyticsCarbsShort => 'Gluc.';
+
+  @override
+  String get analyticsCalorieTargetLine => 'Objectif calorique';
+
+  @override
+  String get analyticsWeightSlopePerWeek => 'Rythme pondéral';
+
+  @override
+  String analyticsSlopePerWeekUnit(String value, String unit) {
+    return '$value $unit/sem';
+  }
+
+  @override
+  String analyticsThisWeekSummary(int count) {
+    return 'Cette semaine : $count';
+  }
+
+  @override
+  String analyticsTrainingDaysCompact(String days) {
+    return 'Jours actifs : $days/sem';
+  }
+
+  @override
+  String get analyticsAtLeast2PerWeekCompact => '≥ 2 séances / sem';
+
+  @override
+  String get analyticsConsecutiveWeeks => 'Semaines consécutives';
+
+  @override
+  String get analyticsSelectWorkout => 'Choisir une séance';
+
+  @override
+  String get analyticsNoWorkoutsOnDay => 'Aucune séance ce jour-là';
+
+  @override
+  String get analyticsPrImprovementsWindowHint =>
+      'Gains e1RM vs période précédente';
+
+  @override
+  String get analyticsAllTimeBadge => 'Tout le temps';
+
+  @override
+  String get stepsModuleGoalProgress => 'Objectif atteint';
+
+  @override
+  String get analyticsWaterTargetLabel => 'Objectif quotidien';
+
+  @override
+  String get analyticsWaterLoggedDays => 'Jours saisis';
 }

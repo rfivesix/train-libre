@@ -144,7 +144,8 @@ class _BodyNutritionCorrelationScreenState
       onSelected: (index) {
         setState(() {
           _activeBlock = _validBlocks[index];
-          _isRolling = false;
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
         });
         _load();
       },
@@ -249,13 +250,12 @@ class _BodyNutritionCorrelationScreenState
         children: [
           SingleChildScrollView(
             padding: EdgeInsets.only(
-              top: DesignConstants.screenPadding.top + topPadding,
+              top: topPadding + DesignConstants.spacingS,
               bottom: DesignConstants.bottomContentSpacer,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: DesignConstants.spacingM),
                 bodyContent,
               ],
             ),
@@ -282,12 +282,20 @@ class _BodyNutritionCorrelationScreenState
     BodyNutritionAnalyticsResult data,
   ) {
     final unitService = Provider.of<UnitService>(context);
+    final weightUnit = unitService.suffixFor(UnitDimension.weight);
     final currentWeight = data.currentWeightKg == null
         ? '-'
-        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
     final weightChange = data.weightChangeKg == null
         ? '-'
-        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+    final slopePerWeekKg = data.weightTrend.slopePerWeek;
+    final weightRateValue = slopePerWeekKg == null
+        ? '-'
+        : l10n.analyticsSlopePerWeekUnit(
+            '${slopePerWeekKg >= 0 ? '+' : '-'}${unitService.convertDisplayValue(slopePerWeekKg.abs(), UnitDimension.weight).toStringAsFixed(1)}',
+            weightUnit,
+          );
     final avgCalories = data.loggedCalorieDays <= 0
         ? '-'
         : '${data.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
@@ -321,13 +329,15 @@ class _BodyNutritionCorrelationScreenState
                 value: weightChange,
               ),
               ValueSummaryCard(
+                label: l10n.analyticsWeightSlopePerWeek,
+                value: weightRateValue,
+              ),
+              ValueSummaryCard(
                 label: l10n.metricsAvgCalories,
                 value: avgCalories,
               ),
               ValueSummaryCard(
-                label: l10n.analyticsWeightTrendLabel(
-                  context.read<UnitService>().suffixFor(UnitDimension.weight),
-                ),
+                label: l10n.analyticsWeightTrendLabel(weightUnit),
                 value:
                     StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
                       l10n,
@@ -471,23 +481,13 @@ class _BodyNutritionCorrelationScreenState
     AppLocalizations l10n,
     BodyNutritionAnalyticsResult data,
   ) {
-    final relationship =
-        StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-          l10n,
-          data.relationship,
-        );
-    final confidence =
-        StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-          l10n,
-          data.confidence,
-        );
     final hint = _confidenceHint(l10n, data.confidence);
     final disclaimer = l10n.analyticsCorrelationDisclaimer;
 
     return AppInfoRow(
       padding: EdgeInsets.zero,
-      title: relationship,
-      subtitle: '$confidence\n$hint\n\n$disclaimer',
+      title: hint,
+      subtitle: disclaimer,
     );
   }
 

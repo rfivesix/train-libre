@@ -3929,5 +3929,37 @@
   "statisticsEmptyRecords": "Nessun nuovo record negli ultimi 30 giorni.",
   "statisticsEmptyMuscles": "Completa serie di forza per vedere i gruppi muscolari.",
   "statisticsEmptyBody": "Registra peso o alimentazione per vedere le tendenze.",
-  "statisticsEmptyNutrition": "Nessuna alimentazione registrata negli ultimi 7 giorni."
+  "statisticsEmptyNutrition": "Nessuna alimentazione registrata negli ultimi 7 giorni.",
+  "analyticsDailyBreakdown": "Andamento giornaliero",
+  "analyticsCarbsShort": "Carb.",
+  "analyticsCalorieTargetLine": "Obiettivo calorico",
+  "analyticsWeightSlopePerWeek": "Ritmo peso",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/sett.",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "Questa settimana: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Giorni attivi: {days}/sett.",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 allenamenti / sett.",
+  "analyticsConsecutiveWeeks": "Settimane consecutive",
+  "analyticsSelectWorkout": "Seleziona allenamento",
+  "analyticsNoWorkoutsOnDay": "Nessun allenamento in questo giorno",
+  "analyticsPrImprovementsWindowHint": "Miglioramenti e1RM vs periodo precedente",
+  "analyticsAllTimeBadge": "Di sempre",
+  "stepsModuleGoalProgress": "Obiettivo",
+  "analyticsWaterTargetLabel": "Obiettivo giornaliero",
+  "analyticsWaterLoggedDays": "Giorni registrati"
 }

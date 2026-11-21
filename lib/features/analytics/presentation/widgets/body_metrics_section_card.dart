@@ -46,12 +46,20 @@ class BodyMetricsSectionCard extends StatelessWidget {
 
     final body = state.data;
     final unitService = Provider.of<UnitService>(context);
+    final weightUnit = unitService.suffixFor(UnitDimension.weight);
     final weightValue = body?.currentWeightKg == null
         ? '-'
-        : '${unitService.convertDisplayValue(body!.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}';
+        : '${unitService.convertDisplayValue(body!.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
     final weightChangeValue = body?.weightChangeKg == null
         ? '-'
-        : '${body!.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(body.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}';
+        : '${body!.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(body.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+    final slopePerWeekKg = body?.weightTrend.slopePerWeek;
+    final weightRateValue = slopePerWeekKg == null
+        ? '-'
+        : l10n.analyticsSlopePerWeekUnit(
+            '${slopePerWeekKg >= 0 ? '+' : '-'}${unitService.convertDisplayValue(slopePerWeekKg.abs(), UnitDimension.weight).toStringAsFixed(1)}',
+            weightUnit,
+          );
     final caloriesValue = body == null || body.loggedCalorieDays <= 0
         ? '-'
         : '${body.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
@@ -100,15 +108,19 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
+                  label: l10n.analyticsWeightSlopePerWeek,
+                  value: weightRateValue,
+                  disableShadow: true,
+                  useSecondarySurface: true,
+                ),
+                ValueSummaryCard(
                   label: l10n.metricsAvgCalories,
                   value: caloriesValue,
                   disableShadow: true,
                   useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
-                  label: l10n.analyticsWeightTrendLabel(
-                    unitService.suffixFor(UnitDimension.weight),
-                  ),
+                  label: l10n.analyticsWeightTrendLabel(weightUnit),
                   value: body == null
                       ? l10n.analyticsTrendUnclear
                       : StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(

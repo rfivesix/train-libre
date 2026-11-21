@@ -4145,5 +4145,37 @@
   "statisticsEmptyRecords": "No new personal bests in the last 30 days.",
   "statisticsEmptyMuscles": "Complete strength sets to see your muscle groups.",
   "statisticsEmptyBody": "Log weight or nutrition to see your trends.",
-  "statisticsEmptyNutrition": "No nutrition logged in the last 7 days."
+  "statisticsEmptyNutrition": "No nutrition logged in the last 7 days.",
+  "analyticsDailyBreakdown": "Daily breakdown",
+  "analyticsCarbsShort": "Carbs",
+  "analyticsCalorieTargetLine": "Calorie target",
+  "analyticsWeightSlopePerWeek": "Weight rate",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/wk",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "This week: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Active days: {days}/wk",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 workouts / wk",
+  "analyticsConsecutiveWeeks": "Consecutive weeks",
+  "analyticsSelectWorkout": "Select workout",
+  "analyticsNoWorkoutsOnDay": "No workouts on this day",
+  "analyticsPrImprovementsWindowHint": "e1RM gains vs. prior period",
+  "analyticsAllTimeBadge": "All-time",
+  "stepsModuleGoalProgress": "Goal progress",
+  "analyticsWaterTargetLabel": "Daily target",
+  "analyticsWaterLoggedDays": "Logged days"
 }

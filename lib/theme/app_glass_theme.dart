@@ -12,13 +12,16 @@ class AppGlassTheme extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
     return GlassTheme(
       data: GlassThemeData.ios27(brightness: brightness),
       child: CupertinoTheme(
-        data: CupertinoTheme.of(context).copyWith(brightness: brightness),
-        // CupertinoTheme installs its blue primary color as the default icon
-        // color. Keep the surrounding Material icon theme for app content.
+        data: CupertinoTheme.of(context).copyWith(
+          brightness: brightness,
+          primaryColor: theme.colorScheme.primary,
+        ),
+        // Keep the surrounding Material icon theme for app content.
         child: IconTheme(data: IconTheme.of(context), child: child),
       ),
     );

@@ -77,6 +77,7 @@ class _BodyNutritionNormalizedTrendChartState
     final maxXInt = math.max(0, spanDays - 1);
     final maxX = math.max(1, maxXInt).toDouble();
 
+    final locale = Localizations.localeOf(context).toString();
     final unitService = Provider.of<UnitService>(context);
 
     // Convert weight series (stored in metric kg) into display units according
@@ -105,12 +106,14 @@ class _BodyNutritionNormalizedTrendChartState
       unit: unitService.suffixFor(UnitDimension.weight),
       fractionDigits: 1,
       minVariance: 2.0,
+      locale: locale,
     );
     final calorieScale = _SeriesScale.fromSeries(
       calorieSeries,
       unit: 'kcal',
       fractionDigits: 0,
       minVariance: 200.0,
+      locale: locale,
     );
 
     final weightPoints = _buildPoints(
@@ -615,7 +618,8 @@ class _BodyNutritionNormalizedTrendChartState
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseStyle = Theme.of(context).textTheme.bodySmall!;
-    final dateText = DateFormat.MMMd().format(point.day);
+    final locale = Localizations.localeOf(context).toString();
+    final dateText = DateFormat.MMMd(locale).format(point.day);
 
     return Positioned(
       left: left,
@@ -724,6 +728,7 @@ class _SeriesScale {
     required this.max,
     required this.unit,
     required this.fractionDigits,
+    this.locale,
   });
 
   factory _SeriesScale.fromSeries(
@@ -731,6 +736,7 @@ class _SeriesScale {
     required String unit,
     required int fractionDigits,
     double minVariance = 0.0,
+    String? locale,
   }) {
     bool hasData = false;
     double min = double.infinity;
@@ -751,6 +757,7 @@ class _SeriesScale {
         max: 1,
         unit: unit,
         fractionDigits: fractionDigits,
+        locale: locale,
       );
     }
     final span = max - min;
@@ -765,6 +772,7 @@ class _SeriesScale {
       max: max,
       unit: unit,
       fractionDigits: fractionDigits,
+      locale: locale,
     );
   }
 
@@ -772,6 +780,7 @@ class _SeriesScale {
   final double max;
   final String unit;
   final int fractionDigits;
+  final String? locale;
 
   double toPlotValue(double rawValue) {
     final span = max - min;
@@ -790,24 +799,24 @@ class _SeriesScale {
   }
 
   String formatTick(double normalizedValue) {
-    return '${_formatNumber(fromPlotValue(normalizedValue), fractionDigits)} $unit';
+    return '${_formatNumber(fromPlotValue(normalizedValue), fractionDigits, locale)} $unit';
   }
 
   String formatRaw(double rawValue) {
-    return '${_formatNumber(rawValue, fractionDigits)} $unit';
+    return '${_formatNumber(rawValue, fractionDigits, locale)} $unit';
   }
 }
 
-String _formatNumber(double value, int fractionDigits) {
+String _formatNumber(double value, int fractionDigits, String? locale) {
   final normalized = value.abs() < 0.0001 ? 0.0 : value;
   if (fractionDigits <= 0) {
-    return NumberFormat.decimalPattern().format(normalized.round());
+    return NumberFormat.decimalPattern(locale).format(normalized.round());
   }
 
-  final fixed = normalized.toStringAsFixed(fractionDigits);
-  final parts = fixed.split('.');
-  final whole = NumberFormat.decimalPattern().format(int.parse(parts[0]));
-  return parts.length == 1 ? whole : '$whole.${parts[1]}';
+  return NumberFormat.decimalPatternDigits(
+    locale: locale,
+    decimalDigits: fractionDigits,
+  ).format(normalized);
 }
 
 enum AggregationMethod { average, sum }

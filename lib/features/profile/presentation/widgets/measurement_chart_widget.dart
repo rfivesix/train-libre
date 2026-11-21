@@ -792,19 +792,20 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
       end.difference(start).inMicroseconds / Duration.microsecondsPerMinute;
 
   String _defaultSelectedDateLabel(BuildContext context, DateTime value) {
-    if (widget.axisMode == MeasurementChartAxisMode.day) {
-      return DateFormat.yMMMd().format(value);
-    }
     final locale = Localizations.localeOf(context).toString();
+    if (widget.axisMode == MeasurementChartAxisMode.day) {
+      return DateFormat.yMMMd(locale).format(value);
+    }
     return DateFormat.Hm(locale).format(value);
   }
 
   String _defaultAxisLabel(DateTime value, int spanUnits) {
+    final locale = Localizations.localeOf(context).toString();
     if (widget.axisMode == MeasurementChartAxisMode.time) {
-      return DateFormat.Hm().format(value);
+      return DateFormat.Hm(locale).format(value);
     }
-    if (spanUnits > 365 * 2) return DateFormat('yyyy').format(value);
-    if (spanUnits > 365) return DateFormat('MM.yyyy').format(value);
-    return DateFormat('dd.MM').format(value);
+    if (spanUnits > 365 * 2) return DateFormat('yyyy', locale).format(value);
+    if (spanUnits > 365) return DateFormat('MM.yyyy', locale).format(value);
+    return DateFormat('dd.MM', locale).format(value);
   }
 }

@@ -160,7 +160,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
   bool get _nextEnabled {
     if (_activeBlock == TimeframeBlock.maxBlock) return false;
-    if (_isRolling) return false;
+    if (_isRolling) return true;
     final now = DateTime.now();
     final currentBounds = _activeBlock.getBounds(now, DateTime(2020));
     final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
@@ -374,7 +374,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
               slivers: [
                 SliverPadding(
                   padding: EdgeInsets.only(
-                    top: topPadding + DesignConstants.spacingM,
+                    top: topPadding + DesignConstants.spacingS,
                     left: 0,
                     right: 0,
                     bottom: DesignConstants.spacingS,
@@ -383,7 +383,6 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: DesignConstants.spacingL),
                         // ── Chart (follows same date range) ──
                         _buildChartSection(l10n, colorScheme, textTheme),
                         const SizedBox(height: DesignConstants.spacingXL),

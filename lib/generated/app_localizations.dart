@@ -17078,6 +17078,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No nutrition logged in the last 7 days.'**
   String get statisticsEmptyNutrition;
+
+  /// No description provided for @analyticsDailyBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily breakdown'**
+  String get analyticsDailyBreakdown;
+
+  /// No description provided for @analyticsCarbsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get analyticsCarbsShort;
+
+  /// No description provided for @analyticsCalorieTargetLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie target'**
+  String get analyticsCalorieTargetLine;
+
+  /// No description provided for @analyticsWeightSlopePerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight rate'**
+  String get analyticsWeightSlopePerWeek;
+
+  /// No description provided for @analyticsSlopePerWeekUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit}/wk'**
+  String analyticsSlopePerWeekUnit(String value, String unit);
+
+  /// No description provided for @analyticsThisWeekSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'This week: {count}'**
+  String analyticsThisWeekSummary(int count);
+
+  /// No description provided for @analyticsTrainingDaysCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Active days: {days}/wk'**
+  String analyticsTrainingDaysCompact(String days);
+
+  /// No description provided for @analyticsAtLeast2PerWeekCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 2 workouts / wk'**
+  String get analyticsAtLeast2PerWeekCompact;
+
+  /// No description provided for @analyticsConsecutiveWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Consecutive weeks'**
+  String get analyticsConsecutiveWeeks;
+
+  /// No description provided for @analyticsSelectWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Select workout'**
+  String get analyticsSelectWorkout;
+
+  /// No description provided for @analyticsNoWorkoutsOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No workouts on this day'**
+  String get analyticsNoWorkoutsOnDay;
+
+  /// No description provided for @analyticsPrImprovementsWindowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e1RM gains vs. prior period'**
+  String get analyticsPrImprovementsWindowHint;
+
+  /// No description provided for @analyticsAllTimeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time'**
+  String get analyticsAllTimeBadge;
+
+  /// No description provided for @stepsModuleGoalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal progress'**
+  String get stepsModuleGoalProgress;
+
+  /// No description provided for @analyticsWaterTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily target'**
+  String get analyticsWaterTargetLabel;
+
+  /// No description provided for @analyticsWaterLoggedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged days'**
+  String get analyticsWaterLoggedDays;
 }
 
 class _AppLocalizationsDelegate

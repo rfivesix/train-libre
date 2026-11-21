@@ -8,6 +8,9 @@ import '../../statistics/domain/analytics_state.dart';
 import '../../statistics/domain/consistency_domain_service.dart';
 import '../../statistics/domain/consistency_payload_models.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
+import '../../workout/domain/models/workout_log.dart';
+import '../../workout/presentation/workout_log_detail_screen.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/analytics_chart_defaults.dart';
@@ -32,7 +35,14 @@ import '../../../services/telemetry/telemetry_service.dart';
 enum _ConsistencyMetric { volume, duration, frequency }
 
 class ConsistencyTrackerScreen extends StatefulWidget {
-  const ConsistencyTrackerScreen({super.key});
+  final TimeframeBlock initialBlock;
+  final bool initialIsRolling;
+
+  const ConsistencyTrackerScreen({
+    super.key,
+    this.initialBlock = TimeframeBlock.month,
+    this.initialIsRolling = true,
+  });
 
   @override
   State<ConsistencyTrackerScreen> createState() =>
@@ -79,6 +89,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   @override
   void initState() {
     super.initState();
+    _activeBlock = _validBlocks.contains(widget.initialBlock)
+        ? widget.initialBlock
+        : TimeframeBlock.month;
+    _isRolling = widget.initialIsRolling;
     unawaited(
       TelemetryService.instance.trackScreenView(
         screenName: ScreenName.consistencyTracker,
@@ -360,7 +374,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       onSelected: (index) {
         setState(() {
           _activeBlock = _validBlocks[index];
-          _isRolling = false;
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
         });
         _loadTimeframeData();
       },
@@ -455,13 +470,12 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
-            top: DesignConstants.screenPadding.top + topPadding,
+            top: topPadding + DesignConstants.spacingS,
             bottom: DesignConstants.bottomContentSpacer,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: DesignConstants.spacingM),
               bodyContent,
             ],
           ),
@@ -553,7 +567,6 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       }
     }
     final total = isRolling ? stats.totalWorkouts : timeframeTotalWorkouts;
-    final thisWeek = isRolling ? stats.thisWeekCount : timeframeTotalWorkouts;
     final streak = isRolling
         ? stats.streakWeeks
         : _computeMaxStreak(weeklyMetrics);
@@ -579,80 +592,46 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                 children: [
                   Expanded(
                     child: ValueSummaryCard(
-                      label: isRolling
-                          ? l10n.metricsWorkoutsWeek
-                          : l10n.totalWorkoutsLabel,
-                      value: '$thisWeek',
+                      label: l10n.workoutsLabel,
+                      value: '$timeframeTotalWorkouts',
                       subtitle: isRolling
-                          ? l10n.thisWeekLabel
+                          ? l10n.analyticsThisWeekSummary(stats.thisWeekCount)
                           : timeframeSubtitle,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
-                  Expanded(
-                    child: ValueSummaryCard(
-                      label: l10n.streakLabel,
-                      value: '$streak',
-                      subtitle: isRolling ? l10n.weeksLabel : timeframeSubtitle,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: ValueSummaryCard(
-                      label: l10n.analyticsRollingConsistency,
-                      value: '${rollingConsistency.toStringAsFixed(0)}%',
-                      subtitle: isRolling
-                          ? l10n.analyticsWeeksAtLeast2Workouts
-                          : timeframeSubtitle,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  Expanded(
-                    child: ValueSummaryCard(
-                      label: l10n.analyticsTrainingDaysPerWeek,
-                      value: trainingDaysPerWeek.toStringAsFixed(1),
-                      subtitle: isRolling
-                          ? l10n.analyticsLast4Weeks
-                          : timeframeSubtitle,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
                   Expanded(
                     child: ValueSummaryCard(
                       label: l10n.avgPerWeekLabel,
                       value: avgPerWeek.toStringAsFixed(1),
+                      subtitle: l10n.analyticsTrainingDaysCompact(
+                        trainingDaysPerWeek.toStringAsFixed(1),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.streakLabel,
+                      value: '$streak',
                       subtitle: isRolling
-                          ? l10n.workoutsPerWeekLabel
+                          ? l10n.analyticsConsecutiveWeeks
                           : timeframeSubtitle,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
                   Expanded(
                     child: ValueSummaryCard(
-                      label: l10n.analyticsRhythm,
-                      value: ConsistencyDomainService.formatTrend(rhythmDelta),
-                      subtitle: isRolling
-                          ? l10n.analyticsVsPrior4Weeks
-                          : timeframeSubtitle,
-                      valueColor: rhythmDelta > 0
-                          ? Theme.of(context).colorScheme.primary
-                          : rhythmDelta < 0
-                          ? Theme.of(context).colorScheme.error
-                          : null,
+                      label: l10n.analyticsRollingConsistency,
+                      value: '${rollingConsistency.toStringAsFixed(0)}%',
+                      subtitle: l10n.analyticsAtLeast2PerWeekCompact,
                     ),
                   ),
                 ],
@@ -734,7 +713,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             }
                             final row = weeklyMetrics[i];
                             return BarTooltipItem(
-                              '${_formatWeekRange(context, row)}\n${rod.toY.round()} ${_metricUnit(l10n)}',
+                              '${_formatWeekRange(context, row)}\n${_metricValue(row).round()} ${_metricUnit(l10n)}',
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
@@ -785,20 +764,27 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       ),
                       barGroups: weeklyMetrics.asMap().entries.map((entry) {
                         final value = _metricValue(entry.value);
+                        final isEmptyWeek = value <= 0;
+                        final displayY = isEmptyWeek
+                            ? (chartMaxY > 0 ? chartMaxY * 0.025 : 0.05)
+                            : value;
                         return BarChartGroupData(
                           x: entry.key,
                           barRods: [
                             BarChartRodData(
-                              toY: value,
+                              toY: displayY,
                               width: _chartBarWidth(weeklyMetrics.length),
                               borderRadius: BorderRadius.circular(4),
-                              color: Theme.of(context).colorScheme.primary
-                                  .withValues(
-                                    alpha: _weeklyBarAlpha(
-                                      index: entry.key,
-                                      total: weeklyMetrics.length,
-                                    ),
-                                  ),
+                              color: isEmptyWeek
+                                  ? Theme.of(context).colorScheme.onSurface
+                                        .withValues(alpha: 0.14)
+                                  : Theme.of(context).colorScheme.primary
+                                        .withValues(
+                                          alpha: _weeklyBarAlpha(
+                                            index: entry.key,
+                                            total: weeklyMetrics.length,
+                                          ),
+                                        ),
                             ),
                           ],
                         );
@@ -809,7 +795,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
         ),
         const SizedBox(height: 6),
         Text(
-          'X: ${l10n.analyticsViewWeek.toLowerCase()} · ${_isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
+          'X: ${l10n.analyticsViewWeek} · ${_isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: DesignConstants.spacingM),
@@ -884,6 +870,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                   _selectedDay = selectedDay;
                   _focusedDay = focusedDay;
                 });
+                if (_dailyCount(selectedDay) > 0) {
+                  unawaited(_openDayWorkouts(selectedDay));
+                }
               },
               onPageChanged: (focusedDay) {
                 setState(() => _focusedDay = focusedDay);
@@ -929,9 +918,94 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     };
   }
 
+  Future<void> _openDayWorkouts(DateTime day) async {
+    final start = DateTime(day.year, day.month, day.day);
+    final end = DateTime(day.year, day.month, day.day, 23, 59, 59);
+    final logs = await WorkoutLocalDataSource.instance
+        .getWorkoutLogsForDateRange(start, end);
+    if (!mounted || logs.isEmpty) return;
+
+    final validLogs = logs.where((w) => w.id != null).toList(growable: false);
+    if (validLogs.isEmpty) return;
+
+    if (validLogs.length == 1) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => WorkoutLogDetailScreen(logId: validLogs.first.id!),
+        ),
+      );
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final timeFormat = DateFormat.Hm(locale);
+
+    showGlassBottomMenu(
+      context: context,
+      title: l10n.analyticsSelectWorkout,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final log in validLogs)
+              _WorkoutDayPickerRow(
+                log: log,
+                timeFormat: timeFormat,
+                fallbackTitle: l10n.workoutsLabel,
+                onTap: () {
+                  close();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => WorkoutLogDetailScreen(logId: log.id!),
+                    ),
+                  );
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   double _weeklyBarAlpha({required int index, required int total}) {
     if (total <= 1) return 1.0;
     final fraction = index / (total - 1);
     return 0.45 + fraction * 0.55;
+  }
+}
+
+class _WorkoutDayPickerRow extends StatelessWidget {
+  const _WorkoutDayPickerRow({
+    required this.log,
+    required this.timeFormat,
+    required this.fallbackTitle,
+    required this.onTap,
+  });
+
+  final WorkoutLog log;
+  final DateFormat timeFormat;
+  final String fallbackTitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final routineName = log.routineName?.trim();
+    final title = (routineName != null && routineName.isNotEmpty)
+        ? routineName
+        : fallbackTitle;
+    final startStr = timeFormat.format(log.startTime);
+    final durationMinutes = log.endTime?.difference(log.startTime).inMinutes;
+    final subtitle = durationMinutes != null && durationMinutes > 0
+        ? '$startStr · $durationMinutes min'
+        : startStr;
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    );
   }
 }

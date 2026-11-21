@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Fixed localized date and number formatting in Measurement and Body & Nutrition trend charts (`May 31, 2026`, English thousand commas, hardcoded nutrition labels, and lowercase axis captions).
+- Fixed `TimeRangeFilter` rolling defaults, forward navigation (`nextEnabled`) in rolling mode, and excessive vertical top padding across statistics detail screens.
+- Removed the orphaned `"ZEITRAUM"` header in Muscle Group Analytics and duplicated interpretation summary text in Body & Nutrition Trends.
 - Fixed Statistics muscle-group averages and the six-week workout count to use their stated periods, and improved hub scrolling.
 - Fixed rolling date ranges including one extra calendar day.
 - Restored theme-appropriate icon colors for menus and other app content affected by the Cupertino glass theme.
@@ -41,6 +44,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Redesigned the Nutrition (`MacroStatisticsScreen`) header into four compact, color-outlined KPI cards, added a dashed historical calorie-target line to the macro bar chart, and added a MAX period date range label.
+- Added a sixth KPI card (weekly weight rate) to Body & Nutrition Trends and completed 2x2 KPI grids in Steps (`Day`/`Week`) and Water statistics, while showing `StatisticsStepsCard` across all step scopes.
+- Simplified Consistency Tracker KPIs to four non-redundant cards, added subtle zero-week bar caps, and made calendar days open the day's workout detail view (or a workout picker when multiple sessions exist).
+- Moved `TimeRangeFilter` into `GlobalAppBar` on the PR Dashboard, clarified timeframe e1RM gains vs. all-time records, made PR entries open Exercise Details, and unified `WaterStatisticsScreen` with `extendBodyBehindAppBar` and `SummaryCard` styling.
 - Replaced obscured Statistics hub placeholders with clear, tappable empty cards explaining what data is missing.
 - Gave Statistics hub cards fixed, metric-specific timeframes; date selection remains available in their detail screens.
 - Refreshed the five localized 1.7.1 release highlights and updated the website's project timeline through 1.7.1.

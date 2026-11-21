@@ -1,8 +1,10 @@
 // lib/features/statistics/data/macro_analytics_data_adapter.dart
 
+import 'package:drift/drift.dart' as drift;
 import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
+import '../../../data/drift_database.dart' as drift_db;
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_entry.dart';
@@ -16,6 +18,7 @@ class DailyMacroIntake {
   final double proteinGrams;
   final double carbsGrams;
   final double fatGrams;
+  final int? targetCalories;
 
   const DailyMacroIntake({
     required this.date,
@@ -23,6 +26,7 @@ class DailyMacroIntake {
     required this.proteinGrams,
     required this.carbsGrams,
     required this.fatGrams,
+    this.targetCalories,
   });
 
   bool get hasData =>
@@ -125,11 +129,14 @@ class MacroAnalyticsDataAdapter {
       _databaseHelper.getEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getFluidEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getMacroEntriesForDateRange(startDay, endOfDay),
+      _loadCalorieGoalTimeline(),
     ]);
 
     final foodEntries = results[0] as List<FoodEntry>;
     final fluidEntries = results[1] as List<FluidEntry>;
     final macroEntries = results[2] as List<MacroEntry>;
+    final goalTimeline =
+        results[3] as ({List<drift_db.DailyGoalsHistoryData> history, int? fallbackTarget});
 
     final dailyMap = await _aggregateDays(
       startDay: startDay,
@@ -158,15 +165,29 @@ class MacroAnalyticsDataAdapter {
         currentDay.month,
         currentDay.day,
       );
-      final intake =
-          dailyMap[dayKey] ??
-          DailyMacroIntake(
-            date: currentDay,
-            calories: 0,
-            proteinGrams: 0.0,
-            carbsGrams: 0.0,
-            fatGrams: 0.0,
-          );
+      final targetForDay = _resolveTargetCaloriesForDay(
+        currentDay,
+        goalTimeline.history,
+        goalTimeline.fallbackTarget,
+      );
+      final existing = dailyMap[dayKey];
+      final intake = existing != null
+          ? DailyMacroIntake(
+              date: existing.date,
+              calories: existing.calories,
+              proteinGrams: existing.proteinGrams,
+              carbsGrams: existing.carbsGrams,
+              fatGrams: existing.fatGrams,
+              targetCalories: targetForDay,
+            )
+          : DailyMacroIntake(
+              date: currentDay,
+              calories: 0,
+              proteinGrams: 0.0,
+              carbsGrams: 0.0,
+              fatGrams: 0.0,
+              targetCalories: targetForDay,
+            );
       intakes.add(intake);
       if (intake.hasData) {
         sumCalories += intake.calories;
@@ -349,5 +370,46 @@ class MacroAnalyticsDataAdapter {
     }
 
     return result;
+  }
+
+  Future<({List<drift_db.DailyGoalsHistoryData> history, int? fallbackTarget})>
+  _loadCalorieGoalTimeline() async {
+    try {
+      final db = await _databaseHelper.database;
+      final history =
+          await (db.select(db.dailyGoalsHistory)..orderBy([
+                (t) => drift.OrderingTerm(expression: t.createdAt),
+                (t) => drift.OrderingTerm(expression: t.localId),
+              ]))
+              .get();
+      if (history.isNotEmpty) {
+        return (history: history, fallbackTarget: null);
+      }
+      final settings = await db.select(db.appSettings).getSingleOrNull();
+      return (history: history, fallbackTarget: settings?.targetCalories);
+    } catch (_) {
+      return (history: const <drift_db.DailyGoalsHistoryData>[], fallbackTarget: null);
+    }
+  }
+
+  int? _resolveTargetCaloriesForDay(
+    DateTime day,
+    List<drift_db.DailyGoalsHistoryData> history,
+    int? fallbackTarget,
+  ) {
+    if (history.isEmpty) {
+      return fallbackTarget != null && fallbackTarget > 0 ? fallbackTarget : null;
+    }
+    final endOfDay = DateTime(day.year, day.month, day.day, 23, 59, 59);
+    drift_db.DailyGoalsHistoryData? match;
+    for (final entry in history) {
+      if (!entry.createdAt.isAfter(endOfDay)) {
+        match = entry;
+      } else {
+        break;
+      }
+    }
+    final resolved = (match ?? history.first).targetCalories;
+    return resolved > 0 ? resolved : null;
   }
 }

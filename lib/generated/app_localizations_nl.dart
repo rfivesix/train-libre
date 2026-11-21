@@ -9798,4 +9798,59 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get statisticsEmptyNutrition =>
       'Geen voeding geregistreerd in de afgelopen 7 dagen.';
+
+  @override
+  String get analyticsDailyBreakdown => 'Dagelijks overzicht';
+
+  @override
+  String get analyticsCarbsShort => 'KH';
+
+  @override
+  String get analyticsCalorieTargetLine => 'Caloriedoel';
+
+  @override
+  String get analyticsWeightSlopePerWeek => 'Gewichtstempo';
+
+  @override
+  String analyticsSlopePerWeekUnit(String value, String unit) {
+    return '$value $unit/wk';
+  }
+
+  @override
+  String analyticsThisWeekSummary(int count) {
+    return 'Deze week: $count';
+  }
+
+  @override
+  String analyticsTrainingDaysCompact(String days) {
+    return 'Actieve dagen: $days/wk';
+  }
+
+  @override
+  String get analyticsAtLeast2PerWeekCompact => '≥ 2 trainingen / wk';
+
+  @override
+  String get analyticsConsecutiveWeeks => 'Opeenvolgende weken';
+
+  @override
+  String get analyticsSelectWorkout => 'Training kiezen';
+
+  @override
+  String get analyticsNoWorkoutsOnDay => 'Geen trainingen op deze dag';
+
+  @override
+  String get analyticsPrImprovementsWindowHint =>
+      'e1RM-winst t.o.v. vorige periode';
+
+  @override
+  String get analyticsAllTimeBadge => 'Altijd';
+
+  @override
+  String get stepsModuleGoalProgress => 'Doelbereik';
+
+  @override
+  String get analyticsWaterTargetLabel => 'Dagdoel';
+
+  @override
+  String get analyticsWaterLoggedDays => 'Gelogde dagen';
 }

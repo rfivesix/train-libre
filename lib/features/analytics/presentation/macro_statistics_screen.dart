@@ -145,7 +145,8 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       onSelected: (index) {
         setState(() {
           _activeBlock = _validBlocks[index];
-          _isRolling = false;
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
         });
         _load();
       },
@@ -228,7 +229,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       nextEnabled: _activeBlock == TimeframeBlock.maxBlock
           ? false
           : (_isRolling
-                ? false
+                ? true
                 : !_activeBlock
                       .getBounds(_anchorDate, DateTime(2020))
                       .start
@@ -257,13 +258,29 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
               child: SingleChildScrollView(
                 controller: _scrollController,
                 padding: EdgeInsets.only(
-                  top: DesignConstants.screenPadding.top + topPadding,
+                  top: topPadding + DesignConstants.spacingS,
                   bottom: DesignConstants.bottomContentSpacer,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: DesignConstants.spacingL),
+                    if (_activeBlock == TimeframeBlock.maxBlock &&
+                        _summary != null &&
+                        _summary!.dailyIntakes.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingL,
+                        ),
+                        child: Text(
+                          _formatMaxRangeLabel(context, _summary!.range),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                    ],
 
                     // 4-Metric Average Header
                     Padding(
@@ -278,6 +295,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                         carbsColor: carbsColor,
                       ),
                     ),
+                    const SizedBox(height: DesignConstants.spacingM),
                     // Main Stacked Bar Chart (starts from very left edge of screen)
                     Padding(
                       padding: const EdgeInsets.only(
@@ -371,12 +389,14 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     final calLabel = showDay ? l10n.calories : 'Ø ${l10n.calories}';
     final protLabel = showDay ? l10n.protein : 'Ø ${l10n.protein}';
     final fatLabel = showDay ? l10n.fat : 'Ø ${l10n.fat}';
-    final carbsLabel = showDay ? l10n.carbs : 'Ø ${l10n.carbs}';
+    final carbsLabel = showDay
+        ? l10n.analyticsCarbsShort
+        : 'Ø ${l10n.analyticsCarbsShort}';
 
     return Row(
       children: [
         Expanded(
-          child: _buildMetricCol(
+          child: _buildMetricCard(
             context,
             label: calLabel,
             value: calText,
@@ -384,24 +404,27 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
             color: calColor,
           ),
         ),
+        const SizedBox(width: 6),
         Expanded(
-          child: _buildMetricCol(
+          child: _buildMetricCard(
             context,
             label: protLabel,
             value: protText,
             color: proteinColor,
           ),
         ),
+        const SizedBox(width: 6),
         Expanded(
-          child: _buildMetricCol(
+          child: _buildMetricCard(
             context,
             label: fatLabel,
             value: fatText,
             color: fatColor,
           ),
         ),
+        const SizedBox(width: 6),
         Expanded(
-          child: _buildMetricCol(
+          child: _buildMetricCard(
             context,
             label: carbsLabel,
             value: carbsText,
@@ -412,7 +435,13 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     );
   }
 
-  Widget _buildMetricCol(
+  String _formatMaxRangeLabel(BuildContext context, DateTimeRange range) {
+    final locale = Localizations.localeOf(context).toString();
+    final fmt = DateFormat.yMMM(locale);
+    return '${fmt.format(range.start)} – ${fmt.format(range.end)}';
+  }
+
+  Widget _buildMetricCard(
     BuildContext context, {
     required String label,
     required String value,
@@ -420,41 +449,68 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     required Color color,
   }) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            fontWeight: FontWeight.w600,
-          ),
+    final isDark = theme.brightness == Brightness.dark;
+    final surfaceBase = isDark
+        ? DesignConstants.summaryCardSecondaryDarkMode
+        : DesignConstants.summaryCardSecondaryLightMode;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: surfaceBase,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+          width: 1,
         ),
-        const SizedBox(height: 2),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              value,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
             ),
-            if (unit != null) ...[
-              const SizedBox(width: 2),
-              Text(
-                unit,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 10,
+          ),
+          const SizedBox(height: 3),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
-              ),
-            ],
-          ],
-        ),
-      ],
+                if (unit != null) ...[
+                  const SizedBox(width: 2),
+                  Text(
+                    unit,
+                    maxLines: 1,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -464,12 +520,53 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     required Color fatColor,
     required Color carbsColor,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final l10n = AppLocalizations.of(context)!;
+    final hasTarget =
+        _summary?.dailyIntakes.any((d) => (d.targetCalories ?? 0) > 0) ?? false;
+    final calColor =
+        Theme.of(context).extension<MacroColors>()?.calories ?? Colors.orange;
+    return Wrap(
+      alignment: WrapAlignment.spaceEvenly,
+      spacing: 16,
+      runSpacing: 6,
       children: [
-        _legendItem(context, 'Protein', proteinColor),
-        _legendItem(context, 'Fett', fatColor),
-        _legendItem(context, 'Kohlenhydrate', carbsColor),
+        _legendItem(context, l10n.protein, proteinColor),
+        _legendItem(context, l10n.fat, fatColor),
+        _legendItem(context, l10n.carbs, carbsColor),
+        if (hasTarget)
+          _legendDashedItem(
+            context,
+            l10n.analyticsCalorieTargetLine,
+            calColor.withValues(alpha: 0.8),
+          ),
+      ],
+    );
+  }
+
+  Widget _legendDashedItem(BuildContext context, String label, Color color) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 14,
+          height: 8,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(width: 5, height: 2, color: color),
+              Container(width: 5, height: 2, color: color),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
@@ -514,13 +611,16 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     if (trackedDays.isEmpty) return const SizedBox.shrink();
 
     final locale = Localizations.localeOf(context).toString();
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppSectionHeader(
-          title: 'Tagesverlauf',
-          padding: EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+        AppSectionHeader(
+          title: l10n.analyticsDailyBreakdown,
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         Padding(

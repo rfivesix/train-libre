@@ -107,6 +107,10 @@ class StepsWeekChart extends StatelessWidget {
             value: '$goalDays/${buckets.length}',
             label: l10n.stepsModuleGoalHit,
           ),
+          ValueSummaryCard(
+            value: '${((avg / safeGoal) * 100).round()}%',
+            label: l10n.stepsModuleGoalProgress,
+          ),
         ]),
         const SizedBox(height: DesignConstants.spacingM),
         SizedBox(

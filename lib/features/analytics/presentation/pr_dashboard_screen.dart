@@ -1,7 +1,11 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import '../../exercise_catalog/domain/models/exercise.dart';
+import '../../exercise_catalog/domain/repositories/exercise_catalog_repository.dart';
+import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
@@ -138,7 +142,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final double topPadding =
-        MediaQuery.of(context).padding.top + kToolbarHeight;
+        MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
     final hasNoData = _recentPrs.isEmpty && _notableImprovements.isEmpty;
     final displayNotable = hasNoData
@@ -165,142 +169,168 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
       );
     }
 
+    final timeframeFilter = TimeRangeFilter(
+      ranges: _timeRanges(l10n),
+      selectedIndex: _validBlocks.indexOf(_activeBlock),
+      onSelected: (index) {
+        setState(() {
+          _activeBlock = _validBlocks[index];
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
+        });
+        _loadData();
+      },
+      onPrevious: _activeBlock == TimeframeBlock.maxBlock
+          ? null
+          : () {
+              setState(() {
+                final currentBounds = _activeBlock.getBounds(
+                  DateTime.now(),
+                  DateTime(2020),
+                );
+                final myBounds = _activeBlock.getBounds(
+                  _anchorDate,
+                  DateTime(2020),
+                );
+                final isOngoing =
+                    !_isRolling &&
+                    myBounds.start.isAtSameMomentAs(currentBounds.start);
+
+                if (isOngoing) {
+                  _isRolling = true;
+                } else if (_isRolling) {
+                  _isRolling = false;
+                  _anchorDate = _activeBlock.shift(DateTime.now(), -1);
+                } else {
+                  _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                }
+              });
+              _loadData();
+            },
+      onNext: _activeBlock == TimeframeBlock.maxBlock
+          ? null
+          : () {
+              setState(() {
+                if (_isRolling) {
+                  _isRolling = false;
+                  _anchorDate = DateTime.now();
+                } else {
+                  final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
+                  final previousBounds = _activeBlock.getBounds(
+                    previousAnchor,
+                    DateTime(2020),
+                  );
+                  final myBounds = _activeBlock.getBounds(
+                    _anchorDate,
+                    DateTime(2020),
+                  );
+                  final isPreviousToOngoing =
+                      !_isRolling &&
+                      myBounds.start.isAtSameMomentAs(previousBounds.start);
+
+                  if (isPreviousToOngoing) {
+                    _isRolling = true;
+                  } else {
+                    _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                  }
+                }
+              });
+              _loadData();
+            },
+      displayDate: _isRolling
+          ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+          : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+      onTapDateDisplay: () async {
+        final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+          context: context,
+          activeBlock: _activeBlock,
+          initialAnchor: _anchorDate,
+          earliestAvailableDay: DateTime(2020),
+          initialIsRolling: _isRolling,
+        );
+        if (selected != null) {
+          setState(() {
+            _anchorDate = selected.anchorDate;
+            _isRolling = selected.isRolling;
+          });
+          _loadData();
+        }
+      },
+      nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+          ? false
+          : (_isRolling
+                ? true
+                : !_activeBlock
+                      .getBounds(_anchorDate, DateTime(2020))
+                      .start
+                      .isAtSameMomentAs(
+                        _activeBlock
+                            .getBounds(DateTime.now(), DateTime(2020))
+                            .start,
+                      )),
+      showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+    );
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: l10n.prDashboardTitle),
+      appBar: GlobalAppBar(
+        title: l10n.prDashboardTitle,
+        bottom: timeframeFilter,
+      ),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
         isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
-            top: DesignConstants.screenPadding.top + topPadding,
+            top: topPadding + DesignConstants.spacingS,
             bottom: DesignConstants.bottomContentSpacer,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppSectionHeader(title: l10n.analyticsNewBestPerformances),
-              TimeRangeFilter(
-                ranges: _timeRanges(l10n),
-                selectedIndex: _validBlocks.indexOf(_activeBlock),
-                onSelected: (index) {
-                  setState(() {
-                    _activeBlock = _validBlocks[index];
-                    _isRolling = false;
-                  });
-                  _loadData();
-                },
-                onPrevious: _activeBlock == TimeframeBlock.maxBlock
-                    ? null
-                    : () {
-                        setState(() {
-                          final currentBounds = _activeBlock.getBounds(
-                            DateTime.now(),
-                            DateTime(2020),
-                          );
-                          final myBounds = _activeBlock.getBounds(
-                            _anchorDate,
-                            DateTime(2020),
-                          );
-                          final isOngoing =
-                              !_isRolling &&
-                              myBounds.start.isAtSameMomentAs(
-                                currentBounds.start,
-                              );
-
-                          if (isOngoing) {
-                            _isRolling = true;
-                          } else if (_isRolling) {
-                            _isRolling = false;
-                            _anchorDate = _activeBlock.shift(
-                              DateTime.now(),
-                              -1,
-                            );
-                          } else {
-                            _anchorDate = _activeBlock.shift(_anchorDate, -1);
-                          }
-                        });
-                        _loadData();
-                      },
-                onNext: _activeBlock == TimeframeBlock.maxBlock
-                    ? null
-                    : () {
-                        setState(() {
-                          if (_isRolling) {
-                            _isRolling = false;
-                            _anchorDate = DateTime.now();
-                          } else {
-                            final previousAnchor = _activeBlock.shift(
-                              DateTime.now(),
-                              -1,
-                            );
-                            final previousBounds = _activeBlock.getBounds(
-                              previousAnchor,
-                              DateTime(2020),
-                            );
-                            final myBounds = _activeBlock.getBounds(
-                              _anchorDate,
-                              DateTime(2020),
-                            );
-                            final isPreviousToOngoing =
-                                !_isRolling &&
-                                myBounds.start.isAtSameMomentAs(
-                                  previousBounds.start,
-                                );
-
-                            if (isPreviousToOngoing) {
-                              _isRolling = true;
-                            } else {
-                              _anchorDate = _activeBlock.shift(_anchorDate, 1);
-                            }
-                          }
-                        });
-                        _loadData();
-                      },
-                displayDate: _isRolling
-                    ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
-                    : TimeframeLabelFormatter.format(
-                        _activeBlock,
-                        _anchorDate,
-                        l10n,
-                      ),
-                onTapDateDisplay: () async {
-                  final selected = await adaptive_pickers
-                      .showAdaptiveTimeframePicker(
-                        context: context,
-                        activeBlock: _activeBlock,
-                        initialAnchor: _anchorDate,
-                        earliestAvailableDay: DateTime(2020),
-                        initialIsRolling: _isRolling,
-                      );
-                  if (selected != null) {
-                    setState(() {
-                      _anchorDate = selected.anchorDate;
-                      _isRolling = selected.isRolling;
-                    });
-                    _loadData();
-                  }
-                },
-                nextEnabled: _activeBlock == TimeframeBlock.maxBlock
-                    ? false
-                    : (_isRolling
-                          ? true
-                          : !_activeBlock
-                                .getBounds(_anchorDate, DateTime(2020))
-                                .start
-                                .isAtSameMomentAs(
-                                  _activeBlock
-                                      .getBounds(DateTime.now(), DateTime(2020))
-                                      .start,
-                                )),
-                showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+              AppSectionHeader(
+                title: l10n.analyticsNewBestPerformances,
+                isFirst: true,
               ),
-              const SizedBox(height: DesignConstants.spacingS),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 4,
+                  bottom: DesignConstants.spacingS,
+                ),
+                child: Text(
+                  l10n.analyticsPrImprovementsWindowHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ),
               bodyContent,
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _openExerciseDetail(String exerciseName) async {
+    final trimmed = exerciseName.trim();
+    if (trimmed.isEmpty) return;
+
+    Exercise? exercise;
+    try {
+      exercise = await context.read<IExerciseCatalogRepository>().getExerciseByName(
+        trimmed,
+      );
+    } catch (_) {
+      exercise = null;
+    }
+    exercise ??= await WorkoutLocalDataSource.instance.getExerciseByName(trimmed);
+    if (!mounted || exercise == null) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ExerciseDetailScreen(exercise: exercise!),
       ),
     );
   }
@@ -331,19 +361,32 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
 
   Widget _buildRecentRecordRow(Map<String, dynamic> record) {
     final achievedAt = record['achievedAt'] as DateTime?;
+    final exerciseName = record['exerciseName'] as String;
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
+      onTap: () => _openExerciseDetail(exerciseName),
       title: Text(
-        record['exerciseName'] as String,
+        exerciseName,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: achievedAt == null ? null : Text(_formatRecordDate(achievedAt)),
-      trailing: Text(
-        _perfLabel(record),
-        style: Theme.of(context).textTheme.bodyMedium
-            ?.copyWith(fontWeight: FontWeight.bold),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _perfLabel(record),
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            LucideIcons.chevron_right,
+            size: 16,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ],
       ),
     );
   }
@@ -447,20 +490,22 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                         .toDouble();
                     final achievedAt = row['achievedAt'] as DateTime?;
 
+                    final exerciseName = row['exerciseName'] as String;
+
                     return ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
+                      onTap: () => _openExerciseDetail(exerciseName),
                       title: Text(
-                        row['exerciseName'] as String,
+                        exerciseName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
                         '${achievedAt == null ? '' : '${_formatRecordDate(achievedAt)} · '}${l10n.analyticsE1rmProgress(_formatDisplayWeight(previous), _formatDisplayWeight(recent), unit)}',
                       ),
-                      trailing: Column(
+                      trailing: Row(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
                             '+${improvement.toStringAsFixed(1)}%',
@@ -470,6 +515,12 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            LucideIcons.chevron_right,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
                         ],
                       ),
                     );
@@ -477,7 +528,26 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 ),
         ),
         const SizedBox(height: DesignConstants.spacingL),
-        AppSectionHeader(title: l10n.analyticsRecordOverview),
+        AppSectionHeader(
+          title: l10n.analyticsRecordOverview,
+          action: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
+              vertical: 3,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              l10n.analyticsAllTimeBadge,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
         AppSegmentedControl<_RecordOverview>(
           children: {
             _RecordOverview.recent: l10n.analyticsRecentlySet,
@@ -522,6 +592,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 subtitle: hasData
                     ? data['exerciseName'] as String
                     : l10n.analyticsNoRecordYet,
+                onTap: hasData
+                    ? () => _openExerciseDetail(data['exerciseName'] as String)
+                    : null,
               );
             }).toList(),
           ),

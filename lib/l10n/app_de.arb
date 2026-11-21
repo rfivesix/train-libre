@@ -3929,5 +3929,37 @@
   "statisticsEmptyRecords": "Keine neuen Bestleistungen in den letzten 30 Tagen.",
   "statisticsEmptyMuscles": "Schließe Kraftsätze ab, um deine Muskelgruppen zu sehen.",
   "statisticsEmptyBody": "Erfasse Gewicht oder Ernährung, um deine Trends zu sehen.",
-  "statisticsEmptyNutrition": "Keine Ernährung in den letzten 7 Tagen erfasst."
+  "statisticsEmptyNutrition": "Keine Ernährung in den letzten 7 Tagen erfasst.",
+  "analyticsDailyBreakdown": "Tagesverlauf",
+  "analyticsCarbsShort": "KH",
+  "analyticsCalorieTargetLine": "Kalorienziel",
+  "analyticsWeightSlopePerWeek": "Gewichtstempo",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/Wo.",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "Diese Woche: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Trainingstage: {days}/Wo.",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 Trainings / Wo.",
+  "analyticsConsecutiveWeeks": "Wochen in Folge",
+  "analyticsSelectWorkout": "Workout auswählen",
+  "analyticsNoWorkoutsOnDay": "Keine Workouts an diesem Tag",
+  "analyticsPrImprovementsWindowHint": "e1RM-Steigerung ggü. Vorzeitraum",
+  "analyticsAllTimeBadge": "Allzeit",
+  "stepsModuleGoalProgress": "Zielerreichung",
+  "analyticsWaterTargetLabel": "Tagesziel",
+  "analyticsWaterLoggedDays": "Erfasste Tage"
 }

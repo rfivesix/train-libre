@@ -9349,4 +9349,58 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get statisticsEmptyNutrition => '過去7日間の栄養の記録はありません。';
+
+  @override
+  String get analyticsDailyBreakdown => '日別の推移';
+
+  @override
+  String get analyticsCarbsShort => '炭水化物';
+
+  @override
+  String get analyticsCalorieTargetLine => '目標カロリー';
+
+  @override
+  String get analyticsWeightSlopePerWeek => '週間変化率';
+
+  @override
+  String analyticsSlopePerWeekUnit(String value, String unit) {
+    return '$value $unit/週';
+  }
+
+  @override
+  String analyticsThisWeekSummary(int count) {
+    return '今週: $count';
+  }
+
+  @override
+  String analyticsTrainingDaysCompact(String days) {
+    return '活動日: $days日/週';
+  }
+
+  @override
+  String get analyticsAtLeast2PerWeekCompact => '週2回以上';
+
+  @override
+  String get analyticsConsecutiveWeeks => '連続週数';
+
+  @override
+  String get analyticsSelectWorkout => 'ワークアウトを選択';
+
+  @override
+  String get analyticsNoWorkoutsOnDay => 'この日のワークアウトはありません';
+
+  @override
+  String get analyticsPrImprovementsWindowHint => '前期間比のe1RM向上';
+
+  @override
+  String get analyticsAllTimeBadge => '全期間';
+
+  @override
+  String get stepsModuleGoalProgress => '目標達成率';
+
+  @override
+  String get analyticsWaterTargetLabel => '1日の目標';
+
+  @override
+  String get analyticsWaterLoggedDays => '記録日数';
 }

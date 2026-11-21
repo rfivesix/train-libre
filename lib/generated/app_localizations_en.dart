@@ -9701,4 +9701,58 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statisticsEmptyNutrition =>
       'No nutrition logged in the last 7 days.';
+
+  @override
+  String get analyticsDailyBreakdown => 'Daily breakdown';
+
+  @override
+  String get analyticsCarbsShort => 'Carbs';
+
+  @override
+  String get analyticsCalorieTargetLine => 'Calorie target';
+
+  @override
+  String get analyticsWeightSlopePerWeek => 'Weight rate';
+
+  @override
+  String analyticsSlopePerWeekUnit(String value, String unit) {
+    return '$value $unit/wk';
+  }
+
+  @override
+  String analyticsThisWeekSummary(int count) {
+    return 'This week: $count';
+  }
+
+  @override
+  String analyticsTrainingDaysCompact(String days) {
+    return 'Active days: $days/wk';
+  }
+
+  @override
+  String get analyticsAtLeast2PerWeekCompact => '≥ 2 workouts / wk';
+
+  @override
+  String get analyticsConsecutiveWeeks => 'Consecutive weeks';
+
+  @override
+  String get analyticsSelectWorkout => 'Select workout';
+
+  @override
+  String get analyticsNoWorkoutsOnDay => 'No workouts on this day';
+
+  @override
+  String get analyticsPrImprovementsWindowHint => 'e1RM gains vs. prior period';
+
+  @override
+  String get analyticsAllTimeBadge => 'All-time';
+
+  @override
+  String get stepsModuleGoalProgress => 'Goal progress';
+
+  @override
+  String get analyticsWaterTargetLabel => 'Daily target';
+
+  @override
+  String get analyticsWaterLoggedDays => 'Logged days';
 }
