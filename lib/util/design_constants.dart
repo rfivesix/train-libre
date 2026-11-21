@@ -140,6 +140,7 @@ class DesignConstants {
   /// with the tab bar's `indicatorExpansion`, which is how far the indicator
   /// blooms *outwards* while being dragged.
   static const double floatingBarPillInset = 4.0;
+  static const double floatingBarPillBlur = 3.0;
 
   /// Diameter / height of those pills. Derived from the inset, so the pill
   /// always reaches to within [floatingBarPillInset] of the bar's edges.
