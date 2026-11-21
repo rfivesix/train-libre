@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-09
 
 ### Fixed
+- Propagated the app theme's `primaryColor` through `AppGlassTheme`'s `CupertinoTheme` wrapper so Cupertino accents and controls match the active theme color.
+- Synchronized Statistics hub card taps with their destination screen's initial timeframe, rolling mode, and scope (`ConsistencyTrackerScreen`, `MuscleGroupAnalyticsScreen`, `StepsModuleScreen`, and `WaterSectionCard`).
 - Fixed `MuscleVolumeSectionCard` dividing weekly sets by muscle count and displaying unlocalized raw muscle keys.
 - Fixed `WaterSectionCard` on the Statistics hub loading only a single day instead of the 7-day trend, and added consistent header chips and localized step formatting (`StatisticsStepsCard`).
 - Fixed localized date and number formatting in Measurement and Body & Nutrition trend charts (`May 31, 2026`, English thousand commas, hardcoded nutrition labels, and lowercase axis captions).
@@ -47,6 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Allowed `ValueSummaryCard` subtitles to wrap up to two lines (`maxLines: 2`), formatted large metric `StatisticsOverviewCard` volumes in tons (`t`), highlighted top PR momentum in `PerformanceSectionCard`, and showed logged night counts on `SleepSectionCard` instead of repeating the mean score.
 - Redesigned and thematically reordered Statistics hub preview cards: compact 3-metric Body & Nutrition summary, macro gram badges on `MacroSectionCard`, 6-week mini bar chart on `ConsistencySectionCard`, top-3 muscle bars on `MuscleVolumeSectionCard`, latest weight preview on Measurements, 3-column Pulse fallback when HRV is unavailable, nutrient highlights on Micronutrients, clearer overview workout labels with skeleton loading, and a reset-to-defaults action in `StatisticsHubEditScreen`.
 - Redesigned the Nutrition (`MacroStatisticsScreen`) header into four compact, color-outlined KPI cards, added a dashed historical calorie-target line to the macro bar chart, and added a MAX period date range label.
 - Added a sixth KPI card (weekly weight rate) to Body & Nutrition Trends and completed 2x2 KPI grids in Steps (`Day`/`Week`) and Water statistics, while showing `StatisticsStepsCard` across all step scopes.
