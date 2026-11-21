@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed glass bottom sheet sizing and scrolling, including measurement fields overlapping date and time controls and content being obscured by the keyboard.
 - Fixed AI Chat swipe-to-dismiss gestures, including dragging down from the top of the conversation or an empty chat.
 - Fixed Apple Health heart-rate reads being blocked by an incorrect write-authorization check.
+- Fixed resting pulse in the diary, Statistics, and pulse charts to use readings from Apple Health or Health Connect when available. Week and month views average the latest reading from each day, and locally calculated values are marked as estimates. Existing users can grant resting heart-rate access in Health settings.
+- Corrected pulse labels in spreadsheet exports, shared sleep summaries, and AI assistant sleep summaries so they describe the measurements shown.
 - Fixed Android predictive back gestures for card and workout morph transitions so they follow the swipe and return to the open screen when cancelled.
 - Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
 - Kept the What's New sheet below the status bar with a 16-point gap, even when the presenting screen has already consumed the top safe area.

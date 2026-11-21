@@ -5616,12 +5616,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pulseRestingLabel => 'En reposo';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Pulso en reposo estimado';
+
+  @override
+  String get pulseEstimateLabel => 'Estimado';
+
+  @override
   String get pulseInsufficientData =>
       'Hay muy pocas muestras de pulso para mostrar un gráfico fiable.';
 
   @override
   String get pulseMethodNote =>
-      'El pulso medio se pondera por tiempo. El pulso en reposo se estima de forma conservadora a partir del 20 % de las muestras más bajas del periodo seleccionado.';
+      'Train Libre usa el pulso en reposo de Apple Salud o Health Connect cuando está disponible. Si falta, lo estima a partir de las mediciones de pulso.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5680,11 +5686,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Abre Apple Health o Health Connect para que Train Libre pueda leer las muestras de pulso.';
+      'Permite el acceso a la frecuencia cardíaca y al pulso en reposo en Health Connect.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Muestra el intervalo, la media ponderada por tiempo y una estimación conservadora del pulso en reposo. No es un diagnóstico médico.';
+      'Muestra el intervalo, la media y el pulso en reposo.';
 
   @override
   String get pulseSettingsPermissionGranted =>
@@ -9762,11 +9768,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      'Lee la frecuencia cardíaca y la VFC de Apple Health al activar el análisis del pulso.';
+      'Lee el pulso, el pulso en reposo y la VFC de Apple Salud al activar el análisis de pulso.';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Permite el acceso a la frecuencia cardíaca y la VFC en Apple Health.';
+      'Permite el acceso a la frecuencia cardíaca, el pulso en reposo y la VFC en Apple Salud.';
 
   @override
   String get pulseHealthStatusIos =>

@@ -96,7 +96,7 @@ class AssistantHealthActions implements AssistantDataAction {
                 'totalSleepMinutes': analysis.totalSleepMinutes,
                 'score': analysis.score,
                 'sleepEfficiencyPct': analysis.sleepEfficiencyPct,
-                'restingHeartRateBpm': analysis.restingHeartRateBpm,
+                'averageSleepHeartRateBpm': analysis.restingHeartRateBpm,
                 'interruptions': analysis.interruptionsCount,
               },
           ],

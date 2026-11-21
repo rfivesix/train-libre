@@ -42,7 +42,7 @@ class PulseSectionCard extends StatelessWidget {
 
     final summary = state.data;
     final chipLabel = fallbackRangeLabel;
-    final hasMetrics = summary?.hasCoreMetrics ?? false;
+    final hasMetrics = summary?.hasPulseRange ?? false;
     final rangeValue = !hasMetrics
         ? '--'
         : '${summary!.minBpm!.round()}-${summary.maxBpm!.round()}';
@@ -54,8 +54,10 @@ class PulseSectionCard extends StatelessWidget {
         : '${summary!.restingBpm!.round()}';
     final stateText = summary == null
         ? l10n.load_dots
-        : summary.hasData
+        : summary.sampleCount > 0
         ? '${l10n.pulseSampleCount(summary.sampleCount)} - ${_pulseQualityLabel(l10n, summary.quality)}'
+        : summary.hasData
+        ? null
         : _pulseNoDataMessage(l10n, summary.noDataReason);
 
     return AnalyticsCardBase.decorateSectionCard(
@@ -96,6 +98,9 @@ class PulseSectionCard extends StatelessWidget {
                 ),
                 ValueSummaryCard(
                   label: l10n.pulseRestingLabel,
+                  subtitle: summary?.restingBpmIsEstimated == true
+                      ? l10n.pulseEstimateLabel
+                      : null,
                   value: summary?.restingBpm == null
                       ? restingValue
                       : '$restingValue ${l10n.sleepBpmUnit}',
@@ -113,12 +118,14 @@ class PulseSectionCard extends StatelessWidget {
                     useSecondarySurface: true,
                   ),
               ]),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                stateText,
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
-              ),
+              if (stateText != null) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  stateText,
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+              ],
             ],
           ),
         ),

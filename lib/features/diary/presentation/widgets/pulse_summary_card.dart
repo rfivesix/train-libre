@@ -22,12 +22,13 @@ class PulseSummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<
-        DiaryViewModel,
-        ({
-          PulseAnalysisSummary? pulseSummary,
-          DateTime selectedDate,
-          bool showSkeleton,
-        })>(
+      DiaryViewModel,
+      ({
+        PulseAnalysisSummary? pulseSummary,
+        DateTime selectedDate,
+        bool showSkeleton,
+      })
+    >(
       selector: (context, vm) => (
         pulseSummary: vm.pulseSummary,
         selectedDate: vm.selectedDate,
@@ -40,16 +41,13 @@ class PulseSummaryCard extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final rangeText = showSkeleton
-            ? '60-120 ${l10n.sleepBpmUnit}'
-            : (summary!.hasCoreMetrics
-                ? '${summary.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}'
-                : '--');
-        final restingText = showSkeleton
-            ? '65 ${l10n.sleepBpmUnit}'
-            : (summary!.restingBpm != null
-                ? '${summary.restingBpm!.round()} ${l10n.sleepBpmUnit}'
-                : '--');
+        final rangeText = summary?.hasPulseRange == true
+            ? '${summary!.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}'
+            : '--';
+        final resting = summary?.restingBpm;
+        final restingText = resting == null
+            ? '--'
+            : '${resting.round()} ${l10n.sleepBpmUnit}';
 
         return DiaryHealthSummaryCard(
           title: l10n.pulseTitle,
@@ -68,7 +66,9 @@ class PulseSummaryCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    l10n.pulseRestingLabel,
+                    summary?.restingBpmIsEstimated == true
+                        ? l10n.pulseEstimatedRestingLabel
+                        : l10n.pulseRestingLabel,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface,
                       fontWeight: FontWeight.w500,

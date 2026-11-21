@@ -1399,9 +1399,9 @@ class ExportManager {
       'Datum',
       'Schritte (Gesamt)',
       'Schritte-Quelle',
-      'Ruhepuls Min (BPM)',
-      'Ruhepuls Max (BPM)',
-      'Ruhepuls Avg (BPM)',
+      'Puls Min (BPM)',
+      'Puls Max (BPM)',
+      'Puls Avg (BPM)',
       'Workout Puls Min (BPM)',
       'Workout Puls Max (BPM)',
       'Workout Puls Avg (BPM)',
@@ -1478,7 +1478,7 @@ class ExportManager {
         writeCell(activitySheet, 2, rowIndex, TextCellValue(''));
       }
 
-      // Resting Heart Rate Outer-Join aggregation
+      // Daily heart rate from the hourly pulse aggregates.
       final dayPulses = pulseByDay[d] ?? [];
       if (dayPulses.isNotEmpty) {
         double minHr = double.infinity;

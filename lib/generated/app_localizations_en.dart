@@ -5519,12 +5519,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pulseRestingLabel => 'Resting';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Estimated resting pulse';
+
+  @override
+  String get pulseEstimateLabel => 'Estimated';
+
+  @override
   String get pulseInsufficientData =>
       'Too few pulse samples for a reliable chart.';
 
   @override
   String get pulseMethodNote =>
-      'Average pulse is time-weighted. Resting pulse is a conservative estimate from the lowest 20% of samples in the selected period.';
+      'Train Libre uses resting pulse from Apple Health or Health Connect when available. Otherwise it estimates resting pulse from heart rate samples.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5580,11 +5586,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Opens Apple Health or Health Connect so Train Libre can read pulse samples.';
+      'Allow access to heart rate and resting heart rate in Health Connect.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Shows range, time-weighted average, and a conservative resting-pulse estimate. Not a medical diagnosis.';
+      'Shows pulse range, average, and resting pulse.';
 
   @override
   String get pulseSettingsPermissionGranted => 'Heart-rate access is ready.';
@@ -9607,11 +9613,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      'Reads heart rate and Apple Health HRV when you enable pulse analysis.';
+      'Reads heart rate, resting heart rate, and HRV from Apple Health when pulse analysis is enabled.';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Allow access to heart rate and HRV in Apple Health.';
+      'Allow access to heart rate, resting heart rate, and HRV in Apple Health.';
 
   @override
   String get pulseHealthStatusIos =>

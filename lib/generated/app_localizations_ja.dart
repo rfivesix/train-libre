@@ -5350,11 +5350,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pulseRestingLabel => '休憩中';
 
   @override
+  String get pulseEstimatedRestingLabel => '安静時心拍数（推定）';
+
+  @override
+  String get pulseEstimateLabel => '推定';
+
+  @override
   String get pulseInsufficientData => '信頼できるグラフを作成するにはパルス サンプルが少なすぎます。';
 
   @override
   String get pulseMethodNote =>
-      '平均パルスは時間重み付けされます。安静時脈拍は、選択した期間のサンプルの下位 20% からの控えめな推定値です。';
+      'Appleヘルスケアまたはヘルスコネクトに安静時心拍数がある場合は、その値を表示します。記録がない場合は、心拍数の測定値から推定します。';
 
   @override
   String pulseSampleCount(int count) {
@@ -5407,11 +5413,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Apple Health または Health Connect を開くと、Train Libre が脈拍サンプルを読み取ることができます。';
+      'ヘルスコネクトで心拍数と安静時心拍数へのアクセスを許可してください。';
 
   @override
-  String get pulseSettingsAnalysisSubtitle =>
-      '範囲、時間加重平均、および控えめな安静時脈拍推定値を表示します。医学的な診断ではありません。';
+  String get pulseSettingsAnalysisSubtitle => '心拍数の範囲、平均、安静時心拍数を表示します。';
 
   @override
   String get pulseSettingsPermissionGranted => '心拍数へのアクセスの準備ができました。';
@@ -9263,11 +9268,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      '心拍分析を有効にすると、Appleヘルスケアの心拍数とHRVを読み取ります。';
+      '心拍数分析を有効にすると、Appleヘルスケアから心拍数、安静時心拍数、HRVを読み取ります。';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Appleヘルスケアで心拍数とHRVへのアクセスを許可してください。';
+      'Appleヘルスケアで心拍数、安静時心拍数、HRVへのアクセスを許可してください。';
 
   @override
   String get pulseHealthStatusIos =>

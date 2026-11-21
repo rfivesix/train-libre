@@ -5610,12 +5610,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pulseRestingLabel => 'Repos';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Pouls au repos estimé';
+
+  @override
+  String get pulseEstimateLabel => 'Estimé';
+
+  @override
   String get pulseInsufficientData =>
       'Trop peu d\'échantillons d\'impulsions pour un graphique fiable.';
 
   @override
   String get pulseMethodNote =>
-      'Le pouls moyen est pondéré dans le temps. Le pouls au repos est une estimation prudente à partir des 20 % d’échantillons les plus bas de la période sélectionnée.';
+      'Train Libre utilise le pouls au repos d’Apple Santé ou de Health Connect lorsqu’il est disponible. Sinon, il l’estime à partir des mesures du pouls.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5674,11 +5680,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Ouvre Apple Health ou Health Connect pour que Train Libre puisse lire des échantillons de pouls.';
+      'Autorisez l’accès au pouls et au pouls au repos dans Health Connect.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Affiche la plage, la moyenne pondérée dans le temps et une estimation prudente du pouls au repos. Pas un diagnostic médical.';
+      'Affiche la plage, la moyenne et le pouls au repos.';
 
   @override
   String get pulseSettingsPermissionGranted =>
@@ -9759,11 +9765,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      'Lit le pouls et la VFC dans Apple Santé lorsque l’analyse du pouls est activée.';
+      'Lit le pouls, le pouls au repos et la VFC dans Apple Santé lorsque l’analyse du pouls est activée.';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Autorisez l’accès au pouls et à la VFC dans Apple Santé.';
+      'Autorisez l’accès au pouls, au pouls au repos et à la VFC dans Apple Santé.';
 
   @override
   String get pulseHealthStatusIos =>

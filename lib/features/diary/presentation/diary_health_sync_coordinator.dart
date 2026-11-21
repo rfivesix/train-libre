@@ -210,7 +210,7 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
       notifyListeners();
 
       final start = DateTime(date.year, date.month, date.day).toUtc();
-      final end = start.add(const Duration(days: 1));
+      final end = DateTime(date.year, date.month, date.day + 1).toUtc();
       final summary = await _pulseRepository.getAnalysis(
         window: PulseAnalysisWindow(startUtc: start, endUtc: end),
       );

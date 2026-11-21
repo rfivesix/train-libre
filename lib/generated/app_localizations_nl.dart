@@ -5577,12 +5577,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get pulseRestingLabel => 'In rust';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Geschatte rusthartslag';
+
+  @override
+  String get pulseEstimateLabel => 'Geschat';
+
+  @override
   String get pulseInsufficientData =>
       'Er zijn te weinig hartslagmetingen voor een betrouwbare grafiek.';
 
   @override
   String get pulseMethodNote =>
-      'De gemiddelde hartslag is tijdgewogen. De rusthartslag is een voorzichtige schatting op basis van de laagste 20% van de metingen in de geselecteerde periode.';
+      'Train Libre gebruikt de rusthartslag uit Apple Gezondheid of Health Connect als die beschikbaar is. Anders wordt de rusthartslag geschat op basis van hartslagmetingen.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5641,11 +5647,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Opent Apple Health of Health Connect zodat Train Libre hartslagmetingen kan lezen.';
+      'Geef in Health Connect toegang tot hartslag en rusthartslag.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Toont het bereik, het tijdgewogen gemiddelde en een voorzichtige schatting van je rusthartslag. Dit is geen medische diagnose.';
+      'Toont het bereik, het gemiddelde en de rusthartslag.';
 
   @override
   String get pulseSettingsPermissionGranted =>
@@ -9701,11 +9707,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      'Leest hartslag en HRV uit Apple Gezondheid wanneer je hartslaganalyse inschakelt.';
+      'Leest hartslag, rusthartslag en HRV uit Apple Gezondheid als je hartslaganalyse inschakelt.';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Geef in Apple Gezondheid toegang tot hartslag en HRV.';
+      'Geef in Apple Gezondheid toegang tot hartslag, rusthartslag en HRV.';
 
   @override
   String get pulseHealthStatusIos =>

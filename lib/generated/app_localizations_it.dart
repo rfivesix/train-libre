@@ -5597,12 +5597,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pulseRestingLabel => 'Riposare';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Frequenza a riposo stimata';
+
+  @override
+  String get pulseEstimateLabel => 'Stimata';
+
+  @override
   String get pulseInsufficientData =>
       'Troppi pochi campioni di impulsi per un grafico affidabile.';
 
   @override
   String get pulseMethodNote =>
-      'Il polso medio è ponderato nel tempo. Il polso a riposo è una stima conservativa del 20% più basso dei campioni nel periodo selezionato.';
+      'Train Libre usa la frequenza cardiaca a riposo di Apple Salute o Health Connect, se disponibile. Altrimenti la stima dalle misurazioni della frequenza cardiaca.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5661,11 +5667,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Apre Apple Health o Health Connect in modo che Train Libre possa leggere campioni di pulsazioni.';
+      'Consenti l’accesso alla frequenza cardiaca e alla frequenza cardiaca a riposo in Health Connect.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Mostra l\'intervallo, la media ponderata nel tempo e una stima conservativa del polso a riposo. Non una diagnosi medica.';
+      'Mostra l’intervallo, la media e la frequenza cardiaca a riposo.';
 
   @override
   String get pulseSettingsPermissionGranted =>
@@ -9732,11 +9738,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      'Legge frequenza cardiaca e HRV da Apple Salute quando attivi l’analisi del polso.';
+      'Legge frequenza cardiaca, frequenza cardiaca a riposo e HRV da Apple Salute quando l’analisi è attiva.';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Consenti l’accesso a frequenza cardiaca e HRV in Apple Salute.';
+      'Consenti l’accesso alla frequenza cardiaca, alla frequenza cardiaca a riposo e alla HRV in Apple Salute.';
 
   @override
   String get pulseHealthStatusIos =>

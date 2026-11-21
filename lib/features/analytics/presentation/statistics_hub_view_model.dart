@@ -1145,9 +1145,8 @@ class StatisticsHubViewModel extends ChangeNotifier {
   PulseAnalysisWindow _pulseWindowForDaysBack(int daysBack) {
     final safeDays = daysBack < 1 ? 1 : daysBack;
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = today.subtract(Duration(days: safeDays - 1));
-    final endExclusive = today.add(const Duration(days: 1));
+    final start = DateTime(now.year, now.month, now.day - (safeDays - 1));
+    final endExclusive = DateTime(now.year, now.month, now.day + 1);
     return PulseAnalysisWindow(
       startUtc: start.toUtc(),
       endUtc: endExclusive.toUtc(),

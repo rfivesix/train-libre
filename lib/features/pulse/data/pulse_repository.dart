@@ -23,15 +23,19 @@ abstract class PulseAnalysisRepository {
 class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
   HealthPulseAnalysisRepository({
     HealthHeartRateDataSource? dataSource,
+    HealthRestingHeartRateDataSource? restingDataSource,
     PulseTrackingSettingsService? trackingService,
     this._engine = const PulseAnalysisEngine(),
     this._database,
     this._aggregateStore,
     this.queryPadding = const Duration(hours: 24),
   }) : _dataSource = dataSource ?? const HealthPlatformHeartRate(),
+       _restingDataSource =
+           restingDataSource ?? const HealthPlatformHeartRate(),
        _trackingService = trackingService ?? PulseTrackingService();
 
   final HealthHeartRateDataSource _dataSource;
+  final HealthRestingHeartRateDataSource _restingDataSource;
   final PulseTrackingSettingsService _trackingService;
   final PulseAnalysisEngine _engine;
   final AppDatabase? _database;
@@ -46,7 +50,20 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
   Future<PulseAnalysisSummary> getAnalysis({
     required PulseAnalysisWindow window,
   }) async {
-    final summary = await _getPulseAnalysis(window: window);
+    if (!await isTrackingEnabled()) {
+      return _empty(window, PulseNoDataReason.disabled);
+    }
+
+    final restingFuture = _readDailyRestingPulse(window);
+    var summary = await _getPulseAnalysis(window: window);
+    final resting = await restingFuture;
+    if (resting.isNotEmpty) {
+      summary = summary.copyWith(
+        restingBpm: _meanPulse(resting),
+        restingBpmIsEstimated: false,
+        chartSamples: window.isMultiDay ? resting : null,
+      );
+    }
     try {
       final hrv = await HealthHrvRepository(
         database: _database,
@@ -58,26 +75,52 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     }
   }
 
+  Future<List<PulseSamplePoint>> _readDailyRestingPulse(
+    PulseAnalysisWindow window,
+  ) async {
+    final List<HealthHeartRateSampleDto> rows;
+    try {
+      rows = await _restingDataSource.readRestingHeartRateSamples(
+        fromUtc: window.startUtc,
+        toUtc: window.endUtc,
+      );
+    } on MissingPluginException {
+      return const [];
+    } on PlatformException {
+      return const [];
+    }
+
+    // Use the latest reported value for each local day and weight days equally.
+    final latestByDay = <DateTime, PulseSamplePoint>{};
+    for (final row in rows) {
+      final timestamp = row.sampledAtUtc;
+      if (timestamp.isBefore(window.startUtc) ||
+          !timestamp.isBefore(window.endUtc) ||
+          !row.bpm.isFinite ||
+          row.bpm <= 0) {
+        continue;
+      }
+      final local = timestamp.toLocal();
+      final day = DateTime(local.year, local.month, local.day);
+      final previous = latestByDay[day];
+      if (previous == null || timestamp.isAfter(previous.sampledAtUtc)) {
+        latestByDay[day] = PulseSamplePoint(
+          sampledAtUtc: timestamp,
+          bpm: row.bpm,
+        );
+      }
+    }
+    return latestByDay.values.toList()
+      ..sort((a, b) => a.sampledAtUtc.compareTo(b.sampledAtUtc));
+  }
+
+  double _meanPulse(List<PulseSamplePoint> points) =>
+      points.fold<double>(0, (sum, point) => sum + point.bpm) / points.length;
+
   Future<PulseAnalysisSummary> _getPulseAnalysis({
     required PulseAnalysisWindow window,
   }) async {
     final stopwatch = Stopwatch()..start();
-    final enabled = await _trackingService.isTrackingEnabled();
-    if (!enabled) {
-      final result = _engine.analyze(
-        window: window,
-        rawSamples: const <PulseSamplePoint>[],
-        emptyReason: PulseNoDataReason.disabled,
-      );
-      PerfDebugTimer.logDuration(
-        area: 'statistics',
-        label: 'pulseAnalysisQuery',
-        elapsed: stopwatch.elapsed,
-        fields: {'samples': 0, 'enabled': false},
-      );
-      return result;
-    }
-
     try {
       // Calendar days may span 23 or 25 hours across daylight-saving changes.
       // Read the detailed measurements directly instead of drawing hourly means.
@@ -426,7 +469,10 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       averageBpm: sumBpm / sampleCount,
       minBpm: minBpm,
       maxBpm: maxBpm,
-      restingBpm: _restingFromAggregateBuckets(overlapping),
+      restingBpm: window.isMultiDay
+          ? _meanPulse(chartSamples)
+          : _restingFromAggregateBuckets(overlapping),
+      restingBpmIsEstimated: true,
       quality: _classifyAggregateQuality(
         sampleCount: sampleCount,
         windowDuration: window.duration,
@@ -440,7 +486,7 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     PulseAnalysisWindow window,
     List<PulseAggregateBucket> buckets,
   ) {
-    if (window.duration.inHours > 24) {
+    if (window.isMultiDay) {
       final points = <PulseSamplePoint>[];
       final bucketsByDay = <DateTime, List<PulseAggregateBucket>>{};
 

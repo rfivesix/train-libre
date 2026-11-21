@@ -30,12 +30,23 @@ abstract class HealthHeartRateDataSource {
   });
 }
 
-class HealthPlatformHeartRate implements HealthHeartRateDataSource {
+abstract class HealthRestingHeartRateDataSource {
+  Future<List<HealthHeartRateSampleDto>> readRestingHeartRateSamples({
+    required DateTime fromUtc,
+    required DateTime toUtc,
+  });
+}
+
+class HealthPlatformHeartRate
+    implements HealthHeartRateDataSource, HealthRestingHeartRateDataSource {
   static const MethodChannel _channel = MethodChannel(
     'trainlibre.health/steps',
   );
 
   const HealthPlatformHeartRate();
+
+  Future<String?> checkPermissions() =>
+      _channel.invokeMethod<String>('checkHeartRatePermissions');
 
   Future<bool> requestPermissions() async {
     try {
@@ -54,9 +65,21 @@ class HealthPlatformHeartRate implements HealthHeartRateDataSource {
   Future<List<HealthHeartRateSampleDto>> readHeartRateSamples({
     required DateTime fromUtc,
     required DateTime toUtc,
-  }) async {
+  }) => _readSamples('readHeartRateSamples', fromUtc, toUtc);
+
+  @override
+  Future<List<HealthHeartRateSampleDto>> readRestingHeartRateSamples({
+    required DateTime fromUtc,
+    required DateTime toUtc,
+  }) => _readSamples('readRestingHeartRateSamples', fromUtc, toUtc);
+
+  Future<List<HealthHeartRateSampleDto>> _readSamples(
+    String method,
+    DateTime fromUtc,
+    DateTime toUtc,
+  ) async {
     final response = await _channel.invokeMethod<List<dynamic>>(
-      'readHeartRateSamples',
+      method,
       <String, dynamic>{
         'fromUtcIso': fromUtc.toUtc().toIso8601String(),
         'toUtcIso': toUtc.toUtc().toIso8601String(),

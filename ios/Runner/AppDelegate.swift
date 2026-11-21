@@ -333,7 +333,9 @@ import UserNotifications
     case "readStepSegments":
       readStepSegments(call: call, result: result)
     case "readHeartRateSamples":
-      readHeartRateSamples(call: call, result: result)
+      readHeartRateSamples(call: call, type: .heartRate, result: result)
+    case "readRestingHeartRateSamples":
+      readHeartRateSamples(call: call, type: .restingHeartRate, result: result)
     case "readHrvSamples":
       readHrvSamples(call: call, result: result)
     default:
@@ -368,12 +370,13 @@ import UserNotifications
     }
 
     guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate),
+          let restingType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate),
           let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
       result(FlutterError(code: "not_available", message: "Heart rate type unavailable", details: nil))
       return
     }
 
-    healthStore.requestAuthorization(toShare: nil, read: [heartRateType, hrvType]) { success, error in
+    healthStore.requestAuthorization(toShare: nil, read: [heartRateType, restingType, hrvType]) { success, error in
       if let error = error {
         result(FlutterError(code: "permission_denied", message: error.localizedDescription, details: nil))
         return
@@ -491,7 +494,11 @@ import UserNotifications
     healthStore.execute(query)
   }
 
-  private func readHeartRateSamples(call: FlutterMethodCall, result: @escaping FlutterResult) {
+  private func readHeartRateSamples(
+    call: FlutterMethodCall,
+    type: HKQuantityTypeIdentifier,
+    result: @escaping FlutterResult
+  ) {
     guard HKHealthStore.isHealthDataAvailable() else {
       result(FlutterError(code: "not_available", message: "HealthKit unavailable", details: nil))
       return
@@ -510,7 +517,7 @@ import UserNotifications
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     guard let fromDate = formatter.date(from: fromIso),
           let toDate = formatter.date(from: toIso),
-          let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)
+          let heartRateType = HKQuantityType.quantityType(forIdentifier: type)
     else {
       result([])
       return

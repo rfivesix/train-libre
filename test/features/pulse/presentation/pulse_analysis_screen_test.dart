@@ -178,6 +178,26 @@ void main() {
     expect(repository.windows.last.endUtc, DateTime(2026, 4, 20).toUtc());
   });
 
+  testWidgets('labels a fallback resting pulse as estimated', (tester) async {
+    final repository = _FakePulseRepository(
+      (window) =>
+          _summaryWithSamples(window).copyWith(restingBpmIsEstimated: true),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        PulseAnalysisScreen(
+          repository: repository,
+          initialDate: DateTime(2026, 4, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Estimated'), findsOneWidget);
+    expect(find.text('60 bpm'), findsOneWidget);
+  });
+
   testWidgets('shows disabled empty state honestly', (tester) async {
     final repository = _FakePulseRepository(
       (window) => PulseAnalysisSummary(

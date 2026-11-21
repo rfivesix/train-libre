@@ -9,9 +9,9 @@ import '../../../features/health_export/adapters/apple_health/apple_health_expor
 import '../../../features/health_export/adapters/health_connect/health_connect_export_adapter.dart';
 import '../../../features/health_export/export_service.dart';
 import '../../../features/health_export/models/export_models.dart';
+import '../../../features/pulse/application/health_connect_pulse_permissions_service.dart';
 import '../../../features/pulse/application/pulse_tracking_service.dart';
 import '../../../features/pulse/data/pulse_repository.dart';
-import '../../../features/sleep/platform/permissions/health_connect_sleep_permissions_service.dart';
 import '../../../features/sleep/platform/permissions/healthkit_sleep_permissions_service.dart';
 import '../../../features/sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../../features/sleep/platform/permissions/sleep_permission_models.dart';
@@ -58,14 +58,12 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   );
   late final SleepPermissionController _pulsePermissions =
       SleepPermissionController(
-    Platform.isIOS
-        ? const HealthKitSleepPermissionsService(
-            HealthKitSleepMethodChannelBridge(),
-          )
-        : const HealthConnectSleepPermissionsService(
-            HealthConnectSleepMethodChannelBridge(),
-          ),
-  );
+        Platform.isIOS
+            ? const HealthKitSleepPermissionsService(
+                HealthKitSleepMethodChannelBridge(),
+              )
+            : const HealthConnectPulsePermissionsService(),
+      );
 
   bool _stepsEnabled = false;
   bool _sleepEnabled = false;
@@ -184,26 +182,37 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   }
 
   Future<void> _setPulse(bool enabled) async {
-    final l10n = AppLocalizations.of(context)!;
     if (!enabled) {
       await _pulse.setTrackingEnabled(false);
       _markChanged();
       await _load();
       return;
     }
+    await _requestPulseAccess();
+  }
+
+  Future<void> _requestPulseAccess() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showPrePermissionDialog(
       context: context,
       title: l10n.pulseSettingsPermissionTitle,
-      body: l10n.pulseSettingsPermissionSubtitle,
+      body: Platform.isIOS
+          ? l10n.pulseSettingsPermissionSubtitleIos
+          : l10n.pulseSettingsPermissionSubtitle,
       continueLabel: l10n.health_permission_continue,
       cancelLabel: '',
     );
     if (!mounted || !confirmed) return;
-    final granted = await _pulse.requestPermissions();
-    await _pulse.setTrackingEnabled(granted);
-    if (!granted) _message(l10n.pulseSettingsPermissionFailed);
-    _markChanged();
-    await _load();
+    await _run(() async {
+      final granted = await _pulse.requestPermissions();
+      if (granted) {
+        await _pulse.setTrackingEnabled(true);
+      } else {
+        _message(l10n.pulseSettingsPermissionFailed);
+      }
+      _markChanged();
+      await _load();
+    });
   }
 
   Future<void> _setMeasurement(bool enabled) async {
@@ -447,6 +456,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     required ValueChanged<bool> onChanged,
     String? actionLabel,
     VoidCallback? onAction,
+    VoidCallback? onRequestAccess,
   }) {
     return AppSettingsRow(
       title: title,
@@ -456,6 +466,14 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (value && onRequestAccess != null)
+            IconButton(
+              tooltip: AppLocalizations.of(context)!
+                  .pulseSettingsPermissionTitle,
+              visualDensity: VisualDensity.compact,
+              onPressed: _busy ? null : onRequestAccess,
+              icon: const Icon(LucideIcons.shield_check),
+            ),
           if (value && actionLabel != null) ...[
             IconButton(
               tooltip: actionLabel,
@@ -521,11 +539,20 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                   builder: (context, pulsePermission, _) => _row(
                     icon: LucideIcons.heart_pulse,
                     title: l10n.pulseSettingsEnableTitle,
-                    subtitle: _permissionLabel(pulsePermission),
+                    subtitle: Platform.isIOS
+                        ? l10n.pulseHealthStatusIos
+                        : _permissionLabel(pulsePermission),
                     value: _pulseEnabled,
                     onChanged: _setPulse,
                     actionLabel: l10n.healthSettingsSyncPulse,
                     onAction: _syncPulse,
+                    onRequestAccess:
+                        Platform.isIOS ||
+                            pulsePermission.state ==
+                                SleepPermissionState.partial ||
+                            pulsePermission.state == SleepPermissionState.denied
+                        ? _requestPulseAccess
+                        : null,
                   ),
                 ),
                 _row(

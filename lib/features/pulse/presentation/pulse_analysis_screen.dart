@@ -37,6 +37,7 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   late SleepPeriodScope _scope;
   late DateTime _anchorDate;
   bool _isLoading = true;
+  int _loadGeneration = 0;
   PulseAnalysisSummary? _summary;
 
   @override
@@ -55,18 +56,19 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   }
 
   Future<void> _loadAnalysis() async {
+    final generation = ++_loadGeneration;
     setState(() => _isLoading = true);
     try {
       final summary = await _repository.getAnalysis(
         window: _windowFor(scope: _scope, anchorDate: _anchorDate),
       );
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _summary = summary;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       debugPrint('PulseAnalysisScreen: failed to load analysis: $e');
       setState(() => _isLoading = false);
     }
@@ -89,7 +91,11 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
           );
           break;
         case SleepPeriodScope.week:
-          _anchorDate = _anchorDate.add(Duration(days: 7 * direction));
+          _anchorDate = DateTime(
+            _anchorDate.year,
+            _anchorDate.month,
+            _anchorDate.day + 7 * direction,
+          );
           break;
         case SleepPeriodScope.month:
           _anchorDate = DateTime(
@@ -156,13 +162,21 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       SleepPeriodScope.week => DateTime(
         anchorDate.year,
         anchorDate.month,
-        anchorDate.day,
-      ).subtract(Duration(days: anchorDate.weekday - DateTime.monday)),
+        anchorDate.day - (anchorDate.weekday - DateTime.monday),
+      ),
       SleepPeriodScope.month => DateTime(anchorDate.year, anchorDate.month, 1),
     };
     final fullLocalEndExclusive = switch (scope) {
-      SleepPeriodScope.day => localStart.add(const Duration(days: 1)),
-      SleepPeriodScope.week => localStart.add(const Duration(days: 7)),
+      SleepPeriodScope.day => DateTime(
+        localStart.year,
+        localStart.month,
+        localStart.day + 1,
+      ),
+      SleepPeriodScope.week => DateTime(
+        localStart.year,
+        localStart.month,
+        localStart.day + 7,
+      ),
       SleepPeriodScope.month => DateTime(localStart.year, localStart.month + 1),
     };
     final isCurrentLocalDay =
@@ -233,12 +247,11 @@ class _PulseAnalysisContent extends StatelessWidget {
           ),
         )
         .toList(growable: false);
-    final averagePulse = scope == SleepPeriodScope.day
-        ? summary.averageBpm
-        : points.isEmpty
-        ? null
-        : points.fold<double>(0, (sum, point) => sum + point.value) /
-              points.length;
+    final isDay = scope == SleepPeriodScope.day;
+    final restingLabel = summary.restingBpmIsEstimated
+        ? l10n.pulseEstimatedRestingLabel
+        : copy.restingLabel;
+    final chartValue = isDay ? summary.averageBpm : summary.restingBpm;
     final hrv = summary.hrv;
     final averageHrv = hrv?.averageMs;
 
@@ -255,9 +268,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
               child: Text(
-                scope == SleepPeriodScope.day
-                    ? copy.chartTitle
-                    : copy.restingLabel,
+                isDay ? copy.chartTitle : restingLabel,
                 style: Theme.of(context).textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
@@ -270,10 +281,10 @@ class _PulseAnalysisContent extends StatelessWidget {
                 axisMode: MeasurementChartAxisMode.time,
                 valueFractionDigits: 0,
                 height: _chartHeight,
-                idleValueLabel: averagePulse == null
+                idleValueLabel: chartValue == null
                     ? null
-                    : '${averagePulse.round()} ${l10n.sleepBpmUnit}',
-                idleDateLabel: averagePulse == null ? null : copy.averageLabel,
+                    : '${chartValue.round()} ${l10n.sleepBpmUnit}',
+                idleDateLabel: chartValue == null ? null : copy.averageLabel,
                 valueLabelBuilder: (value, unit) => '${value.round()} $unit',
                 selectedDateLabelBuilder: (value) =>
                     scope == SleepPeriodScope.day
@@ -294,7 +305,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                   height: _chartHeight,
                   child: Center(
                     child: Text(
-                      summary.hasData
+                      summary.sampleCount > 0
                           ? copy.insufficientData
                           : copy.noDataMessage(summary.noDataReason),
                       textAlign: TextAlign.center,
@@ -303,17 +314,19 @@ class _PulseAnalysisContent extends StatelessWidget {
                   ),
                 ),
               ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.screenPaddingHorizontal,
+            if (summary.sampleCount > 0) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.screenPaddingHorizontal,
+                ),
+                child: Text(
+                  '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
               ),
-              child: Text(
-                '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
-              ),
-            ),
+            ],
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
@@ -449,6 +462,9 @@ class _KpiCard extends StatelessWidget {
         ),
         ValueSummaryCard(
           label: copy.restingLabel,
+          subtitle: summary.restingBpmIsEstimated
+              ? l10n.pulseEstimateLabel
+              : null,
           value: summary.restingBpm == null
               ? resting
               : '$resting ${l10n.sleepBpmUnit}',

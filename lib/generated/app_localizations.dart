@@ -9711,6 +9711,18 @@ abstract class AppLocalizations {
   /// **'Resting'**
   String get pulseRestingLabel;
 
+  /// No description provided for @pulseEstimatedRestingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated resting pulse'**
+  String get pulseEstimatedRestingLabel;
+
+  /// No description provided for @pulseEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated'**
+  String get pulseEstimateLabel;
+
   /// No description provided for @pulseInsufficientData.
   ///
   /// In en, this message translates to:
@@ -9720,7 +9732,7 @@ abstract class AppLocalizations {
   /// No description provided for @pulseMethodNote.
   ///
   /// In en, this message translates to:
-  /// **'Average pulse is time-weighted. Resting pulse is a conservative estimate from the lowest 20% of samples in the selected period.'**
+  /// **'Train Libre uses resting pulse from Apple Health or Health Connect when available. Otherwise it estimates resting pulse from heart rate samples.'**
   String get pulseMethodNote;
 
   /// No description provided for @pulseSampleCount.
@@ -9804,13 +9816,13 @@ abstract class AppLocalizations {
   /// No description provided for @pulseSettingsPermissionSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Opens Apple Health or Health Connect so Train Libre can read pulse samples.'**
+  /// **'Allow access to heart rate and resting heart rate in Health Connect.'**
   String get pulseSettingsPermissionSubtitle;
 
   /// No description provided for @pulseSettingsAnalysisSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Shows range, time-weighted average, and a conservative resting-pulse estimate. Not a medical diagnosis.'**
+  /// **'Shows pulse range, average, and resting pulse.'**
   String get pulseSettingsAnalysisSubtitle;
 
   /// No description provided for @pulseSettingsPermissionGranted.
@@ -16914,13 +16926,13 @@ abstract class AppLocalizations {
   /// No description provided for @pulseSettingsEnableSubtitleIos.
   ///
   /// In en, this message translates to:
-  /// **'Reads heart rate and Apple Health HRV when you enable pulse analysis.'**
+  /// **'Reads heart rate, resting heart rate, and HRV from Apple Health when pulse analysis is enabled.'**
   String get pulseSettingsEnableSubtitleIos;
 
   /// No description provided for @pulseSettingsPermissionSubtitleIos.
   ///
   /// In en, this message translates to:
-  /// **'Allow access to heart rate and HRV in Apple Health.'**
+  /// **'Allow access to heart rate, resting heart rate, and HRV in Apple Health.'**
   String get pulseSettingsPermissionSubtitleIos;
 
   /// No description provided for @pulseHealthStatusIos.

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../pulse/application/health_connect_pulse_permissions_service.dart';
 import '../../pulse/application/pulse_tracking_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/permissions/sleep_permission_models.dart';
 import '../../sleep/platform/permissions/healthkit_sleep_permissions_service.dart';
-import '../../sleep/platform/permissions/health_connect_sleep_permissions_service.dart';
 import '../../sleep/platform/sleep_platform_channel.dart';
 
 import 'dart:io';
@@ -42,9 +42,7 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
           ? const HealthKitSleepPermissionsService(
               HealthKitSleepMethodChannelBridge(),
             )
-          : const HealthConnectSleepPermissionsService(
-              HealthConnectSleepMethodChannelBridge(),
-            ),
+          : const HealthConnectPulsePermissionsService(),
     );
     _load();
   }
@@ -265,7 +263,10 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
     final granted = await _trackingService.requestPermissions();
     await _permissionController.refresh();
     if (!mounted) return;
-    setState(() => _requesting = false);
+    setState(() {
+      _requesting = false;
+      _hasChanges = true;
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

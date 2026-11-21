@@ -5561,12 +5561,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pulseRestingLabel => 'Ruhepuls';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Ruhepuls (geschätzt)';
+
+  @override
+  String get pulseEstimateLabel => 'Geschätzt';
+
+  @override
   String get pulseInsufficientData =>
       'Zu wenige Pulswerte für eine verlässliche Kurve.';
 
   @override
   String get pulseMethodNote =>
-      'Der Durchschnitt ist zeitgewichtet. Der Ruhepuls ist ein vorsichtiger Schätzwert aus den niedrigsten 20% der Werte im gewählten Zeitraum.';
+      'Train Libre übernimmt den Ruhepuls aus Apple Health oder Health Connect, sofern er dort vorliegt. Sonst wird er aus den Pulsmessungen geschätzt.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5624,11 +5630,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Öffnet Apple Health oder Health Connect, um Pulswerte zu lesen.';
+      'Erlaube den Zugriff auf Puls und Ruhepuls in Health Connect.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Zeigt Bereich, zeitgewichteten Durchschnitt und einen konservativen Ruhepuls-Schätzwert. Keine medizinische Diagnose.';
+      'Zeigt Pulsbereich, Durchschnitt und Ruhepuls.';
 
   @override
   String get pulseSettingsPermissionGranted =>
@@ -9684,11 +9690,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pulseSettingsEnableSubtitleIos =>
-      'Liest Puls und HRV aus Apple Health, wenn du die Pulsauswertung aktivierst.';
+      'Liest Puls, Ruhepuls und HRV aus Apple Health, wenn du die Pulsauswertung aktivierst.';
 
   @override
   String get pulseSettingsPermissionSubtitleIos =>
-      'Erlaube den Zugriff auf Puls und HRV in Apple Health.';
+      'Erlaube den Zugriff auf Puls, Ruhepuls und HRV in Apple Health.';
 
   @override
   String get pulseHealthStatusIos =>

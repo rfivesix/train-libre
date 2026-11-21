@@ -154,7 +154,7 @@ class DiaryViewModel extends ChangeNotifier {
       _activeWorkouts.isNotEmpty ||
       (stepsForSelectedDay != null && stepsForSelectedDay! > 0) ||
       (sleepOverview != null && (sleepOverview!.totalSleepMinutes ?? 0) > 0) ||
-      (pulseSummary != null && pulseSummary!.sampleCount > 0) ||
+      (pulseSummary?.hasData ?? false) ||
       hasWeightMeasurementForSelectedDate;
   bool get isSelectedDateToday => selectedDate.isSameDate(DateTime.now());
 

@@ -46,7 +46,104 @@ class _FakePulseSettings implements PulseTrackingSettingsService {
   Future<void> setTrackingEnabled(bool enabled) async {}
 }
 
+class _FakeRestingHeartRateDataSource
+    implements HealthRestingHeartRateDataSource {
+  _FakeRestingHeartRateDataSource({this.samples = const [], this.error});
+
+  final List<HealthHeartRateSampleDto> samples;
+  final PlatformException? error;
+  final requests = <(DateTime, DateTime)>[];
+
+  @override
+  Future<List<HealthHeartRateSampleDto>> readRestingHeartRateSamples({
+    required DateTime fromUtc,
+    required DateTime toUtc,
+  }) async {
+    requests.add((fromUtc, toUtc));
+    if (error != null) throw error!;
+    return samples;
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'uses the latest reported resting pulse without changing daily pulse',
+    () async {
+      final start = DateTime(2026, 4, 20).toUtc();
+      final end = DateTime(2026, 4, 21).toUtc();
+      final restingSource = _FakeRestingHeartRateDataSource(
+        samples: [
+          HealthHeartRateSampleDto(
+            sampledAtUtc: start.add(const Duration(hours: 4)),
+            bpm: 61,
+          ),
+          HealthHeartRateSampleDto(sampledAtUtc: start, bpm: 63),
+          HealthHeartRateSampleDto(sampledAtUtc: end, bpm: 55),
+        ],
+      );
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: _FakeHeartRateDataSource(
+          samples: [HealthHeartRateSampleDto(sampledAtUtc: start, bpm: 78)],
+        ),
+        restingDataSource: restingSource,
+        trackingService: const _FakePulseSettings(true),
+      );
+
+      final summary = await repository.getAnalysis(
+        window: PulseAnalysisWindow(startUtc: start, endUtc: end),
+      );
+
+      expect(restingSource.requests.single, (start, end));
+      expect(summary.restingBpm, 61);
+      expect(summary.restingBpmIsEstimated, isFalse);
+      expect(summary.averageBpm, 78);
+      expect(summary.chartSamples.single.bpm, 78);
+    },
+  );
+
+  test('period summary and chart use reported daily values with no standard pulse access', () async {
+    final start = DateTime(2026, 4, 20).toUtc();
+    final end = DateTime(2026, 4, 27).toUtc();
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final repository = HealthPulseAnalysisRepository(
+      dataSource: _FakeHeartRateDataSource(
+        error: PlatformException(code: 'permission_denied'),
+      ),
+      restingDataSource: _FakeRestingHeartRateDataSource(
+        samples: [
+          HealthHeartRateSampleDto(
+            sampledAtUtc: DateTime(2026, 4, 24, 11).toUtc(),
+            bpm: 62,
+          ),
+          HealthHeartRateSampleDto(
+            sampledAtUtc: DateTime(2026, 4, 21, 11).toUtc(),
+            bpm: 56,
+          ),
+          HealthHeartRateSampleDto(
+            sampledAtUtc: DateTime(2026, 4, 21, 10).toUtc(),
+            bpm: 69,
+          ),
+        ],
+      ),
+      trackingService: const _FakePulseSettings(true),
+      database: database,
+    );
+
+    final summary = await repository.getAnalysis(
+      window: PulseAnalysisWindow(startUtc: start, endUtc: end),
+    );
+
+    expect(summary.restingBpm, 59);
+    expect(summary.averageBpm, isNull);
+    expect(summary.restingBpmIsEstimated, isFalse);
+    expect(summary.hasData, isTrue);
+    expect(summary.canRenderChart, isTrue);
+    expect(summary.chartSamples.map((point) => point.bpm), [56, 62]);
+  });
+
   test(
     'daily analysis keeps distinct measurements within the same hour',
     () async {
@@ -89,8 +186,10 @@ void main() {
 
   test('does not query platform when pulse tracking is disabled', () async {
     final dataSource = _FakeHeartRateDataSource();
+    final restingSource = _FakeRestingHeartRateDataSource();
     final repository = HealthPulseAnalysisRepository(
       dataSource: dataSource,
+      restingDataSource: restingSource,
       trackingService: const _FakePulseSettings(false),
     );
     final window = PulseAnalysisWindow(
@@ -102,6 +201,7 @@ void main() {
 
     expect(summary.noDataReason, PulseNoDataReason.disabled);
     expect(dataSource.requests, isEmpty);
+    expect(restingSource.requests, isEmpty);
   });
 
   test(
@@ -464,6 +564,9 @@ void main() {
     ];
     final repository = HealthPulseAnalysisRepository(
       dataSource: _FakeHeartRateDataSource(samples: samples),
+      restingDataSource: _FakeRestingHeartRateDataSource(
+        error: PlatformException(code: 'permission_denied'),
+      ),
       trackingService: const _FakePulseSettings(true),
       database: database,
       queryPadding: Duration.zero,
@@ -477,6 +580,7 @@ void main() {
     );
 
     expect(summary.restingBpm, closeTo(60.5, 0.001));
+    expect(summary.restingBpmIsEstimated, isTrue);
   });
 
   test('detail chart is capped and covers the selected range', () async {
