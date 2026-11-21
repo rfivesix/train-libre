@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
 - Kept the What's New sheet below the status bar with a 16-point gap, even when the presenting screen has already consumed the top safe area.
 - Prevented time labels near the end of sleep and pulse charts from overlapping.
+- Fixed the Nutrition statistics bar chart rendering blank on year (`1Y`) and `MAX` timeframes by adaptively bucketing long periods into readable bars, trimming leading untracked `MAX` history, and formatting multi-year axis labels.
 
 
 ### Added

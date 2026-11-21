@@ -67,8 +67,12 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
             );
       final summary = await widget.adapter.fetchSummary(range: bounds);
       if (!mounted) return;
+      final resolvedSummary =
+          widget.activeBlockType == TimeframeBlock.maxBlock
+          ? summary.trimmedToFirstTracked()
+          : summary;
       setState(() {
-        _summary = summary;
+        _summary = resolvedSummary;
         _isLoading = false;
       });
     } catch (_) {

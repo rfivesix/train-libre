@@ -98,8 +98,12 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       final summary = await _adapter.fetchSummary(range: bounds);
       if (!mounted || loadEpoch != _loadEpoch) return;
 
+      final resolvedSummary = _activeBlock == TimeframeBlock.maxBlock
+          ? summary.trimmedToFirstTracked()
+          : summary;
+
       setState(() {
-        _summary = summary;
+        _summary = resolvedSummary;
         _isLoading = false;
         _selectedDay = null;
       });

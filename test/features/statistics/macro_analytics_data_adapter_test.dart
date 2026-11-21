@@ -82,6 +82,90 @@ void main() {
       expect(summary.avgFat, 65.0);
       expect(summary.trackedDays, 2);
     });
+
+    test('trimmedToFirstTracked removes leading empty days', () {
+      final range = DateTimeRange(
+        start: DateTime(2020, 1, 1),
+        end: DateTime(2026, 6, 2),
+      );
+      final summary = MacroPeriodSummary(
+        range: range,
+        dailyIntakes: [
+          DailyMacroIntake(
+            date: DateTime(2020, 1, 1),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+          DailyMacroIntake(
+            date: DateTime(2026, 5, 31),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+          DailyMacroIntake(
+            date: DateTime(2026, 6, 1),
+            calories: 2500,
+            proteinGrams: 160,
+            carbsGrams: 260,
+            fatGrams: 80,
+          ),
+          DailyMacroIntake(
+            date: DateTime(2026, 6, 2),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+        ],
+        avgCalories: 2500,
+        avgProtein: 160,
+        avgCarbs: 260,
+        avgFat: 80,
+        totalDays: 4,
+        trackedDays: 1,
+      );
+
+      final trimmed = summary.trimmedToFirstTracked();
+      expect(trimmed.dailyIntakes.length, 2);
+      expect(trimmed.dailyIntakes.first.date, DateTime(2026, 6, 1));
+      expect(trimmed.range.start, DateTime(2026, 6, 1));
+      expect(trimmed.range.end, DateTime(2026, 6, 2));
+      expect(trimmed.totalDays, 2);
+      expect(trimmed.trackedDays, 1);
+      expect(trimmed.avgCalories, 2500);
+    });
+
+    test('trimmedToFirstTracked returns empty when no tracked days exist', () {
+      final range = DateTimeRange(
+        start: DateTime(2020, 1, 1),
+        end: DateTime(2026, 6, 2),
+      );
+      final summary = MacroPeriodSummary(
+        range: range,
+        dailyIntakes: [
+          DailyMacroIntake(
+            date: DateTime(2020, 1, 1),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+        ],
+        avgCalories: 0,
+        avgProtein: 0,
+        avgCarbs: 0,
+        avgFat: 0,
+        totalDays: 1,
+        trackedDays: 0,
+      );
+
+      final trimmed = summary.trimmedToFirstTracked();
+      expect(trimmed.dailyIntakes, isEmpty);
+      expect(trimmed.totalDays, 0);
+    });
   });
 
   group('MacroAnalyticsDataAdapter', () {

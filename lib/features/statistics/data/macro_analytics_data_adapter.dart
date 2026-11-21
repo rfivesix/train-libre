@@ -63,6 +63,29 @@ class MacroPeriodSummary {
       trackedDays: 0,
     );
   }
+
+  /// Returns a copy whose [dailyIntakes] and [range] start at the first tracked
+  /// day (useful for `MAX` timeframes anchored to a distant fallback date).
+  MacroPeriodSummary trimmedToFirstTracked() {
+    final firstTrackedIndex = dailyIntakes.indexWhere((d) => d.hasData);
+    if (firstTrackedIndex < 0) {
+      return MacroPeriodSummary.empty(range);
+    }
+    if (firstTrackedIndex == 0) {
+      return this;
+    }
+    final trimmed = dailyIntakes.sublist(firstTrackedIndex);
+    return MacroPeriodSummary(
+      range: DateTimeRange(start: trimmed.first.date, end: range.end),
+      dailyIntakes: trimmed,
+      avgCalories: avgCalories,
+      avgProtein: avgProtein,
+      avgCarbs: avgCarbs,
+      avgFat: avgFat,
+      totalDays: trimmed.length,
+      trackedDays: trackedDays,
+    );
+  }
 }
 
 class MacroAnalyticsDataAdapter {
@@ -116,7 +139,11 @@ class MacroAnalyticsDataAdapter {
       macroEntries: macroEntries,
     );
 
-    final totalDays = endDay.difference(startDay).inDays + 1;
+    final totalDays =
+        DateTime.utc(endDay.year, endDay.month, endDay.day)
+            .difference(DateTime.utc(startDay.year, startDay.month, startDay.day))
+            .inDays +
+        1;
     final List<DailyMacroIntake> intakes = [];
     int sumCalories = 0;
     double sumProtein = 0.0;
@@ -125,7 +152,7 @@ class MacroAnalyticsDataAdapter {
     int trackedDays = 0;
 
     for (int i = 0; i < totalDays; i++) {
-      final currentDay = startDay.add(Duration(days: i));
+      final currentDay = DateTime(startDay.year, startDay.month, startDay.day + i);
       final dayKey = DateTime.utc(
         currentDay.year,
         currentDay.month,
