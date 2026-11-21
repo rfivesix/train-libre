@@ -66,7 +66,7 @@ Festeggia i record personali: I nuovi record sono evidenziati da un’animazione
 
 Vetro come piace a te: Regola l’aspetto del vetro con un cursore e osserva subito le modifiche nell’anteprima.
 
-Salute e timer migliorati: I dati della frequenza cardiaca di Apple Health possono essere nuovamente letti e sincronizzati manualmente. Corretti anche il conteggio dei passi, i timer di riposo e altre funzioni.
+Frequenza a riposo e timer: Il diario e le statistiche mostrano la frequenza cardiaca a riposo dell’app salute quando è disponibile e indicano i valori stimati. Il conteggio dei passi e i timer di recupero sono stati corretti.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

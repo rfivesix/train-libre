@@ -16,7 +16,7 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -41,8 +41,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'Health and timers improved',
-          body: 'Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.',
+          title: 'Resting pulse and timers',
+          body: 'Your diary and statistics use resting pulse from your health app when available, and label estimates. Step counts and rest timers are more reliable.',
         ),
       ],
     ),
@@ -329,7 +329,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -354,8 +354,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'Gesundheit und Timer verbessert',
-          body: 'Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.',
+          title: 'Ruhepuls und Timer',
+          body: 'Wenn deine Gesundheits-App einen Ruhepuls meldet, erscheint er im Tagebuch und in der Statistik. Schätzwerte sind gekennzeichnet. Schrittzahlen und Pausentimer wurden korrigiert.',
         ),
       ],
     ),
@@ -642,7 +642,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -667,8 +667,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'Santé et minuteurs améliorés',
-          body: 'Les données de fréquence cardiaque d’Apple Health peuvent à nouveau être lues et synchronisées manuellement. Le comptage des pas, les minuteurs de repos et d’autres fonctions ont été corrigés.',
+          title: 'Pouls au repos et minuteurs',
+          body: 'Le journal et les statistiques affichent le pouls au repos de votre app de santé lorsqu’il est disponible et signalent les estimations. Le comptage des pas et les minuteurs de repos ont été corrigés.',
         ),
       ],
     ),
@@ -955,7 +955,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -980,8 +980,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'Salute e timer migliorati',
-          body: 'I dati della frequenza cardiaca di Apple Health possono essere nuovamente letti e sincronizzati manualmente. Corretti anche il conteggio dei passi, i timer di riposo e altre funzioni.',
+          title: 'Frequenza a riposo e timer',
+          body: 'Il diario e le statistiche mostrano la frequenza cardiaca a riposo dell’app salute quando è disponibile e indicano i valori stimati. Il conteggio dei passi e i timer di recupero sono stati corretti.',
         ),
       ],
     ),
@@ -1268,7 +1268,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -1293,9 +1293,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'ヘルスとタイマーを改善',
-          body:
-              'Apple Healthの心拍数データを再び読み込み、手動で同期できるようになりました。歩数、休憩タイマーなども修正しました。',
+          title: '安静時心拍数とタイマー',
+          body: 'ヘルスケアアプリに安静時心拍数の記録があれば、日記と統計に表示します。推定値にはその旨を表示します。歩数と休憩タイマーも修正しました。',
         ),
       ],
     ),
@@ -1584,7 +1583,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'es': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -1609,8 +1608,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'Mejoras en salud y temporizadores',
-          body: 'Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.',
+          title: 'Pulso en reposo y temporizadores',
+          body: 'El diario y las estadísticas muestran el pulso en reposo de tu app de salud cuando está disponible e identifican las estimaciones. Se ha mejorado el recuento de pasos y los temporizadores de descanso.',
         ),
       ],
     ),
@@ -1648,7 +1647,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'nl': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1',
+      version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -1673,8 +1672,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
-          title: 'Gezondheid en timers verbeterd',
-          body: 'Hartslaggegevens uit Apple Health kunnen weer worden gelezen en handmatig gesynchroniseerd. Ook de stappentelling, rusttimers en andere functies zijn verbeterd.',
+          title: 'Rusthartslag en timers',
+          body: 'Je dagboek en statistieken tonen de rusthartslag van je gezondheidsapp als die beschikbaar is en markeren schattingen. Stappentellingen en rusttimers zijn verbeterd.',
         ),
       ],
     ),
@@ -1716,4 +1715,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.7.1';
+const String kWhatsNewGeneratedForVersion = '1.7.1-beta.1';

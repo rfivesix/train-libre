@@ -1,10 +1,10 @@
-Train Libre 1.7.1
+Train Libre 1.7.1-beta.1
 
 Please report crashes, lost data, incorrect totals, or unexpected changes. Include your device, iOS version, steps to reproduce, and screenshots where helpful. Health checks depend on permissions and available data.
 
-1. Update and data safety: Back up an existing 1.7.0 installation, update to 1.7.1, and restart. Confirm workouts, diary entries, plans, settings, and photos remain intact. Check the What’s New sheet. If possible, restore the backup on a test device.
+1. Update and data safety: Back up an existing 1.7.0 installation, update to this beta, and restart. Confirm workouts, diary entries, plans, settings, and photos remain intact. Check the What’s New sheet. If possible, restore the backup on a test device.
 
-2. Sleep, pulse, and steps: Grant Apple Health access and open the diary and sleep and pulse statistics. Check sleep stages, duration, charts, heart rate, and HRV where data is available. Try manual pulse sync in Health settings. Compare step totals with Apple Health, including days with both iPhone and Apple Watch data and around midnight. Check empty states and denied permissions.
+2. Sleep, pulse, and steps: Grant Apple Health access and open the diary and sleep and pulse statistics. Check sleep stages, duration, charts, heart rate, and HRV where data is available. In Health settings, use the shield beside Pulse to grant resting heart rate access. Compare the same day in Apple Health, Diary, and Pulse. Check that a day without a reported resting heart rate shows an estimate when regular pulse samples exist. Try manual pulse sync. Compare step totals with Apple Health, including days with both iPhone and Apple Watch data and around midnight. Check empty states and denied permissions.
 
 3. Workouts and rest timer: Start a workout and log completed and planned sets. Check the summary, muscle overview, and volume after editing or deleting sets. Trigger a personal record if possible. Finish a session and confirm it persists after restarting; separately test discarding a session and cancelling its confirmation. Adjust a rest timer in the app and from the Live Activity, including in the background; check the deadline and completion sound.
 

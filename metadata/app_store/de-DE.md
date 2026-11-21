@@ -66,7 +66,7 @@ Bestleistungen feiern: Neue persönliche Rekorde werden mit einer Animation und 
 
 Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
 
-Gesundheit und Timer verbessert: Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.
+Ruhepuls und Timer: Wenn deine Gesundheits-App einen Ruhepuls meldet, erscheint er im Tagebuch und in der Statistik. Schätzwerte sind gekennzeichnet. Schrittzahlen und Pausentimer wurden korrigiert.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

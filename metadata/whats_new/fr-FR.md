@@ -6,7 +6,7 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1 (2026-11-09)
+## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sommeil et récupération en un coup d’œil: La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).
 
@@ -16,7 +16,7 @@
 
 {sparkles} Le verre à votre goût: Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.
 
-{heart} Santé et minuteurs améliorés: Les données de fréquence cardiaque d’Apple Health peuvent à nouveau être lues et synchronisées manuellement. Le comptage des pas, les minuteurs de repos et d’autres fonctions ont été corrigés.
+{heart} Pouls au repos et minuteurs : Le journal et les statistiques affichent le pouls au repos de votre app de santé lorsqu’il est disponible et signalent les estimations. Le comptage des pas et les minuteurs de repos ont été corrigés.
 
 ## 1.7.0 (2026-11-03)
 

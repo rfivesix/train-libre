@@ -66,7 +66,7 @@ Celebrate personal records: New personal records are highlighted with an animati
 
 Glass your way: Adjust the glass appearance with a slider and see changes immediately in the preview.
 
-Health and timers improved: Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.
+Resting pulse and timers: Your diary and statistics use resting pulse from your health app when available, and label estimates. Step counts and rest timers are more reliable.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

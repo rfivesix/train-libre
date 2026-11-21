@@ -75,5 +75,5 @@ Vier persoonlijke records: Nieuwe persoonlijke records worden uitgelicht met een
 
 Glas naar jouw smaak: Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.
 
-Gezondheid en timers verbeterd: Hartslaggegevens uit Apple Health kunnen weer worden gelezen en handmatig gesynchroniseerd. Ook de stappentelling, rusttimers en andere functies zijn verbeterd.
+Rusthartslag en timers: Je dagboek en statistieken tonen de rusthartslag van je gezondheidsapp als die beschikbaar is en markeren schattingen. Stappentellingen en rusttimers zijn verbeterd.
 

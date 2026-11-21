@@ -6,7 +6,7 @@
   Regenera con: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1 (2026-11-09)
+## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sueño y recuperación de un vistazo: La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).
 
@@ -16,7 +16,7 @@
 
 {sparkles} Cristal a tu gusto: Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.
 
-{heart} Mejoras en salud y temporizadores: Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.
+{heart} Pulso en reposo y temporizadores: El diario y las estadísticas muestran el pulso en reposo de tu app de salud cuando está disponible e identifican las estimaciones. Se ha mejorado el recuento de pasos y los temporizadores de descanso.
 
 ## 1.7.0 (2026-11-03)
 

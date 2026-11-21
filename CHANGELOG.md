@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.7.1] - 2026-11-09
+## [1.7.1-beta.1] - 2026-11-21
 
 ### Fixed
 - Propagated the app theme's `primaryColor` through `AppGlassTheme`'s `CupertinoTheme` wrapper so Cupertino accents and controls match the active theme color.
@@ -59,7 +59,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Moved `TimeRangeFilter` into `GlobalAppBar` on the PR Dashboard, clarified timeframe e1RM gains vs. all-time records, made PR entries open Exercise Details, and unified `WaterStatisticsScreen` with `extendBodyBehindAppBar` and `SummaryCard` styling.
 - Replaced obscured Statistics hub placeholders with clear, tappable empty cards explaining what data is missing.
 - Gave Statistics hub cards fixed, metric-specific timeframes; date selection remains available in their detail screens.
-- Refreshed the five localized 1.7.1 release highlights and updated the website's project timeline through 1.7.1.
+- Refreshed the five localized 1.7.1-beta.1 release highlights and updated the website's project timeline.
 - Redesigned the sleep overview and statistics card with a contributor score ring, sleep-stage timeline, eight-hour goal comparison, and heart-rate and HRV charts. The overview now keeps only the interruptions detail card; the other detail screens remain in the project for later review.
 - Replaced the sleep score with a transparent, duration-focused heuristic and recalculate locally retained nights without deleting source data. Nights with recorded sleep stages and no detected awakenings receive a full wake-time continuity score.
 - Keep the live workout rest bar visible after the timer ends, with controls to adjust the rest or dismiss it; enlarged the timer and refined the compact Dynamic Island appearance while retaining the expanded layout.

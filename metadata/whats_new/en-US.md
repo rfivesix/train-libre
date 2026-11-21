@@ -6,7 +6,7 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.7.1 (2026-11-09)
+## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sleep and recovery at a glance: The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).
 
@@ -16,7 +16,7 @@
 
 {sparkles} Glass your way: Adjust the glass appearance with a slider and see changes immediately in the preview.
 
-{heart} Health and timers improved: Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.
+{heart} Resting pulse and timers: Your diary and statistics use resting pulse from your health app when available, and label estimates. Step counts and rest timers are more reliable.
 
 ## 1.7.0 (2026-11-03)
 

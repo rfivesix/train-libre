@@ -6,7 +6,7 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1 (2026-11-09)
+## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sonno e recupero a colpo d’occhio: La nuova panoramica mostra le fasi del sonno, la durata e la frequenza cardiaca. Con Apple Health puoi vedere anche la variabilità della frequenza cardiaca (HRV).
 
@@ -16,7 +16,7 @@
 
 {sparkles} Vetro come piace a te: Regola l’aspetto del vetro con un cursore e osserva subito le modifiche nell’anteprima.
 
-{heart} Salute e timer migliorati: I dati della frequenza cardiaca di Apple Health possono essere nuovamente letti e sincronizzati manualmente. Corretti anche il conteggio dei passi, i timer di riposo e altre funzioni.
+{heart} Frequenza a riposo e timer: Il diario e le statistiche mostrano la frequenza cardiaca a riposo dell’app salute quando è disponibile e indicano i valori stimati. Il conteggio dei passi e i timer di recupero sono stati corretti.
 
 ## 1.7.0 (2026-11-03)
 

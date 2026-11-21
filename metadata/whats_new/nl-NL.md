@@ -6,7 +6,7 @@
   Genereer opnieuw met: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1 (2026-11-09)
+## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Slaap en herstel in één oogopslag: Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).
 
@@ -16,7 +16,7 @@
 
 {sparkles} Glas naar jouw smaak: Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.
 
-{heart} Gezondheid en timers verbeterd: Hartslaggegevens uit Apple Health kunnen weer worden gelezen en handmatig gesynchroniseerd. Ook de stappentelling, rusttimers en andere functies zijn verbeterd.
+{heart} Rusthartslag en timers: Je dagboek en statistieken tonen de rusthartslag van je gezondheidsapp als die beschikbaar is en markeren schattingen. Stappentellingen en rusttimers zijn verbeterd.
 
 ## 1.7.0 (2026-11-03)
 

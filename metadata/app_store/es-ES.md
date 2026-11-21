@@ -75,5 +75,5 @@ Celebra tus récords personales: Los nuevos récords destacan con una animación
 
 Cristal a tu gusto: Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.
 
-Mejoras en salud y temporizadores: Ya se pueden volver a leer y sincronizar manualmente los datos de frecuencia cardíaca de Apple Health. También se han corregido los pasos, los temporizadores de descanso y otros procesos.
+Pulso en reposo y temporizadores: El diario y las estadísticas muestran el pulso en reposo de tu app de salud cuando está disponible e identifican las estimaciones. Se ha mejorado el recuento de pasos y los temporizadores de descanso.
 

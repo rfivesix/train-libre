@@ -66,7 +66,7 @@ Célébrez vos records personnels: Une animation et un retour haptique mettent e
 
 Le verre à votre goût: Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.
 
-Santé et minuteurs améliorés: Les données de fréquence cardiaque d’Apple Health peuvent à nouveau être lues et synchronisées manuellement. Le comptage des pas, les minuteurs de repos et d’autres fonctions ont été corrigés.
+Pouls au repos et minuteurs: Le journal et les statistiques affichent le pouls au repos de votre app de santé lorsqu’il est disponible et signalent les estimations. Le comptage des pas et les minuteurs de repos ont été corrigés.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

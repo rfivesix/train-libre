@@ -6,7 +6,7 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1 (2026-11-09)
+## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).
 
@@ -16,7 +16,7 @@
 
 {sparkles} Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
 
-{heart} Gesundheit und Timer verbessert: Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.
+{heart} Ruhepuls und Timer: Wenn deine Gesundheits-App einen Ruhepuls meldet, erscheint er im Tagebuch und in der Statistik. Schätzwerte sind gekennzeichnet. Schrittzahlen und Pausentimer wurden korrigiert.
 
 ## 1.7.0 (2026-11-03)
 
