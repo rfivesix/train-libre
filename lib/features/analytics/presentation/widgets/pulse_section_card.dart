@@ -54,9 +54,7 @@ class PulseSectionCard extends StatelessWidget {
         : '${summary!.restingBpm!.round()}';
     final stateText = summary == null
         ? l10n.load_dots
-        : summary.sampleCount > 0
-        ? '${l10n.pulseSampleCount(summary.sampleCount)} - ${_pulseQualityLabel(l10n, summary.quality)}'
-        : summary.hasData
+        : (summary.sampleCount > 0 || summary.hasData)
         ? null
         : _pulseNoDataMessage(l10n, summary.noDataReason);
 
@@ -169,15 +167,6 @@ class PulseSectionCard extends StatelessWidget {
       }
     }
     return Column(children: rows);
-  }
-
-  String _pulseQualityLabel(AppLocalizations l10n, PulseDataQuality quality) {
-    return switch (quality) {
-      PulseDataQuality.ready => l10n.pulseQualityReady,
-      PulseDataQuality.limited => l10n.pulseQualityLimited,
-      PulseDataQuality.insufficient => l10n.pulseQualityInsufficient,
-      PulseDataQuality.noData => l10n.pulseQualityNoData,
-    };
   }
 
   String _pulseNoDataMessage(AppLocalizations l10n, PulseNoDataReason reason) {

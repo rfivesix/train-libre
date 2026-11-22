@@ -87,7 +87,7 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
         final progress = target > 0 ? (average / target * 100).round() : 0;
         final hasData = data != null && data.trackedDays > 0;
         final chipLabel = widget.isRolling
-            ? TimeframeLabelFormatter.formatRolling(widget.block, l10n)
+            ? TimeframeLabelFormatter.formatRelativeRolling(widget.block, l10n)
             : TimeframeLabelFormatter.format(widget.block, widget.anchor, l10n);
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
           margin: EdgeInsets.zero,

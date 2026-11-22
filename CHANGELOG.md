@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1-beta.1] - 2026-11-21
 
 ### Fixed
+- Fixed double card padding in `StatisticsStepsCard` so its header, timeframe chip, and content align with all other Statistics hub cards.
 - Fixed the Calories KPI card in `MacroStatisticsScreen` changing height by a few pixels while scrubbing across days, and added `HapticFeedbackService` light-impact feedback when selecting or scrubbing across bars in `MacroHistoryStackedBarChart`.
 - Prevented calorie recommendations from increasing the planned deficit as a target date approaches when no recent weight has been logged.
 - Fixed onboarding weight-loss recommendations using the wrong rate direction or a zero default pace, and prevented profile creation from adding an unintended 70 kg weight measurement.
@@ -54,6 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Refined Statistics hub card designs and labels: removed the sample count/coverage footer from `PulseSectionCard`, narrowed `BodyMetricsSectionCard` to weight change and average daily calories, updated `MuscleVolumeSectionCard` to display average weekly sets per muscle group without top-3 bars, simplified `MicronutrientSectionCard` to a header-only preview without a timeframe chip, and unified rolling hub timeframe chips to consistent relative labels (`Last 7 days` / `Letzte 7 Tage`) via `TimeframeLabelFormatter.formatRelativeRolling`.
 - Allowed `ValueSummaryCard` subtitles to wrap up to two lines (`maxLines: 2`), formatted large metric `StatisticsOverviewCard` volumes in tons (`t`), highlighted top PR momentum in `PerformanceSectionCard`, and showed logged night counts on `SleepSectionCard` instead of repeating the mean score.
 - Redesigned and thematically reordered Statistics hub preview cards: compact 3-metric Body & Nutrition summary, macro gram badges on `MacroSectionCard`, 6-week mini bar chart on `ConsistencySectionCard`, top-3 muscle bars on `MuscleVolumeSectionCard`, latest weight preview on Measurements, 3-column Pulse fallback when HRV is unavailable, nutrient highlights on Micronutrients, clearer overview workout labels with skeleton loading, and a reset-to-defaults action in `StatisticsHubEditScreen`.
 - Redesigned the Nutrition (`MacroStatisticsScreen`) header into four compact, color-outlined KPI cards, added a dashed historical calorie-target line to the macro bar chart, and added a MAX period date range label.

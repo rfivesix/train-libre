@@ -19,7 +19,7 @@ class StatisticsStepsCard extends StatelessWidget {
   final int dailyGoal;
   final bool showChevron;
 
-  static const double _chipBackgroundOpacity = 0.12;
+  static const double _chipBackgroundOpacity = 0.14;
 
   const StatisticsStepsCard({
     super.key,
@@ -43,6 +43,7 @@ class StatisticsStepsCard extends StatelessWidget {
 
     return SummaryCard(
       margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(DesignConstants.spacingL),

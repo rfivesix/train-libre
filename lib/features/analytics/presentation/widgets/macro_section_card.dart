@@ -166,10 +166,16 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               label: l10n.foodDetailMacronutrientsGroup,
               chipText:
                   widget.rangeLabel ??
-                  TimeframeLabelFormatter.formatRolling(
-                    widget.activeBlockType,
-                    l10n,
-                  ),
+                  (widget.isRolling
+                      ? TimeframeLabelFormatter.formatRelativeRolling(
+                          widget.activeBlockType,
+                          l10n,
+                        )
+                      : TimeframeLabelFormatter.format(
+                          widget.activeBlockType,
+                          widget.anchorDate ?? DateTime.now(),
+                          l10n,
+                        )),
               trailingIcon: true,
             ),
               if (!_isLoading &&

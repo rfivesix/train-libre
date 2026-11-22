@@ -78,74 +78,19 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     return FutureBuilder<MicronutrientPeriodSummary>(
       future: _summary,
       builder: (context, snapshot) {
         final summary = snapshot.data;
-        final chipLabel = widget.isRolling
-            ? TimeframeLabelFormatter.formatRolling(widget.block, l10n)
-            : TimeframeLabelFormatter.format(widget.block, widget.anchor, l10n);
-        final hasNutrients = summary != null && summary.nutrients.isNotEmpty;
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
           margin: EdgeInsets.zero,
           padding: EdgeInsets.zero,
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(DesignConstants.spacingL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnalyticsCardBase.buildHeaderWithChevron(
-                  context,
-                  label: l10n.statisticsMicronutrientsTitle,
-                  chipText: chipLabel,
-                ),
-                const SizedBox(height: DesignConstants.spacingXS),
-                Text(
-                  hasNutrients
-                      ? l10n.statisticsMicronutrientsHubSummary(
-                          summary.blsLoggedDays,
-                          summary.nutrients.length,
-                        )
-                      : l10n.statisticsMicronutrientsPreviewSubtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: hasNutrients
-                        ? theme.colorScheme.onSurfaceVariant
-                        : theme.colorScheme.outline,
-                    fontWeight: hasNutrients ? FontWeight.w600 : null,
-                  ),
-                ),
-                if (hasNutrients) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: summary.nutrients
-                        .take(3)
-                        .map(
-                          (n) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DesignConstants.spacingS,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              '${n.name}: ${NumberFormat('0.#', l10n.localeName).format(n.averagePerLoggedDay)} ${n.unit}',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(growable: false),
-                  ),
-                ],
-              ],
+            child: AnalyticsCardBase.buildHeaderWithChevron(
+              context,
+              label: l10n.statisticsMicronutrientsTitle,
             ),
           ),
         );

@@ -47,9 +47,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
     final body = state.data;
     final unitService = Provider.of<UnitService>(context);
     final weightUnit = unitService.suffixFor(UnitDimension.weight);
-    final weightValue = body?.currentWeightKg == null
-        ? '-'
-        : '${unitService.convertDisplayValue(body!.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
     final weightChangeValue = body?.weightChangeKg == null
         ? '-'
         : '${body!.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(body.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
@@ -91,15 +88,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: ValueSummaryCard(
-                        label: l10n.metricsCurrentWeight,
-                        value: weightValue,
-                        disableShadow: true,
-                        useSecondarySurface: true,
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingS),
                     Expanded(
                       child: ValueSummaryCard(
                         label: l10n.metricsWeightChange,

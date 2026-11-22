@@ -564,7 +564,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   String _unifiedRangeLabel(
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
-  ) => TimeframeLabelFormatter.formatRolling(TimeframeBlock.week, l10n);
+  ) => TimeframeLabelFormatter.formatRelativeRolling(TimeframeBlock.week, l10n);
 
   Widget _buildSleepSection(
     BuildContext context,
