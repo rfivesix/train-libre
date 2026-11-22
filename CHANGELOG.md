@@ -77,7 +77,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reduced Apple Health and Health Connect export telemetry to at most one event per platform and device per day, only after a successful export writes data.
 - Sleep and Pulse charts show average values when no point is selected and display the selected value during touch. Pulse charts take up less vertical space, and the HRV line connects individual readings in the day view and daily averages in the week and month views.
 - Made food and recipe cards in Add Food more compact with the Statistics Hub's 16-point side insets and plain Lucide plus icons. Centered the food title and subtitle as a block and placed the recipe menu beside the add button.
-- 
+- Replaced the global app bar's static uniform blur with a top-to-bottom `ProgressiveBlur` and soft fade vignette that strengthens blur toward the status bar and dissolves seamlessly into page content without a bottom edge line.
+
 ## [1.7.0] - 2026-11-03
 
 ### Fixed
