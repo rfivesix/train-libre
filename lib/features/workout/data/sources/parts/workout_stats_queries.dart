@@ -2146,6 +2146,414 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     if (weeksBack <= 0) return 0;
     return completedCount / weeksBack;
   }
+
+  /// Computes personal records achieved within [start]..[end] across every
+  /// supported [ExerciseMetric] record type.
+  ///
+  /// For each exercise and metric, sets are evaluated chronologically across all
+  /// completed workouts up to [end]. A workout inside [start]..[end] registers
+  /// a record when it beats the running all-time best established by prior
+  /// workouts; the exercise's first workout ever establishes the initial
+  /// baseline rather than a PR with no prior reference.
+  Future<PeriodPersonalRecordsResult> getPeriodPersonalRecords({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    final dbInstance = await database;
+
+    final anyWorkoutRow =
+        await (dbInstance.select(dbInstance.workoutLogs)
+              ..where((tbl) => tbl.status.equals('completed'))
+              ..limit(1))
+            .getSingleOrNull();
+    final hasAnyCompletedWorkouts = anyWorkoutRow != null;
+    if (!hasAnyCompletedWorkouts) {
+      return PeriodPersonalRecordsResult(
+        hasAnyCompletedWorkouts: false,
+        recordsByMetric: {
+          for (final metric in ExerciseMetric.values) metric: const [],
+        },
+      );
+    }
+
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+            drift.innerJoin(
+              dbInstance.workoutLogs,
+              dbInstance.workoutLogs.id.equalsExp(
+                dbInstance.setLogs.workoutLogId,
+              ),
+            ),
+            drift.leftOuterJoin(
+              dbInstance.exercises,
+              dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+            ),
+          ])
+          ..where(
+            dbInstance.setLogs.isCompleted.equals(true) &
+                dbInstance.setLogs.setType.isNotIn(['warmup']) &
+                dbInstance.workoutLogs.status.equals('completed') &
+                dbInstance.workoutLogs.startTime.isSmallerOrEqualValue(end),
+          )
+          ..orderBy([
+            drift.OrderingTerm(expression: dbInstance.workoutLogs.startTime),
+            drift.OrderingTerm(expression: dbInstance.workoutLogs.localId),
+            drift.OrderingTerm(expression: dbInstance.setLogs.logOrder),
+            drift.OrderingTerm(expression: dbInstance.setLogs.localId),
+          ]);
+
+    final rows = await query.get();
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
+
+    // Group sets per (workoutKey, exerciseKey) preserving chronological workout order.
+    final workoutOrder = <String>[];
+    final workoutsById =
+        <
+          String,
+          ({
+            DateTime startTime,
+            Map<String, _PeriodExerciseWorkoutRollup> exercises,
+          })
+        >{};
+    final latestNames = <String, String>{};
+    final latestExerciseIds = <String, String?>{};
+
+    for (final row in rows) {
+      final setRow = row.readTable(dbInstance.setLogs);
+      final logRow = row.readTable(dbInstance.workoutLogs);
+      final exRow = row.readTableOrNull(dbInstance.exercises);
+
+      final rawName = (setRow.exerciseNameSnapshot ?? '').trim();
+      if (rawName.isEmpty) continue;
+
+      final exerciseKey = rawName.toLowerCase();
+      latestNames[exerciseKey] = rawName;
+      if (setRow.exerciseId != null && setRow.exerciseId!.isNotEmpty) {
+        latestExerciseIds[exerciseKey] = setRow.exerciseId;
+      }
+
+      final workoutKey = logRow.id;
+      var workoutEntry = workoutsById[workoutKey];
+      if (workoutEntry == null) {
+        workoutEntry = (
+          startTime: logRow.startTime,
+          exercises: <String, _PeriodExerciseWorkoutRollup>{},
+        );
+        workoutsById[workoutKey] = workoutEntry;
+        workoutOrder.add(workoutKey);
+      }
+
+      final rollup = workoutEntry.exercises.putIfAbsent(
+        exerciseKey,
+        _PeriodExerciseWorkoutRollup.new,
+      );
+
+      final isCardio = (exRow?.categoryName ?? '').toLowerCase() == 'cardio';
+      final shape = _PrShape.of(exRow?.trackingType, isCardio);
+      final reps = setRow.reps ?? 0;
+      final weight = setRow.weight ?? 0.0;
+      final distance = setRow.distance ?? 0.0;
+      final duration = setRow.durationSeconds ?? 0;
+      final bw = bodyweights.at(logRow.startTime);
+
+      if (shape == _PrShape.reps && reps > 0) {
+        final effectiveLoad = effectiveSetLoadKg(
+          trackingType: exRow?.trackingType,
+          loadMode: exRow?.loadMode,
+          loggedWeightKg: setRow.weight,
+          bodyweightKg: bw,
+        );
+
+        final e1rm = estimatedOneRepMaxKg(
+          trackingType: exRow?.trackingType,
+          loadMode: exRow?.loadMode,
+          loggedWeightKg: setRow.weight,
+          reps: reps,
+          bodyweightKg: bw,
+        );
+        if (e1rm != null && e1rm > 0) {
+          rollup.considerHigher(
+            ExerciseMetric.est1rm,
+            _PeriodMetricCandidate(
+              value: e1rm,
+              achievedAt: logRow.startTime,
+              weightKg: effectiveLoad,
+              reps: reps,
+            ),
+          );
+        }
+
+        final volume = setTonnageKg(
+          trackingType: exRow?.trackingType,
+          loadMode: exRow?.loadMode,
+          loggedWeightKg: setRow.weight,
+          reps: reps,
+          bodyweightKg: bw,
+        );
+        if (volume > 0) {
+          rollup.considerHigher(
+            ExerciseMetric.volume,
+            _PeriodMetricCandidate(
+              value: volume,
+              achievedAt: logRow.startTime,
+              weightKg: effectiveLoad,
+              reps: reps,
+            ),
+          );
+        }
+      }
+
+      final supportsMaxWeight =
+          (shape == _PrShape.reps || exRow?.trackingType == 'time_weight') &&
+          exRow?.loadMode != 'assisted' &&
+          weight > 0;
+      if (supportsMaxWeight) {
+        rollup.considerMaxWeight(
+          _PeriodMetricCandidate(
+            value: weight,
+            achievedAt: logRow.startTime,
+            weightKg: weight,
+            reps: reps > 0 ? reps : null,
+            durationSeconds: duration > 0 ? duration : null,
+          ),
+        );
+      }
+
+      if (shape == _PrShape.distance && distance > 0) {
+        rollup.considerHigher(
+          ExerciseMetric.distance,
+          _PeriodMetricCandidate(
+            value: distance,
+            achievedAt: logRow.startTime,
+            distanceKm: distance,
+            durationSeconds: duration > 0 ? duration : null,
+          ),
+        );
+      }
+
+      if ((shape == _PrShape.distance || shape == _PrShape.duration) &&
+          duration > 0) {
+        rollup.considerHigher(
+          ExerciseMetric.duration,
+          _PeriodMetricCandidate(
+            value: duration.toDouble(),
+            achievedAt: logRow.startTime,
+            distanceKm: distance > 0 ? distance : null,
+            durationSeconds: duration,
+          ),
+        );
+      }
+
+      if (shape == _PrShape.distance && distance > 0 && duration > 0) {
+        final paceSecPerKm = duration / distance;
+        rollup.considerPace(
+          _PeriodMetricCandidate(
+            value: paceSecPerKm,
+            achievedAt: logRow.startTime,
+            distanceKm: distance,
+            durationSeconds: duration,
+          ),
+        );
+      }
+    }
+
+    final states = <ExerciseMetric, Map<String, _PeriodExerciseState>>{
+      for (final metric in ExerciseMetric.values) metric: {},
+    };
+
+    for (final workoutKey in workoutOrder) {
+      final workout = workoutsById[workoutKey]!;
+      final inRange = !workout.startTime.isBefore(start);
+
+      for (final entry in workout.exercises.entries) {
+        final exerciseKey = entry.key;
+        final rollup = entry.value;
+
+        for (final metricEntry in rollup.bestByMetric.entries) {
+          final metric = metricEntry.key;
+          final candidate = metricEntry.value;
+          final state = states[metric]!.putIfAbsent(
+            exerciseKey,
+            _PeriodExerciseState.new,
+          );
+          final lowerIsBetter = metric == ExerciseMetric.pace;
+          final isBetter = state.runningBest == null
+              ? true
+              : (lowerIsBetter
+                    ? candidate.value < state.runningBest!
+                    : candidate.value > state.runningBest!);
+
+          if (!inRange) {
+            if (isBetter) {
+              state.runningBest = candidate.value;
+            }
+          } else {
+            if (state.runningBest == null) {
+              state.runningBest = candidate.value;
+              state.baselineBeforeRange = candidate.value;
+            } else if (isBetter) {
+              state.baselineBeforeRange ??= state.runningBest;
+              state.runningBest = candidate.value;
+              state.bestPrInRange = candidate;
+            }
+          }
+        }
+      }
+    }
+
+    final recordsByMetric = <ExerciseMetric, List<PeriodPersonalRecord>>{};
+    for (final metric in ExerciseMetric.values) {
+      final list = <PeriodPersonalRecord>[];
+      final lowerIsBetter = metric == ExerciseMetric.pace;
+      for (final entry in states[metric]!.entries) {
+        final exerciseKey = entry.key;
+        final state = entry.value;
+        final best = state.bestPrInRange;
+        final baseline = state.baselineBeforeRange;
+        if (best == null || baseline == null || baseline <= 0) continue;
+
+        final delta = lowerIsBetter
+            ? baseline - best.value
+            : best.value - baseline;
+        if (delta <= 0) continue;
+
+        final improvementPct = (delta / baseline) * 100.0;
+        list.add(
+          PeriodPersonalRecord(
+            metric: metric,
+            exerciseName: latestNames[exerciseKey] ?? exerciseKey,
+            exerciseId: latestExerciseIds[exerciseKey],
+            previousValue: baseline,
+            newValue: best.value,
+            deltaValue: delta,
+            improvementPct: improvementPct,
+            achievedAt: best.achievedAt,
+            weightKg: best.weightKg,
+            reps: best.reps,
+            distanceKm: best.distanceKm,
+            durationSeconds: best.durationSeconds,
+          ),
+        );
+      }
+
+      list.sort((a, b) {
+        final pctCmp = b.improvementPct.compareTo(a.improvementPct);
+        if (pctCmp != 0) return pctCmp;
+        final dateCmp = b.achievedAt.compareTo(a.achievedAt);
+        if (dateCmp != 0) return dateCmp;
+        return a.exerciseName.compareTo(b.exerciseName);
+      });
+      recordsByMetric[metric] = list;
+    }
+
+    PerfDebugTimer.logDuration(
+      area: 'db',
+      label: 'getPeriodPersonalRecords',
+      elapsed: stopwatch.elapsed,
+      fields: {'rows': rows.length},
+    );
+
+    return PeriodPersonalRecordsResult(
+      hasAnyCompletedWorkouts: true,
+      recordsByMetric: recordsByMetric,
+    );
+  }
+}
+
+class PeriodPersonalRecord {
+  final ExerciseMetric metric;
+  final String exerciseName;
+  final String? exerciseId;
+  final double previousValue;
+  final double newValue;
+  final double deltaValue;
+  final double improvementPct;
+  final DateTime achievedAt;
+  final double? weightKg;
+  final int? reps;
+  final double? distanceKm;
+  final int? durationSeconds;
+
+  const PeriodPersonalRecord({
+    required this.metric,
+    required this.exerciseName,
+    this.exerciseId,
+    required this.previousValue,
+    required this.newValue,
+    required this.deltaValue,
+    required this.improvementPct,
+    required this.achievedAt,
+    this.weightKg,
+    this.reps,
+    this.distanceKm,
+    this.durationSeconds,
+  });
+}
+
+class PeriodPersonalRecordsResult {
+  final bool hasAnyCompletedWorkouts;
+  final Map<ExerciseMetric, List<PeriodPersonalRecord>> recordsByMetric;
+
+  const PeriodPersonalRecordsResult({
+    required this.hasAnyCompletedWorkouts,
+    required this.recordsByMetric,
+  });
+}
+
+class _PeriodMetricCandidate {
+  final double value;
+  final DateTime achievedAt;
+  final double? weightKg;
+  final int? reps;
+  final double? distanceKm;
+  final int? durationSeconds;
+
+  const _PeriodMetricCandidate({
+    required this.value,
+    required this.achievedAt,
+    this.weightKg,
+    this.reps,
+    this.distanceKm,
+    this.durationSeconds,
+  });
+}
+
+class _PeriodExerciseWorkoutRollup {
+  final Map<ExerciseMetric, _PeriodMetricCandidate> bestByMetric = {};
+
+  void considerHigher(ExerciseMetric metric, _PeriodMetricCandidate candidate) {
+    final current = bestByMetric[metric];
+    if (current == null || candidate.value > current.value) {
+      bestByMetric[metric] = candidate;
+    }
+  }
+
+  void considerMaxWeight(_PeriodMetricCandidate candidate) {
+    final current = bestByMetric[ExerciseMetric.maxWeight];
+    if (current == null ||
+        candidate.value > current.value ||
+        (candidate.value == current.value &&
+            (candidate.reps ?? 0) > (current.reps ?? 0))) {
+      bestByMetric[ExerciseMetric.maxWeight] = candidate;
+    }
+  }
+
+  void considerPace(_PeriodMetricCandidate candidate) {
+    final current = bestByMetric[ExerciseMetric.pace];
+    if (current == null ||
+        candidate.value < current.value ||
+        (candidate.value == current.value &&
+            (candidate.distanceKm ?? 0) > (current.distanceKm ?? 0))) {
+      bestByMetric[ExerciseMetric.pace] = candidate;
+    }
+  }
+}
+
+class _PeriodExerciseState {
+  double? runningBest;
+  double? baselineBeforeRange;
+  _PeriodMetricCandidate? bestPrInRange;
 }
 
 class _ExerciseMuscleLookup {

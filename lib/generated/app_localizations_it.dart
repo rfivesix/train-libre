@@ -9877,7 +9877,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get analyticsPrImprovementsWindowHint =>
-      'Miglioramenti e1RM vs periodo precedente';
+      'Miglioramenti vs record precedente';
 
   @override
   String get analyticsAllTimeBadge => 'Di sempre';

@@ -4450,7 +4450,7 @@
   "analyticsConsecutiveWeeks": "Semanas seguidas",
   "analyticsSelectWorkout": "Elegir entrenamiento",
   "analyticsNoWorkoutsOnDay": "Sin entrenamientos este día",
-  "analyticsPrImprovementsWindowHint": "Mejoras de e1RM vs. período previo",
+  "analyticsPrImprovementsWindowHint": "Mejoras vs. mejor marca previa",
   "analyticsAllTimeBadge": "Histórico",
   "stepsModuleGoalProgress": "Progreso de objetivo",
   "analyticsWaterTargetLabel": "Objetivo diario",

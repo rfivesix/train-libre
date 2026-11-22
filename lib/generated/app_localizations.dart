@@ -17160,7 +17160,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsPrImprovementsWindowHint.
   ///
   /// In en, this message translates to:
-  /// **'e1RM gains vs. prior period'**
+  /// **'Improvements vs. previous personal best'**
   String get analyticsPrImprovementsWindowHint;
 
   /// No description provided for @analyticsAllTimeBadge.

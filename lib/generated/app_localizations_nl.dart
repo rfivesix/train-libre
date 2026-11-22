@@ -9846,7 +9846,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get analyticsPrImprovementsWindowHint =>
-      'e1RM-winst t.o.v. vorige periode';
+      'Verbetering t.o.v. vorig persoonlijk record';
 
   @override
   String get analyticsAllTimeBadge => 'Altijd';

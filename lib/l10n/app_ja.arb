@@ -3959,7 +3959,7 @@
   "analyticsConsecutiveWeeks": "連続週数",
   "analyticsSelectWorkout": "ワークアウトを選択",
   "analyticsNoWorkoutsOnDay": "この日のワークアウトはありません",
-  "analyticsPrImprovementsWindowHint": "前期間比のe1RM向上",
+  "analyticsPrImprovementsWindowHint": "自己ベストからの向上",
   "analyticsAllTimeBadge": "全期間",
   "stepsModuleGoalProgress": "目標達成率",
   "analyticsWaterTargetLabel": "1日の目標",

@@ -9395,7 +9395,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsNoWorkoutsOnDay => 'この日のワークアウトはありません';
 
   @override
-  String get analyticsPrImprovementsWindowHint => '前期間比のe1RM向上';
+  String get analyticsPrImprovementsWindowHint => '自己ベストからの向上';
 
   @override
   String get analyticsAllTimeBadge => '全期間';

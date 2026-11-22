@@ -1,5 +1,6 @@
 import 'dart:isolate';
 
+import '../../exercise_catalog/domain/exercise_metrics.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 import '../../../util/perf_debug_timer.dart';
@@ -114,9 +115,9 @@ class StatisticsHubDataAdapter {
       final improvements = PerfDebugTimer.time(
         area: 'statistics',
         label: 'notablePrImprovements',
-        action: () => _workoutDatabaseHelper.getNotablePrImprovements(
-          daysWindow: improvementRange.effectiveDays ?? 30,
-          limit: 100,
+        action: () => _fetchMaxWeightPeriodRecords(
+          anchorDate: anchorDate,
+          effectiveDays: improvementRange.effectiveDays ?? 30,
         ),
       );
       final bodyNutrition = PerfDebugTimer.time(
@@ -284,9 +285,9 @@ class StatisticsHubDataAdapter {
       PerfDebugTimer.time(
         area: 'statistics',
         label: 'notablePrImprovements',
-        action: () => _workoutDatabaseHelper.getNotablePrImprovements(
-          daysWindow: improvementRange.effectiveDays ?? 30,
-          limit: 100,
+        action: () => _fetchMaxWeightPeriodRecords(
+          anchorDate: anchorDate,
+          effectiveDays: improvementRange.effectiveDays ?? 30,
         ),
       ),
     ]);
@@ -295,6 +296,46 @@ class StatisticsHubDataAdapter {
       recentPrs: results[0] as List<Map<String, dynamic>>,
       notableImprovements: results[1] as List<Map<String, dynamic>>,
     );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchMaxWeightPeriodRecords({
+    required DateTime anchorDate,
+    required int effectiveDays,
+  }) async {
+    final startDay = anchorDate.subtract(
+      Duration(days: (effectiveDays - 1).clamp(0, 3650)),
+    );
+    final start = DateTime(startDay.year, startDay.month, startDay.day);
+    final end = DateTime(
+      anchorDate.year,
+      anchorDate.month,
+      anchorDate.day,
+      23,
+      59,
+      59,
+      999,
+    );
+    final result = await _workoutDatabaseHelper.getPeriodPersonalRecords(
+      start: start,
+      end: end,
+    );
+    final maxWeightRecords =
+        result.recordsByMetric[ExerciseMetric.maxWeight] ?? const [];
+    return maxWeightRecords
+        .map(
+          (r) => <String, dynamic>{
+            'exerciseName': r.exerciseName,
+            'previousBestWeight': r.previousValue,
+            'newBestWeight': r.newValue,
+            'deltaWeight': r.deltaValue,
+            'weightKg': r.weightKg ?? r.newValue,
+            'reps': r.reps,
+            'durationSeconds': r.durationSeconds,
+            'improvementPct': r.improvementPct,
+            'achievedAt': r.achievedAt,
+          },
+        )
+        .toList(growable: false);
   }
 
   Future<

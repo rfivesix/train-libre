@@ -9748,7 +9748,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsNoWorkoutsOnDay => 'No workouts on this day';
 
   @override
-  String get analyticsPrImprovementsWindowHint => 'e1RM gains vs. prior period';
+  String get analyticsPrImprovementsWindowHint =>
+      'Improvements vs. previous personal best';
 
   @override
   String get analyticsAllTimeBadge => 'All-time';

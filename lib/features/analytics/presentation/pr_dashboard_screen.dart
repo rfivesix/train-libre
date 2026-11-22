@@ -1,48 +1,59 @@
-import 'package:material_ui/material_ui.dart';
+import 'dart:async';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import '../../../generated/app_localizations.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/unit_service.dart';
+import '../../../util/design_constants.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/common.dart';
+import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
+import '../../../widgets/common/seamless_loading_overlay.dart';
+import '../../../widgets/common/summary_card.dart';
+import '../../exercise_catalog/domain/exercise_metrics.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../../exercise_catalog/domain/repositories/exercise_catalog_repository.dart';
 import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
-import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
-import '../../../generated/app_localizations.dart';
-import '../../../util/design_constants.dart';
-import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/seamless_loading_overlay.dart';
-import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/common.dart';
-import '../../../widgets/common/app_segmented_control.dart';
+import '../../workout/data/sources/workout_local_data_source.dart';
 
-import 'package:provider/provider.dart';
-
-import '../../../services/unit_service.dart';
-import '../../../util/timeframe_label_formatter.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart'
-    as adaptive_pickers;
-
-import 'dart:async';
-
-import '../../../services/telemetry/telemetry_service.dart';
-
-enum _RecordOverview { recent, repRange }
+typedef PeriodRecordsLoader =
+    Future<PeriodPersonalRecordsResult> Function(DateTime start, DateTime end);
 
 class PRDashboardScreen extends StatefulWidget {
-  const PRDashboardScreen({super.key});
+  final PeriodRecordsLoader? loadPeriodRecords;
+
+  const PRDashboardScreen({super.key, this.loadPeriodRecords});
 
   @override
   State<PRDashboardScreen> createState() => _PRDashboardScreenState();
 }
 
 class _PRDashboardScreenState extends State<PRDashboardScreen> {
+  static const List<ExerciseMetric> _recordTypes = [
+    ExerciseMetric.maxWeight,
+    ExerciseMetric.est1rm,
+    ExerciseMetric.volume,
+    ExerciseMetric.distance,
+    ExerciseMetric.duration,
+    ExerciseMetric.pace,
+  ];
+
   bool _isRolling = true;
   bool _isLoading = true;
+  bool _hasAnyCompletedWorkouts = true;
 
   TimeframeBlock _activeBlock = TimeframeBlock.month;
   DateTime _anchorDate = DateTime.now();
+  ExerciseMetric _selectedMetric = ExerciseMetric.maxWeight;
 
   final List<TimeframeBlock> _validBlocks = const [
     TimeframeBlock.week,
@@ -60,10 +71,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     l10n.filterMax,
   ];
 
-  List<Map<String, dynamic>> _recentPrs = [];
-  List<Map<String, dynamic>> _notableImprovements = [];
-  Map<String, Map<String, dynamic>?> _prsByRepRange = const {};
-  _RecordOverview _recordOverview = _RecordOverview.recent;
+  Map<ExerciseMetric, List<PeriodPersonalRecord>> _recordsByMetric = const {};
 
   @override
   void initState() {
@@ -79,87 +87,432 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    final recent = WorkoutLocalDataSource.instance.getRecentGlobalPRs(limit: 8);
-    final repRange = WorkoutLocalDataSource.instance
-        .getAllTimePRsByRepBracket();
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final daysBack = DateTime.now()
-        .difference(bounds.start)
-        .inDays
-        .clamp(1, 3650);
+    final queryEnd = _isRolling
+        ? bounds.end
+        : DateTime(
+            bounds.end.year,
+            bounds.end.month,
+            bounds.end.day,
+            23,
+            59,
+            59,
+            999,
+          );
 
-    final improvements = WorkoutLocalDataSource.instance
-        .getNotablePrImprovements(
-          daysWindow: daysBack,
-          limit: 100,
-          sortByRecentDate: true,
-        );
+    final loader =
+        widget.loadPeriodRecords ??
+        ((DateTime start, DateTime end) => WorkoutLocalDataSource.instance
+            .getPeriodPersonalRecords(start: start, end: end));
 
-    final results = await Future.wait([recent, repRange, improvements]);
+    final result = await loader(bounds.start, queryEnd);
 
     if (!mounted) return;
     setState(() {
-      _recentPrs = results[0] as List<Map<String, dynamic>>;
-      _prsByRepRange = results[1] as Map<String, Map<String, dynamic>?>;
-      _notableImprovements = results[2] as List<Map<String, dynamic>>;
+      _hasAnyCompletedWorkouts = result.hasAnyCompletedWorkouts;
+      _recordsByMetric = result.recordsByMetric;
       _isLoading = false;
     });
   }
 
-  String _perfLabel(Map<String, dynamic> row) {
-    final weight = (row['weight'] as num).toDouble();
-    final reps = (row['reps'] as num).toInt();
-    final unitService = Provider.of<UnitService>(context);
-    final displayWeight = unitService.convertDisplayValue(
-      weight,
-      UnitDimension.weight,
-    );
-    final weightText = StatisticsPresentationFormatter.formatWeight(
-      displayWeight,
-    );
-    return '$weightText ${context.read<UnitService>().suffixFor(UnitDimension.weight)} x $reps';
-  }
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
-  String _formatDisplayWeight(double weightKg) {
-    final unitService = context.read<UnitService>();
+  String _metricLabel(ExerciseMetric metric, AppLocalizations l10n) =>
+      switch (metric) {
+        ExerciseMetric.est1rm => l10n.exerciseMetricEst1RM,
+        ExerciseMetric.maxWeight => l10n.exerciseMetricMaxWeight,
+        ExerciseMetric.volume => l10n.exerciseMetricVolume,
+        ExerciseMetric.distance => l10n.exerciseMetricDistance,
+        ExerciseMetric.duration => l10n.exerciseMetricDuration,
+        ExerciseMetric.pace => l10n.exerciseMetricPace,
+      };
+
+  String _formatDisplayWeight(
+    double weightKg,
+    UnitService unitService, {
+    int? fractionDigits,
+  }) {
     final displayWeight = unitService.convertDisplayValue(
       weightKg,
       UnitDimension.weight,
     );
+    if (fractionDigits == 0) {
+      return displayWeight.round().toString();
+    }
     return StatisticsPresentationFormatter.formatWeight(displayWeight);
   }
 
-  String _formatRecordDate(DateTime? date) {
-    if (date == null) return '';
+  String _formatDisplayDistance(double distanceKm, UnitService unitService) {
+    final displayDistance = unitService.convertDisplayValue(
+      distanceKm,
+      UnitDimension.distance,
+    );
+    return displayDistance
+        .toStringAsFixed(2)
+        .replaceAll(RegExp(r'0*$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+  }
+
+  String _formatClockDuration(int seconds) {
+    final clamped = seconds < 0 ? 0 : seconds;
+    final hours = clamped ~/ 3600;
+    final mins = (clamped % 3600) ~/ 60;
+    final secs = clamped % 60;
+    if (hours > 0) {
+      return '$hours:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    }
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDurationDelta(int seconds) {
+    final clamped = seconds < 0 ? 0 : seconds;
+    final mins = clamped ~/ 60;
+    final secs = clamped % 60;
+    return mins > 0 ? '${mins}m ${secs}s' : '${secs}s';
+  }
+
+  double _paceSecondsInUserUnit(double secondsPerKm, UnitService unitService) {
+    if (unitService.isMetric) return secondsPerKm;
+    return secondsPerKm / UnitService.kmToMi(1.0);
+  }
+
+  String _formatPace(double secondsPerKm, UnitService unitService) {
+    final totalSecs = _paceSecondsInUserUnit(secondsPerKm, unitService).round();
+    final mins = totalSecs ~/ 60;
+    final secs = totalSecs % 60;
+    return '$mins:${secs.toString().padLeft(2, '0')} / ${unitService.suffixFor(UnitDimension.distance)}';
+  }
+
+  String _formatDelta(PeriodPersonalRecord record, UnitService unitService) {
+    final weightUnit = unitService.suffixFor(UnitDimension.weight);
+    final distanceUnit = unitService.suffixFor(UnitDimension.distance);
+    return switch (record.metric) {
+      ExerciseMetric.est1rm || ExerciseMetric.maxWeight =>
+        '+${_formatDisplayWeight(record.deltaValue, unitService)} $weightUnit',
+      ExerciseMetric.volume =>
+        '+${_formatDisplayWeight(record.deltaValue, unitService, fractionDigits: 0)} $weightUnit',
+      ExerciseMetric.distance =>
+        '+${_formatDisplayDistance(record.deltaValue, unitService)} $distanceUnit',
+      ExerciseMetric.duration => '+${_formatDurationDelta(record.deltaValue.round())}',
+      ExerciseMetric.pace =>
+        '-${_formatDurationDelta(_paceSecondsInUserUnit(record.deltaValue, unitService).round())} / $distanceUnit',
+    };
+  }
+
+  String _formatRecordPerformance(
+    PeriodPersonalRecord record,
+    UnitService unitService,
+  ) {
+    final weightUnit = unitService.suffixFor(UnitDimension.weight);
+    final distanceUnit = unitService.suffixFor(UnitDimension.distance);
+
+    switch (record.metric) {
+      case ExerciseMetric.maxWeight:
+        final weightText =
+            '${_formatDisplayWeight(record.weightKg ?? record.newValue, unitService)} $weightUnit';
+        if (record.reps != null && record.reps! > 0) {
+          return '$weightText × ${record.reps}';
+        }
+        if (record.durationSeconds != null && record.durationSeconds! > 0) {
+          return '$weightText · ${_formatClockDuration(record.durationSeconds!)}';
+        }
+        return weightText;
+      case ExerciseMetric.est1rm:
+        final e1rmText =
+            '${_formatDisplayWeight(record.newValue, unitService)} $weightUnit';
+        if (record.weightKg != null &&
+            record.weightKg! > 0 &&
+            record.reps != null &&
+            record.reps! > 0) {
+          final setWeightText =
+              '${_formatDisplayWeight(record.weightKg!, unitService)} $weightUnit';
+          return '$e1rmText · $setWeightText × ${record.reps}';
+        }
+        return e1rmText;
+      case ExerciseMetric.volume:
+        final volText =
+            '${_formatDisplayWeight(record.newValue, unitService, fractionDigits: 0)} $weightUnit';
+        if (record.weightKg != null &&
+            record.weightKg! > 0 &&
+            record.reps != null &&
+            record.reps! > 0) {
+          final setWeightText =
+              '${_formatDisplayWeight(record.weightKg!, unitService)} $weightUnit';
+          return '$volText · $setWeightText × ${record.reps}';
+        }
+        return volText;
+      case ExerciseMetric.distance:
+        final distText =
+            '${_formatDisplayDistance(record.newValue, unitService)} $distanceUnit';
+        if (record.durationSeconds != null && record.durationSeconds! > 0) {
+          return '$distText · ${_formatClockDuration(record.durationSeconds!)}';
+        }
+        return distText;
+      case ExerciseMetric.duration:
+        final durText = _formatClockDuration(record.newValue.round());
+        if (record.distanceKm != null && record.distanceKm! > 0) {
+          return '$durText · ${_formatDisplayDistance(record.distanceKm!, unitService)} $distanceUnit';
+        }
+        return durText;
+      case ExerciseMetric.pace:
+        final paceText = _formatPace(record.newValue, unitService);
+        if (record.distanceKm != null && record.distanceKm! > 0) {
+          return '$paceText · ${_formatDisplayDistance(record.distanceKm!, unitService)} $distanceUnit';
+        }
+        return paceText;
+    }
+  }
+
+  String _formatRecordDate(DateTime date) {
     return DateFormat.yMMMd(Localizations.localeOf(context).toString())
         .format(date);
   }
 
-  AppLocalizations get l10n => AppLocalizations.of(context)!;
+  List<PeriodPersonalRecord> _mockRecordsForColdStart() {
+    final now = DateTime.now();
+    return [
+      PeriodPersonalRecord(
+        metric: _selectedMetric,
+        exerciseName: 'Bench Press',
+        previousValue: 80.0,
+        newValue: 85.0,
+        deltaValue: 5.0,
+        improvementPct: 6.25,
+        achievedAt: now.subtract(const Duration(days: 1)),
+        weightKg: 72.5,
+        reps: 5,
+      ),
+      PeriodPersonalRecord(
+        metric: _selectedMetric,
+        exerciseName: 'Squats',
+        previousValue: 100.0,
+        newValue: 108.0,
+        deltaValue: 8.0,
+        improvementPct: 8.0,
+        achievedAt: now.subtract(const Duration(days: 3)),
+        weightKg: 95.0,
+        reps: 5,
+      ),
+    ];
+  }
+
+  Future<void> _openExerciseDetail(
+    String exerciseName, {
+    String? exerciseId,
+  }) async {
+    final trimmed = exerciseName.trim();
+    if (trimmed.isEmpty) return;
+
+    Exercise? exercise;
+    try {
+      final repo = context.read<IExerciseCatalogRepository>();
+      if (exerciseId != null && exerciseId.isNotEmpty) {
+        exercise = await repo.getExerciseByUuid(exerciseId);
+      }
+      exercise ??= await repo.getExerciseByName(trimmed);
+    } catch (_) {
+      exercise = null;
+    }
+    exercise ??= await WorkoutLocalDataSource.instance.getExerciseByName(
+      trimmed,
+    );
+    if (!mounted || exercise == null) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ExerciseDetailScreen(exercise: exercise!),
+      ),
+    );
+  }
+
+  Widget _buildRecordTypeDropdown(BuildContext context) {
+    return PlatformAdaptiveChipDropdown<ExerciseMetric>(
+      key: const ValueKey('pr_dashboard_record_type_menu'),
+      selectedValue: _selectedMetric,
+      selectedLabel: _metricLabel(_selectedMetric, l10n),
+      onSelected: (metric) {
+        if (metric == _selectedMetric) return;
+        setState(() => _selectedMetric = metric);
+      },
+      items: [
+        for (final metric in _recordTypes)
+          PlatformAdaptivePopupMenuItem<ExerciseMetric>(
+            value: metric,
+            label: _metricLabel(metric, l10n),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
+  }
+
+  Widget _buildRecordCard(
+    BuildContext context,
+    PeriodPersonalRecord record,
+    UnitService unitService,
+  ) {
+    final theme = Theme.of(context);
+    final mutedColor = theme.colorScheme.onSurface.withValues(alpha: 0.55);
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingM,
+        vertical: DesignConstants.spacingS,
+      ),
+      onTap: () => _openExerciseDetail(
+        record.exerciseName,
+        exerciseId: record.exerciseId,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.exerciseName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _formatRecordPerformance(record, unitService),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${_formatDelta(record, unitService)} · ${_formatRecordDate(record.achievedAt)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: mutedColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: DesignConstants.spacingS),
+          Icon(
+            LucideIcons.chevron_right,
+            size: 16,
+            color: mutedColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBodyContent(
+    BuildContext context,
+    List<PeriodPersonalRecord> records,
+  ) {
+    final unitService = context.watch<UnitService>();
+    final strongestBreakthrough = records.isEmpty ? null : records.first;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTwoColumnGrid([
+          ValueSummaryCard(
+            value: '${records.length}',
+            label: l10n.analyticsNewBestPerformances,
+            subtitle: l10n.analyticsInTimeframe,
+          ),
+          ValueSummaryCard(
+            value: strongestBreakthrough == null
+                ? '–'
+                : _formatDelta(strongestBreakthrough, unitService),
+            label: l10n.analyticsStrongestBreakthrough,
+            subtitle: strongestBreakthrough == null
+                ? l10n.analyticsNoRecordYet
+                : strongestBreakthrough.exerciseName,
+            onTap: strongestBreakthrough == null
+                ? null
+                : () => _openExerciseDetail(
+                    strongestBreakthrough.exerciseName,
+                    exerciseId: strongestBreakthrough.exerciseId,
+                  ),
+          ),
+        ]),
+        const SizedBox(height: DesignConstants.spacingS),
+        if (records.isEmpty)
+          SummaryCard(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: DesignConstants.spacingS,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: Text(
+                  l10n.analyticsNoRecordsInPeriod,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          )
+        else
+          Column(
+            children: [
+              for (var i = 0; i < records.length; i++) ...[
+                _buildRecordCard(context, records[i], unitService),
+                if (i + 1 < records.length)
+                  const SizedBox(height: DesignConstants.spacingS),
+              ],
+            ],
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
-    final hasNoData = _recentPrs.isEmpty && _notableImprovements.isEmpty;
-    final displayNotable = hasNoData
-        ? getMockNotableImprovements()
-        : _notableImprovements;
-    final displayRecent = hasNoData ? getMockRecentPrs() : _recentPrs;
-    final displayByRepRange = hasNoData
-        ? getMockPrsByRepRange()
-        : _prsByRepRange;
+    final showColdStartOverlay = !_isLoading && !_hasAnyCompletedWorkouts;
+    final activeRecords = _recordsByMetric[_selectedMetric] ?? const [];
+    final displayRecords = showColdStartOverlay
+        ? _mockRecordsForColdStart()
+        : activeRecords;
 
-    Widget bodyContent = _buildBodyContent(
-      displayNotable,
-      displayRecent,
-      displayByRepRange,
-    );
+    Widget bodyContent = _buildBodyContent(context, displayRecords);
 
-    if (hasNoData) {
+    if (showColdStartOverlay) {
       bodyContent = ActiveGapOverlay(
         message: l10n.analyticsNoRecordsInPeriod,
         background: Skeletonizer(
@@ -279,7 +632,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
       ),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: false, // Handle empty state at timeframe/content level
+        isEmpty: false,
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
@@ -292,313 +645,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
               AppSectionHeader(
                 title: l10n.analyticsNewBestPerformances,
                 isFirst: true,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 4,
-                  bottom: DesignConstants.spacingS,
-                ),
-                child: Text(
-                  l10n.analyticsPrImprovementsWindowHint,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
+                action: _buildRecordTypeDropdown(context),
               ),
               bodyContent,
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _openExerciseDetail(String exerciseName) async {
-    final trimmed = exerciseName.trim();
-    if (trimmed.isEmpty) return;
-
-    Exercise? exercise;
-    try {
-      exercise = await context.read<IExerciseCatalogRepository>().getExerciseByName(
-        trimmed,
-      );
-    } catch (_) {
-      exercise = null;
-    }
-    exercise ??= await WorkoutLocalDataSource.instance.getExerciseByName(trimmed);
-    if (!mounted || exercise == null) return;
-
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ExerciseDetailScreen(exercise: exercise!),
-      ),
-    );
-  }
-
-  Widget _buildTwoColumnGrid(List<Widget> items) {
-    final rows = <Widget>[];
-    for (var i = 0; i < items.length; i += 2) {
-      final left = items[i];
-      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
-      rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: left),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(child: right),
-            ],
-          ),
-        ),
-      );
-      if (i + 2 < items.length) {
-        rows.add(const SizedBox(height: DesignConstants.spacingS));
-      }
-    }
-    return Column(children: rows);
-  }
-
-  Widget _buildRecentRecordRow(Map<String, dynamic> record) {
-    final achievedAt = record['achievedAt'] as DateTime?;
-    final exerciseName = record['exerciseName'] as String;
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      onTap: () => _openExerciseDetail(exerciseName),
-      title: Text(
-        exerciseName,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: achievedAt == null ? null : Text(_formatRecordDate(achievedAt)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _perfLabel(record),
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 4),
-          Icon(
-            LucideIcons.chevron_right,
-            size: 16,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Map<String, dynamic>> getMockNotableImprovements() {
-    return [
-      {
-        'exerciseName': 'Bench Press',
-        'previousBestE1rm': 80.0,
-        'recentBestE1rm': 85.0,
-        'improvementPct': 6.25,
-        'achievedAt': DateTime.now().subtract(const Duration(days: 1)),
-      },
-      {
-        'exerciseName': 'Squat',
-        'previousBestE1rm': 100.0,
-        'recentBestE1rm': 108.0,
-        'improvementPct': 8.0,
-        'achievedAt': DateTime.now().subtract(const Duration(days: 3)),
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> getMockRecentPrs() {
-    return [
-      {
-        'exerciseName': 'Bench Press',
-        'weight': 82.5,
-        'reps': 5,
-        'achievedAt': DateTime.now().subtract(const Duration(days: 1)),
-      },
-      {
-        'exerciseName': 'Squat',
-        'weight': 105.0,
-        'reps': 3,
-        'achievedAt': DateTime.now().subtract(const Duration(days: 4)),
-      },
-    ];
-  }
-
-  Map<String, Map<String, dynamic>?> getMockPrsByRepRange() {
-    return {
-      '1 RM': {'exerciseName': 'Squat', 'weight': 115.0, 'reps': 1},
-      '2–3 RM': {'exerciseName': 'Bench Press', 'weight': 85.0, 'reps': 3},
-      '4–6 RM': {'exerciseName': 'Squat', 'weight': 105.0, 'reps': 5},
-      '7–10 RM': {'exerciseName': 'Deadlift', 'weight': 130.0, 'reps': 8},
-      '11–15 RM': null,
-      '15+ RM': null,
-    };
-  }
-
-  Widget _buildBodyContent(
-    List<Map<String, dynamic>> notableImprovements,
-    List<Map<String, dynamic>> recentPrs,
-    Map<String, Map<String, dynamic>?> prsByRepRange,
-  ) {
-    final strongestImprovement = notableImprovements.isEmpty
-        ? null
-        : notableImprovements.reduce(
-            (strongest, candidate) =>
-                (candidate['improvementPct'] as num).toDouble() >
-                    (strongest['improvementPct'] as num).toDouble()
-                ? candidate
-                : strongest,
-          );
-    final unit = context.read<UnitService>().suffixFor(UnitDimension.weight);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildTwoColumnGrid([
-          ValueSummaryCard(
-            value: '${notableImprovements.length}',
-            label: l10n.analyticsNewBestPerformances,
-            subtitle: l10n.analyticsInTimeframe,
-          ),
-          ValueSummaryCard(
-            value: strongestImprovement == null
-                ? '–'
-                : '+${_formatDisplayWeight((strongestImprovement['recentBestE1rm'] as num).toDouble() - (strongestImprovement['previousBestE1rm'] as num).toDouble())} $unit',
-            label: l10n.analyticsStrongestBreakthrough,
-            subtitle: strongestImprovement == null
-                ? l10n.analyticsNoRecordYet
-                : strongestImprovement['exerciseName'] as String,
-          ),
-        ]),
-        const SizedBox(height: DesignConstants.spacingS),
-        SummaryCard(
-          child: notableImprovements.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(DesignConstants.spacingM),
-                  child: Text(l10n.analyticsNoPrTrendInWindow),
-                )
-              : Column(
-                  children: notableImprovements.asMap().entries.map((entry) {
-                    final row = entry.value;
-                    final previous = (row['previousBestE1rm'] as num)
-                        .toDouble();
-                    final recent = (row['recentBestE1rm'] as num).toDouble();
-                    final improvement = (row['improvementPct'] as num)
-                        .toDouble();
-                    final achievedAt = row['achievedAt'] as DateTime?;
-
-                    final exerciseName = row['exerciseName'] as String;
-
-                    return ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      onTap: () => _openExerciseDetail(exerciseName),
-                      title: Text(
-                        exerciseName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        '${achievedAt == null ? '' : '${_formatRecordDate(achievedAt)} · '}${l10n.analyticsE1rmProgress(_formatDisplayWeight(previous), _formatDisplayWeight(recent), unit)}',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '+${improvement.toStringAsFixed(1)}%',
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            LucideIcons.chevron_right,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
-        AppSectionHeader(
-          title: l10n.analyticsRecordOverview,
-          action: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingS,
-              vertical: 3,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              l10n.analyticsAllTimeBadge,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-        AppSegmentedControl<_RecordOverview>(
-          children: {
-            _RecordOverview.recent: l10n.analyticsRecentlySet,
-            _RecordOverview.repRange: l10n.analyticsByRepetitionRange,
-          },
-          groupValue: _recordOverview,
-          onValueChanged: (value) => setState(() => _recordOverview = value),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        if (_recordOverview == _RecordOverview.recent)
-          SummaryCard(
-            child: recentPrs.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(DesignConstants.spacingM),
-                    child: Text(l10n.noWorkoutDataLabel),
-                  )
-                : Column(
-                    children: recentPrs
-                        .map(_buildRecentRecordRow)
-                        .toList(growable: false),
-                  ),
-          )
-        else
-          _buildTwoColumnGrid(
-            prsByRepRange.entries.map((entry) {
-              final data = entry.value;
-              final hasData = data != null;
-              return ValueSummaryCard(
-                label: entry.key.replaceAll(
-                  ' RM',
-                  l10n.analyticsRepRangeSuffix,
-                ),
-                value: hasData
-                    ? l10n.analyticsPerfWithReps(
-                        _formatDisplayWeight(
-                          (data['weight'] as num).toDouble(),
-                        ),
-                        (data['reps'] as num).toInt(),
-                        unit,
-                      )
-                    : '–',
-                subtitle: hasData
-                    ? data['exerciseName'] as String
-                    : l10n.analyticsNoRecordYet,
-                onTap: hasData
-                    ? () => _openExerciseDetail(data['exerciseName'] as String)
-                    : null,
-              );
-            }).toList(),
-          ),
-      ],
     );
   }
 }

@@ -534,3 +534,73 @@ class _CloudAwareGlassMenuState extends State<_CloudAwareGlassMenu> {
   Widget build(BuildContext context) =>
       widget.builder(context, _onToggle, _onClose);
 }
+
+/// A compact chip-styled dropdown selector backed by [PlatformAdaptivePopupMenu].
+///
+/// Renders an unselected [ChoiceChip] trigger with the active label and a
+/// trailing chevron, matching [TimeRangeFilter] chip typography and appearance.
+class PlatformAdaptiveChipDropdown<T> extends StatelessWidget {
+  final T selectedValue;
+  final List<PlatformAdaptivePopupMenuItem<T>> items;
+  final ValueChanged<T> onSelected;
+  final String? selectedLabel;
+  final double menuWidth;
+  final bool enabled;
+  final bool autoAdjustToScreen;
+
+  const PlatformAdaptiveChipDropdown({
+    super.key,
+    required this.selectedValue,
+    required this.items,
+    required this.onSelected,
+    this.selectedLabel,
+    this.menuWidth = 220.0,
+    this.enabled = true,
+    this.autoAdjustToScreen = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final resolvedLabel =
+        selectedLabel ??
+        items
+            .cast<PlatformAdaptivePopupMenuItem<T>?>()
+            .firstWhere(
+              (item) => item?.value == selectedValue,
+              orElse: () => null,
+            )
+            ?.label ??
+        '';
+
+    return PlatformAdaptivePopupMenu<T>(
+      autoAdjustToScreen: autoAdjustToScreen,
+      menuWidth: menuWidth,
+      enabled: enabled,
+      selectedValue: selectedValue,
+      onSelected: onSelected,
+      items: items,
+      icon: IgnorePointer(
+        child: ChoiceChip(
+          selected: false,
+          onSelected: enabled ? (_) {} : null,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(resolvedLabel),
+              const SizedBox(width: 4),
+              Icon(
+                LucideIcons.chevron_down,
+                size: 16,
+                color: enabled
+                    ? theme.colorScheme.onSurface
+                    : theme.disabledColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

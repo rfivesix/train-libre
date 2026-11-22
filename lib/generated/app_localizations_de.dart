@@ -9829,7 +9829,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get analyticsPrImprovementsWindowHint =>
-      'e1RM-Steigerung ggü. Vorzeitraum';
+      'Steigerung ggü. bisheriger Bestleistung';
 
   @override
   String get analyticsAllTimeBadge => 'Allzeit';

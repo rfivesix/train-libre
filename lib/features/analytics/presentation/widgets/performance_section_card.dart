@@ -1,8 +1,11 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
-import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/unit_service.dart';
+import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../statistics/presentation/statistics_formatter.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
 
@@ -36,6 +39,7 @@ class PerformanceSectionCard extends StatelessWidget {
       );
     }
 
+    final unitService = context.watch<UnitService>();
     final data = state.data;
     final notableImprovements = data?.notableImprovements ?? const [];
 
@@ -48,9 +52,25 @@ class PerformanceSectionCard extends StatelessWidget {
                 ? candidate
                 : strongest,
           );
-    final momentumValue = strongestImprovement == null
-        ? '-'
-        : '+${((strongestImprovement['improvementPct'] as num).toDouble()).toStringAsFixed(1)}%';
+    final String momentumValue;
+    if (strongestImprovement == null) {
+      momentumValue = '-';
+    } else {
+      final weightKg =
+          (strongestImprovement['weightKg'] as num?)?.toDouble() ??
+          (strongestImprovement['newBestWeight'] as num?)?.toDouble() ??
+          0.0;
+      final reps = (strongestImprovement['reps'] as num?)?.toInt();
+      final displayWeight = unitService.convertDisplayValue(
+        weightKg,
+        UnitDimension.weight,
+      );
+      final weightText =
+          '${StatisticsPresentationFormatter.formatWeight(displayWeight)} ${unitService.suffixFor(UnitDimension.weight)}';
+      momentumValue = reps != null && reps > 0
+          ? '$weightText × $reps'
+          : weightText;
+    }
     final topExerciseName = strongestImprovement == null
         ? l10n.metricsMostImproved
         : (strongestImprovement['exerciseName'] as String? ??

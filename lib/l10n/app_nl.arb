@@ -4450,7 +4450,7 @@
   "analyticsConsecutiveWeeks": "Opeenvolgende weken",
   "analyticsSelectWorkout": "Training kiezen",
   "analyticsNoWorkoutsOnDay": "Geen trainingen op deze dag",
-  "analyticsPrImprovementsWindowHint": "e1RM-winst t.o.v. vorige periode",
+  "analyticsPrImprovementsWindowHint": "Verbetering t.o.v. vorig persoonlijk record",
   "analyticsAllTimeBadge": "Altijd",
   "stepsModuleGoalProgress": "Doelbereik",
   "analyticsWaterTargetLabel": "Dagdoel",

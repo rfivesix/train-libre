@@ -4175,7 +4175,7 @@
   "analyticsConsecutiveWeeks": "Consecutive weeks",
   "analyticsSelectWorkout": "Select workout",
   "analyticsNoWorkoutsOnDay": "No workouts on this day",
-  "analyticsPrImprovementsWindowHint": "e1RM gains vs. prior period",
+  "analyticsPrImprovementsWindowHint": "Improvements vs. previous personal best",
   "analyticsAllTimeBadge": "All-time",
   "stepsModuleGoalProgress": "Goal progress",
   "analyticsWaterTargetLabel": "Daily target",
