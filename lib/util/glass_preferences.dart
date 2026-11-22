@@ -36,10 +36,14 @@ class GlassPreferences {
   Color tint(Color color) =>
       color.withValues(alpha: (color.a * opacity).clamp(0.0, 1.0));
 
+  // Opacity corresponding to the 50% slider midpoint where the iOS 27 preset
+  // is calibrated unmodified.
+  static const double _calibratedPresetOpacity = 0.9;
+
   LiquidGlassSettings apply(LiquidGlassSettings base, {bool premium = false}) {
     final color = base.glassColor;
-    // Keep the library's calibrated material intact at the default slider
-    // position. Its demo does not define presets for the intermediate levels:
+    // Keep the library's calibrated material intact at the 50% midpoint.
+    // Its demo does not define presets for the intermediate levels:
     // interpolate frost opacity around the supplied native-comparison value.
     if (base.lensModel == GlassLensModel.paraxial && base.frost == 14) {
       final level = ((opacity - 0.3) / 1.2).clamp(0.0, 1.0);
@@ -60,7 +64,7 @@ class GlassPreferences {
         blur:
             base.blur + (blur - ThemeService.defaultGlassBlur).clamp(0.0, 2.0),
         glassColor: color.withValues(
-          alpha: (color.a * (opacity / ThemeService.defaultGlassOpacity)).clamp(
+          alpha: (color.a * (opacity / _calibratedPresetOpacity)).clamp(
             0.0,
             1.0,
           ),

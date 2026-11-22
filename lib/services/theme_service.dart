@@ -21,7 +21,9 @@ class ThemeService extends ChangeNotifier {
   static const _hapticsEnabledKey = 'haptics_enabled';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
 
-  double _glassAppearance = 0.5;
+  static const double defaultGlassAppearance = 0.3;
+
+  double _glassAppearance = defaultGlassAppearance;
   bool _glassAppearanceDirty = false;
 
   /// 0 is clear, 1 is tinted; only the strongest settings add extra blur.
@@ -29,7 +31,7 @@ class ThemeService extends ChangeNotifier {
   // The lightly blurred copy stays crisp through most of the range. Toward
   // the tinted end it softens gradually, in addition to the diffusion layer.
   static const defaultGlassBlur = 0.08;
-  static const defaultGlassOpacity = 0.9;
+  static const defaultGlassOpacity = 0.66;
   double get glassBlur {
     final upperRange = ((_glassAppearance - 0.7) / 0.3).clamp(0.0, 1.0);
     return defaultGlassBlur + 1.42 * upperRange * upperRange;
@@ -90,14 +92,19 @@ class ThemeService extends ChangeNotifier {
   Future<void> _loadGlassPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     if (!_glassAppearanceDirty) {
-      // Approximate the previous independent settings with one slider. Keep
-      // their original values in storage so migration is non-destructive.
-      final oldBlur = prefs.getDouble(_glassBlurKey) ?? 1.0;
-      final oldOpacity = prefs.getDouble(_glassOpacityKey) ?? 1.0;
-      _glassAppearance =
-          (prefs.getDouble(_glassAppearanceKey) ??
-                  ((oldBlur + oldOpacity) / 2 - 0.5))
-              .clamp(0.0, 1.0);
+      final saved = prefs.getDouble(_glassAppearanceKey);
+      if (saved != null) {
+        _glassAppearance = saved.clamp(0.0, 1.0);
+      } else if (prefs.containsKey(_glassBlurKey) ||
+          prefs.containsKey(_glassOpacityKey)) {
+        // Approximate the previous independent settings with one slider. Keep
+        // their original values in storage so migration is non-destructive.
+        final oldBlur = prefs.getDouble(_glassBlurKey) ?? 1.0;
+        final oldOpacity = prefs.getDouble(_glassOpacityKey) ?? 1.0;
+        _glassAppearance = ((oldBlur + oldOpacity) / 2 - 0.5).clamp(0.0, 1.0);
+      } else {
+        _glassAppearance = defaultGlassAppearance;
+      }
     }
     notifyListeners();
   }

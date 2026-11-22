@@ -140,7 +140,17 @@ void main() {
     expect(standard.frost, base.frost);
   });
 
-  test('default glass is the package iOS 27 preset in both themes', () {
+  test('fresh installs default glass appearance to 30%', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final service = ThemeService();
+    expect(service.glassAppearance, closeTo(0.3, 0.0001));
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    expect(service.glassAppearance, closeTo(0.3, 0.0001));
+    expect(service.glassOpacity, closeTo(0.66, 0.0001));
+    service.dispose();
+  });
+
+  test('midpoint glass is the package iOS 27 preset and default is 30%', () {
     for (final dark in [false, true]) {
       final expected = dark
           ? LiquidGlassSettings.ios27Dark
@@ -149,12 +159,29 @@ void main() {
       expect(identical(base, expected), isTrue);
       expect(
         identical(
-          const GlassPreferences().apply(base, premium: true),
+          const GlassPreferences(opacity: 0.9).apply(base, premium: true),
           expected,
         ),
         isTrue,
       );
-      expect(identical(const GlassPreferences().apply(base), expected), isTrue);
+      expect(
+        identical(const GlassPreferences(opacity: 0.9).apply(base), expected),
+        isTrue,
+      );
+
+      final defaultPremium = const GlassPreferences().apply(
+        base,
+        premium: true,
+      );
+      expect(
+        defaultPremium.frostOpacity,
+        closeTo(expected.frostOpacity * 0.7, 0.0001),
+      );
+      final defaultFallback = const GlassPreferences().apply(base);
+      expect(
+        defaultFallback.glassColor.a,
+        closeTo(expected.glassColor.a * (0.66 / 0.9), 0.0001),
+      );
     }
   });
 

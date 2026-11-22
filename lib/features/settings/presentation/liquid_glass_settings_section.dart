@@ -71,7 +71,10 @@ class _GlassSlider extends StatelessWidget {
           children: [
             Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
             TextButton(
-              onPressed: value == 0.5 ? null : () => onChanged(0.5),
+              onPressed:
+                  (value - ThemeService.defaultGlassAppearance).abs() < 0.0001
+                      ? null
+                      : () => onChanged(ThemeService.defaultGlassAppearance),
               style: TextButton.styleFrom(
                 minimumSize: const Size(44, 40),
                 padding: const EdgeInsets.symmetric(horizontal: 8),

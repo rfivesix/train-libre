@@ -120,6 +120,11 @@ void main() {
     );
     await tester.tap(find.text('Reset'));
     await tester.pump();
+    expect(
+      service.glassAppearance,
+      closeTo(ThemeService.defaultGlassAppearance, 0.0001),
+    );
+    expect(find.text('30%'), findsOneWidget);
     expect(service.glassBlur, closeTo(ThemeService.defaultGlassBlur, 0.0001));
     expect(
       service.glassOpacity,

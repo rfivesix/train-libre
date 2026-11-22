@@ -9,7 +9,6 @@ import '../../../../services/unit_service.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../statistics/domain/body_nutrition_analytics_models.dart';
-import '../../../statistics/presentation/statistics_formatter.dart';
 import '../../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
@@ -53,18 +52,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
     final caloriesValue = body == null || body.loggedCalorieDays <= 0
         ? '-'
         : '${body.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
-    final relationship = body == null
-        ? l10n.analyticsInsightNotEnoughData
-        : StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-            l10n,
-            body.relationship,
-          );
-    final confidenceLabel = body == null
-        ? l10n.analyticsInsufficientConfidenceLabel
-        : StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-            l10n,
-            body.confidence,
-          );
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -139,14 +126,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
                     shape: BoxShape.rectangle,
                   ),
                 ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '$relationship · $confidenceLabel',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
             ],
           ),
