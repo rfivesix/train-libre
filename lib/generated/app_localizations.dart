@@ -6953,6 +6953,12 @@ abstract class AppLocalizations {
   /// **'New Records'**
   String get workoutSummaryNewRecordsTitle;
 
+  /// No description provided for @workoutRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get workoutRecordsTitle;
+
   /// No description provided for @allTimeRecordsLabel.
   ///
   /// In en, this message translates to:

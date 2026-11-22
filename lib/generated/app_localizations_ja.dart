@@ -3789,6 +3789,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get workoutSummaryNewRecordsTitle => '新しい記録';
 
   @override
+  String get workoutRecordsTitle => '記録';
+
+  @override
   String get allTimeRecordsLabel => '歴代記録';
 
   @override

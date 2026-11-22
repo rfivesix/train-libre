@@ -1040,11 +1040,10 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           targetReps = lastTemplate.targetReps;
           targetWeight = lastTemplate.targetWeight;
           targetRir = lastTemplate.targetRir;
-        } else {
-          targetReps = setLog.reps?.toString();
-          targetWeight = setLog.weight;
-          targetRir = setLog.rir;
         }
+        // Leave targetReps, targetWeight, and targetRir unset when no prior
+        // template exists so syncing structure/order never overwrites or fills
+        // routine targets with logged workout weights or reps.
 
         await dbInstance
             .into(dbInstance.routineSetTemplates)

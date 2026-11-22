@@ -1602,6 +1602,7 @@
   "newPersonalRecordLabel": "Neuer persönlicher Rekord",
   "prBadgeTooltip": "Neuer persönlicher Rekord!",
   "workoutSummaryNewRecordsTitle": "Neue Rekorde",
+  "workoutRecordsTitle": "Rekorde",
   "allTimeRecordsLabel": "Allzeit-Rekorde",
   "recentActivityLabel": "Letzte Aktivität",
   "prsByRepRangeLabel": "Bestes Set nach Wiederholungsbereich",

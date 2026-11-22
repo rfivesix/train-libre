@@ -1608,6 +1608,7 @@
   "newPersonalRecordLabel": "New Personal Record",
   "prBadgeTooltip": "New Personal Record!",
   "workoutSummaryNewRecordsTitle": "New Records",
+  "workoutRecordsTitle": "Records",
   "allTimeRecordsLabel": "All-Time Records",
   "recentActivityLabel": "Recent Activity",
   "prsByRepRangeLabel": "Best Set by Rep Range",

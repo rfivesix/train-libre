@@ -1602,6 +1602,7 @@
   "newPersonalRecordLabel": "新しい自己記録",
   "prBadgeTooltip": "自己新記録更新！",
   "workoutSummaryNewRecordsTitle": "新しい記録",
+  "workoutRecordsTitle": "記録",
   "allTimeRecordsLabel": "歴代記録",
   "recentActivityLabel": "最近の活動",
   "prsByRepRangeLabel": "担当範囲別のベストセット",

@@ -4,11 +4,11 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 
+import 'widgets/exercise_record_card.dart';
 import 'widgets/exercise_record_data.dart';
 import '../../../../services/unit_service.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -31,10 +31,9 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/card_morph_route.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
+import 'widgets/workout_date_time_chips.dart';
 import 'widgets/workout_photo_card.dart';
-import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import '../domain/classification/set_load.dart';
@@ -300,13 +299,30 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     _rirControllers.clear();
   }
 
-  bool _isCardio(ExerciseBlockKey key) {
-    final ex = _exerciseDetails[key];
-    return ex?.isCardio ?? false;
+  bool _hasCardioSetData(ExerciseBlockKey key) {
+    final sets = _groupedSets[key];
+    if (sets == null || sets.isEmpty) return false;
+    final hasDistanceOrDuration = sets.any(
+      (s) => (s.distanceKm ?? 0) > 0 || (s.durationSeconds ?? 0) > 0,
+    );
+    final hasReps = sets.any((s) => (s.reps ?? 0) > 0);
+    return hasDistanceOrDuration && !hasReps;
   }
 
-  ExerciseLogMask _maskFor(ExerciseBlockKey key) =>
-      ExerciseLogMask.forExercise(_exerciseDetails[key]);
+  bool _isCardio(ExerciseBlockKey key) {
+    final ex = _exerciseDetails[key];
+    if (ex != null) return ex.isCardio;
+    return _hasCardioSetData(key);
+  }
+
+  ExerciseLogMask _maskFor(ExerciseBlockKey key) {
+    final ex = _exerciseDetails[key];
+    if (ex != null) return ExerciseLogMask.forExercise(ex);
+    if (_hasCardioSetData(key)) {
+      return ExerciseLogMask.distanceAndDuration;
+    }
+    return ExerciseLogMask.weightAndReps;
+  }
 
   int _nextExerciseBlock() {
     var next = 0;
@@ -828,50 +844,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     setState(() => _editedDuration = selected);
   }
 
-  Widget _buildEditableMetadataField({
-    required IconData icon,
-    required String value,
-    required String semanticLabel,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Semantics(
-      button: true,
-      label: semanticLabel,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: DesignConstants.spacingXS,
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: colorScheme.primary),
-                const SizedBox(width: DesignConstants.spacingS),
-                Expanded(
-                  child: Text(
-                    value,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(
-                  LucideIcons.chevron_right,
-                  size: 18,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
@@ -1251,8 +1223,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    context.watch<UnitService>();
-    final locale = Localizations.localeOf(context).toString();
+    final unitService = context.watch<UnitService>();
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -1262,14 +1233,40 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
     }
+    final displayVolume = unitService.convertDisplayValue(
+      totalVolume,
+      UnitDimension.weight,
+    );
     final Duration duration = _isEditMode
         ? (_editedDuration ?? Duration.zero)
         : (_log?.endTime?.difference(_log!.startTime) ?? Duration.zero);
 
+    final rawTitle = _log?.routineName?.trim();
+    final workoutTitle = _log == null
+        ? l10n.workoutDetailsTitle
+        : ((rawTitle != null && rawTitle.isNotEmpty)
+              ? rawTitle
+              : l10n.freeWorkoutTitle);
+
+    final double topPadding =
+        MediaQuery.of(context).padding.top +
+        kToolbarHeight +
+        DesignConstants.spacingS;
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: GlobalAppBar(
-        title: l10n.workoutDetailsTitle,
+        titleWidget: Tooltip(
+          message: workoutTitle,
+          triggerMode: TooltipTriggerMode.longPress,
+          child: Text(
+            workoutTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+        ),
         actions: [
           if (!_isLoading && _log != null)
             _isEditMode
@@ -1283,169 +1280,109 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                       ),
                     ),
                   )
-                : IconButton(
-                    tooltip: l10n.edit,
-                    icon: const Icon(LucideIcons.pencil),
-                    onPressed: _toggleEditMode,
+                : Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: PlatformAdaptivePopupMenu<String>(
+                      key: const ValueKey('workout_detail_actions_menu'),
+                      autoAdjustToScreen: true,
+                      icon: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(LucideIcons.ellipsis_vertical),
+                      ),
+                      items: [
+                        PlatformAdaptivePopupMenuItem<String>(
+                          value: 'edit',
+                          label: l10n.edit,
+                          icon: LucideIcons.pencil,
+                        ),
+                        PlatformAdaptivePopupMenuItem<String>(
+                          value: 'save_routine',
+                          label: l10n.saveAsRoutineTitle,
+                          icon: LucideIcons.bookmark_plus,
+                        ),
+                        PlatformAdaptivePopupMenuItem<String>(
+                          value: 'share',
+                          label: l10n.share,
+                          icon: DesignConstants.adaptiveShareIcon,
+                        ),
+                      ],
+                      onSelected: (action) {
+                        switch (action) {
+                          case 'edit':
+                            _toggleEditMode();
+                            break;
+                          case 'save_routine':
+                            _showSaveAsRoutineDialog();
+                            break;
+                          case 'share':
+                            _shareService.showWorkoutShareSheet(
+                              context: context,
+                              workout: _log!,
+                            );
+                            break;
+                        }
+                      },
+                    ),
                   ),
-          if (!_isLoading && _log != null && !_isEditMode) ...[
-            IconButton(
-              tooltip: l10n.saveAsRoutineTitle,
-              icon: const Icon(LucideIcons.bookmark_plus),
-              onPressed: _showSaveAsRoutineDialog,
-            ),
-            IconButton(
-              tooltip: l10n.share,
-              icon: Icon(DesignConstants.adaptiveShareIcon),
-              onPressed: () => _shareService.showWorkoutShareSheet(
-                context: context,
-                workout: _log!,
-              ),
-            ),
-          ],
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _log == null
           ? Center(child: Text(l10n.workoutNotFound))
-          : Column(
+          : ListView(
+              controller: _scrollController,
+              padding: EdgeInsets.only(
+                top: topPadding,
+                bottom: DesignConstants.bottomContentSpacer,
+              ),
               children: [
-                WorkoutSummaryBar(
-                  duration: duration,
-                  volume: totalVolume,
-                  sets: _log!.sets.length,
-                  progress: null,
-                ),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                ),
-                Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    children: [
-                      if (_isEditMode)
-                        ReorderHeadroom(
-                          height: _isDragging ? _dynamicHeadroom : 0.0,
-                        ),
-                      // Header Info (Clean Hero section)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.screenPaddingHorizontal,
-                          vertical: DesignConstants.spacingM,
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                if (_isEditMode)
+                  ReorderHeadroom(
+                    height: _isDragging ? _dynamicHeadroom : 0.0,
+                  ),
+                // Header Info (3-column KPI grid, date/time & notes)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.screenPaddingHorizontal,
+                    vertical: DesignConstants.spacingS,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _log!.routineName ??
-                                          l10n.freeWorkoutTitle,
-                                      style: textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              Expanded(
+                                child: ValueSummaryCard(
+                                  value: formatDuration(duration),
+                                  label: l10n.durationLabel,
+                                ),
                               ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                              if (_isEditMode) ...[
-                                _buildEditableMetadataField(
-                                  icon: LucideIcons.calendar,
-                                  value: DateFormat.yMMMMd(locale)
-                                      .add_Hm()
-                                      .format(
-                                        _editedStartTime ?? _log!.startTime,
-                                      ),
-                                  semanticLabel: l10n.selectDateTitle,
-                                  onTap: _pickDateTime,
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Expanded(
+                                child: ValueSummaryCard(
+                                  value:
+                                      '${displayVolume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}',
+                                  label: l10n.volumeLabel,
                                 ),
-                                if (_log!.endTime != null) ...[
-                                  const SizedBox(
-                                    height: DesignConstants.spacingXS,
-                                  ),
-                                  _buildEditableMetadataField(
-                                    icon: LucideIcons.timer,
-                                    value:
-                                        '${l10n.durationLabel}: ${formatDuration(duration)}',
-                                    semanticLabel: l10n.durationLabel,
-                                    onTap: _pickDuration,
-                                  ),
-                                ],
-                              ] else
-                                Text(
-                                  DateFormat.yMMMMd(locale)
-                                      .add_Hm()
-                                      .format(_log!.startTime),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                              ),
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Expanded(
+                                child: ValueSummaryCard(
+                                  value: '${_log!.sets.length}',
+                                  label: l10n.setsLabel,
                                 ),
-                              if (_isEditMode) ...[
-                                const SizedBox(
-                                  height: DesignConstants.spacingM,
-                                ),
-                                TextFormField(
-                                  controller: _notesController,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.notesLabel,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        DesignConstants.borderRadiusM,
-                                      ),
-                                    ),
-                                  ),
-                                  maxLines: 3,
-                                ),
-                              ] else if (_log!.notes != null &&
-                                  _log!.notes!.isNotEmpty) ...[
-                                const SizedBox(
-                                  height: DesignConstants.spacingM,
-                                ),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(
-                                    DesignConstants.spacingM,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerLow,
-                                    borderRadius: BorderRadius.circular(
-                                      DesignConstants.borderRadiusM,
-                                    ),
-                                    border: Border.all(
-                                      color: colorScheme.outlineVariant
-                                          .withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '${l10n.notesLabel}: ${_log!.notes!}',
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ],
                           ),
                         ),
-                      ),
-
-                      // Workout Photos (UNDER Header Info)
-                      if (_log!.photoPaths.isNotEmpty || _isEditMode)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            DesignConstants.screenPaddingHorizontal,
-                            0,
-                            DesignConstants.screenPaddingHorizontal,
-                            DesignConstants.spacingM,
-                          ),
-                          child: WorkoutPhotoCard(
+                        const SizedBox(height: DesignConstants.spacingS),
+                        if (_log!.photoPaths.isNotEmpty || _isEditMode) ...[
+                          WorkoutPhotoCard(
                             workoutLogId: _log!.id,
                             photoPaths: _log!.photoPaths,
                             isEditable: _isEditMode,
@@ -1455,7 +1392,71 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               });
                             },
                           ),
+                          const SizedBox(height: DesignConstants.spacingS),
+                        ],
+                        Builder(
+                          builder: (context) {
+                            final effectiveStartTime = _isEditMode
+                                ? (_editedStartTime ?? _log!.startTime)
+                                : _log!.startTime;
+                            final effectiveEndTime = _log!.endTime == null
+                                ? null
+                                : (_isEditMode
+                                      ? effectiveStartTime.add(duration)
+                                      : _log!.endTime);
+                            return WorkoutDateTimeChips(
+                              startTime: effectiveStartTime,
+                              endTime: effectiveEndTime,
+                              onDateTap: _isEditMode ? _pickDateTime : null,
+                              onTimeTap: _isEditMode && _log!.endTime != null
+                                  ? _pickDuration
+                                  : null,
+                            );
+                          },
                         ),
+                        if (_isEditMode) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          TextFormField(
+                            controller: _notesController,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: l10n.workoutNoteAddHint,
+                              hintStyle: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              filled: false,
+                              fillColor: Colors.transparent,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                              ),
+                            ),
+                            minLines: 1,
+                            maxLines: null,
+                          ),
+                        ] else if (_log!.notes != null &&
+                            _log!.notes!.trim().isNotEmpty) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              _log!.notes!,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
                       if (_exerciseDetails.isNotEmpty) ...[
                         Builder(
                           builder: (context) {
@@ -1473,8 +1474,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   AppSectionHeader(
-                                    title:
-                                        l10n.analyticsRecentDistributionHeatmap,
+                                    title: l10n.muscleSplitLabel,
                                     padding: EdgeInsets.zero,
                                   ),
                                   const SizedBox(
@@ -1503,7 +1503,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             horizontal: DesignConstants.screenPaddingHorizontal,
                           ),
                           child: AppSectionHeader(
-                            title: l10n.workoutSummaryNewRecordsTitle,
+                            title: l10n.workoutRecordsTitle,
                             padding: EdgeInsets.zero,
                             action: AlgorithmInfoButton(
                               title: l10n.estimatedOneRepMaxInfoTitle,
@@ -1528,30 +1528,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             children: _newRecordsPerExercise.entries.map((
                               entry,
                             ) {
-                              return SummaryCard(
-                                child: ListTile(
-                                  leading: const Icon(
-                                    LucideIcons.trophy,
-                                    color: Colors.amber,
-                                  ),
-                                  title: Text(
+                              return ExerciseRecordCard(
+                                exerciseName:
                                     _exerciseDetails[entry.key]
-                                            ?.getLocalizedName(context) ??
-                                        entry.key.exerciseName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    entry.value
-                                        .map(
-                                          (record) => record.format(
-                                            context.read<UnitService>(),
-                                          ),
-                                        )
-                                        .join(', '),
-                                  ),
-                                ),
+                                        ?.getLocalizedName(context) ??
+                                    entry.key.exerciseName,
+                                records: entry.value,
+                                unitService: context.read<UnitService>(),
                               );
                             }).toList(),
                           ),
@@ -1566,7 +1549,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           vertical: DesignConstants.spacingS,
                         ),
                         child: AppSectionHeader(
-                          title: l10n.workoutSummaryExerciseOverview,
+                          title: l10n.workout,
                           padding: EdgeInsets.zero,
                         ),
                       ),
@@ -2012,9 +1995,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                         ),
                     ],
                   ),
-                ),
-              ],
-            ),
     );
   }
 

@@ -3951,6 +3951,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get workoutSummaryNewRecordsTitle => 'Nouveaux records';
 
   @override
+  String get workoutRecordsTitle => 'Records';
+
+  @override
   String get allTimeRecordsLabel => 'Records de tous les temps';
 
   @override

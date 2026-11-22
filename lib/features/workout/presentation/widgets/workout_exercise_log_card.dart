@@ -206,14 +206,23 @@ class WorkoutExerciseLogCard extends StatelessWidget {
       BuildContext titleCtx,
       MorphSourceVisibilityCallback setHidden,
     ) {
-      if (exercise == null) return;
+      final targetExercise =
+          exercise ??
+          Exercise(
+            texts: {'en': ExerciseText(name: exerciseName)},
+            categoryName: isCardio ? 'Cardio' : '',
+            primaryMuscles: const [],
+            secondaryMuscles: const [],
+            trackingType: mask.trackingType,
+            loadMode: mask.loadMode,
+          );
       Navigator.of(titleCtx).push(
         CardMorphRoute(
           sourceContext: titleCtx,
           sourceBorderRadius: 12.0,
           sourceBuilder: (_) => title,
           onSourceVisibilityChanged: setHidden,
-          builder: (context) => ExerciseDetailScreen(exercise: exercise!),
+          builder: (context) => ExerciseDetailScreen(exercise: targetExercise),
         ),
       );
     }
