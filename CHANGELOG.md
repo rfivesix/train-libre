@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1-beta.1] - 2026-11-21
 
 ### Fixed
+- Fixed the Calories KPI card in `MacroStatisticsScreen` changing height by a few pixels while scrubbing across days, and added `HapticFeedbackService` light-impact feedback when selecting or scrubbing across bars in `MacroHistoryStackedBarChart`.
 - Prevented calorie recommendations from increasing the planned deficit as a target date approaches when no recent weight has been logged.
 - Fixed onboarding weight-loss recommendations using the wrong rate direction or a zero default pace, and prevented profile creation from adding an unintended 70 kg weight measurement.
 - Propagated the app theme's `primaryColor` through `AppGlassTheme`'s `CupertinoTheme` wrapper so Cupertino accents and controls match the active theme color.

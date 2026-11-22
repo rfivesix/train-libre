@@ -26,12 +26,14 @@ class MacroStatisticsScreen extends StatefulWidget {
   final TimeframeBlock initialBlock;
   final DateTime? initialAnchorDate;
   final bool? initialIsRolling;
+  final MacroAnalyticsDataAdapter adapter;
 
   const MacroStatisticsScreen({
     super.key,
     this.initialBlock = TimeframeBlock.week,
     this.initialAnchorDate,
     this.initialIsRolling,
+    this.adapter = const MacroAnalyticsDataAdapter(),
   });
 
   @override
@@ -40,7 +42,6 @@ class MacroStatisticsScreen extends StatefulWidget {
 
 class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
   final ScrollController _scrollController = ScrollController();
-  final MacroAnalyticsDataAdapter _adapter = const MacroAnalyticsDataAdapter();
 
   TimeframeBlock _activeBlock = TimeframeBlock.week;
   DateTime _anchorDate = DateTime.now();
@@ -95,7 +96,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
           ? _activeBlock.getRollingBounds()
           : _activeBlock.getBounds(_anchorDate, DateTime(2020));
 
-      final summary = await _adapter.fetchSummary(range: bounds);
+      final summary = await widget.adapter.fetchSummary(range: bounds);
       if (!mounted || loadEpoch != _loadEpoch) return;
 
       final resolvedSummary = _activeBlock == TimeframeBlock.maxBlock
@@ -412,45 +413,48 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
         ? l10n.analyticsCarbsShort
         : 'Ø ${l10n.analyticsCarbsShort}';
 
-    return Row(
-      children: [
-        Expanded(
-          child: _buildMetricCard(
-            context,
-            label: calLabel,
-            value: calText,
-            unit: 'kcal',
-            color: calColor,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildMetricCard(
+              context,
+              label: calLabel,
+              value: calText,
+              unit: 'kcal',
+              color: calColor,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _buildMetricCard(
-            context,
-            label: protLabel,
-            value: protText,
-            color: proteinColor,
+          const SizedBox(width: 6),
+          Expanded(
+            child: _buildMetricCard(
+              context,
+              label: protLabel,
+              value: protText,
+              color: proteinColor,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _buildMetricCard(
-            context,
-            label: fatLabel,
-            value: fatText,
-            color: fatColor,
+          const SizedBox(width: 6),
+          Expanded(
+            child: _buildMetricCard(
+              context,
+              label: fatLabel,
+              value: fatText,
+              color: fatColor,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _buildMetricCard(
-            context,
-            label: carbsLabel,
-            value: carbsText,
-            color: carbsColor,
+          const SizedBox(width: 6),
+          Expanded(
+            child: _buildMetricCard(
+              context,
+              label: carbsLabel,
+              value: carbsText,
+              color: carbsColor,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -472,6 +476,16 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     final surfaceBase = isDark
         ? DesignConstants.summaryCardSecondaryDarkMode
         : DesignConstants.summaryCardSecondaryLightMode;
+    final valueStyle =
+        theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: color,
+        ) ??
+        TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: color,
+        );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -498,35 +512,49 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
             ),
           ),
           const SizedBox(height: 3),
-          FittedBox(
-            fit: BoxFit.scaleDown,
+          Stack(
             alignment: Alignment.centerLeft,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  maxLines: 1,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                if (unit != null) ...[
-                  const SizedBox(width: 2),
-                  Text(
-                    unit,
-                    maxLines: 1,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      fontSize: 10,
+            children: [
+              // Keep the value slot at a constant unscaled line height so
+              // FittedBox.scaleDown on wider values (e.g. 4-digit calories)
+              // never shrinks the card vertically while scrubbing.
+              Visibility(
+                visible: false,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Text('0', maxLines: 1, style: valueStyle),
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      value,
+                      maxLines: 1,
+                      style: valueStyle,
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    if (unit != null) ...[
+                      const SizedBox(width: 2),
+                      Text(
+                        unit,
+                        maxLines: 1,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

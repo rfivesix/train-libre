@@ -1,11 +1,13 @@
 // lib/features/analytics/presentation/widgets/macro_history_stacked_bar_chart.dart
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/haptic_feedback_service.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 
@@ -76,6 +78,19 @@ class _MacroHistoryStackedBarChartState
   double? _touchX;
   // Whether the user is actively pressing (long-press/pan active)
   bool _isPressing = false;
+  int? _lastVibratedIndex;
+
+  @override
+  void didUpdateWidget(covariant MacroHistoryStackedBarChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.dailyIntakes != widget.dailyIntakes ||
+        oldWidget.range != widget.range) {
+      _lastVibratedIndex = null;
+      if (!_isPressing && widget.selectedDay == null) {
+        _touchX = null;
+      }
+    }
+  }
 
   List<_MacroChartBar> _buildDisplayBars(double barsWidth) {
     final intakes = widget.dailyIntakes;
@@ -159,7 +174,16 @@ class _MacroHistoryStackedBarChartState
       _touchX = details.localPosition.dx;
     });
     final intake = displayBars[index].intake;
-    widget.onDaySelected?.call(intake.isIncomplete ? null : intake);
+    if (intake.isIncomplete) {
+      _lastVibratedIndex = null;
+      widget.onDaySelected?.call(null);
+      return;
+    }
+    if (_lastVibratedIndex != index) {
+      _lastVibratedIndex = index;
+      unawaited(HapticFeedbackService.instance.lightImpact());
+    }
+    widget.onDaySelected?.call(intake);
   }
 
   void _handleDragUpdate(
@@ -176,15 +200,25 @@ class _MacroHistoryStackedBarChartState
     if (index < 0) return;
     setState(() => _touchX = details.localPosition.dx);
     final newBar = displayBars[index];
+    if (newBar.intake.isIncomplete) {
+      _lastVibratedIndex = null;
+      if (widget.selectedDay != null) {
+        widget.onDaySelected?.call(null);
+      }
+      return;
+    }
+    if (_lastVibratedIndex != index) {
+      _lastVibratedIndex = index;
+      unawaited(HapticFeedbackService.instance.lightImpact());
+    }
     if (widget.selectedDay == null ||
         !newBar.containsDate(widget.selectedDay!.date)) {
-      widget.onDaySelected?.call(
-        newBar.intake.isIncomplete ? null : newBar.intake,
-      );
+      widget.onDaySelected?.call(newBar.intake);
     }
   }
 
   void _handleDragEnd() {
+    _lastVibratedIndex = null;
     setState(() {
       _isPressing = false;
       _touchX = null;
@@ -364,10 +398,15 @@ class _MacroHistoryStackedBarChartState
                                   tapped.containsDate(widget.selectedDay!.date);
                               if (isSame || tapped.intake.isIncomplete) {
                                 // Deselect: clear position and notify null
+                                _lastVibratedIndex = null;
                                 setState(() => _touchX = null);
                                 widget.onDaySelected?.call(null);
                               } else {
                                 // Select: store X so chip appears at correct position
+                                _lastVibratedIndex = idx;
+                                unawaited(
+                                  HapticFeedbackService.instance.lightImpact(),
+                                );
                                 setState(() => _touchX = d.localPosition.dx);
                                 widget.onDaySelected?.call(tapped.intake);
                               }

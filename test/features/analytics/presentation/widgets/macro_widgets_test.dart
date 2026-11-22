@@ -1,9 +1,25 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:train_libre/features/analytics/presentation/macro_statistics_screen.dart';
 import 'package:train_libre/features/analytics/presentation/widgets/macro_history_stacked_bar_chart.dart';
 import 'package:train_libre/features/analytics/presentation/widgets/macro_section_card.dart';
 import 'package:train_libre/features/statistics/data/macro_analytics_data_adapter.dart';
+import 'package:train_libre/features/statistics/domain/timeframe_block.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
+import 'package:train_libre/services/haptic_feedback_service.dart';
+
+class _FakeMacroAnalyticsDataAdapter extends MacroAnalyticsDataAdapter {
+  const _FakeMacroAnalyticsDataAdapter(this.summary);
+
+  final MacroPeriodSummary summary;
+
+  @override
+  Future<MacroPeriodSummary> fetchSummary({required DateTimeRange range}) async {
+    return summary;
+  }
+}
 
 void main() {
   testWidgets('MacroHistoryStackedBarChart renders properly', (tester) async {
@@ -221,6 +237,215 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.byType(ClipRRect), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'MacroHistoryStackedBarChart emits lightImpact haptics when scrubbing across valid bars and respects haptic setting',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final hapticCalls = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            if (call.method == 'HapticFeedback.vibrate') {
+              hapticCalls.add('${call.arguments}');
+            }
+            return null;
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null);
+        HapticFeedbackService.instance.setEnabled(true);
+      });
+
+      HapticFeedbackService.instance.setEnabled(true);
+
+      final start = DateTime(2026, 6, 1);
+      final days = [
+        DailyMacroIntake(
+          date: start,
+          calories: 2100,
+          proteinGrams: 150,
+          carbsGrams: 200,
+          fatGrams: 70,
+        ),
+        DailyMacroIntake(
+          date: start.add(const Duration(days: 1)),
+          calories: 0,
+          proteinGrams: 0,
+          carbsGrams: 0,
+          fatGrams: 0,
+          isIncomplete: true,
+        ),
+        DailyMacroIntake(
+          date: start.add(const Duration(days: 2)),
+          calories: 2450,
+          proteinGrams: 165,
+          carbsGrams: 250,
+          fatGrams: 80,
+        ),
+        DailyMacroIntake(
+          date: start.add(const Duration(days: 3)),
+          calories: 1850,
+          proteinGrams: 130,
+          carbsGrams: 180,
+          fatGrams: 60,
+        ),
+      ];
+
+      DailyMacroIntake? selected;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return MacroHistoryStackedBarChart(
+                  dailyIntakes: days,
+                  range: DateTimeRange(start: start, end: days.last.date),
+                  is7Days: false,
+                  selectedDay: selected,
+                  onDaySelected: (day) => setState(() => selected = day),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gestureFinder = find.byType(GestureDetector);
+      final rect = tester.getRect(gestureFinder.first);
+      final barWidth = rect.width / days.length;
+      final centerY = rect.center.dy;
+
+      // Start long-press on bar 0 -> 1 haptic
+      final gesture = await tester.startGesture(
+        Offset(rect.left + barWidth * 0.5, centerY),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(hapticCalls, ['HapticFeedbackType.lightImpact']);
+      expect(selected?.calories, 2100);
+
+      // Slight move inside bar 0 -> no extra haptic
+      await gesture.moveTo(Offset(rect.left + barWidth * 0.6, centerY));
+      await tester.pump();
+      expect(hapticCalls.length, 1);
+
+      // Move onto incomplete bar 1 -> no haptic, selection cleared
+      await gesture.moveTo(Offset(rect.left + barWidth * 1.5, centerY));
+      await tester.pump();
+      expect(hapticCalls.length, 1);
+      expect(selected, isNull);
+
+      // Move onto valid bar 2 -> 1 more haptic
+      await gesture.moveTo(Offset(rect.left + barWidth * 2.5, centerY));
+      await tester.pump();
+      expect(hapticCalls.length, 2);
+      expect(selected?.calories, 2450);
+
+      // Move onto valid bar 3 -> 1 more haptic
+      await gesture.moveTo(Offset(rect.left + barWidth * 3.5, centerY));
+      await tester.pump();
+      expect(hapticCalls.length, 3);
+      expect(selected?.calories, 1850);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(selected, isNull);
+
+      // Respect disabled haptics setting
+      hapticCalls.clear();
+      HapticFeedbackService.instance.setEnabled(false);
+      await tester.tapAt(Offset(rect.left + barWidth * 0.5, centerY));
+      await tester.pumpAndSettle();
+      expect(selected?.calories, 2100);
+      expect(hapticCalls, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'MacroStatisticsScreen keeps Calories KPI card height constant when scrubbing across varying digit lengths',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final start = DateTime(2026, 6, 1);
+      final caloriesByIndex = [0, 850, 2450, 12450, 500, 3100];
+      final days = List.generate(30, (i) {
+        final cals = caloriesByIndex[i % caloriesByIndex.length];
+        return DailyMacroIntake(
+          date: start.add(Duration(days: i)),
+          calories: cals,
+          proteinGrams: cals > 0 ? 150.0 : 0.0,
+          carbsGrams: cals > 0 ? 220.0 : 0.0,
+          fatGrams: cals > 0 ? 70.0 : 0.0,
+        );
+      });
+      final summary = MacroPeriodSummary(
+        range: DateTimeRange(start: start, end: days.last.date),
+        dailyIntakes: days,
+        avgCalories: 2350,
+        avgProtein: 145,
+        avgCarbs: 210,
+        avgFat: 68,
+        totalDays: 30,
+        trackedDays: 25,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('de'),
+          localizationsDelegates: appLocalizationDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MacroStatisticsScreen(
+            initialBlock: TimeframeBlock.month,
+            adapter: _FakeMacroAnalyticsDataAdapter(summary),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Finder caloriesCardFinder() => find.ancestor(
+        of: find.text('kcal'),
+        matching: find.byType(Container),
+      ).first;
+
+      final baselineHeight = tester.getSize(caloriesCardFinder()).height;
+
+      final chartGesture = find.descendant(
+        of: find.byType(MacroHistoryStackedBarChart),
+        matching: find.byType(GestureDetector),
+      );
+      final rect = tester.getRect(chartGesture.first);
+      final barWidth = rect.width / days.length;
+      final centerY = rect.center.dy;
+
+      // Scrub across bars with 0, 850, 2450, 12450 kcal
+      final gesture = await tester.startGesture(
+        Offset(rect.left + barWidth * 0.5, centerY),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(tester.getSize(caloriesCardFinder()).height, baselineHeight);
+
+      for (int i = 1; i < 6; i++) {
+        await gesture.moveTo(Offset(rect.left + barWidth * (i + 0.5), centerY));
+        await tester.pump();
+        expect(
+          tester.getSize(caloriesCardFinder()).height,
+          baselineHeight,
+          reason: 'Calories card height shifted at bar index $i (${caloriesByIndex[i]} kcal)',
+        );
+      }
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(tester.getSize(caloriesCardFinder()).height, baselineHeight);
     },
   );
 }
