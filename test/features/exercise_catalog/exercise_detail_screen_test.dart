@@ -16,6 +16,8 @@ import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 import 'package:train_libre/features/workout/domain/repositories/workout_repository.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/l10n/app_localization_delegates.dart';
+import 'package:train_libre/services/experience_level_service.dart';
+import 'package:train_libre/services/profile_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:train_libre/widgets/common/global_app_bar.dart';
 import 'package:train_libre/widgets/common/value_summary_card.dart';
@@ -76,6 +78,8 @@ void main() {
         });
 
         final unitService = UnitService();
+        final experienceLevelService = ExperienceLevelService();
+        final profileService = ProfileService();
         final exercise = Exercise.single(
           languageCode: 'de',
           name: 'Brustpresse',
@@ -100,6 +104,12 @@ void main() {
                 value: _FakeWorkoutRepository(),
               ),
               ChangeNotifierProvider<UnitService>.value(value: unitService),
+              ChangeNotifierProvider<ExperienceLevelService>.value(
+                value: experienceLevelService,
+              ),
+              ChangeNotifierProvider<ProfileService>.value(
+                value: profileService,
+              ),
             ],
             child: MaterialApp(
               theme: theme,
@@ -150,6 +160,9 @@ void main() {
 
         await tester.pumpWidget(const SizedBox.shrink());
         unitService.dispose();
+        experienceLevelService.dispose();
+        profileService.dispose();
+        ProfileService.resetForTesting();
       },
     );
   }
