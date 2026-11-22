@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1-beta.1] - 2026-11-21
 
 ### Fixed
+- Unified the 30-day weight change across the Statistics hub (`StatisticsOverviewCard`, `BodyMetricsSectionCard`, and the Measurements shortcut card) to use the 7-day smoothed weight trend from `BodyNutritionAnalyticsEngine` with consistent locale-aware decimal formatting.
 - Fixed double card padding in `StatisticsStepsCard` so its header, timeframe chip, and content align with all other Statistics hub cards.
 - Fixed the Calories KPI card in `MacroStatisticsScreen` changing height by a few pixels while scrubbing across days, and added `HapticFeedbackService` light-impact feedback when selecting or scrubbing across bars in `MacroHistoryStackedBarChart`.
 - Prevented calorie recommendations from increasing the planned deficit as a target date approaches when no recent weight has been logged.

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../statistics/data/statistics_hub_data_adapter.dart';
 import '../../statistics/domain/body_nutrition_analytics_models.dart';
 import '../../statistics/domain/hub_payload_models.dart';
+import '../../statistics/presentation/statistics_formatter.dart';
 import '../../pulse/data/pulse_repository.dart';
 import '../../sleep/data/sleep_hub_summary_repository.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
@@ -900,15 +901,19 @@ class _StatisticsHubScreenView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final unitService = context.watch<UnitService>();
+    final locale = Localizations.localeOf(context).toString();
     final weightKg = viewModel.bodyNutrition?.currentWeightKg;
     final changeKg = viewModel.bodyNutrition?.weightChangeKg;
-    final weightUnit = unitService.suffixFor(UnitDimension.weight);
     final weightText = weightKg == null
         ? null
-        : '${unitService.convertDisplayValue(weightKg, UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+        : StatisticsPresentationFormatter.formatLocalizedWeight(
+            weightKg,
+            unitService,
+            locale: locale,
+          );
     final changeText = changeKg == null
         ? null
-        : '${changeKg >= 0 ? '+' : '-'}${unitService.convertDisplayValue(changeKg.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit (${l10n.statisticsOverview30Days})';
+        : '${StatisticsPresentationFormatter.formatLocalizedWeightChange(changeKg, unitService, locale: locale)} (${l10n.statisticsOverview30Days})';
 
     Widget buildShortcutContent() => Padding(
       padding: const EdgeInsets.all(DesignConstants.spacingL),

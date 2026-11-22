@@ -9,7 +9,11 @@ import '../../../../services/unit_service.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../../util/design_constants.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
+import '../../../statistics/domain/body_nutrition_analytics_engine.dart';
+import '../../../statistics/domain/timeframe_block.dart';
+import '../../../statistics/presentation/statistics_formatter.dart';
 import '../../../workout/data/sources/workout_local_data_source.dart';
+import '../../domain/models/chart_data_point.dart';
 
 class StatisticsOverviewCard extends StatefulWidget {
   const StatisticsOverviewCard({super.key, required this.refreshToken});
@@ -38,10 +42,14 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
     final start = DateTime(now.year, now.month, now.day - 29);
     final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
     final range = DateTimeRange(start: start, end: end);
+    final bodyRange = TimeframeBlock.month.getRollingBounds();
     final results = await Future.wait<Object>([
       WorkoutLocalDataSource.instance.getOverviewTotals(now),
       const MacroAnalyticsDataAdapter().fetchSummary(range: range),
-      DatabaseHelper.instance.getChartDataForTypeAndRange('weight', range),
+      DatabaseHelper.instance.getChartDataForTypeAndRange(
+        'weight',
+        bodyRange,
+      ),
     ]);
     final workouts =
         results[0]
@@ -54,14 +62,14 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
               double volume,
             });
     final nutrition = results[1] as MacroPeriodSummary;
-    final weights = results[2] as List;
-    weights.sort((a, b) => a.date.compareTo(b.date));
+    final weights = results[2] as List<ChartDataPoint>;
     return _Overview(
       workouts,
       nutrition,
-      weights.length < 2
-          ? null
-          : (weights.last.value as double) - (weights.first.value as double),
+      BodyNutritionAnalyticsEngine.computeWeightChangeKg(
+        range: bodyRange,
+        weightPoints: weights,
+      ),
     );
   }
 
@@ -184,7 +192,11 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
                 label: l10n.statisticsOverviewWeightChange,
                 value: delta == null
                     ? '—'
-                    : '${delta > 0 ? '+' : ''}${weight(delta, digits: 1)}',
+                    : StatisticsPresentationFormatter.formatLocalizedWeightChange(
+                        delta,
+                        units,
+                        locale: locale,
+                      ),
                 subtitle: l10n.statisticsOverview30Days,
               ),
             ),

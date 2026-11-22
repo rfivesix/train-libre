@@ -282,13 +282,22 @@ class _BodyNutritionCorrelationScreenState
     BodyNutritionAnalyticsResult data,
   ) {
     final unitService = Provider.of<UnitService>(context);
+    final locale = Localizations.localeOf(context).toString();
     final weightUnit = unitService.suffixFor(UnitDimension.weight);
     final currentWeight = data.currentWeightKg == null
         ? '-'
-        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+        : StatisticsPresentationFormatter.formatLocalizedWeight(
+            data.currentWeightKg!,
+            unitService,
+            locale: locale,
+          );
     final weightChange = data.weightChangeKg == null
         ? '-'
-        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+        : StatisticsPresentationFormatter.formatLocalizedWeightChange(
+            data.weightChangeKg!,
+            unitService,
+            locale: locale,
+          );
     final slopePerWeekKg = data.weightTrend.slopePerWeek;
     final weightRateValue = slopePerWeekKg == null
         ? '-'

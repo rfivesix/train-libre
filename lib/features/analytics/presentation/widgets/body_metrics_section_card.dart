@@ -9,6 +9,7 @@ import '../../../../services/unit_service.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../statistics/domain/body_nutrition_analytics_models.dart';
+import '../../../statistics/presentation/statistics_formatter.dart';
 import '../../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
@@ -45,10 +46,15 @@ class BodyMetricsSectionCard extends StatelessWidget {
 
     final body = state.data;
     final unitService = Provider.of<UnitService>(context);
+    final locale = Localizations.localeOf(context).toString();
     final weightUnit = unitService.suffixFor(UnitDimension.weight);
     final weightChangeValue = body?.weightChangeKg == null
         ? '-'
-        : '${body!.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(body.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} $weightUnit';
+        : StatisticsPresentationFormatter.formatLocalizedWeightChange(
+            body!.weightChangeKg!,
+            unitService,
+            locale: locale,
+          );
     final caloriesValue = body == null || body.loggedCalorieDays <= 0
         ? '-'
         : '${body.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';

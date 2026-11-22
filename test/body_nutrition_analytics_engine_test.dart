@@ -184,5 +184,36 @@ void main() {
       expect(result.normalizedCaloriesTrend.first.value, closeTo(0, 0.0001));
       expect(result.normalizedTrendRange, isNotNull);
     });
+
+    test('computeWeightChangeKg matches build weightChangeKg', () {
+      final start = DateTime.utc(2026, 10, 24);
+      final range = DateTimeRange(
+        start: start,
+        end: DateTime.utc(2026, 11, 22),
+      );
+      final weightPoints = [
+        ChartDataPoint(date: start, value: 90.4),
+        ChartDataPoint(date: start.add(const Duration(days: 1)), value: 89.8),
+        ChartDataPoint(date: start.add(const Duration(days: 2)), value: 89.7),
+        ChartDataPoint(date: start.add(const Duration(days: 15)), value: 89.2),
+        ChartDataPoint(date: start.add(const Duration(days: 28)), value: 88.8),
+        ChartDataPoint(date: start.add(const Duration(days: 29)), value: 88.6),
+      ];
+
+      final built = BodyNutritionAnalyticsEngine.build(
+        range: range,
+        weightPoints: weightPoints,
+        caloriesByDay: const {},
+      );
+      final standalone = BodyNutritionAnalyticsEngine.computeWeightChangeKg(
+        range: range,
+        weightPoints: weightPoints,
+      );
+
+      expect(standalone, isNotNull);
+      expect(standalone, closeTo(built.weightChangeKg!, 0.0001));
+      // Smoothed trend change differs from raw endpoint delta (88.6 - 90.4 = -1.8).
+      expect(standalone!, greaterThan(-1.8));
+    });
   });
 }

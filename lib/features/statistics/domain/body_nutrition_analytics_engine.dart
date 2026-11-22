@@ -18,15 +18,17 @@ class BodyNutritionAnalyticsEngine {
     required Map<DateTime, double> caloriesByDay,
     Set<DateTime> incompleteDays = const {},
   }) {
-    final normalizedRangeStart = normalizeDay(range.start);
-    final normalizedRangeEnd = normalizeDay(range.end);
-    final allDays = _enumerateDays(normalizedRangeStart, normalizedRangeEnd);
+    final weightSeries = _buildWeightSeries(
+      range: range,
+      weightPoints: weightPoints,
+    );
+    final allDays = weightSeries.allDays;
     final totalDays = allDays.length;
-    final weightByDay = _latestWeightPerDay(weightPoints);
+    final weightByDay = weightSeries.weightByDay;
     final excludedDays = incompleteDays.map(normalizeDay).toSet();
     final loggedCaloriesByDay = <DateTime, double>{};
     final caloriesDaily = <DailyValuePoint>[];
-    final weightDaily = <DailyValuePoint>[];
+    final weightDaily = weightSeries.weightDaily;
 
     final today = DateTime.now();
     final todayUtc = DateTime.utc(today.year, today.month, today.day);
@@ -44,11 +46,6 @@ class BodyNutritionAnalyticsEngine {
         }
         caloriesDaily.add(DailyValuePoint(day: day, value: calories));
       }
-
-      final weight = weightByDay[day];
-      if (weight != null) {
-        weightDaily.add(DailyValuePoint(day: day, value: weight));
-      }
     }
 
     final loggedCalorieDays = loggedCaloriesByDay.length;
@@ -56,17 +53,7 @@ class BodyNutritionAnalyticsEngine {
         .map((entry) => DailyValuePoint(day: entry.key, value: entry.value))
         .toList(growable: false);
 
-    final interpolatedWeight = _interpolateWeightDaily(
-      days: allDays,
-      observedByDay: weightByDay,
-    );
-
-    final smoothedWeightByDay = _windowAverageByDay(
-      days: allDays,
-      valuesByDay: interpolatedWeight,
-      windowRadiusDays: 3,
-      minSamples: 2,
-    );
+    final smoothedWeightByDay = weightSeries.smoothedWeightByDay;
     final smoothedCaloriesByDay = _windowAverageByDay(
       days: allDays,
       valuesByDay: loggedCaloriesByDay,
@@ -74,12 +61,7 @@ class BodyNutritionAnalyticsEngine {
       minSamples: 3,
     )..removeWhere((day, _) => excludedDays.contains(day));
 
-    final smoothedWeight = allDays
-        .where((day) => smoothedWeightByDay[day] != null)
-        .map(
-          (day) => DailyValuePoint(day: day, value: smoothedWeightByDay[day]!),
-        )
-        .toList(growable: false);
+    final smoothedWeight = weightSeries.smoothedWeight;
     final smoothedCalories = allDays
         .where((day) => smoothedCaloriesByDay[day] != null)
         .map(
@@ -602,6 +584,66 @@ class BodyNutritionAnalyticsEngine {
     }
 
     return result;
+  }
+
+  /// Computes the 7-day smoothed weight change across [range] using the same
+  /// series pipeline as [build].
+  static double? computeWeightChangeKg({
+    required DateTimeRange range,
+    required List<ChartDataPoint> weightPoints,
+  }) {
+    final series = _buildWeightSeries(range: range, weightPoints: weightPoints);
+    return weightChange(series.smoothedWeight, series.weightDaily);
+  }
+
+  static ({
+    List<DateTime> allDays,
+    Map<DateTime, double> weightByDay,
+    List<DailyValuePoint> weightDaily,
+    Map<DateTime, double?> smoothedWeightByDay,
+    List<DailyValuePoint> smoothedWeight,
+  })
+  _buildWeightSeries({
+    required DateTimeRange range,
+    required List<ChartDataPoint> weightPoints,
+  }) {
+    final normalizedRangeStart = normalizeDay(range.start);
+    final normalizedRangeEnd = normalizeDay(range.end);
+    final allDays = _enumerateDays(normalizedRangeStart, normalizedRangeEnd);
+    final weightByDay = _latestWeightPerDay(weightPoints);
+    final weightDaily = <DailyValuePoint>[];
+
+    for (final day in allDays) {
+      final weight = weightByDay[day];
+      if (weight != null) {
+        weightDaily.add(DailyValuePoint(day: day, value: weight));
+      }
+    }
+
+    final interpolatedWeight = _interpolateWeightDaily(
+      days: allDays,
+      observedByDay: weightByDay,
+    );
+    final smoothedWeightByDay = _windowAverageByDay(
+      days: allDays,
+      valuesByDay: interpolatedWeight,
+      windowRadiusDays: 3,
+      minSamples: 2,
+    );
+    final smoothedWeight = allDays
+        .where((day) => smoothedWeightByDay[day] != null)
+        .map(
+          (day) => DailyValuePoint(day: day, value: smoothedWeightByDay[day]!),
+        )
+        .toList(growable: false);
+
+    return (
+      allDays: allDays,
+      weightByDay: weightByDay,
+      weightDaily: weightDaily,
+      smoothedWeightByDay: smoothedWeightByDay,
+      smoothedWeight: smoothedWeight,
+    );
   }
 
   static double? weightChange(
