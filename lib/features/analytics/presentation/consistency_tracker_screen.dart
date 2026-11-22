@@ -640,26 +640,26 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        AppSectionHeader(title: l10n.consistencyTrackerTitle),
-        PlatformAdaptiveDropdownFormField<_ConsistencyMetric>(
-          value: _selectedMetric,
-          onChanged: (val) {
-            if (val != null) setState(() => _selectedMetric = val);
-          },
-          items: [
-            DropdownMenuItem(
-              value: _ConsistencyMetric.volume,
-              child: Text(l10n.metricsVolumeLifted),
-            ),
-            DropdownMenuItem(
-              value: _ConsistencyMetric.duration,
-              child: Text(l10n.durationLabel),
-            ),
-            DropdownMenuItem(
-              value: _ConsistencyMetric.frequency,
-              child: Text(l10n.workoutsPerWeekLabel),
-            ),
-          ],
+        AppSectionHeader(
+          title: l10n.consistencyTrackerTitle,
+          action: PlatformAdaptiveChipDropdown<_ConsistencyMetric>(
+            selectedValue: _selectedMetric,
+            onSelected: (val) => setState(() => _selectedMetric = val),
+            items: [
+              PlatformAdaptivePopupMenuItem(
+                value: _ConsistencyMetric.volume,
+                label: l10n.metricsVolumeLifted,
+              ),
+              PlatformAdaptivePopupMenuItem(
+                value: _ConsistencyMetric.duration,
+                label: l10n.durationLabel,
+              ),
+              PlatformAdaptivePopupMenuItem(
+                value: _ConsistencyMetric.frequency,
+                label: l10n.workoutsPerWeekLabel,
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         RepaintBoundary(

@@ -460,19 +460,22 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
           padding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.screenPaddingHorizontal,
           ),
-          child: PlatformAdaptiveDropdownFormField<String>(
-            value: chartType,
-            onChanged: (String? newValue) {
-              if (newValue != null) {
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: PlatformAdaptiveChipDropdown<String>(
+              selectedValue: chartType,
+              onSelected: (String newValue) {
                 setState(() => _selectedChartType = newValue);
-              }
-            },
-            items: types.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(l10n.getLocalizedMeasurementName(value)),
-              );
-            }).toList(),
+              },
+              items: types
+                  .map(
+                    (String value) => PlatformAdaptivePopupMenuItem<String>(
+                      value: value,
+                      label: l10n.getLocalizedMeasurementName(value),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),

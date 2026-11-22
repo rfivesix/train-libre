@@ -607,7 +607,43 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   children: [
                     _buildPRSummarySection(l10n),
                     const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(title: l10n.workoutHistoryButton),
+                    AppSectionHeader(
+                      title: l10n.workoutHistoryButton,
+                      action: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_selectedMetric == ExerciseMetric.est1rm) ...[
+                            AlgorithmInfoButton(
+                              title: l10n.estimatedOneRepMaxInfoTitle,
+                              explanation:
+                                  l10n.estimatedOneRepMaxInfoExplanation,
+                              keyPoints: l10n.estimatedOneRepMaxInfoPoints
+                                  .split('\n'),
+                              technicalTitle:
+                                  l10n.estimatedOneRepMaxInfoDetailsTitle,
+                              technicalExplanation:
+                                  l10n.estimatedOneRepMaxInfoDetails,
+                              citationUrl:
+                                  "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
+                            ),
+                            const SizedBox(width: DesignConstants.spacingXS),
+                          ],
+                          PlatformAdaptiveChipDropdown<ExerciseMetric>(
+                            selectedValue: _selectedMetric,
+                            onSelected: (ExerciseMetric newValue) {
+                              setState(() => _selectedMetric = newValue);
+                            },
+                            items: [
+                              for (final metric in _availableMetrics)
+                                PlatformAdaptivePopupMenuItem<ExerciseMetric>(
+                                  value: metric,
+                                  label: _metricLabel(metric, l10n),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                     RepaintBoundary(child: _buildConsolidatedChart(l10n)),
                   ],
                 ),
@@ -963,48 +999,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       };
 
   Widget _buildChartHeader(AppLocalizations l10n) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      spacing: 8.0,
       children: [
-        Expanded(
-          child: PlatformAdaptiveDropdownFormField<ExerciseMetric>(
-            value: _selectedMetric,
-            onChanged: (ExerciseMetric? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _selectedMetric = newValue;
-                });
-              }
-            },
-            items: [
-              for (final metric in _availableMetrics)
-                DropdownMenuItem(
-                  value: metric,
-                  child: Text(_metricLabel(metric, l10n)),
-                ),
-            ],
-          ),
-        ),
-        if (_selectedMetric == ExerciseMetric.est1rm) ...[
-          const SizedBox(width: DesignConstants.spacingXS),
-          AlgorithmInfoButton(
-            title: l10n.estimatedOneRepMaxInfoTitle,
-            explanation: l10n.estimatedOneRepMaxInfoExplanation,
-            keyPoints: l10n.estimatedOneRepMaxInfoPoints.split('\n'),
-            technicalTitle: l10n.estimatedOneRepMaxInfoDetailsTitle,
-            technicalExplanation: l10n.estimatedOneRepMaxInfoDetails,
-            citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
-          ),
-        ],
-        const SizedBox(width: DesignConstants.spacingS),
-        Wrap(
-          spacing: 8.0,
-          children: [
-            _buildFilterButton(l10n.filter30DaysShort, '30D'),
-            _buildFilterButton(l10n.filter90DaysShort, '90D'),
-            _buildFilterButton(l10n.filterMax, 'All'),
-          ],
-        ),
+        _buildFilterButton(l10n.filter30DaysShort, '30D'),
+        _buildFilterButton(l10n.filter90DaysShort, '90D'),
+        _buildFilterButton(l10n.filterMax, 'All'),
       ],
     );
   }
