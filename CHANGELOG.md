@@ -56,6 +56,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
 
 ### Changed
+- Removed the pattern/effective-range/confidence summary text block, the normalized chart description hint, and the entire Interpretation section from `BodyNutritionCorrelationScreen` (Body & Nutrition Trends).
 - Changed the default Liquid Glass appearance setting (`ThemeService.defaultGlassAppearance`) and its Reset action to 30% (`0.3`).
 - Removed the relationship and confidence footer text (`$relationship · $confidenceLabel`) from `BodyMetricsSectionCard` on the Statistics hub.
 - Refined Statistics hub card designs and labels: removed the sample count/coverage footer from `PulseSectionCard`, narrowed `BodyMetricsSectionCard` to weight change and average daily calories, updated `MuscleVolumeSectionCard` to display average weekly sets per muscle group without top-3 bars, simplified `MicronutrientSectionCard` to a header-only preview without a timeframe chip, and unified rolling hub timeframe chips to consistent relative labels (`Last 7 days` / `Letzte 7 Tage`) via `TimeframeLabelFormatter.formatRelativeRolling`.
@@ -81,6 +82,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Sleep and Pulse charts show average values when no point is selected and display the selected value during touch. Pulse charts take up less vertical space, and the HRV line connects individual readings in the day view and daily averages in the week and month views.
 - Made food and recipe cards in Add Food more compact with the Statistics Hub's 16-point side insets and plain Lucide plus icons. Centered the food title and subtitle as a block and placed the recipe menu beside the add button.
 - Replaced the global app bar's static uniform blur with a top-to-bottom `ProgressiveBlur` and soft fade vignette that strengthens blur toward the status bar and dissolves seamlessly into page content without a bottom edge line.
+- Moved the `ExerciseDetailScreen` tab bar into `GlobalAppBar.bottom` so scrolled tab content dissolves smoothly behind the progressive blur bar without clipping, and changed populated personal record values to black in light mode and white in dark mode instead of the primary accent color.
 
 ## [1.7.0] - 2026-11-03
 
