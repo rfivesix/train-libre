@@ -6,6 +6,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
+import 'training_heatmap.dart';
 
 class ConsistencySectionCard extends StatelessWidget {
   final SectionLoadState<ConsistencySectionData> state;
@@ -49,13 +50,12 @@ class ConsistencySectionCard extends StatelessWidget {
     final streakText = trainingStats == null
         ? '${l10n.streakLabel}: -'
         : '${l10n.streakLabel}: ${trainingStats.streakWeeks} ${l10n.weeksLabel}';
-    final weeklyBarValues = (data?.weeklyConsistencyMetrics.isNotEmpty ?? false)
-        ? data!.weeklyConsistencyMetrics
-              .map((w) => w.count.toDouble())
-              .toList(growable: false)
-        : workoutsPerWeek
-              .map((w) => ((w['count'] as num?)?.toDouble() ?? 0.0))
-              .toList(growable: false);
+    final now = DateTime.now();
+    final heatmapEnd = DateTime(now.year, now.month, now.day);
+    final heatmapStart = heatmapEnd.subtract(
+      const Duration(days: _fixedConsistencyWeeks * 7 - 1),
+    );
+    final dayCounts = data?.workoutDayCounts ?? const <DateTime, int>{};
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -100,18 +100,17 @@ class ConsistencySectionCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (weeklyBarValues.isNotEmpty) ...[
+                  if (data != null) ...[
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       flex: 2,
-                      child: SizedBox(
-                        height: 36,
-                        child: AnalyticsCardBase.buildMiniBars(
-                          context,
-                          values: weeklyBarValues,
-                          color: Theme.of(context).colorScheme.primary,
-                          semanticsLabel: title,
-                        ),
+                      child: TrainingHeatmap(
+                        startDate: heatmapStart,
+                        endDate: heatmapEnd,
+                        dayCounts: dayCounts,
+                        showLabels: false,
+                        maxCellSize: 6.5,
+                        alignment: Alignment.centerRight,
                       ),
                     ),
                   ],

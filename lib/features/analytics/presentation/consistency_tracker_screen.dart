@@ -2,7 +2,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 import '../../statistics/domain/analytics_state.dart';
 import '../../statistics/domain/consistency_domain_service.dart';
@@ -14,9 +13,9 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/analytics_chart_defaults.dart';
+import 'widgets/training_heatmap.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 
 import 'package:provider/provider.dart';
@@ -40,7 +39,7 @@ class ConsistencyTrackerScreen extends StatefulWidget {
 
   const ConsistencyTrackerScreen({
     super.key,
-    this.initialBlock = TimeframeBlock.month,
+    this.initialBlock = TimeframeBlock.threeMonths,
     this.initialIsRolling = true,
   });
 
@@ -50,10 +49,8 @@ class ConsistencyTrackerScreen extends StatefulWidget {
 }
 
 class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
-  static const int _calendarLookbackDays = 365;
-
   bool _isRolling = true;
-  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  TimeframeBlock _activeBlock = TimeframeBlock.threeMonths;
   DateTime _anchorDate = DateTime.now();
 
   final List<TimeframeBlock> _validBlocks = const [
@@ -79,12 +76,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   );
   List<WeeklyConsistencyMetricPayload> _weeklyMetrics = const [];
   Map<DateTime, int> _timeframeWorkoutDayCounts = const {};
-  Map<DateTime, int> _calendarWorkoutDayCounts = const {};
   _ConsistencyMetric _selectedMetric = _ConsistencyMetric.volume;
-  DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   int _timeframeLoadGeneration = 0;
-  int _calendarLoadGeneration = 0;
 
   @override
   void initState() {
@@ -99,7 +93,6 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       ),
     );
     _loadTimeframeData();
-    _loadCalendarData();
   }
 
   Future<void> _loadTimeframeData() async {
@@ -129,11 +122,18 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       untilDate: untilDate,
     );
     final dayCounts = WorkoutLocalDataSource.instance.getWorkoutDayCounts(
-      daysBack: daysBack,
+      daysBack: daysBack + 7,
     );
 
     final results = await Future.wait([stats, weekly, dayCounts]);
     if (!mounted || generation != _timeframeLoadGeneration) return;
+
+    final rangeStart = _normalize(bounds.start);
+    final rangeEnd = _normalize(bounds.end);
+    final keepSelected =
+        _selectedDay != null &&
+        !_selectedDay!.isBefore(rangeStart) &&
+        !_selectedDay!.isAfter(rangeEnd);
 
     setState(() {
       _trainingStats = TrainingStatsPayload.fromMap(
@@ -143,18 +143,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           .map(WeeklyConsistencyMetricPayload.fromMap)
           .toList();
       _timeframeWorkoutDayCounts = results[2] as Map<DateTime, int>;
+      if (!keepSelected) {
+        _selectedDay = null;
+      }
       _isLoading = false;
     });
-  }
-
-  Future<void> _loadCalendarData() async {
-    final generation = ++_calendarLoadGeneration;
-    final dayCounts = await WorkoutLocalDataSource.instance.getWorkoutDayCounts(
-      daysBack: _calendarLookbackDays,
-    );
-    if (!mounted || generation != _calendarLoadGeneration) return;
-
-    setState(() => _calendarWorkoutDayCounts = dayCounts);
   }
 
   int _computeMaxStreak(List<WeeklyConsistencyMetricPayload> weeklyMetrics) {
@@ -177,14 +170,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       DateTime(date.year, date.month, date.day);
 
   int _dailyCount(DateTime day) =>
-      _calendarWorkoutDayCounts[_normalize(day)] ?? 0;
-
-  DateTime get _calendarFirstDay {
-    final now = _normalize(DateTime.now());
-    return now.subtract(const Duration(days: _calendarLookbackDays - 1));
-  }
-
-  DateTime get _calendarLastDay => _normalize(DateTime.now());
+      _timeframeWorkoutDayCounts[_normalize(day)] ?? 0;
 
   double _metricValue(WeeklyConsistencyMetricPayload row) {
     return switch (_selectedMetric) {
@@ -349,6 +335,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
 
     Widget bodyContent = _buildBodyContent(
       context,
+      bounds,
+      hasNoData ? _mockHeatmapDayCounts(bounds) : _timeframeWorkoutDayCounts,
       displayStats,
       displayMetrics,
       trainingDaysPerWeek,
@@ -497,7 +485,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary
                     .withValues(alpha: alpha),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
             const SizedBox(width: 4),
@@ -510,13 +498,31 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        item('1', _calendarIntensityForCount(1)),
+        item('1', TrainingHeatmap.alphaForCount(1)),
         const SizedBox(width: 8),
-        item('2', _calendarIntensityForCount(2)),
+        item('2', TrainingHeatmap.alphaForCount(2)),
         const SizedBox(width: 8),
-        item('3+', _calendarIntensityForCount(3)),
+        item('3+', TrainingHeatmap.alphaForCount(3)),
       ],
     );
+  }
+
+  Map<DateTime, int> _mockHeatmapDayCounts(DateTimeRange range) {
+    final counts = <DateTime, int>{};
+    final start = _normalize(range.start);
+    final end = _normalize(range.end);
+    var day = start;
+    var index = 0;
+    while (!day.isAfter(end)) {
+      if (index % 3 == 0) {
+        counts[day] = (index % 3) + 1;
+      } else if (index % 5 == 0) {
+        counts[day] = 2;
+      }
+      day = day.add(const Duration(days: 1));
+      index++;
+    }
+    return counts;
   }
 
   List<WeeklyConsistencyMetricPayload> getMockWeeklyMetrics(
@@ -550,6 +556,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
 
   Widget _buildBodyContent(
     BuildContext context,
+    DateTimeRange bounds,
+    Map<DateTime, int> heatmapCounts,
     TrainingStatsPayload stats,
     List<WeeklyConsistencyMetricPayload> weeklyMetrics,
     double trainingDaysPerWeek,
@@ -803,93 +811,31 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           title: l10n.trainingCalendarLabel,
           action: _calendarLegend(l10n),
         ),
-        Text(
-          l10n.analyticsCalendarExplainer,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        SummaryCard(
-          child: RepaintBoundary(
-            child: TableCalendar<int>(
-              firstDay: _calendarFirstDay,
-              lastDay: _calendarLastDay,
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) =>
-                  _selectedDay != null && isSameDay(_selectedDay, day),
-              eventLoader: (day) {
-                final count = _dailyCount(day);
-                if (count <= 0) return const [];
-                return List<int>.filled(count, 1);
-              },
-              headerStyle: HeaderStyle(
-                titleCentered: true,
-                formatButtonVisible: false,
-                titleTextStyle:
-                    Theme.of(context).textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold) ??
-                    const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              calendarStyle: CalendarStyle(
-                outsideDaysVisible: false,
-                defaultTextStyle:
-                    Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
-              ),
-              calendarBuilders: CalendarBuilders<int>(
-                defaultBuilder: (context, day, _) {
-                  final count = _dailyCount(day);
-                  if (count <= 0) return null;
-                  final intensity = _calendarIntensityForCount(count);
-                  return Container(
-                    margin: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary
-                          .withValues(alpha: intensity),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${day.day}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  );
-                },
-                markerBuilder: (context, day, events) {
-                  final count = _dailyCount(day);
-                  if (count <= 0) return const SizedBox.shrink();
-                  return Positioned(
-                    bottom: 3,
-                    child: Text(
-                      count.toString(),
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  );
-                },
-              ),
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-                if (_dailyCount(selectedDay) > 0) {
-                  unawaited(_openDayWorkouts(selectedDay));
-                }
-              },
-              onPageChanged: (focusedDay) {
-                setState(() => _focusedDay = focusedDay);
-              },
-            ),
+        const SizedBox(height: DesignConstants.spacingXS),
+        RepaintBoundary(
+          child: TrainingHeatmap(
+            startDate: bounds.start,
+            endDate: bounds.end,
+            dayCounts: heatmapCounts,
+            selectedDay: _selectedDay,
+            onDayTap: (selectedDay) {
+              setState(() => _selectedDay = selectedDay);
+              if (_dailyCount(selectedDay) > 0) {
+                unawaited(_openDayWorkouts(selectedDay));
+              }
+            },
           ),
         ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          _selectedDay == null
-              ? l10n.analyticsSelectDayPrompt
-              : l10n.analyticsSelectedDayWorkouts(
-                  '${_selectedDay!.day}.${_selectedDay!.month}.${_selectedDay!.year}',
-                  _dailyCount(_selectedDay!),
-                ),
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        if (_selectedDay != null) ...[
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(
+            l10n.analyticsSelectedDayWorkouts(
+              '${_selectedDay!.day}.${_selectedDay!.month}.${_selectedDay!.year}',
+              _dailyCount(_selectedDay!),
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         const SizedBox(height: DesignConstants.spacingM),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -907,15 +853,6 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
         ),
       ],
     );
-  }
-
-  double _calendarIntensityForCount(int count) {
-    return switch (count) {
-      <= 0 => 0.0,
-      1 => 0.35,
-      2 => 0.65,
-      _ => 1.0,
-    };
   }
 
   Future<void> _openDayWorkouts(DateTime day) async {

@@ -129,6 +129,9 @@ class StatisticsHubDataAdapter {
           isRolling: isRolling,
         ),
       );
+      final dayCounts = _workoutDatabaseHelper.getWorkoutDayCounts(
+        daysBack: (consistencyRange.effectiveWeeks ?? 6) * 7 + 7,
+      );
 
       final results = await Future.wait<dynamic>([
         prs,
@@ -140,6 +143,7 @@ class StatisticsHubDataAdapter {
         recoveryAnalytics,
         improvements,
         bodyNutrition,
+        dayCounts,
       ]);
 
       final payload = await Isolate.run(
@@ -158,6 +162,7 @@ class StatisticsHubDataAdapter {
             results[6] as Map<String, dynamic>,
           ),
           notableImprovements: results[7] as List<Map<String, dynamic>>,
+          workoutDayCounts: results[9] as Map<DateTime, int>,
         ),
       );
 
@@ -203,6 +208,7 @@ class StatisticsHubDataAdapter {
       List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics,
       TrainingStatsPayload trainingStats,
       int recentWorkoutCount,
+      Map<DateTime, int> workoutDayCounts,
     })
   >
   fetchConsistency({
@@ -222,6 +228,7 @@ class StatisticsHubDataAdapter {
       now: anchorDate,
       isRolling: isRolling,
     );
+    final weeks = consistencyRange.effectiveWeeks ?? 6;
 
     final results = await Future.wait<dynamic>([
       PerfDebugTimer.time(
@@ -235,7 +242,7 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'consistency',
         action: () => _workoutDatabaseHelper.getWeeklyConsistencyMetrics(
-          weeksBack: consistencyRange.effectiveWeeks ?? 6,
+          weeksBack: weeks,
         ),
       ),
       _workoutDatabaseHelper.getRecentCompletedWorkoutCount(days: 42),
@@ -244,6 +251,7 @@ class StatisticsHubDataAdapter {
         label: 'trainingStats',
         action: _workoutDatabaseHelper.getTrainingStats,
       ),
+      _workoutDatabaseHelper.getWorkoutDayCounts(daysBack: weeks * 7 + 7),
     ]);
 
     return (
@@ -255,6 +263,7 @@ class StatisticsHubDataAdapter {
       trainingStats: TrainingStatsPayload.fromMap(
         results[3] as Map<String, dynamic>,
       ),
+      workoutDayCounts: results[4] as Map<DateTime, int>,
     );
   }
 

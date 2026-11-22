@@ -100,12 +100,14 @@ class ConsistencySectionData {
   final List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics;
   final TrainingStatsPayload trainingStats;
   final int? recentWorkoutCount;
+  final Map<DateTime, int> workoutDayCounts;
 
   const ConsistencySectionData({
     required this.workoutsPerWeek,
     required this.weeklyConsistencyMetrics,
     required this.trainingStats,
     this.recentWorkoutCount,
+    this.workoutDayCounts = const {},
   });
 }
 
@@ -883,6 +885,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
           workoutsPerWeek: hub.workoutsPerWeek,
           weeklyConsistencyMetrics: hub.weeklyConsistencyMetrics,
           trainingStats: hub.trainingStats,
+          workoutDayCounts: hub.workoutDayCounts,
         ),
         generation,
       );
@@ -987,6 +990,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
           recentWorkoutCount: data.recentWorkoutCount,
           weeklyConsistencyMetrics: data.weeklyConsistencyMetrics,
           trainingStats: data.trainingStats,
+          workoutDayCounts: data.workoutDayCounts,
         ),
         generation,
       );
