@@ -56,9 +56,11 @@ class AdaptiveNutritionRecommendationService {
   /// `1_1` moved fat off its floor onto a goal-dependent g/kg target.
   /// `1_2` separates latent TDEE estimation from bounded trajectory control.
   static const String algorithmVersion =
-      'tdee_adaptive_recommendation_1_3_confidence_window';
-  static const String _previousConfidenceOnlyVersion =
-      'tdee_adaptive_recommendation_1_2_dual_loop';
+      'tdee_adaptive_recommendation_1_4_recent_weight_for_deadline';
+  static const Set<String> _compatibleEstimatorVersions = {
+    'tdee_adaptive_recommendation_1_2_dual_loop',
+    'tdee_adaptive_recommendation_1_3_confidence_window',
+  };
   static const int _phaseChangeConfirmationWindowDays = 7;
 
   final RecommendationRepository _repository;
@@ -139,19 +141,55 @@ class AdaptiveNutritionRecommendationService {
     return _repository.getGoal();
   }
 
-  Future<double> getTargetRateKgPerWeek() async {
+  Future<double> getTargetRateKgPerWeek({DateTime? now}) async {
     final activeGoal = await _goalRepository.getActiveNutritionGoal();
     if (activeGoal != null && activeGoal.isNutritionDriver) {
-      if (activeGoal.targetValue != null && activeGoal.targetDate != null) {
-        final progress = await _goalRepository.getGoalProgress(activeGoal);
-        final currentWeight = progress?.currentValue ?? progress?.baselineValue;
-        if (currentWeight != null) {
-          final now = DateTime.now();
-          final remainingDays = activeGoal.targetDate!.difference(now).inDays;
-          if (remainingDays >= 7) {
-            final weeks = remainingDays / 7.0;
-            final remainingDelta = activeGoal.targetValue! - currentWeight;
-            final calculatedRate = remainingDelta / weeks;
+      if (activeGoal.isMaintenanceOrRecomp) {
+        return 0.0;
+      }
+
+      final targetValue = activeGoal.targetValue;
+      final targetDate = activeGoal.targetDate;
+      final baselineDate = activeGoal.baselineDate;
+      if (targetValue != null && targetDate != null && baselineDate != null) {
+        final effectiveNow = now ?? DateTime.now();
+        final checkInWeekday = activeGoal.startDate.weekday;
+        final checkInDay = RecommendationScheduler.dueWeekStart(
+          effectiveNow,
+          checkInWeekday: checkInWeekday,
+        );
+        final remainingDays = targetDate.difference(checkInDay).inDays;
+        if (remainingDays >= 7) {
+          final windowEndDay =
+              RecommendationScheduler.stableWindowEndDayForDueWeek(
+                effectiveNow,
+                checkInWeekday: checkInWeekday,
+              );
+          final windowStartDay = DateTime(
+            windowEndDay.year,
+            windowEndDay.month,
+            windowEndDay.day -
+                RecommendationInputAdapter.adaptiveLookbackDays +
+                1,
+          );
+          final latestWeight = await _goalRepository.findLatestWeightAtOrBefore(
+            RecommendationInputAdapter.endOfDay(windowEndDay),
+          );
+          // The baseline and older weigh-ins cannot establish progress toward
+          // the deadline. Keep the planned pace until a recent weigh-in exists.
+          final baselineOrStartDay = RecommendationScheduler.normalizeDay(
+            baselineDate.isAfter(activeGoal.startDate)
+                ? baselineDate
+                : activeGoal.startDate,
+          );
+          if (latestWeight != null &&
+              latestWeight.valueKg.isFinite &&
+              latestWeight.valueKg > 0 &&
+              !latestWeight.date.isBefore(windowStartDay) &&
+              RecommendationScheduler.normalizeDay(latestWeight.date)
+                  .isAfter(baselineOrStartDay)) {
+            final calculatedRate =
+                (targetValue - latestWeight.valueKg) / (remainingDays / 7.0);
             if (activeGoal.preset == GoalPreset.loseWeight) {
               return calculatedRate.clamp(-1.0, -0.1);
             } else if (activeGoal.preset == GoalPreset.gainWeight) {
@@ -161,18 +199,15 @@ class AdaptiveNutritionRecommendationService {
           }
         }
       }
-      if (activeGoal.desiredWeeklyRateKg != null) {
-        return activeGoal.desiredWeeklyRateKg!;
-      }
-      if (activeGoal.preset == GoalPreset.maintainWeight ||
-          activeGoal.preset == GoalPreset.recomposition) {
-        return 0.0;
-      }
+      final plannedRate = activeGoal.desiredWeeklyRateKg;
       if (activeGoal.preset == GoalPreset.loseWeight) {
-        return -0.50;
+        return plannedRate != null && plannedRate < 0 ? plannedRate : -0.50;
       }
       if (activeGoal.preset == GoalPreset.gainWeight) {
-        return 0.25;
+        return plannedRate != null && plannedRate > 0 ? plannedRate : 0.25;
+      }
+      if (plannedRate != null) {
+        return plannedRate;
       }
 
       // A custom target-weight goal still has an unambiguous direction even
@@ -304,7 +339,7 @@ class AdaptiveNutritionRecommendationService {
 
     final results = await Future.wait<dynamic>([
       getGoal(),
-      getTargetRateKgPerWeek(),
+      getTargetRateKgPerWeek(now: effectiveNow),
       _repository.getLatestRecommendationSnapshot(),
       _repository.getLatestAppliedRecommendation(),
       _repository.getLastGeneratedDueWeekKey(),
@@ -397,7 +432,7 @@ class AdaptiveNutritionRecommendationService {
 
     final results = await Future.wait<dynamic>([
       getGoal(),
-      getTargetRateKgPerWeek(),
+      getTargetRateKgPerWeek(now: effectiveNow),
       _inputAdapter.buildInput(
         now: stableWindowEndDay,
         declaredActivityLevel: priorActivityLevel,
@@ -418,8 +453,11 @@ class AdaptiveNutritionRecommendationService {
       anchorDay: phaseAnchorDay,
     );
     final previousRecommendation = latestSnapshot?.recommendation;
-    final recursiveState = algorithmChanged &&
-            latestSnapshot.algorithmVersion != _previousConfidenceOnlyVersion
+    final recursiveState =
+        algorithmChanged &&
+            !_compatibleEstimatorVersions.contains(
+              latestSnapshot.algorithmVersion,
+            )
         ? _prepareRecursiveStateForAlgorithmUpgrade(latestRecursiveState)
         : latestRecursiveState;
 

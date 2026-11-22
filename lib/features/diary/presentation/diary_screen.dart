@@ -46,6 +46,7 @@ import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
 import '../../workout/presentation/widgets/manual_plan_diary_card.dart';
 import 'widgets/weight_card.dart';
 import 'widgets/steps_summary_card.dart';
+import 'widgets/diary_health_summary_card.dart';
 import 'widgets/sleep_summary_card.dart';
 import 'widgets/pulse_summary_card.dart';
 import 'widgets/food_entry_tile.dart';
@@ -74,11 +75,13 @@ import 'package:skeletonizer/skeletonizer.dart';
 class DiaryScreen extends StatelessWidget {
   final DateTime? initialDate;
   final GlobalKey<DiaryScreenState>? contentKey;
+  final VoidCallback? onNutritionDayStatusChanged;
 
   const DiaryScreen({
     super.key,
     this.initialDate,
     this.contentKey,
+    this.onNutritionDayStatusChanged,
   });
 
   @override
@@ -90,13 +93,18 @@ class DiaryScreen extends StatelessWidget {
         workoutRepo: context.read<IWorkoutRepository>(),
         initialDate: initialDate,
       ),
-      child: _DiaryScreenContent(key: contentKey ?? key),
+      child: _DiaryScreenContent(
+        key: contentKey ?? key,
+        onNutritionDayStatusChanged: onNutritionDayStatusChanged,
+      ),
     );
   }
 }
 
 class _DiaryScreenContent extends StatefulWidget {
-  const _DiaryScreenContent({super.key});
+  const _DiaryScreenContent({super.key, this.onNutritionDayStatusChanged});
+
+  final VoidCallback? onNutritionDayStatusChanged;
 
   @override
   State<_DiaryScreenContent> createState() => DiaryScreenState();
@@ -106,7 +114,31 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   final GlobalKey _macroSummaryKey = GlobalKey();
   final ShareService _shareService = const ShareService();
   final ScrollController _scrollController = ScrollController();
+  DateTime? _nutritionStatusDate;
+  Stream<bool>? _nutritionStatus;
+  bool _savingNutritionStatus = false;
 
+  Future<void> _setIncompleteNutritionDay(
+    DateTime date,
+    bool incomplete,
+  ) async {
+    if (_savingNutritionStatus) return;
+    final onChanged = widget.onNutritionDayStatusChanged;
+    setState(() => _savingNutritionStatus = true);
+    try {
+      await DatabaseHelper.instance.setIncompleteNutritionDay(date, incomplete);
+      onChanged?.call();
+    } catch (error) {
+      debugPrint('[Diary] Could not update nutrition day status: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingNutritionStatus = false);
+    }
+  }
   DiaryViewModel get viewModel => context.read<DiaryViewModel>();
   ValueNotifier<DateTime> get selectedDateNotifier =>
       viewModel.selectedDateNotifier;
@@ -993,6 +1025,32 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedDate = context.select<DiaryViewModel, DateTime>(
+      (vm) => vm.selectedDate,
+    );
+    if (_nutritionStatusDate != selectedDate) {
+      _nutritionStatusDate = selectedDate;
+      _nutritionStatus = DatabaseHelper.instance.watchIncompleteNutritionDay(
+        selectedDate,
+      );
+    }
+    return StreamBuilder<bool>(
+      stream: _nutritionStatus,
+      builder: (context, snapshot) => _buildDay(
+        context,
+        selectedDate,
+        snapshot.connectionState == ConnectionState.active
+            ? snapshot.data
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildDay(
+    BuildContext context,
+    DateTime selectedDate,
+    bool? incomplete,
+  ) {
     final isLoading = context.select<DiaryViewModel, bool>(
       (vm) => vm.isLoading,
     );
@@ -1029,13 +1087,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       (vm) => vm.hasDataForSelectedDate,
     );
 
-    final selectedDate = context.select<DiaryViewModel, DateTime>(
-      (vm) => vm.selectedDate,
-    );
+    final showDayContent = hasDataForSelectedDate || incomplete == true;
     final isToday = selectedDate.isSameDate(DateTime.now());
     Widget weightCard() => WeightCard(date: selectedDate);
 
-    if (hasEverLoggedData == false && isToday) {
+    if (hasEverLoggedData == false && isToday && incomplete != true) {
       return Column(
         children: [
           Padding(
@@ -1067,9 +1123,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     // the "no data" overlay there hides the actions a user needs to begin.
     // Older empty days remain a gap in the historical record.
     final bool showSkeleton =
-        (!hasDataForSelectedDate && !isToday) ||
-        isLoading ||
-        hasEverLoggedData == null;
+        (!showDayContent && !isToday) || isLoading || hasEverLoggedData == null;
 
     Widget content = Skeletonizer(
       enabled: showSkeleton,
@@ -1111,7 +1165,99 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         children: [
                           if (data.selectedDate.isSameDate(DateTime.now()))
                             const PendingReviewDiaryCard(),
-                          AppSectionHeader(title: l10n.today_overview_text),
+                          AnimatedSize(
+                            duration: MediaQuery.disableAnimationsOf(context)
+                                ? Duration.zero
+                                : const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            alignment: Alignment.topCenter,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                              AppSectionHeader(
+                                title: l10n.today_overview_text,
+                                padding: incomplete == true
+                                    ? DesignConstants.sectionHeaderPadding.copyWith(
+                                        bottom: 0,
+                                      )
+                                    : null,
+                                action: !showSkeleton && incomplete != null
+                                    ? PlatformAdaptivePopupMenu<bool>(
+                                        autoAdjustToScreen: true,
+                                        enabled: !_savingNutritionStatus,
+                                        icon: Tooltip(
+                                          message: l10n.diaryNutritionDayOptions,
+                                          child: const SizedBox.square(
+                                            dimension: 44,
+                                            child: Icon(
+                                              LucideIcons.ellipsis,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                        items: [
+                                          PlatformAdaptivePopupMenuItem(
+                                            value: !incomplete,
+                                            label: incomplete
+                                                ? l10n.diaryIncludeNutritionDay
+                                                : l10n.diaryMarkNutritionDayIncomplete,
+                                          ),
+                                        ],
+                                        onSelected: (value) =>
+                                            _setIncompleteNutritionDay(
+                                              selectedDate,
+                                              value,
+                                            ),
+                                      )
+                                    : null,
+                              ),
+                              if (incomplete == true) ...[
+                                Semantics(
+                                  liveRegion: true,
+                                  child: DiaryHealthSummaryCard(
+                                    title: l10n.diaryIncompleteDayTitle,
+                                    subtitle: l10n.diaryIncompleteDayDetail,
+                                    subtitleMaxLines: 1,
+                                    borderColor: Colors.orange.withValues(
+                                      alpha: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? 0.35
+                                          : 0.25,
+                                    ),
+                                    trailing: Tooltip(
+                                      message: l10n.diaryIncludeNutritionDay,
+                                      child: FilledButton(
+                                        onPressed: _savingNutritionStatus
+                                            ? null
+                                            : () => _setIncompleteNutritionDay(
+                                                selectedDate,
+                                                false,
+                                              ),
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor: Colors.orange,
+                                          foregroundColor: Colors.black,
+                                          minimumSize: const Size(44, 44),
+                                          padding: EdgeInsets.zero,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              DesignConstants.borderRadiusM,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          LucideIcons.rotate_ccw,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: DesignConstants.spacingXS),
+                              ],
+                              ],
+                            ),
+                          ),
                           if (dailyNutrition != null)
                             RepaintBoundary(
                               key: _macroSummaryKey,
@@ -1274,7 +1420,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       ),
     );
 
-    if (showSkeleton && !hasDataForSelectedDate && !isToday) {
+    if (showSkeleton && !showDayContent && !isToday) {
       content = ActiveGapOverlay(
         message: l10n.emptyStateActiveGapOverlay,
         background: content,

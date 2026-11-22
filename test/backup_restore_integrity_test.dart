@@ -130,43 +130,46 @@ void main() {
       },
     );
 
-    test(
-      'meal templates and nutrition entries survive backup restore',
-      () async {
-        await db
-            .into(db.products)
-            .insert(
-              const ProductsCompanion(
-                barcode: drift.Value('base-apple'),
-                name: drift.Value('Apple'),
-                calories: drift.Value(52),
-                protein: drift.Value(0.3),
-                carbs: drift.Value(14),
-                fat: drift.Value(0.2),
-                source: drift.Value('base'),
-              ),
-            );
-        await dbHelper.insertFoodEntry(
-          FoodEntry(
-            barcode: 'base-apple',
-            timestamp: DateTime(2026, 4, 1, 12, 0),
-            quantityInGrams: 180,
-            mealType: 'mealtypeLunch',
-          ),
-        );
-        final mealId = await dbHelper.insertMeal(
-          name: 'Lunch Bowl',
-          notes: 'High-carb pre-workout',
-          servingCount: 2,
-          cookedWeightInGrams: 320,
-        );
-        await dbHelper.addMealItem(
-          mealId: mealId,
+    test('meal templates, nutrition entries and incomplete days survive backup restore', () async {
+      final day = DateTime(2026, 4, 1);
+      await db
+          .into(db.products)
+          .insert(
+            const ProductsCompanion(
+              barcode: drift.Value('base-apple'),
+              name: drift.Value('Apple'),
+              calories: drift.Value(52),
+              protein: drift.Value(0.3),
+              carbs: drift.Value(14),
+              fat: drift.Value(0.2),
+              source: drift.Value('base'),
+            ),
+          );
+      await dbHelper.insertFoodEntry(
+        FoodEntry(
           barcode: 'base-apple',
-          amount: 180.0,
-        );
+          timestamp: DateTime(2026, 4, 1, 12, 0),
+          quantityInGrams: 180,
+          mealType: 'mealtypeLunch',
+        ),
+      );
+      final mealId = await dbHelper.insertMeal(
+        name: 'Lunch Bowl',
+        notes: 'High-carb pre-workout',
+        servingCount: 2,
+        cookedWeightInGrams: 320,
+      );
+      await dbHelper.addMealItem(
+        mealId: mealId,
+        barcode: 'base-apple',
+        amount: 180.0,
+      );
+      await dbHelper.setIncompleteNutritionDay(day, true);
 
-        final payload = await backupManager.generateBackupPayloadForTesting();
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      await dbHelper.setIncompleteNutritionDay(day, false);
+      final otherDay = DateTime(2026, 4, 2);
+      await dbHelper.setIncompleteNutritionDay(otherDay, true);
 
         final imported = await backupManager.importBackupPayloadForTesting(
           payload,
@@ -187,15 +190,13 @@ void main() {
         expect(restoredItems.first['barcode'], 'base-apple');
         expect(restoredItems.first['quantity_in_grams'], 180);
 
-        final restoredEntries = await dbHelper.getEntriesForDate(
-          DateTime(2026, 4, 1),
-        );
-        expect(restoredEntries.length, 1);
-        expect(restoredEntries.first.barcode, 'base-apple');
-        expect(restoredEntries.first.quantityInGrams, 180);
-        expect(restoredEntries.first.mealType, 'mealtypeLunch');
-      },
-    );
+      final restoredEntries = await dbHelper.getEntriesForDate(day);
+      expect(restoredEntries.length, 1);
+      expect(restoredEntries.first.barcode, 'base-apple');
+      expect(restoredEntries.first.quantityInGrams, 180);
+      expect(restoredEntries.first.mealType, 'mealtypeLunch');
+      expect(await dbHelper.getIncompleteNutritionDays(day, otherDay), {day});
+    });
 
     test('AI meal entries and their grouping survive backup restore', () async {
       await db

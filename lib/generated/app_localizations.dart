@@ -17222,6 +17222,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No new PRs} =1{1 new PR} other{{count} new PRs}}'**
   String statisticsBestPerformancesCount(int count);
+
+  /// No description provided for @diaryNutritionDayOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition day options'**
+  String get diaryNutritionDayOptions;
+
+  /// No description provided for @diaryMarkNutritionDayIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as incomplete'**
+  String get diaryMarkNutritionDayIncomplete;
+
+  /// No description provided for @diaryIncludeNutritionDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Include in statistics again'**
+  String get diaryIncludeNutritionDay;
+
+  /// No description provided for @diaryIncompleteDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete day'**
+  String get diaryIncompleteDayTitle;
+
+  /// No description provided for @diaryIncompleteDayDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from nutrition statistics'**
+  String get diaryIncompleteDayDetail;
+
+  /// No description provided for @diaryNutritionDayIncompleteStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete · Excluded from nutrition statistics'**
+  String get diaryNutritionDayIncompleteStatus;
+
+  /// Number of days used for the nutrition average and number marked incomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{included, plural, one{1 day analyzed} other{{included} days analyzed}} · {incomplete} incomplete'**
+  String nutritionStatisticsDayCoverage(int included, int incomplete);
 }
 
 class _AppLocalizationsDelegate

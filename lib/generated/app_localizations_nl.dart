@@ -9896,4 +9896,35 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get diaryNutritionDayOptions => 'Opties voor deze voedingsdag';
+
+  @override
+  String get diaryMarkNutritionDayIncomplete => 'Markeren als onvolledig';
+
+  @override
+  String get diaryIncludeNutritionDay => 'Weer opnemen in de statistieken';
+
+  @override
+  String get diaryIncompleteDayTitle => 'Onvolledige dag';
+
+  @override
+  String get diaryIncompleteDayDetail =>
+      'Niet meegenomen in voedingsstatistieken';
+
+  @override
+  String get diaryNutritionDayIncompleteStatus =>
+      'Onvolledig · Uitgesloten van voedingsstatistieken';
+
+  @override
+  String nutritionStatisticsDayCoverage(int included, int incomplete) {
+    String _temp0 = intl.Intl.pluralLogic(
+      included,
+      locale: localeName,
+      other: '$included dagen geanalyseerd',
+      one: '1 dag geanalyseerd',
+    );
+    return '$_temp0 · $incomplete onvolledig';
+  }
 }

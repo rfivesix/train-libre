@@ -42,13 +42,24 @@ class RecommendationInputAdapter {
 
     final rangeStart = windowStartDay;
     final rangeEnd = endOfDay(windowEndDay);
+    final incompleteDaysFuture = _databaseHelper.getIncompleteNutritionDays(
+      rangeStart,
+      // The fluid range reader can include entries on the following morning.
+      DateTime(windowEndDay.year, windowEndDay.month, windowEndDay.day + 1),
+    );
 
     final results = await Future.wait<dynamic>([
       _databaseHelper.getChartDataForTypeAndRange(
         'weight',
         DateTimeRange(start: rangeStart, end: rangeEnd),
       ),
-      _databaseHelper.getFoodCaloriesByDayForDateRange(rangeStart, rangeEnd),
+      incompleteDaysFuture.then(
+        (days) => _databaseHelper.getFoodCaloriesByDayForDateRange(
+          rangeStart,
+          rangeEnd,
+          excludedDays: days,
+        ),
+      ),
       _databaseHelper.getFluidEntriesForDateRange(rangeStart, rangeEnd),
       _databaseHelper.getUserProfile(),
       _databaseHelper.getGoalsForDate(now),
@@ -56,11 +67,15 @@ class RecommendationInputAdapter {
       _databaseHelper.getAverageCompletedWorkoutsPerWeek(now: rangeEnd),
       _databaseHelper.getAppSettings(),
       _databaseHelper.getLatestWeightBefore(rangeEnd),
+      incompleteDaysFuture,
     ]);
 
     final weightPoints = results[0] as List<ChartDataPoint>;
     final foodCaloriesResult = results[1] as FoodCaloriesByDayResult;
-    final fluidEntries = results[2] as List<FluidEntry>;
+    final incompleteDays = results[9] as Set<DateTime>;
+    final fluidEntries = (results[2] as List<FluidEntry>).where(
+      (entry) => !incompleteDays.contains(normalizeDay(entry.timestamp)),
+    );
     final profile = results[3] as db.Profile?;
     final activeGoals = results[4] as db.DailyGoalsHistoryData?;
     final bodyFatPercent = results[5] as double?;
@@ -330,7 +345,7 @@ class RecommendationInputAdapter {
   // where `linkedFoodEntryId != null` to ensure items are aggregated exactly once.
   Map<DateTime, double> _buildCaloriesByDay({
     required Map<DateTime, double> foodCaloriesByDay,
-    required List<FluidEntry> fluidEntries,
+    required Iterable<FluidEntry> fluidEntries,
   }) {
     final caloriesByDay = <DateTime, double>{...foodCaloriesByDay};
 

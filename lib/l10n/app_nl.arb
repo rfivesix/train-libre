@@ -4476,5 +4476,12 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "diaryNutritionDayOptions": "Opties voor deze voedingsdag",
+  "diaryMarkNutritionDayIncomplete": "Markeren als onvolledig",
+  "diaryIncludeNutritionDay": "Weer opnemen in de statistieken",
+  "diaryIncompleteDayTitle": "Onvolledige dag",
+  "diaryIncompleteDayDetail": "Niet meegenomen in voedingsstatistieken",
+  "diaryNutritionDayIncompleteStatus": "Onvolledig · Uitgesloten van voedingsstatistieken",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 dag geanalyseerd} other{{included} dagen geanalyseerd}} · {incomplete} onvolledig"
 }

@@ -14,6 +14,8 @@ class DiaryHealthSummaryCard extends StatelessWidget {
     this.trailing,
     this.destinationBuilder,
     this.routeSettings,
+    this.borderColor,
+    this.subtitleMaxLines,
   });
 
   final String title;
@@ -21,12 +23,15 @@ class DiaryHealthSummaryCard extends StatelessWidget {
   final Widget? trailing;
   final WidgetBuilder? destinationBuilder;
   final RouteSettings? routeSettings;
+  final Color? borderColor;
+  final int? subtitleMaxLines;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     Widget card({VoidCallback? onTap}) => SummaryCard(
           padding: EdgeInsets.zero,
+          borderColor: borderColor,
           margin:
               const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
           child: InkWell(
@@ -56,6 +61,10 @@ class DiaryHealthSummaryCard extends StatelessWidget {
                         const SizedBox(height: DesignConstants.spacingXS),
                         Text(
                           subtitle,
+                          maxLines: subtitleMaxLines,
+                          overflow: subtitleMaxLines == null
+                              ? null
+                              : TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.w500,

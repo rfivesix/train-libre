@@ -1844,7 +1844,17 @@ class _MainScreenState extends State<MainScreen>
               children: <Widget>[
                 KeepAlivePage(
                   storageKey: const PageStorageKey('tab_tagebuch'),
-                  child: DiaryScreen(contentKey: _tagebuchKey),
+                  child: DiaryScreen(
+                    contentKey: _tagebuchKey,
+                    onNutritionDayStatusChanged: () {
+                      final statistics = _statsKey.currentState;
+                      if (_currentIndex == 2) {
+                        statistics?.refresh(force: true);
+                      } else {
+                        statistics?.markDirty();
+                      }
+                    },
+                  ),
                 ),
                 const KeepAlivePage(
                   storageKey: PageStorageKey('tab_workout'),

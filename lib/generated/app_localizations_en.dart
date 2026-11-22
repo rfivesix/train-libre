@@ -9798,4 +9798,34 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get diaryNutritionDayOptions => 'Nutrition day options';
+
+  @override
+  String get diaryMarkNutritionDayIncomplete => 'Mark as incomplete';
+
+  @override
+  String get diaryIncludeNutritionDay => 'Include in statistics again';
+
+  @override
+  String get diaryIncompleteDayTitle => 'Incomplete day';
+
+  @override
+  String get diaryIncompleteDayDetail => 'Excluded from nutrition statistics';
+
+  @override
+  String get diaryNutritionDayIncompleteStatus =>
+      'Incomplete · Excluded from nutrition statistics';
+
+  @override
+  String nutritionStatisticsDayCoverage(int included, int incomplete) {
+    String _temp0 = intl.Intl.pluralLogic(
+      included,
+      locale: localeName,
+      other: '$included days analyzed',
+      one: '1 day analyzed',
+    );
+    return '$_temp0 · $incomplete incomplete';
+  }
 }

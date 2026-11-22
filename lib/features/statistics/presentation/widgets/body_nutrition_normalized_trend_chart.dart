@@ -23,6 +23,7 @@ class BodyNutritionNormalizedTrendChart extends StatefulWidget {
     required this.range,
     required this.weightSeries,
     required this.calorieSeries,
+    this.incompleteNutritionDays = const {},
     this.compact = false,
     this.edgeToEdge = false,
   });
@@ -30,6 +31,7 @@ class BodyNutritionNormalizedTrendChart extends StatefulWidget {
   final DateTimeRange? range;
   final List<DailyValuePoint> weightSeries;
   final List<DailyValuePoint> calorieSeries;
+  final Set<DateTime> incompleteNutritionDays;
   final bool compact;
   final bool edgeToEdge;
 
@@ -129,6 +131,7 @@ class _BodyNutritionNormalizedTrendChartState
       maxX: maxX,
       scale: calorieScale,
       aggregationMethod: AggregationMethod.average,
+      gapDays: widget.incompleteNutritionDays,
     );
     // Debug: when used as compact (hub), print range and last raw-series dates
     assert(() {
@@ -463,6 +466,7 @@ class _BodyNutritionNormalizedTrendChartState
     required double maxX,
     required _SeriesScale scale,
     AggregationMethod aggregationMethod = AggregationMethod.average,
+    Set<DateTime> gapDays = const {},
   }) {
     final Map<int, List<DailyValuePoint>> groupedByX = {};
     final maxXInt = maxX.round();
@@ -509,7 +513,9 @@ class _BodyNutritionNormalizedTrendChartState
     }
     final firstPoint = orderedPoints.first;
     final lastPoint = orderedPoints.last;
-    if (firstPoint.spot.x > 0) {
+    final gapsByX = {for (final day in gapDays) _xOf(day, firstDay): day};
+    if (firstPoint.spot.x > 0 &&
+        !gapsByX.keys.any((x) => x >= 0 && x < firstPoint.spot.x)) {
       orderedPoints.insert(
         0,
         _ChartPoint(
@@ -519,7 +525,8 @@ class _BodyNutritionNormalizedTrendChartState
         ),
       );
     }
-    if (lastPoint.spot.x < maxXInt) {
+    if (lastPoint.spot.x < maxXInt &&
+        !gapsByX.keys.any((x) => x > lastPoint.spot.x && x <= maxXInt)) {
       orderedPoints.add(
         _ChartPoint(
           day: lastPoint.day,
@@ -529,7 +536,19 @@ class _BodyNutritionNormalizedTrendChartState
       );
     }
 
-    return orderedPoints;
+    if (gapsByX.isEmpty) return orderedPoints;
+    final pointsByX = {
+      for (final point in orderedPoints) point.spot.x: point,
+      for (final gap in gapsByX.entries)
+        if (gap.key > firstPoint.spot.x && gap.key < lastPoint.spot.x)
+          gap.key: _ChartPoint(
+            day: gap.value,
+            rawValue: double.nan,
+            spot: FlSpot.nullSpot,
+          ),
+    };
+    final orderedX = pointsByX.keys.toList()..sort();
+    return [for (final x in orderedX) pointsByX[x]!];
   }
 
   double _xOf(DateTime day, DateTime firstDay) {

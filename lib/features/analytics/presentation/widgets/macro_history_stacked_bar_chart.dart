@@ -127,6 +127,7 @@ class _MacroHistoryStackedBarChartState
             carbsGrams: carbs / divisor,
             fatGrams: fat / divisor,
             targetCalories: targetCount > 0 ? (targetSum / targetCount).round() : null,
+            isIncomplete: tracked == 0 && chunk.any((day) => day.isIncomplete),
           ),
         ),
       );
@@ -157,7 +158,8 @@ class _MacroHistoryStackedBarChartState
       _isPressing = true;
       _touchX = details.localPosition.dx;
     });
-    widget.onDaySelected?.call(displayBars[index].intake);
+    final intake = displayBars[index].intake;
+    widget.onDaySelected?.call(intake.isIncomplete ? null : intake);
   }
 
   void _handleDragUpdate(
@@ -176,7 +178,9 @@ class _MacroHistoryStackedBarChartState
     final newBar = displayBars[index];
     if (widget.selectedDay == null ||
         !newBar.containsDate(widget.selectedDay!.date)) {
-      widget.onDaySelected?.call(newBar.intake);
+      widget.onDaySelected?.call(
+        newBar.intake.isIncomplete ? null : newBar.intake,
+      );
     }
   }
 
@@ -358,7 +362,7 @@ class _MacroHistoryStackedBarChartState
                               final isSame =
                                   widget.selectedDay != null &&
                                   tapped.containsDate(widget.selectedDay!.date);
-                              if (isSame) {
+                              if (isSame || tapped.intake.isIncomplete) {
                                 // Deselect: clear position and notify null
                                 setState(() => _touchX = null);
                                 widget.onDaySelected?.call(null);
@@ -528,6 +532,7 @@ class _MacroHistoryStackedBarChartState
     required bool showDetails,
     bool isSelected = false,
   }) {
+    if (item.isIncomplete) return const SizedBox.shrink();
     final theme = Theme.of(context);
     if (item.calories <= 0) {
       return Column(

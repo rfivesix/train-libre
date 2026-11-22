@@ -127,6 +127,8 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   range: body?.range,
                   weightSeries: body?.weightDaily ?? const [],
                   calorieSeries: body?.caloriesDaily ?? const [],
+                  incompleteNutritionDays:
+                      body?.incompleteNutritionDays ?? const {},
                   compact: true,
                 ),
               ),

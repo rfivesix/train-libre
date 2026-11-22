@@ -120,6 +120,18 @@ void main() {
       expect(input.intakeLoggedDays, 1);
       expect(input.avgLoggedCalories, closeTo(670.0, 0.001));
       expect(input.qualityFlags, contains('unresolved_food_calories'));
+
+      await dbHelper.setIncompleteNutritionDay(day, true);
+      final incompleteInput = await adapter.buildInput(
+        now: day,
+        baselineWeightKg: 80,
+      );
+      expect(incompleteInput.intakeLoggedDays, 0);
+      expect(incompleteInput.avgLoggedCalories, 0);
+      expect(
+        incompleteInput.qualityFlags,
+        isNot(contains('unresolved_food_calories')),
+      );
     });
 
     test('buildInput defaults to a 14-day adaptive lookback', () async {

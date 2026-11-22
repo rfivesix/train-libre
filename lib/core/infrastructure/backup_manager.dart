@@ -453,6 +453,9 @@ class BackupManager {
     // JSON document, and base64 images would multiply its size.
     onProgress?.call('meal_entries', 0.97);
     payload['meal_entries'] = await _fetchTable('meal_entries');
+    payload['incomplete_nutrition_days'] = await _fetchTable(
+      'incomplete_nutrition_days',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('cardio_data', 0.98);
@@ -931,6 +934,7 @@ class BackupManager {
           await dbInst.delete(dbInst.fluidLogs).go();
           await dbInst.delete(dbInst.macroEntries).go();
           await dbInst.delete(dbInst.nutritionLogs).go();
+          await dbInst.delete(dbInst.incompleteNutritionDays).go();
           // After the logs, which reference it.
           await dbInst.delete(dbInst.mealEntries).go();
           await dbInst.customStatement('DELETE FROM off_products_archive');
@@ -1007,6 +1011,10 @@ class BackupManager {
           // restoring the logs first would leave the grouping dangling.
           onProgress?.call('meal_entries', 0.33);
           await _importTable('meal_entries', payload['meal_entries']);
+          await _importTable(
+            'incomplete_nutrition_days',
+            payload['incomplete_nutrition_days'],
+          );
           token?.throwIfCancelled();
 
           onProgress?.call('user_data', 0.35);

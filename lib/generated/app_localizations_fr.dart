@@ -9954,4 +9954,36 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get diaryNutritionDayOptions =>
+      'Options du journal alimentaire du jour';
+
+  @override
+  String get diaryMarkNutritionDayIncomplete => 'Marquer comme incomplet';
+
+  @override
+  String get diaryIncludeNutritionDay => 'Réintégrer dans les statistiques';
+
+  @override
+  String get diaryIncompleteDayTitle => 'Journée incomplète';
+
+  @override
+  String get diaryIncompleteDayDetail =>
+      'Exclue des statistiques nutritionnelles';
+
+  @override
+  String get diaryNutritionDayIncompleteStatus =>
+      'Incomplet · Exclu des statistiques nutritionnelles';
+
+  @override
+  String nutritionStatisticsDayCoverage(int included, int incomplete) {
+    String _temp0 = intl.Intl.pluralLogic(
+      included,
+      locale: localeName,
+      other: '$included jours analysés',
+      one: '1 jour analysé',
+    );
+    return '$_temp0 · $incomplete incomplets';
+  }
 }

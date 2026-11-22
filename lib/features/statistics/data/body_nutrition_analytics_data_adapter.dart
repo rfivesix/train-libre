@@ -15,11 +15,13 @@ class BodyNutritionAnalyticsRawData {
   final DateTimeRange range;
   final List<ChartDataPoint> weightPoints;
   final Map<DateTime, double> caloriesByDay;
+  final Set<DateTime> incompleteDays;
 
   const BodyNutritionAnalyticsRawData({
     required this.range,
     required this.weightPoints,
     required this.caloriesByDay,
+    required this.incompleteDays,
   });
 }
 
@@ -83,6 +85,7 @@ class BodyNutritionAnalyticsDataAdapter {
           _databaseHelper.getEntriesForDateRange(range.start, range.end),
           _databaseHelper.getFluidEntriesForDateRange(range.start, range.end),
           _databaseHelper.getMacroEntriesForDateRange(range.start, range.end),
+          _databaseHelper.getIncompleteNutritionDays(range.start, range.end),
         ]);
 
         final weightPoints = (results[0] as List<ChartDataPoint>);
@@ -108,6 +111,7 @@ class BodyNutritionAnalyticsDataAdapter {
           range: range,
           weightPoints: weightPoints,
           caloriesByDay: caloriesByDay,
+          incompleteDays: results[4] as Set<DateTime>,
         );
       },
     );

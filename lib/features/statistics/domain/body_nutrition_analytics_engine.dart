@@ -16,12 +16,14 @@ class BodyNutritionAnalyticsEngine {
     required DateTimeRange range,
     required List<ChartDataPoint> weightPoints,
     required Map<DateTime, double> caloriesByDay,
+    Set<DateTime> incompleteDays = const {},
   }) {
     final normalizedRangeStart = normalizeDay(range.start);
     final normalizedRangeEnd = normalizeDay(range.end);
     final allDays = _enumerateDays(normalizedRangeStart, normalizedRangeEnd);
     final totalDays = allDays.length;
     final weightByDay = _latestWeightPerDay(weightPoints);
+    final excludedDays = incompleteDays.map(normalizeDay).toSet();
     final loggedCaloriesByDay = <DateTime, double>{};
     final caloriesDaily = <DailyValuePoint>[];
     final weightDaily = <DailyValuePoint>[];
@@ -35,7 +37,7 @@ class BodyNutritionAnalyticsEngine {
           day.month == todayUtc.month &&
           day.day == todayUtc.day;
 
-      if (!isToday) {
+      if (!isToday && !excludedDays.contains(day)) {
         final calories = caloriesByDay[day] ?? 0.0;
         if (calories > 0) {
           loggedCaloriesByDay[day] = calories;
@@ -70,7 +72,7 @@ class BodyNutritionAnalyticsEngine {
       valuesByDay: loggedCaloriesByDay,
       windowRadiusDays: 3,
       minSamples: 3,
-    );
+    )..removeWhere((day, _) => excludedDays.contains(day));
 
     final smoothedWeight = allDays
         .where((day) => smoothedWeightByDay[day] != null)
@@ -164,6 +166,7 @@ class BodyNutritionAnalyticsEngine {
       weightDaily: weightDaily,
       smoothedWeight: smoothedWeight,
       caloriesDaily: caloriesDaily,
+      incompleteNutritionDays: excludedDays,
       smoothedCalories: smoothedCalories,
       normalizedWeightTrend: normalizedComparison.weightSeries,
       normalizedCaloriesTrend: normalizedComparison.calorieSeries,

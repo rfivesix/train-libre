@@ -32,7 +32,7 @@ void main() {
         contains('meal_entry_id'),
       );
       final version = await migrated.customSelect('PRAGMA user_version').get();
-      expect(version.single.read<int>('user_version'), 48);
+      expect(version.single.read<int>('user_version'), 49);
     } finally {
       await migrated.close();
       await tempDir.delete(recursive: true);

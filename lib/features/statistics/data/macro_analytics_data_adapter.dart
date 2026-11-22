@@ -19,6 +19,7 @@ class DailyMacroIntake {
   final double carbsGrams;
   final double fatGrams;
   final int? targetCalories;
+  final bool isIncomplete;
 
   const DailyMacroIntake({
     required this.date,
@@ -27,6 +28,7 @@ class DailyMacroIntake {
     required this.carbsGrams,
     required this.fatGrams,
     this.targetCalories,
+    this.isIncomplete = false,
   });
 
   bool get hasData =>
@@ -43,6 +45,7 @@ class MacroPeriodSummary {
   final double avgFat;
   final int totalDays;
   final int trackedDays;
+  final int incompleteDays;
 
   const MacroPeriodSummary({
     required this.range,
@@ -53,6 +56,7 @@ class MacroPeriodSummary {
     required this.avgFat,
     required this.totalDays,
     required this.trackedDays,
+    this.incompleteDays = 0,
   });
 
   static MacroPeriodSummary empty(DateTimeRange range) {
@@ -68,10 +72,11 @@ class MacroPeriodSummary {
     );
   }
 
-  /// Returns a copy whose [dailyIntakes] and [range] start at the first tracked
-  /// day (useful for `MAX` timeframes anchored to a distant fallback date).
+  /// Starts the range at the first tracked or explicitly incomplete day.
   MacroPeriodSummary trimmedToFirstTracked() {
-    final firstTrackedIndex = dailyIntakes.indexWhere((d) => d.hasData);
+    final firstTrackedIndex = dailyIntakes.indexWhere(
+      (day) => day.hasData || day.isIncomplete,
+    );
     if (firstTrackedIndex < 0) {
       return MacroPeriodSummary.empty(range);
     }
@@ -88,6 +93,7 @@ class MacroPeriodSummary {
       avgFat: avgFat,
       totalDays: trimmed.length,
       trackedDays: trackedDays,
+      incompleteDays: incompleteDays,
     );
   }
 }
@@ -130,6 +136,7 @@ class MacroAnalyticsDataAdapter {
       _databaseHelper.getFluidEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getMacroEntriesForDateRange(startDay, endOfDay),
       _loadCalorieGoalTimeline(),
+      _databaseHelper.getIncompleteNutritionDays(startDay, endDay),
     ]);
 
     final foodEntries = results[0] as List<FoodEntry>;
@@ -137,6 +144,7 @@ class MacroAnalyticsDataAdapter {
     final macroEntries = results[2] as List<MacroEntry>;
     final goalTimeline =
         results[3] as ({List<drift_db.DailyGoalsHistoryData> history, int? fallbackTarget});
+    final incompleteDays = results[4] as Set<DateTime>;
 
     final dailyMap = await _aggregateDays(
       startDay: startDay,
@@ -170,7 +178,8 @@ class MacroAnalyticsDataAdapter {
         goalTimeline.history,
         goalTimeline.fallbackTarget,
       );
-      final existing = dailyMap[dayKey];
+      final isIncomplete = incompleteDays.contains(currentDay);
+      final existing = isIncomplete ? null : dailyMap[dayKey];
       final intake = existing != null
           ? DailyMacroIntake(
               date: existing.date,
@@ -187,6 +196,7 @@ class MacroAnalyticsDataAdapter {
               carbsGrams: 0.0,
               fatGrams: 0.0,
               targetCalories: targetForDay,
+              isIncomplete: isIncomplete,
             );
       intakes.add(intake);
       if (intake.hasData) {
@@ -213,6 +223,7 @@ class MacroAnalyticsDataAdapter {
       avgFat: sumFat / divisor,
       totalDays: totalDays,
       trackedDays: trackedDays,
+      incompleteDays: incompleteDays.length,
     );
   }
 

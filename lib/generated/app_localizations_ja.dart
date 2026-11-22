@@ -9432,4 +9432,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String statisticsBestPerformancesCount(int count) {
     return '$count件の新記録';
   }
+
+  @override
+  String get diaryNutritionDayOptions => 'この日の食事記録のオプション';
+
+  @override
+  String get diaryMarkNutritionDayIncomplete => '未完了にする';
+
+  @override
+  String get diaryIncludeNutritionDay => '統計に再度含める';
+
+  @override
+  String get diaryIncompleteDayTitle => '記録が不完全な日';
+
+  @override
+  String get diaryIncompleteDayDetail => '栄養統計の対象外';
+
+  @override
+  String get diaryNutritionDayIncompleteStatus => '未完了 · 栄養統計の対象外';
+
+  @override
+  String nutritionStatisticsDayCoverage(int included, int incomplete) {
+    return '$included日を集計 · $incomplete日が未完了';
+  }
 }

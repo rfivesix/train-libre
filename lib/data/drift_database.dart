@@ -644,6 +644,13 @@ class MealEntries extends Table with HybridId, MetaColumns {
       .nullable()(); // JSON: DepthScaleFacts, provider/model, extra photos
 }
 
+class IncompleteNutritionDays extends Table {
+  TextColumn get day => text()();
+
+  @override
+  Set<Column> get primaryKey => {day};
+}
+
 @TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})
 class NutritionLogs extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()();
@@ -1061,6 +1068,7 @@ class TrainingPlanOccurrences extends Table with HybridId, MetaColumns {
     CardioActivities,
     CardioSamples,
     Products,
+    IncompleteNutritionDays,
     NutritionLogs,
     MacroEntries,
     Supplements,
@@ -1106,7 +1114,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 48;
+  int get schemaVersion => 49;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -2267,6 +2275,13 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 48) {
           await _createHrvPersistenceSchema(this);
+        }
+        if (from < 49 &&
+            (await _columnsOf(
+              this,
+              incompleteNutritionDays.actualTableName,
+            )).isEmpty) {
+          await m.createTable(incompleteNutritionDays);
         }
         unawaited(
           TelemetryService.instance.trackDbMigrationStatus(

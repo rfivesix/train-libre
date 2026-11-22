@@ -864,6 +864,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     return MorphSourceScope(
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => MacroSectionCard(
+          refreshToken: overviewRefreshToken,
           activeBlockType: viewModel.activeBlockType,
           anchorDate: viewModel.anchorDate,
           isRolling: viewModel.isRolling,

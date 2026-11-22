@@ -295,6 +295,24 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                         carbsColor: carbsColor,
                       ),
                     ),
+                    if ((_summary?.incompleteDays ?? 0) > 0)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          DesignConstants.spacingL,
+                          DesignConstants.spacingS,
+                          DesignConstants.spacingL,
+                          0,
+                        ),
+                        child: Text(
+                          l10n.nutritionStatisticsDayCoverage(
+                            _summary!.trackedDays,
+                            _summary!.incompleteDays,
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: DesignConstants.spacingM),
                     // Main Stacked Bar Chart (starts from very left edge of screen)
                     Padding(
@@ -363,6 +381,9 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
   }) {
     final summary = _summary;
     final selected = _selectedDay;
+    final showAverage =
+        summary != null &&
+        (summary.trackedDays > 0 || summary.incompleteDays == 0);
 
     // When a day is hovered/selected via press-and-hold, show its exact values.
     // Otherwise fall back to the period averages.
@@ -370,18 +391,16 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
 
     final calText = showDay
         ? '${selected.calories}'
-        : (summary != null ? '${summary.avgCalories}' : '--');
+        : (showAverage ? '${summary.avgCalories}' : '--');
     final protText = showDay
         ? '${selected.proteinGrams.toStringAsFixed(0)} g'
-        : (summary != null
-              ? '${summary.avgProtein.toStringAsFixed(0)} g'
-              : '--');
+        : (showAverage ? '${summary.avgProtein.toStringAsFixed(0)} g' : '--');
     final fatText = showDay
         ? '${selected.fatGrams.toStringAsFixed(0)} g'
-        : (summary != null ? '${summary.avgFat.toStringAsFixed(0)} g' : '--');
+        : (showAverage ? '${summary.avgFat.toStringAsFixed(0)} g' : '--');
     final carbsText = showDay
         ? '${selected.carbsGrams.toStringAsFixed(0)} g'
-        : (summary != null ? '${summary.avgCarbs.toStringAsFixed(0)} g' : '--');
+        : (showAverage ? '${summary.avgCarbs.toStringAsFixed(0)} g' : '--');
 
     final l10n = AppLocalizations.of(context)!;
 

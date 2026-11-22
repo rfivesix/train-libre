@@ -11157,6 +11157,175 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   }
 }
 
+class $IncompleteNutritionDaysTable extends IncompleteNutritionDays
+    with TableInfo<$IncompleteNutritionDaysTable, IncompleteNutritionDay> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IncompleteNutritionDaysTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [day];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'incomplete_nutrition_days';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<IncompleteNutritionDay> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {day};
+  @override
+  IncompleteNutritionDay map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return IncompleteNutritionDay(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+    );
+  }
+
+  @override
+  $IncompleteNutritionDaysTable createAlias(String alias) {
+    return $IncompleteNutritionDaysTable(attachedDatabase, alias);
+  }
+}
+
+class IncompleteNutritionDay extends DataClass
+    implements Insertable<IncompleteNutritionDay> {
+  final String day;
+  const IncompleteNutritionDay({required this.day});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    return map;
+  }
+
+  IncompleteNutritionDaysCompanion toCompanion(bool nullToAbsent) {
+    return IncompleteNutritionDaysCompanion(day: Value(day));
+  }
+
+  factory IncompleteNutritionDay.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return IncompleteNutritionDay(
+      day: serializer.fromJson<String>(json['day']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'day': serializer.toJson<String>(day)};
+  }
+
+  IncompleteNutritionDay copyWith({String? day}) =>
+      IncompleteNutritionDay(day: day ?? this.day);
+  IncompleteNutritionDay copyWithCompanion(
+    IncompleteNutritionDaysCompanion data,
+  ) {
+    return IncompleteNutritionDay(
+      day: data.day.present ? data.day.value : this.day,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IncompleteNutritionDay(')
+          ..write('day: $day')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => day.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is IncompleteNutritionDay && other.day == this.day);
+}
+
+class IncompleteNutritionDaysCompanion
+    extends UpdateCompanion<IncompleteNutritionDay> {
+  final Value<String> day;
+  final Value<int> rowid;
+  const IncompleteNutritionDaysCompanion({
+    this.day = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IncompleteNutritionDaysCompanion.insert({
+    required String day,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day);
+  static Insertable<IncompleteNutritionDay> custom({
+    Expression<String>? day,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IncompleteNutritionDaysCompanion copyWith({
+    Value<String>? day,
+    Value<int>? rowid,
+  }) {
+    return IncompleteNutritionDaysCompanion(
+      day: day ?? this.day,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IncompleteNutritionDaysCompanion(')
+          ..write('day: $day, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OffProductsArchiveTable extends OffProductsArchive
     with TableInfo<$OffProductsArchiveTable, OffProductsArchiveData> {
   @override
@@ -35923,6 +36092,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $CardioSamplesTable cardioSamples = $CardioSamplesTable(this);
   late final $ProductsTable products = $ProductsTable(this);
+  late final $IncompleteNutritionDaysTable incompleteNutritionDays =
+      $IncompleteNutritionDaysTable(this);
   late final $OffProductsArchiveTable offProductsArchive =
       $OffProductsArchiveTable(this);
   late final $MealEntriesTable mealEntries = $MealEntriesTable(this);
@@ -36015,6 +36186,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cardioActivities,
     cardioSamples,
     products,
+    incompleteNutritionDays,
     offProductsArchive,
     mealEntries,
     nutritionLogs,
@@ -43865,6 +44037,153 @@ typedef $$ProductsTableProcessedTableManager =
       (Product, $$ProductsTableReferences),
       Product,
       PrefetchHooks Function({bool nutritionLogsRefs, bool mealItemsRefs})
+    >;
+typedef $$IncompleteNutritionDaysTableCreateCompanionBuilder =
+    IncompleteNutritionDaysCompanion Function({
+      required String day,
+      Value<int> rowid,
+    });
+typedef $$IncompleteNutritionDaysTableUpdateCompanionBuilder =
+    IncompleteNutritionDaysCompanion Function({
+      Value<String> day,
+      Value<int> rowid,
+    });
+
+class $$IncompleteNutritionDaysTableFilterComposer
+    extends Composer<_$AppDatabase, $IncompleteNutritionDaysTable> {
+  $$IncompleteNutritionDaysTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$IncompleteNutritionDaysTableOrderingComposer
+    extends Composer<_$AppDatabase, $IncompleteNutritionDaysTable> {
+  $$IncompleteNutritionDaysTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$IncompleteNutritionDaysTableAnnotationComposer
+    extends Composer<_$AppDatabase, $IncompleteNutritionDaysTable> {
+  $$IncompleteNutritionDaysTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+}
+
+class $$IncompleteNutritionDaysTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $IncompleteNutritionDaysTable,
+          IncompleteNutritionDay,
+          $$IncompleteNutritionDaysTableFilterComposer,
+          $$IncompleteNutritionDaysTableOrderingComposer,
+          $$IncompleteNutritionDaysTableAnnotationComposer,
+          $$IncompleteNutritionDaysTableCreateCompanionBuilder,
+          $$IncompleteNutritionDaysTableUpdateCompanionBuilder,
+          (
+            IncompleteNutritionDay,
+            BaseReferences<
+              _$AppDatabase,
+              $IncompleteNutritionDaysTable,
+              IncompleteNutritionDay
+            >,
+          ),
+          IncompleteNutritionDay,
+          PrefetchHooks Function()
+        > {
+  $$IncompleteNutritionDaysTableTableManager(
+    _$AppDatabase db,
+    $IncompleteNutritionDaysTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$IncompleteNutritionDaysTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$IncompleteNutritionDaysTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$IncompleteNutritionDaysTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback: ({
+            Value<String> day = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => IncompleteNutritionDaysCompanion(day: day, rowid: rowid),
+          createCompanionCallback: ({
+            required String day,
+            Value<int> rowid = const Value.absent(),
+          }) => IncompleteNutritionDaysCompanion.insert(day: day, rowid: rowid),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $IncompleteNutritionDaysTable,
+                    IncompleteNutritionDay
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $IncompleteNutritionDaysTable,
+                    IncompleteNutritionDay
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$IncompleteNutritionDaysTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $IncompleteNutritionDaysTable,
+      IncompleteNutritionDay,
+      $$IncompleteNutritionDaysTableFilterComposer,
+      $$IncompleteNutritionDaysTableOrderingComposer,
+      $$IncompleteNutritionDaysTableAnnotationComposer,
+      $$IncompleteNutritionDaysTableCreateCompanionBuilder,
+      $$IncompleteNutritionDaysTableUpdateCompanionBuilder,
+      (
+        IncompleteNutritionDay,
+        BaseReferences<
+          _$AppDatabase,
+          $IncompleteNutritionDaysTable,
+          IncompleteNutritionDay
+        >,
+      ),
+      IncompleteNutritionDay,
+      PrefetchHooks Function()
     >;
 typedef $$OffProductsArchiveTableCreateCompanionBuilder =
     OffProductsArchiveCompanion Function({
@@ -60907,6 +61226,11 @@ class $AppDatabaseManager {
       $$CardioSamplesTableTableManager(_db, _db.cardioSamples);
   $$ProductsTableTableManager get products =>
       $$ProductsTableTableManager(_db, _db.products);
+  $$IncompleteNutritionDaysTableTableManager get incompleteNutritionDays =>
+      $$IncompleteNutritionDaysTableTableManager(
+        _db,
+        _db.incompleteNutritionDays,
+      );
   $$OffProductsArchiveTableTableManager get offProductsArchive =>
       $$OffProductsArchiveTableTableManager(_db, _db.offProductsArchive);
   $$MealEntriesTableTableManager get mealEntries =>

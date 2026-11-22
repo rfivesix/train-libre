@@ -113,6 +113,7 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.fluidLogs).go();
         await dbInst.delete(dbInst.macroEntries).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
+        await dbInst.delete(dbInst.incompleteNutritionDays).go();
         await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
         await dbInst.delete(dbInst.mealItems).go();
@@ -337,8 +338,62 @@ class DatabaseHelper {
   ) => diaryLocalDataSource.getMacroEntriesForDateRange(start, end);
   Future<FoodCaloriesByDayResult> getFoodCaloriesByDayForDateRange(
     DateTime start,
+    DateTime end, {
+    Set<DateTime> excludedDays = const {},
+  }) => diaryLocalDataSource.getFoodCaloriesByDayForDateRange(
+    start,
+    end,
+    excludedDays: excludedDays,
+  );
+
+  // A diary date is a calendar label, independent of the device's time zone.
+  static String _nutritionDayKey(DateTime date) => DateTime.utc(
+    date.year,
+    date.month,
+    date.day,
+  ).toIso8601String().split('T').first;
+
+  Stream<bool> watchIncompleteNutritionDay(DateTime date) {
+    final database = dbInstance;
+    return (database.select(database.incompleteNutritionDays)
+          ..where((row) => row.day.equals(_nutritionDayKey(date))))
+        .watchSingleOrNull()
+        .map((row) => row != null)
+        .distinct();
+  }
+
+  Future<void> setIncompleteNutritionDay(DateTime date, bool incomplete) async {
+    final database = dbInstance;
+    final day = _nutritionDayKey(date);
+    if (incomplete) {
+      await database
+          .into(database.incompleteNutritionDays)
+          .insert(
+            db.IncompleteNutritionDaysCompanion.insert(day: day),
+            mode: drift.InsertMode.insertOrIgnore,
+          );
+    } else {
+      await (database.delete(
+        database.incompleteNutritionDays,
+      )..where((row) => row.day.equals(day))).go();
+    }
+  }
+
+  Future<Set<DateTime>> getIncompleteNutritionDays(
+    DateTime start,
     DateTime end,
-  ) => diaryLocalDataSource.getFoodCaloriesByDayForDateRange(start, end);
+  ) async {
+    final database = dbInstance;
+    final rows =
+        await (database.select(database.incompleteNutritionDays)..where(
+              (row) => row.day.isBetweenValues(
+                _nutritionDayKey(start),
+                _nutritionDayKey(end),
+              ),
+            ))
+            .get();
+    return rows.map((row) => DateTime.parse(row.day)).toSet();
+  }
   Future<DateTime?> getEarliestFoodEntryDate() async {
     final logs = await getAllFoodEntries();
     if (logs.isEmpty) return null;
@@ -614,7 +669,7 @@ class DatabaseHelper {
     String? username,
   }) => profileLocalDataSource.saveUserProfile(
     name: name ?? username ?? 'User',
-    weight: weight ?? 70.0,
+    weight: weight,
     height: (height ?? 175).toDouble(),
     age: age ?? 30,
     gender: gender ?? 'other',

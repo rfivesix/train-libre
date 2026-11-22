@@ -3985,5 +3985,12 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "diaryNutritionDayOptions": "この日の食事記録のオプション",
+  "diaryMarkNutritionDayIncomplete": "未完了にする",
+  "diaryIncludeNutritionDay": "統計に再度含める",
+  "diaryIncompleteDayTitle": "記録が不完全な日",
+  "diaryIncompleteDayDetail": "栄養統計の対象外",
+  "diaryNutritionDayIncompleteStatus": "未完了 · 栄養統計の対象外",
+  "nutritionStatisticsDayCoverage": "{included}日を集計 · {incomplete}日が未完了"
 }

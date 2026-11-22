@@ -3985,5 +3985,12 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "diaryNutritionDayOptions": "Options du journal alimentaire du jour",
+  "diaryMarkNutritionDayIncomplete": "Marquer comme incomplet",
+  "diaryIncludeNutritionDay": "Réintégrer dans les statistiques",
+  "diaryIncompleteDayTitle": "Journée incomplète",
+  "diaryIncompleteDayDetail": "Exclue des statistiques nutritionnelles",
+  "diaryNutritionDayIncompleteStatus": "Incomplet · Exclu des statistiques nutritionnelles",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 jour analysé} other{{included} jours analysés}} · {incomplete} incomplets"
 }

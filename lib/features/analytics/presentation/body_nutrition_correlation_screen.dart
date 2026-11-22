@@ -444,6 +444,7 @@ class _BodyNutritionCorrelationScreenState
               calorieSeries: data.caloriesDaily
                   .where((point) => point.value > 0)
                   .toList(growable: false),
+              incompleteNutritionDays: data.incompleteNutritionDays,
               edgeToEdge: true,
             ),
           ),

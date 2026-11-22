@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../../../services/bls_food_catalog_refresh_service.dart';
+import '../../../util/date_util.dart';
 import '../domain/timeframe_block.dart';
 
 class MicronutrientAverage {
@@ -50,11 +51,18 @@ class BlsMicronutrientAnalyticsDataAdapter {
     );
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    final foodEntries = await DatabaseHelper.instance.getEntriesForDateRange(
+    final database = DatabaseHelper.instance;
+    final incompleteDaysFuture = database.getIncompleteNutritionDays(
       start,
-      endOfDay,
+      // The range reader can include entries after midnight on the last day.
+      DateTime(end.year, end.month, end.day + 1),
     );
+    final (foodEntries, incompleteDays) = await (
+      database.getEntriesForDateRange(start, endOfDay),
+      incompleteDaysFuture,
+    ).wait;
     final blsEntries = foodEntries
+        .where((entry) => !incompleteDays.contains(entry.timestamp.dateOnly))
         .where((entry) => entry.barcode.startsWith('bls:'))
         .where((entry) => entry.quantityInGrams > 0)
         .toList(growable: false);

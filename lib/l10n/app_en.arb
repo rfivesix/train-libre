@@ -4201,5 +4201,23 @@
     "placeholders": {
       "count": {"type": "int"}
     }
+  },
+  "diaryNutritionDayOptions": "Nutrition day options",
+  "diaryMarkNutritionDayIncomplete": "Mark as incomplete",
+  "diaryIncludeNutritionDay": "Include in statistics again",
+  "diaryIncompleteDayTitle": "Incomplete day",
+  "diaryIncompleteDayDetail": "Excluded from nutrition statistics",
+  "diaryNutritionDayIncompleteStatus": "Incomplete · Excluded from nutrition statistics",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 day analyzed} other{{included} days analyzed}} · {incomplete} incomplete",
+  "@nutritionStatisticsDayCoverage": {
+    "description": "Number of days used for the nutrition average and number marked incomplete.",
+    "placeholders": {
+      "included": {
+        "type": "int"
+      },
+      "incomplete": {
+        "type": "int"
+      }
+    }
   }
 }

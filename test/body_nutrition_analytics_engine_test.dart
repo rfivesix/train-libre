@@ -6,6 +6,33 @@ import 'package:train_libre/features/analytics/domain/models/chart_data_point.da
 
 void main() {
   group('BodyNutritionAnalyticsEngine trend summary', () {
+    test('an incomplete date has no calorie point but keeps its weight', () {
+      final start = DateTime.utc(2026, 1, 1);
+      final end = DateTime.utc(2026, 1, 7);
+      final excludedDate = DateTime.utc(2026, 1, 3);
+      final result = BodyNutritionAnalyticsEngine.build(
+        range: DateTimeRange(start: start, end: end),
+        weightPoints: [ChartDataPoint(date: excludedDate, value: 80)],
+        caloriesByDay: {
+          for (var i = 0; i < 7; i++) DateTime.utc(2026, 1, 1 + i): 2000,
+          excludedDate: 420,
+        },
+        incompleteDays: {DateTime(2026, 1, 3)},
+      );
+
+      expect(result.avgDailyCalories, 2000);
+      expect(result.loggedCalorieDays, 6);
+      expect(
+        result.caloriesDaily.map((point) => point.day),
+        isNot(contains(excludedDate)),
+      );
+      expect(
+        result.smoothedCalories.map((point) => point.day),
+        isNot(contains(excludedDate)),
+      );
+      expect(result.weightDaily.single.day, excludedDate);
+      expect(result.weightDaily.single.value, 80);
+    });
     test('classifies clear cut-like pattern as aligned', () {
       final start = DateTime.utc(2026, 1, 1);
       final range = DateTimeRange(start: start, end: DateTime.utc(2026, 2, 14));

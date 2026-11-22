@@ -3985,5 +3985,12 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "diaryNutritionDayOptions": "Optionen für diesen Ernährungstag",
+  "diaryMarkNutritionDayIncomplete": "Als unvollständig markieren",
+  "diaryIncludeNutritionDay": "Wieder in Statistik aufnehmen",
+  "diaryIncompleteDayTitle": "Tag unvollständig",
+  "diaryIncompleteDayDetail": "Nicht in Statistik berücksichtigt",
+  "diaryNutritionDayIncompleteStatus": "Unvollständig · Aus der Ernährungsstatistik ausgeschlossen",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 Tag ausgewertet} other{{included} Tage ausgewertet}} · {incomplete} unvollständig"
 }

@@ -23,6 +23,7 @@ class MacroSectionCard extends StatefulWidget {
   final bool isRolling;
   final String? rangeLabel;
   final VoidCallback? onTap;
+  final int refreshToken;
 
   const MacroSectionCard({
     super.key,
@@ -32,6 +33,7 @@ class MacroSectionCard extends StatefulWidget {
     this.isRolling = true,
     this.rangeLabel,
     this.onTap,
+    this.refreshToken = 0,
   });
 
   @override
@@ -41,6 +43,7 @@ class MacroSectionCard extends StatefulWidget {
 class _MacroSectionCardState extends State<MacroSectionCard> {
   MacroPeriodSummary? _summary;
   bool _isLoading = true;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -53,12 +56,14 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.activeBlockType != widget.activeBlockType ||
         oldWidget.anchorDate != widget.anchorDate ||
-        oldWidget.isRolling != widget.isRolling) {
+        oldWidget.isRolling != widget.isRolling ||
+        oldWidget.refreshToken != widget.refreshToken) {
       _load();
     }
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() => _isLoading = true);
     try {
       final bounds = widget.isRolling
@@ -68,7 +73,7 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               DateTime(2020),
             );
       final summary = await widget.adapter.fetchSummary(range: bounds);
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       final resolvedSummary =
           widget.activeBlockType == TimeframeBlock.maxBlock
           ? summary.trimmedToFirstTracked()
@@ -78,7 +83,7 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
         _isLoading = false;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _summary = null;
         _isLoading = false;

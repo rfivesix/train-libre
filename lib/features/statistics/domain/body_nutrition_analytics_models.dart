@@ -79,6 +79,7 @@ class BodyNutritionAnalyticsResult {
   final List<DailyValuePoint> weightDaily;
   final List<DailyValuePoint> smoothedWeight;
   final List<DailyValuePoint> caloriesDaily;
+  final Set<DateTime> incompleteNutritionDays;
   final List<DailyValuePoint> smoothedCalories;
   final List<DailyValuePoint> normalizedWeightTrend;
   final List<DailyValuePoint> normalizedCaloriesTrend;
@@ -102,6 +103,7 @@ class BodyNutritionAnalyticsResult {
     required this.weightDaily,
     required this.smoothedWeight,
     required this.caloriesDaily,
+    this.incompleteNutritionDays = const {},
     required this.smoothedCalories,
     this.normalizedWeightTrend = const [],
     this.normalizedCaloriesTrend = const [],
