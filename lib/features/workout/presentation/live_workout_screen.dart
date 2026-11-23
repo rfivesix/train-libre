@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:material_ui/material_ui.dart';
 
 import '../../../util/design_constants.dart';
@@ -250,14 +251,22 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         return;
       }
 
-      // alignment 0 puts the card's top edge at the top of the viewport, which
-      // starts directly below the summary bar and its divider — so the
-      // exercise title lands right underneath them.
-      Scrollable.ensureVisible(
-        targetContext,
-        alignment: 0.0,
-        duration: Duration.zero,
-      );
+      // The list extends behind the app bar, so reveal the exercise below
+      // both the toolbar and the workout summary rather than at viewport zero.
+      final renderObject = targetContext.findRenderObject();
+      if (renderObject == null) return;
+      final viewport = RenderAbstractViewport.maybeOf(renderObject);
+      if (viewport == null) return;
+      final position = _scrollController.position;
+      final headerHeight =
+          MediaQuery.paddingOf(context).top +
+          kToolbarHeight +
+          LiveWorkoutSummaryBar.preferredHeight +
+          DesignConstants.spacingS;
+      final offset =
+          (viewport.getOffsetToReveal(renderObject, 0).offset - headerHeight)
+              .clamp(position.minScrollExtent, position.maxScrollExtent);
+      _scrollController.jumpTo(offset);
     });
     // A post-frame callback does not request a frame on its own. On resume,
     // retries must not wait for the next one-second workout timer tick.

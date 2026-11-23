@@ -93,34 +93,66 @@ void main() {
     expect(find.text('Nov'), findsOneWidget);
   });
 
-  testWidgets('3M range shows all 7 weekday labels and non-overlapping months', (
+  testWidgets(
+    '3M range shows all 7 weekday labels and non-overlapping months',
+    (tester) async {
+      final end = DateTime(2026, 11, 22);
+      final start = DateTime(2026, 8, 25);
+      await tester.pumpWidget(
+        wrapHeatmap(
+          start: start,
+          end: end,
+          dayCounts: const {},
+          onDayTap: (_) {},
+          width: 360,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final day in ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']) {
+        expect(find.text(day), findsOneWidget);
+      }
+      expect(find.text('Aug'), findsOneWidget);
+      expect(find.text('Sep'), findsOneWidget);
+      expect(find.text('Okt'), findsOneWidget);
+      expect(find.text('Nov'), findsOneWidget);
+
+      // Ensure Aug and Sep have clear horizontal separation and never touch
+      final augRight = tester.getTopRight(find.text('Aug')).dx;
+      final sepLeft = tester.getTopLeft(find.text('Sep')).dx;
+      expect(sepLeft - augRight, greaterThanOrEqualTo(6.0));
+    },
+  );
+
+  testWidgets('maps summer dates correctly across a daylight-saving change', (
     tester,
   ) async {
-    final end = DateTime(2026, 11, 22);
-    final start = DateTime(2026, 8, 25);
+    DateTime? tapped;
     await tester.pumpWidget(
       wrapHeatmap(
-        start: start,
-        end: end,
-        dayCounts: const {},
-        onDayTap: (_) {},
-        width: 360,
+        start: DateTime(2026, 3, 23),
+        end: DateTime(2026, 4, 12),
+        dayCounts: {DateTime(2026, 4, 6): 1},
+        onDayTap: (day) => tapped = day,
+        width: 340,
       ),
     );
     await tester.pumpAndSettle();
-
-    for (final day in ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']) {
-      expect(find.text(day), findsOneWidget);
-    }
-    expect(find.text('Aug'), findsOneWidget);
-    expect(find.text('Sep'), findsOneWidget);
-    expect(find.text('Okt'), findsOneWidget);
-    expect(find.text('Nov'), findsOneWidget);
-
-    // Ensure Aug and Sep have clear horizontal separation and never touch
-    final augRight = tester.getTopRight(find.text('Aug')).dx;
-    final sepLeft = tester.getTopLeft(find.text('Sep')).dx;
-    expect(sepLeft - augRight, greaterThanOrEqualTo(6.0));
+    final grid = find
+        .descendant(
+          of: find.byType(TrainingHeatmap),
+          matching: find.byType(CustomPaint),
+        )
+        .last;
+    final size = tester.getSize(grid);
+    // Three weeks, with the final Monday in the third column.
+    final pitch = (size.width + 5.0) / 3;
+    final cell = (size.height - 6 * 5.0) / 7;
+    await tester.tapAt(
+      tester.getTopLeft(grid) + Offset(2 * pitch + cell / 2, cell / 2),
+    );
+    await tester.pump();
+    expect(tapped, DateTime(2026, 4, 6));
   });
 
   testWidgets('tapping a grid cell fires onDayTap with the matching date', (
@@ -135,19 +167,18 @@ void main() {
       wrapHeatmap(
         start: start,
         end: end,
-        dayCounts: {
-          DateTime(2026, 11, 16): 1,
-          DateTime(2026, 11, 18): 2,
-        },
+        dayCounts: {DateTime(2026, 11, 16): 1, DateTime(2026, 11, 18): 2},
         onDayTap: (d) => tapped = d,
       ),
     );
     await tester.pumpAndSettle();
 
-    final customPaint = find.descendant(
-      of: find.byType(TrainingHeatmap),
-      matching: find.byType(CustomPaint),
-    ).last;
+    final customPaint = find
+        .descendant(
+          of: find.byType(TrainingHeatmap),
+          matching: find.byType(CustomPaint),
+        )
+        .last;
     final topLeft = tester.getTopLeft(customPaint);
 
     // Tap first cell (Monday, Nov 16)

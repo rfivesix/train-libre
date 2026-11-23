@@ -29,6 +29,9 @@ class TrainingHeatmap extends StatelessWidget {
 
   static DateTime _normalize(DateTime d) => DateTime(d.year, d.month, d.day);
 
+  static DateTime _addDays(DateTime d, int days) =>
+      DateTime(d.year, d.month, d.day + days);
+
   /// Alpha intensity levels matching the training legend (0, 1, 2, 3+).
   static double alphaForCount(int count) {
     return switch (count) {
@@ -50,11 +53,15 @@ class TrainingHeatmap extends StatelessWidget {
         : _normalize(endDate);
 
     // Align columns to Monday..Sunday weeks.
-    final gridStart = rangeStart.subtract(
-      Duration(days: rangeStart.weekday - 1),
-    );
-    final gridEnd = rangeEnd.add(Duration(days: 7 - rangeEnd.weekday));
-    final totalDays = gridEnd.difference(gridStart).inDays + 1;
+    final gridStart = _addDays(rangeStart, 1 - rangeStart.weekday);
+    final gridEnd = _addDays(rangeEnd, 7 - rangeEnd.weekday);
+    final totalDays =
+        DateTime.utc(gridEnd.year, gridEnd.month, gridEnd.day)
+            .difference(
+              DateTime.utc(gridStart.year, gridStart.month, gridStart.day),
+            )
+            .inDays +
+        1;
     final weekCount = math.max(1, totalDays ~/ 7);
 
     // 2024-01-01 is a Monday.
@@ -102,7 +109,8 @@ class TrainingHeatmap extends StatelessWidget {
         }
 
         final effectiveMaxCell = maxCellSize ?? defaultMaxCell;
-        final rawCell = (availableGridWidth - (weekCount - 1) * gap) / weekCount;
+        final rawCell =
+            (availableGridWidth - (weekCount - 1) * gap) / weekCount;
         final cellSize = rawCell.clamp(3.5, effectiveMaxCell);
         final gridWidth = weekCount * cellSize + (weekCount - 1) * gap;
         final gridHeight = 7 * cellSize + 6 * gap;
@@ -161,13 +169,15 @@ class TrainingHeatmap extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTapUp: (details) {
                   final step = cellSize + gap;
-                  final col = (details.localPosition.dx / step)
-                      .floor()
-                      .clamp(0, weekCount - 1);
-                  final row = (details.localPosition.dy / step)
-                      .floor()
-                      .clamp(0, 6);
-                  final tapped = gridStart.add(Duration(days: col * 7 + row));
+                  final col = (details.localPosition.dx / step).floor().clamp(
+                    0,
+                    weekCount - 1,
+                  );
+                  final row = (details.localPosition.dy / step).floor().clamp(
+                    0,
+                    6,
+                  );
+                  final tapped = _addDays(gridStart, col * 7 + row);
                   if (!tapped.isBefore(rangeStart) &&
                       !tapped.isAfter(rangeEnd)) {
                     onDayTap!(tapped);
@@ -254,10 +264,7 @@ class TrainingHeatmap extends StatelessWidget {
           );
         }
 
-        return Align(
-          alignment: alignment,
-          child: content,
-        );
+        return Align(alignment: alignment, child: content);
       },
     );
   }
@@ -309,14 +316,14 @@ class TrainingHeatmap extends StatelessWidget {
     int? lastMonth;
 
     for (var col = 0; col < weekCount; col++) {
-      final weekMonday = gridStart.add(Duration(days: col * 7));
+      final weekMonday = _addDays(gridStart, col * 7);
       DateTime? anchorDay;
 
       if (col == 0) {
         // First visible column: anchor to its first in-range day unless the
         // next month begins inside this very same week (Mon..Sun).
         for (var row = 0; row < 7; row++) {
-          final d = weekMonday.add(Duration(days: row));
+          final d = _addDays(weekMonday, row);
           if (d.isBefore(rangeStart) || d.isAfter(rangeEnd)) continue;
           anchorDay ??= d;
         }
@@ -333,9 +340,9 @@ class TrainingHeatmap extends StatelessWidget {
       final monthKey = anchorDay.year * 12 + anchorDay.month;
       if (lastMonth != monthKey) {
         final x = col * (cellSize + gap);
-        final label = DateFormat.MMM(
-          locale,
-        ).format(anchorDay).replaceAll('.', '');
+        final label = DateFormat.MMM(locale)
+            .format(anchorDay)
+            .replaceAll('.', '');
         final width = _measureTextWidth(label, style, textDirection);
         if (x + width <= gridWidth + 4) {
           candidates.add((col: col, x: x, width: width, label: label));
@@ -351,7 +358,8 @@ class TrainingHeatmap extends StatelessWidget {
     // right beside it, drop col 0 so the full month label takes precedence.
     if (candidates.length >= 2 &&
         candidates[0].col == 0 &&
-        candidates[0].x + candidates[0].width + minVisualGap > candidates[1].x) {
+        candidates[0].x + candidates[0].width + minVisualGap >
+            candidates[1].x) {
       candidates.removeAt(0);
     }
 
@@ -404,7 +412,7 @@ class _HeatmapGridPainter extends CustomPainter {
 
     for (var col = 0; col < weekCount; col++) {
       for (var row = 0; row < 7; row++) {
-        final day = gridStart.add(Duration(days: col * 7 + row));
+        final day = TrainingHeatmap._addDays(gridStart, col * 7 + row);
         if (day.isBefore(rangeStart) || day.isAfter(rangeEnd)) continue;
 
         final count = dayCounts[day] ?? 0;

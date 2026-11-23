@@ -23,7 +23,10 @@ class StatisticsOverviewCard extends StatefulWidget {
   State<StatisticsOverviewCard> createState() => _StatisticsOverviewCardState();
 }
 
-class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
+class _StatisticsOverviewCardState extends State<StatisticsOverviewCard>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   late Future<_Overview> _future;
   @override
   void initState() {
@@ -46,10 +49,7 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
     final results = await Future.wait<Object>([
       WorkoutLocalDataSource.instance.getOverviewTotals(now),
       const MacroAnalyticsDataAdapter().fetchSummary(range: range),
-      DatabaseHelper.instance.getChartDataForTypeAndRange(
-        'weight',
-        bodyRange,
-      ),
+      DatabaseHelper.instance.getChartDataForTypeAndRange('weight', bodyRange),
     ]);
     final workouts =
         results[0]
@@ -75,6 +75,7 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
     final units = context.watch<UnitService>();
     final number = NumberFormat.decimalPattern(
@@ -144,7 +145,10 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
         }
         final locale = Localizations.localeOf(context).toString();
         String weight(double value, {int digits = 0}) {
-          final display = units.convertDisplayValue(value, UnitDimension.weight);
+          final display = units.convertDisplayValue(
+            value,
+            UnitDimension.weight,
+          );
           if (units.isMetric && display.abs() >= 10000 && digits == 0) {
             final tons = NumberFormat.decimalPatternDigits(
               locale: locale,
@@ -160,6 +164,7 @@ class _StatisticsOverviewCardState extends State<StatisticsOverviewCard> {
                 ).format(display);
           return '$formatted ${units.suffixFor(UnitDimension.weight)}';
         }
+
         final delta = data.weightChange;
         return Column(
           children: [
