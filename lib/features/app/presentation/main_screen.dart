@@ -377,17 +377,9 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _onPageChanged(int index) {
-    if (_isWarping) {
-      return;
-    }
-    final previousIndex = _currentIndex;
+    if (index == _currentIndex) return;
     setState(() => _currentIndex = index);
-    // PageView can report onPageChanged once after initial layout settles,
-    // even when the page didn't actually change (e.g. still the initial tab
-    // from initState's own trackScreenView call) — guard against double-firing.
-    if (index != previousIndex &&
-        index >= 0 &&
-        index < _tabScreenNames.length) {
+    if (index >= 0 && index < _tabScreenNames.length) {
       _publishPerfTabLabel(index);
       unawaited(
         TelemetryService.instance.trackScreenView(
@@ -395,14 +387,8 @@ class _MainScreenState extends State<MainScreen>
         ),
       );
     }
-    if (index == 2) {
-      if (mounted && _currentIndex == 2) {
-        _statsKey.currentState?.refresh();
-      }
-    }
+    if (index == 2) _statsKey.currentState?.refresh();
   }
-
-  final bool _isWarping = false;
 
   void _onNavigationTapped(int index) {
     if (!_pageController.hasClients) return;
@@ -619,7 +605,16 @@ class _MainScreenState extends State<MainScreen>
       // If we're not on the diary tab, we still want to trigger a background sync if due
       await _stepsRepository.refresh(force: false);
     }
-    _statsKey.currentState?.markDirty();
+    _invalidateStatistics();
+  }
+
+  void _invalidateStatistics() {
+    final statistics = _statsKey.currentState;
+    if (_currentIndex == 2) {
+      statistics?.refresh(force: true);
+    } else {
+      statistics?.markDirty();
+    }
   }
 
   /// Republishes the iOS Home Screen snapshot.
@@ -1261,7 +1256,6 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  // Replace this method
   GlobalAppBar _buildAppBar(
     BuildContext context,
     int index,
@@ -1277,11 +1271,6 @@ class _MainScreenState extends State<MainScreen>
           ],
         );
       case 2: // Stats
-        if (_statsKey.currentState == null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _currentIndex == 2) setState(() {});
-          });
-        }
         return GlobalAppBar(
           title: l10n.statistics,
           actions: [
@@ -1813,12 +1802,9 @@ class _MainScreenState extends State<MainScreen>
         ? appTourSteps[_tourStepIndex]
         : null;
 
-    final manager = context.watch<LiveWorkoutViewModel>();
-    final bool isWorkoutRunning = manager.isActive;
-
-    // Animation parameters
-    // const basePad = 120.0; // Unused locally
-    // final runningPad = manager.isActive ? 68.0 : 0.0; // Unused locally
+    final isWorkoutRunning = context.select<LiveWorkoutViewModel, bool>(
+      (manager) => manager.isActive,
+    );
 
     // Because we use a completely custom floating Bottom Navigation Bar and Workout Bar,
     // the system Scaffold does not automatically inset floating Snackbars.
@@ -1841,34 +1827,34 @@ class _MainScreenState extends State<MainScreen>
             body: PageView(
               controller: _pageController,
               onPageChanged: _onPageChanged,
-              children: <Widget>[
-                KeepAlivePage(
-                  storageKey: const PageStorageKey('tab_tagebuch'),
-                  child: DiaryScreen(
-                    contentKey: _tagebuchKey,
-                    onNutritionDayStatusChanged: () {
-                      final statistics = _statsKey.currentState;
-                      if (_currentIndex == 2) {
-                        statistics?.refresh(force: true);
-                      } else {
-                        statistics?.markDirty();
-                      }
-                    },
-                  ),
-                ),
-                const KeepAlivePage(
-                  storageKey: PageStorageKey('tab_workout'),
-                  child: WorkoutHubScreen(),
-                ),
-                KeepAlivePage(
-                  storageKey: const PageStorageKey('tab_stats'),
-                  child: StatisticsHubScreen(key: _statsKey),
-                ),
-                const KeepAlivePage(
-                  storageKey: PageStorageKey('tab_nutrition'),
-                  child: NutritionHubScreen(),
-                ),
-              ],
+              children:
+                  <Widget>[
+                    KeepAlivePage(
+                      storageKey: const PageStorageKey('tab_tagebuch'),
+                      child: DiaryScreen(
+                        contentKey: _tagebuchKey,
+                        onNutritionDayStatusChanged: _invalidateStatistics,
+                      ),
+                    ),
+                    const KeepAlivePage(
+                      storageKey: PageStorageKey('tab_workout'),
+                      child: WorkoutHubScreen(),
+                    ),
+                    KeepAlivePage(
+                      storageKey: const PageStorageKey('tab_stats'),
+                      child: StatisticsHubScreen(key: _statsKey),
+                    ),
+                    const KeepAlivePage(
+                      storageKey: PageStorageKey('tab_nutrition'),
+                      child: NutritionHubScreen(),
+                    ),
+                  ].indexed.map((tab) {
+                    final (index, page) = tab;
+                    return TickerMode(
+                      enabled: index == _currentIndex,
+                      child: page,
+                    );
+                  }).toList(),
             ),
           ),
         ),
@@ -1899,7 +1885,7 @@ class _MainScreenState extends State<MainScreen>
               builder: (context, hidden, _) => hidden
                   ? const SizedBox.shrink()
                   : RepaintBoundary(
-                      child: _buildRunningWorkoutOverlay(context),
+                      child: Builder(builder: _buildRunningWorkoutOverlay),
                     ),
             ),
           ),

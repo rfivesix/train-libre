@@ -1136,7 +1136,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                           _voiceController.isActive ||
                                           _chatCoordinator.completionPulse ||
                                           !isSettledOrb,
-                                      animate: !_isClosing,
+                                      animate: isCloudVisible && !_isClosing,
                                       accentColor: showVoiceOrb
                                           ? DesignConstants.brandRedColor
                                           : _chatCoordinator

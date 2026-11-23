@@ -100,8 +100,12 @@ class StatisticsHubScreen extends StatefulWidget {
 }
 
 class StatisticsHubScreenState extends State<StatisticsHubScreen> {
+  static const _overviewCacheTtl = Duration(seconds: 30);
+
   late StatisticsHubViewModel _viewModel;
   int _overviewRefreshToken = 0;
+  DateTime _overviewLastRefreshedAt = DateTime.now();
+  bool _overviewIsDirty = false;
   List<StatisticsHubCardId> _pinnedCards =
       StatisticsHubPreferences.defaultPinnedCards;
 
@@ -160,12 +164,21 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
 
   void refresh({bool force = false}) {
     _viewModel.loadHubAnalytics(force: force);
+    final now = DateTime.now();
+    if (!force &&
+        !_overviewIsDirty &&
+        now.difference(_overviewLastRefreshedAt) < _overviewCacheTtl) {
+      return;
+    }
+
+    _overviewIsDirty = false;
+    _overviewLastRefreshedAt = now;
     setState(() => _overviewRefreshToken++);
   }
 
   void markDirty() {
     _viewModel.markDirty();
-    setState(() => _overviewRefreshToken++);
+    _overviewIsDirty = true;
   }
 
   Future<void> reloadPinnedCards() async {

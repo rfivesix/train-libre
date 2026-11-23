@@ -1,276 +1,60 @@
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../../util/design_constants.dart';
-
-import 'package:intl/intl.dart';
-
 import '../../../../generated/app_localizations.dart';
-import '../../../../services/health/steps_sync_service.dart';
-import '../../domain/steps_models.dart';
-import 'horizontal_guide_painter.dart';
-import 'steps_chart_utils.dart';
+import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/value_summary_card.dart';
-
-import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../domain/steps_models.dart';
+import 'steps_bar_chart.dart';
+import 'steps_period_summary.dart';
 
 class StepsWeekChart extends StatelessWidget {
   const StepsWeekChart({
     super.key,
-    required this.buckets,
+    required this.data,
     required this.dailyGoal,
-    this.weekStart,
   });
 
-  final List<StepsBucket> buckets;
+  final WeekStepsAggregation? data;
   final int dailyGoal;
-  final DateTime? weekStart;
-
-  Widget _buildTwoColumnGrid(List<Widget> items) {
-    final rows = <Widget>[];
-    for (var i = 0; i < items.length; i += 2) {
-      final left = items[i];
-      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
-      rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: left),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(child: right),
-            ],
-          ),
-        ),
-      );
-      if (i + 2 < items.length) {
-        rows.add(const SizedBox(height: DesignConstants.spacingS));
-      }
-    }
-    return Column(children: rows);
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(context).languageCode
-        .toLowerCase();
-    final numberFormat = NumberFormat.decimalPattern(localeCode);
-    final safeGoal = dailyGoal > 0
-        ? dailyGoal
-        : StepsSyncService.defaultStepsGoal;
-    final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
-    final avg = buckets.isEmpty ? 0 : (total / buckets.length).round();
-    final goalDays = buckets.where((b) => b.steps >= safeGoal).length;
-
-    int maxValue = safeGoal;
-    for (final bucket in buckets) {
-      if (bucket.steps > maxValue) {
-        maxValue = bucket.steps;
-      }
-    }
-    if (maxValue <= 0) {
-      maxValue = 1;
-    }
-    const weekChartHeight = 172.0;
-    const weekChartBottom = weekChartHeight - chartBottomInset;
-    const weekDrawableHeight = weekChartBottom - weekChartTopInset;
-    final weekGoalRatio = (safeGoal / maxValue).clamp(0.0, 1.0);
-    final weekGoalLineY =
-        weekChartBottom - (weekDrawableHeight * weekGoalRatio);
-    final weekGoalLabelTop = (weekGoalLineY - 10)
-        .clamp(0.0, weekChartHeight - 16)
-        .toDouble();
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final numberFormat = NumberFormat.decimalPattern(locale);
+    final buckets = data?.dailyTotals ?? const [];
+    final goalDays = buckets
+        .where((bucket) => bucket.steps >= dailyGoal)
+        .length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          weekStart == null
-              ? l10n.stepsModuleThisWeek
-              : '${DateFormat.MMMd(localeCode).format(weekStart!)} – ${DateFormat.MMMd(localeCode).format(weekStart!.add(const Duration(days: 6)))}',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
-        _buildTwoColumnGrid([
-          ValueSummaryCard(
-            value: numberFormat.format(total),
-            label: l10n.stepsModuleTotal,
-          ),
-          ValueSummaryCard(
-            value: numberFormat.format(avg),
+        StepsPeriodSummary(
+          total: data?.totalSteps ?? 0,
+          firstMetric: ValueSummaryCard(
+            value: numberFormat.format(data?.averageDailySteps.round() ?? 0),
             label: l10n.stepsModuleAvgPerDay,
           ),
-          ValueSummaryCard(
-            value: '$goalDays/${buckets.length}',
-            label: l10n.stepsModuleGoalHit,
-          ),
-          ValueSummaryCard(
-            value: '${((avg / safeGoal) * 100).round()}%',
-            label: l10n.stepsModuleGoalProgress,
-          ),
-        ]),
-        const SizedBox(height: DesignConstants.spacingM),
-        SizedBox(
-          height: weekChartHeight,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: HorizontalGuidePainter(
-                    lineColor: Theme.of(context).colorScheme.outlineVariant
-                        .withValues(alpha: 0.5),
-                    goalColor: Theme.of(context).colorScheme.primary,
-                    goalRatio: (safeGoal / maxValue).clamp(0.0, 1.0),
-                    leftInset: chartLeftInset,
-                    topInset: weekChartTopInset,
-                    bottomInset: chartBottomInset,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: weekGoalLabelTop,
-                child: Text(
-                  compactAxisLabel(maxValue),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top:
-                    ((172 - chartBottomInset - weekChartTopInset) / 2) +
-                    weekChartTopInset -
-                    8,
-                child: Text(
-                  compactAxisLabel((maxValue / 2).round()),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: chartLeftInset,
-                    top: weekChartTopInset,
-                    right: DesignConstants.spacingXS,
-                    bottom: chartBottomInset,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: List.generate(buckets.length, (index) {
-                      final bucket = buckets[index];
-                      final ratio = (bucket.steps / maxValue).clamp(0.0, 1.0);
-                      final isGoalHit = bucket.steps >= safeGoal;
-
-                      return Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final barHeight = constraints.maxHeight * ratio;
-                            return Stack(
-                              alignment: Alignment.bottomCenter,
-                              clipBehavior: Clip.none,
-                              children: [
-                                if (bucket.steps <= 0)
-                                  Container(
-                                    width: 14,
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .outlineVariant,
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  )
-                                else
-                                  Container(
-                                    width: 34,
-                                    height: barHeight,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
-                                      borderRadius: BorderRadius.circular(
-                                        DesignConstants.borderRadiusS,
-                                      ),
-                                    ),
-                                  ),
-                                if (isGoalHit && bucket.steps > 0)
-                                  Positioned(
-                                    bottom: barHeight + 2,
-                                    child: Container(
-                                      width: 13,
-                                      height: 13,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.check,
-                                        size: 10,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: chartLeftInset,
-                right: 4,
-                bottom: 0,
-                child: Row(
-                  children: List.generate(buckets.length, (index) {
-                    final bucket = buckets[index];
-                    final day = DateTime(
-                      bucket.start.year,
-                      bucket.start.month,
-                      bucket.start.day,
-                    );
-                    final isToday = day == today;
-                    final label = DateFormat.E(localeCode)
-                        .format(bucket.start)
-                        .substring(0, 1)
-                        .toUpperCase();
-                    return Expanded(
-                      child: Center(
-                        child: Text(
-                          label,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                fontWeight: isToday
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isToday
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                              ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ],
+          secondMetric: ValueSummaryCard(
+            value: '$goalDays/${DateTime.daysPerWeek}',
+            label: l10n.stepsModuleGoalDays,
           ),
         ),
+        const SizedBox(height: DesignConstants.spacingXL),
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: Text(
+            '${l10n.goalTargetLabel} · ${numberFormat.format(dailyGoal)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        StepsBarChart(buckets: buckets, dailyGoal: dailyGoal),
       ],
     );
   }

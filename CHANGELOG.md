@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1-beta.3] - 2026-11-23
 
 ### Fixed
+- Improved scrolling and idle performance in Diary, Workout, Statistics, and Nutrition by pausing animations in inactive tabs, stopping the hidden AI cloud animation, reducing redundant Nutrition and Statistics loads, and limiting workout timer rebuilds.
 - Fixed the Statistics overview jumping when scrolling back to the top, missing training heatmap activity across daylight-saving transitions, and live workouts positioning exercises behind the app bar.
 - Fixed tapping exercise titles in `WorkoutExerciseLogCard` (Workout Detail Screen) doing nothing for exercises without a catalog entry (e.g. `Rowing Machine`, `Klimmzüge`) by opening `ExerciseDetailScreen` with a fallback `Exercise` model.
 - Fixed `WorkoutLogDetailScreen` displaying strength columns (`kg`, `Wdh`, `RIR`) instead of cardio columns (`km`, `Dauer`) when an exercise's catalog entry is unavailable by inferring `isCardio` and `ExerciseLogMask.distanceAndDuration` from the logged set data.

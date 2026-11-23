@@ -1,14 +1,17 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_presentation.dart';
 import 'package:train_libre/features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
+import 'package:train_libre/features/diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   Widget buildTestApp({double width = 400, double height = 800}) {
     return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('de'),
       home: MediaQuery(
@@ -28,6 +31,47 @@ void main() {
       ),
     );
   }
+
+  testWidgets('the quick chat orb animates only while visible', (tester) async {
+    final menuOpen = AiGlobalCloudPresentation.isAddMenuOpen;
+    final actionCenter = AiGlobalCloudPresentation.quickChatActionCenter;
+    addTearDown(() {
+      menuOpen.value = false;
+      actionCenter.value = null;
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        localizationsDelegates: appLocalizationDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SizedBox.expand(
+            child: DraggableAiCloud(
+              semanticLabel: 'AI cloud',
+              semanticHint: 'Tap',
+              liveliness: 0.5,
+              isLauncherEnabled: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    final orb = find.byType(AiNeuralCloudOrbWidget);
+    expect(tester.widget<AiNeuralCloudOrbWidget>(orb).animate, isFalse);
+
+    actionCenter.value = const Offset(300, 500);
+    menuOpen.value = true;
+    await tester.pump(); // Position the orb at the menu before revealing it.
+    await tester.pump();
+    expect(tester.widget<AiNeuralCloudOrbWidget>(orb).animate, isTrue);
+
+    menuOpen.value = false;
+    actionCenter.value = null;
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(tester.widget<AiNeuralCloudOrbWidget>(orb).animate, isFalse);
+  });
 
   testWidgets(
     'cloud default position is bottom-left and docks to left screen edge',

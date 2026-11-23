@@ -37,7 +37,6 @@ class MainNavigationBar extends StatelessWidget {
       barHeight: DesignConstants.bottomNavigationBarHeight,
       barBorderRadius: GlassDefaults.capsuleRadius,
       indicatorBorderRadius: GlassDefaults.capsuleRadius,
-      innerBlur: DesignConstants.floatingBarPillBlur,
       tabWidth: null,
       horizontalPadding: 0,
       verticalPadding: 0,

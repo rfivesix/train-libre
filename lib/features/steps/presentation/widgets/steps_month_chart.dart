@@ -1,167 +1,157 @@
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../../util/design_constants.dart';
-
-import 'package:intl/intl.dart';
-
 import '../../../../generated/app_localizations.dart';
-import '../../../../services/health/steps_sync_service.dart';
-import '../../domain/steps_models.dart';
+import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/value_summary_card.dart';
+import '../../domain/steps_models.dart';
+import 'steps_period_summary.dart';
 
 class StepsMonthChart extends StatelessWidget {
   const StepsMonthChart({
     super.key,
-    required this.buckets,
+    required this.data,
+    required this.anchorDate,
     required this.dailyGoal,
-    this.monthStart,
   });
 
-  final List<StepsBucket> buckets;
+  final MonthStepsAggregation? data;
+  final DateTime anchorDate;
   final int dailyGoal;
-  final DateTime? monthStart;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(context).languageCode
-        .toLowerCase();
-    final numberFormat = NumberFormat.decimalPattern(localeCode);
-    final safeGoal = dailyGoal > 0
-        ? dailyGoal
-        : StepsSyncService.defaultStepsGoal;
-
-    final resolvedMonthStart =
-        monthStart ??
-        (buckets.isNotEmpty
-            ? DateTime(buckets.first.start.year, buckets.first.start.month, 1)
-            : DateTime(DateTime.now().year, DateTime.now().month, 1));
-    final nextMonth = DateTime(
-      resolvedMonthStart.year,
-      resolvedMonthStart.month + 1,
-      1,
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final locale = Localizations.localeOf(context).toString();
+    final numberFormat = NumberFormat.decimalPattern(locale);
+    final weekdayFormat = DateFormat.E(locale);
+    final dateFormat = DateFormat.yMMMMEEEEd(locale);
+    final buckets = data?.dailyTotals ?? const [];
+    final monthStart =
+        data?.monthStart ?? DateTime(anchorDate.year, anchorDate.month);
+    final daysInMonth = DateUtils.getDaysInMonth(
+      monthStart.year,
+      monthStart.month,
     );
-    final daysInMonth = nextMonth.difference(resolvedMonthStart).inDays;
-    final leadingEmpty = resolvedMonthStart.weekday - DateTime.monday;
-
-    final byDay = <int, int>{
+    final leadingEmpty = monthStart.weekday - DateTime.monday;
+    final today = DateUtils.dateOnly(DateTime.now());
+    final monday = DateTime(2024, 1, 1);
+    final total = data?.totalSteps ?? 0;
+    final byDay = {
       for (final bucket in buckets) bucket.start.day: bucket.steps,
     };
-    final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
-    final avg = daysInMonth == 0 ? 0 : (total / daysInMonth).round();
-    final goalDays = buckets.where((b) => b.steps >= safeGoal).length;
-
-    int maxValue = safeGoal;
-    for (final bucket in buckets) {
-      if (bucket.steps > maxValue) {
-        maxValue = bucket.steps;
-      }
-    }
-    if (maxValue <= 0) {
-      maxValue = 1;
-    }
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final mondayReference = DateTime(2024, 1, 1);
+    final goalDays = buckets
+        .where((bucket) => bucket.steps >= dailyGoal)
+        .length;
+    const cellSpacing = 6.0;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          DateFormat.yMMMM(localeCode).format(resolvedMonthStart),
-          style: Theme.of(context).textTheme.titleMedium,
+        StepsPeriodSummary(
+          total: total,
+          firstMetric: ValueSummaryCard(
+            value: numberFormat.format((total / daysInMonth).round()),
+            label: l10n.stepsModuleAvgPerDay,
+          ),
+          secondMetric: ValueSummaryCard(
+            value: '$goalDays/$daysInMonth',
+            label: l10n.stepsModuleGoalDays,
+          ),
         ),
-        const SizedBox(height: DesignConstants.spacingM),
+        const SizedBox(height: DesignConstants.spacingXL),
         Row(
+          spacing: cellSpacing,
           children: [
-            Expanded(
-              child: ValueSummaryCard(
-                value: numberFormat.format(avg),
-                label: l10n.stepsModuleAvgPerDay,
-              ),
-            ),
-            const SizedBox(width: DesignConstants.spacingS),
-            Expanded(
-              child: ValueSummaryCard(
-                value: '$goalDays/${buckets.length}',
-                label: l10n.stepsModuleGoalDays,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
-        Row(
-          children: List.generate(7, (index) {
-            final dayLabel = DateFormat.E(localeCode)
-                .format(mondayReference.add(Duration(days: index)))
-                .substring(0, 1)
-                .toUpperCase();
-            return Expanded(
-              child: Center(
-                child: Text(
-                  dayLabel,
-                  style: Theme.of(context).textTheme.labelSmall
-                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+            for (var index = 0; index < DateTime.daysPerWeek; index++)
+              Expanded(
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      weekdayFormat.format(
+                        DateUtils.addDaysToDate(monday, index),
+                      ),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            );
-          }),
+          ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: DesignConstants.spacingS),
         GridView.builder(
           itemCount: leadingEmpty + daysInMonth,
+          primary: false,
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            mainAxisSpacing: 6,
-            crossAxisSpacing: 6,
-            childAspectRatio: 1,
+            crossAxisCount: DateTime.daysPerWeek,
+            mainAxisSpacing: cellSpacing,
+            crossAxisSpacing: cellSpacing,
+            mainAxisExtent: 44,
           ),
           itemBuilder: (context, index) {
-            if (index < leadingEmpty) {
-              return const SizedBox.shrink();
-            }
-            final day = index - leadingEmpty + 1;
-            final steps = byDay[day] ?? 0;
-            final ratio = (steps / maxValue).clamp(0.0, 1.0);
-            final isToday =
-                today.year == resolvedMonthStart.year &&
-                today.month == resolvedMonthStart.month &&
-                today.day == day;
-            final background = Color.lerp(
-              Theme.of(context).colorScheme.surfaceContainerHighest,
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.85),
-              ratio,
-            )!;
+            if (index < leadingEmpty) return const SizedBox.shrink();
 
-            return Container(
+            final day = index - leadingEmpty + 1;
+            final date = DateTime(monthStart.year, monthStart.month, day);
+            final steps = byDay[day] ?? 0;
+            final isToday = date == today;
+            final isFuture = date.isAfter(today);
+            final background = isFuture
+                ? Colors.transparent
+                : Color.lerp(
+                    theme.cardColor,
+                    colors.primary,
+                    (steps / dailyGoal).clamp(0.0, 1.0),
+                  )!;
+            final foreground = switch ((isFuture, steps == 0)) {
+              (true, _) => colors.onSurfaceVariant.withValues(alpha: 0.72),
+              (false, true) => colors.onSurface,
+              _ =>
+                background.computeLuminance() > 0.179
+                    ? Colors.black
+                    : Colors.white,
+            };
+
+            final cell = DecoratedBox(
               decoration: BoxDecoration(
-                color: steps == 0
-                    ? Theme.of(context).colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.6)
-                    : background,
-                borderRadius: BorderRadius.circular(6),
+                color: background,
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusS,
+                ),
                 border: isToday
-                    ? Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 1.5,
-                      )
+                    ? Border.all(color: colors.primary, width: 1.5)
                     : null,
               ),
               child: Center(
                 child: Text(
-                  '$day',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  numberFormat.format(day),
+                  style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: steps == 0
-                        ? Theme.of(context).colorScheme.outline
-                        : Theme.of(context).colorScheme.onPrimary,
+                    color: foreground,
                   ),
                 ),
               ),
+            );
+            if (isFuture) {
+              return Semantics(
+                label: dateFormat.format(date),
+                excludeSemantics: true,
+                child: cell,
+              );
+            }
+            return Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              message:
+                  '${dateFormat.format(date)} · ${numberFormat.format(steps)}',
+              child: cell,
             );
           },
         ),

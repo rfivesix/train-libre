@@ -7,6 +7,7 @@ import 'package:train_libre/features/nutrition_recommendation/domain/recommendat
 import 'package:train_libre/features/nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
 import 'package:train_libre/features/statistics/data/macro_analytics_data_adapter.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 void main() {
   setUp(() {
@@ -302,7 +303,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('de'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: NutritionRecommendationCard(
@@ -424,7 +425,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('de'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: NutritionRecommendationCard(

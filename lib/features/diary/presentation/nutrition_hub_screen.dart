@@ -82,32 +82,59 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     super.didChangeDependencies();
     _profileRepo ??= context.read<IProfileRepository>();
     if (_hubDataFuture == null) {
-      _hubDataFuture = _loadHubData(refreshIfDue: false);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkBackgroundRecommendationDue();
-      });
+      final initialLoad = _loadHubData();
+      _hubDataFuture = initialLoad;
+      unawaited(_refreshInitialRecommendation(initialLoad));
     }
   }
 
-  Future<void> _checkBackgroundRecommendationDue() async {
-    if (!mounted) return;
-    final state = await _recommendationService.loadState(refreshIfDue: false);
-    if (state.isAdaptiveRecommendationDueNow) {
-      await _recommendationService.refreshRecommendationIfDue();
-      if (mounted) {
-        setState(() {
-          _hubDataFuture = _loadHubData(refreshIfDue: false);
-        });
+  Future<void> _refreshInitialRecommendation(
+    Future<Map<String, dynamic>> initialLoad,
+  ) async {
+    try {
+      final data = await initialLoad;
+      final state =
+          data['recommendationState'] as AdaptiveNutritionRecommendationState;
+      if (!mounted ||
+          _hubDataFuture != initialLoad ||
+          !state.isAdaptiveRecommendationDueNow) {
+        return;
       }
+
+      final recommendation = await _recommendationService
+          .refreshRecommendationIfDue();
+      if (!mounted || _hubDataFuture != initialLoad || recommendation == null) {
+        return;
+      }
+
+      final updatedState = await _recommendationService.loadState(
+        refreshIfDue: false,
+      );
+      if (!mounted || _hubDataFuture != initialLoad) return;
+      setState(() {
+        _hubDataFuture = Future.value({
+          ...data,
+          'recommendationState': updatedState,
+        });
+      });
+    } catch (error) {
+      debugPrint('Nutrition recommendation refresh failed: $error');
     }
   }
 
   Future<void> _refreshData() async {
+    if (!mounted) return;
+    final load = _loadHubData(refreshIfDue: true);
     setState(() {
       _mealItemsCache.clear();
       _mealIngredientSummaryCache.clear();
-      _hubDataFuture = _loadHubData(refreshIfDue: true);
+      _hubDataFuture = load;
     });
+    try {
+      await load;
+    } catch (_) {
+      // The FutureBuilder displays the load error.
+    }
   }
 
   Future<List<Map<String, dynamic>>> _mealItems(int mealId) =>

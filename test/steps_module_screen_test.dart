@@ -1,167 +1,63 @@
-import 'package:train_libre/services/unit_service.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:train_libre/features/steps/data/steps_aggregation_repository.dart';
+import 'package:train_libre/features/steps/presentation/statistics_steps_card.dart';
 import 'package:train_libre/features/steps/presentation/steps_module_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
-import 'package:train_libre/features/workout/presentation/live_workout_view_model.dart';
-import 'package:train_libre/features/workout/domain/repositories/workout_repository.dart';
-import 'package:train_libre/features/workout/domain/models/workout_log.dart';
-import 'package:train_libre/features/workout/domain/models/set_log.dart';
-import 'package:train_libre/features/workout/domain/models/routine.dart';
-import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
-import 'package:train_libre/features/steps/presentation/statistics_steps_card.dart';
-import 'package:provider/provider.dart';
-import 'package:train_libre/features/workout/domain/classification/set_load.dart';
-
-class FakeWorkoutRepository implements IWorkoutRepository {
-  @override
-  Future<BodyweightHistory> getBodyweightHistory() async =>
-      BodyweightHistory.empty;
-
-  @override
-  Future<WorkoutLog?> getOngoingWorkout() async => null;
-  @override
-  Future<int> insertSetLog(SetLog log) async => 0;
-  @override
-  Future<List<SetLog>> getSetLogsForWorkout(int workoutLogId) async => [];
-  @override
-  Future<Routine?> getRoutineByName(String name) async => null;
-  @override
-  Future<Exercise?> resolveExerciseForSetLog(SetLog log) async => null;
-  @override
-  Future<Exercise?> getExerciseByName(String name) async => null;
-  @override
-  Future<String?> getExerciseUuidByLocalId(int localId) async => null;
-  @override
-  Future<Map<String, double>> getExerciseBests(
-    String exerciseName, {
-    String? altName,
-    String? exerciseUuid,
-  }) async => {};
-  @override
-  Future<void> updateSetLogs(List<SetLog> logs) async {}
-  @override
-  Future<void> deleteSetLogs(List<int> ids) async {}
-  @override
-  Future<void> finishWorkout(int logId, {String? title, String? notes}) async {}
-  @override
-  Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
-  @override
-  Future<void> updateRoutineExerciseNotes(
-    int routineExerciseId,
-    String? notes,
-  ) async {}
-  @override
-  Future<void> saveWorkoutExerciseNote({
-    required int workoutLogId,
-    required String exerciseName,
-    required String? notes,
-  }) async {}
-  @override
-  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
-      {};
-  @override
-  Future<List<SetLog>> getLastSetsForExercise({
-    required String? exerciseId,
-    required String exerciseNameSnapshot,
-  }) async => [];
-  @override
-  Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
-    DateTime start,
-    DateTime end,
-  ) async => [];
-  @override
-  Stream<List<WorkoutLog>> watchFullWorkoutLogs() => const Stream.empty();
-  @override
-  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) =>
-      const Stream.empty();
-  @override
-  Stream<List<Routine>> watchAllRoutines() => const Stream.empty();
-  @override
-  Stream<List<Routine>> watchAllRoutinesWithDetails() => const Stream.empty();
-  @override
-  Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) async {}
-  @override
-  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
-    DateTime start,
-    DateTime end,
-  ) => Stream.value([]);
-  @override
-  Future<Routine?> getRoutineByUuid(String uuid) async => null;
-  @override
-  Future<void> syncRoutineWithWorkout({
-    required String routineUuid,
-    required int workoutLogId,
-  }) async {}
-
-  @override
-  Future<Routine> createRoutineFromWorkout({
-    required int workoutLogId,
-    required String name,
-  }) async => Routine(id: 1, name: name);
-
-  @override
-  Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {}
-}
-
-Future<void> _pumpUntilScopeLoaded(WidgetTester tester) async {
-  for (var i = 0; i < 40; i++) {
-    await tester.pump(const Duration(milliseconds: 100));
-    if (find.byType(CircularProgressIndicator).evaluate().isEmpty) {
-      return;
-    }
-  }
-  throw TestFailure('Steps scope did not finish loading in test');
-}
-
-Future<void> _pumpScopeTransition(WidgetTester tester) async {
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 350));
-  await _pumpUntilScopeLoaded(tester);
-}
 
 void main() {
-  testWidgets('scope switching updates trend canvas and card label', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      ChangeNotifierProvider<LiveWorkoutViewModel>.value(
-        value: LiveWorkoutViewModel(
-          repository: FakeWorkoutRepository(),
-          unitService: UnitService(),
-        ),
-        child: const MaterialApp(
+  testWidgets(
+    'shows one total for the selected period without the entry card',
+    (tester) async {
+      tester.view.physicalSize = const Size(402, 874);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const repository = InMemoryStepsAggregationRepository();
+      final date = DateTime(2026, 11, 16);
+      final format = NumberFormat.decimalPattern('en');
+      final day = await repository.getDayAggregation(date);
+      final week = await repository.getWeekAggregation(date);
+      final month = await repository.getMonthAggregation(date);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: StepsModuleScreen(
-            repository: InMemoryStepsAggregationRepository(),
-            targetStepsLoader: _fakeTargetSteps,
-            stepsProviderNameLoader: _fakeProviderName,
-          ),
+          home: StepsModuleScreen(repository: repository, initialDate: date),
         ),
-      ),
-    );
+      );
+      await tester.pumpAndSettle();
 
-    await _pumpUntilScopeLoaded(tester);
+      expect(find.text('Hourly Timeline'), findsOneWidget);
+      expect(find.text(format.format(day.totalSteps)), findsOneWidget);
+      expect(find.text('Total Steps'), findsOneWidget);
+      expect(find.byType(StatisticsStepsCard), findsNothing);
 
-    expect(find.text('Hourly Timeline'), findsOneWidget);
-    expect(find.byType(StatisticsStepsCard), findsOneWidget);
+      await tester.ensureVisible(find.text('7D'));
+      await tester.tap(find.text('7D'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('7D'));
-    await _pumpScopeTransition(tester);
+      expect(find.text('Hourly Timeline'), findsNothing);
+      expect(find.text(format.format(week.totalSteps)), findsOneWidget);
+      expect(find.text('Total Steps'), findsOneWidget);
+      expect(find.text('Mon'), findsOneWidget);
+      expect(find.byType(StatisticsStepsCard), findsNothing);
 
-    expect(find.text('Hourly Timeline'), findsNothing);
-    expect(find.byType(StatisticsStepsCard), findsOneWidget);
+      await tester.ensureVisible(find.text('1M'));
+      await tester.tap(find.text('1M'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('1M'));
-    await _pumpScopeTransition(tester);
-
-    expect(find.byType(StatisticsStepsCard), findsOneWidget);
-    expect(find.textContaining('This Month •'), findsOneWidget);
-  });
+      expect(find.text(format.format(month.totalSteps)), findsOneWidget);
+      expect(find.text('Total Steps'), findsOneWidget);
+      expect(find.byType(StatisticsStepsCard), findsNothing);
+      expect(
+        find.descendant(of: find.byType(GridView), matching: find.text('16')),
+        findsOneWidget,
+      );
+    },
+  );
 }
-
-Future<int> _fakeTargetSteps() async => 8000;
-
-Future<String> _fakeProviderName() async => 'Local';
