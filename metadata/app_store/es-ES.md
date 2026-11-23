@@ -67,13 +67,13 @@ https://trainlibre.com
 https://trainlibre.com/privacy-policy/
 
 ## Release Notes (What's New / Release Notes in this version)
-Sueño y recuperación de un vistazo: La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).
+Estadísticas renovadas: Descubre métricas más claras, un mapa de actividad y mejores vistas de nutrición, progreso y récords personales.
 
-Más información durante el entrenamiento: Consulta las series completadas y previstas por grupo muscular, el tiempo transcurrido, el progreso y el volumen.
+Una mejor experiencia de entrenamiento: Las vistas renovadas muestran tu progreso y grupos musculares. Arrastra las series para ordenarlas y activa la estimación de tu repetición máxima si lo deseas.
 
-Celebra tus récords personales: Los nuevos récords destacan con una animación y respuesta háptica.
+Sueño y frecuencia cardíaca: Las vistas renovadas muestran las fases del sueño y la frecuencia cardíaca, además de su variabilidad con Apple Health.
 
-Cristal a tu gusto: Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.
+Liquid Glass a tu gusto: Ajusta el aspecto del cristal y disfruta de transiciones y navegación mejoradas.
 
-Pulso en reposo y temporizadores: El diario y las estadísticas muestran el pulso en reposo de tu app de salud cuando está disponible e identifican las estimaciones. Se ha mejorado el recuento de pasos y los temporizadores de descanso.
+Más fiabilidad cada día: Numerosas correcciones mejoran los datos de salud, el recuento de pasos, los temporizadores de descanso y mucho más.
 

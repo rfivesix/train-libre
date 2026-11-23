@@ -58,15 +58,15 @@ OPEN SOURCE UND OFFENE DATEN:
 Train Libre nutzt die Community-Kataloge Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – so kannst du unsere Datenschutzversprechen selbst überprüfen.
 
 ## Release Notes (What's New / Release Notes in this version)
-Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).
+Statistiken neu gestaltet: Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.
 
-Mehr Überblick im Workout: Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.
+Training im Fokus: Überarbeitete Trainingsansichten zeigen deinen Fortschritt und deine Muskelgruppen. Sortiere Sätze per Ziehen und blende auf Wunsch dein geschätztes Maximalgewicht ein.
 
-Bestleistungen feiern: Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.
+Schlaf und Puls: Die überarbeiteten Ansichten zeigen Schlafphasen und Herzfrequenz; mit Apple Health auch die Herzfrequenzvariabilität.
 
-Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
+Liquid Glass nach deinem Geschmack: Passe die Glasdarstellung an und erlebe verfeinerte Übergänge und Navigation.
 
-Ruhepuls und Timer: Wenn deine Gesundheits-App einen Ruhepuls meldet, erscheint er im Tagebuch und in der Statistik. Schätzwerte sind gekennzeichnet. Schrittzahlen und Pausentimer wurden korrigiert.
+Zuverlässiger im Alltag: Viele Fehlerkorrekturen verbessern unter anderem Gesundheitsdaten, Schrittzahlen und den Pausentimer.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

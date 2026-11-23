@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.2 (2026-11-23)
+
+{chart_line} Statistiken neu gestaltet: Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.
+
+{dumbbell} Training im Fokus: Überarbeitete Trainingsansichten zeigen deinen Fortschritt und deine Muskelgruppen. Sortiere Sätze per Ziehen und blende auf Wunsch dein geschätztes Maximalgewicht ein.
+
+{moon} Schlaf und Puls: Die überarbeiteten Ansichten zeigen Schlafphasen und Herzfrequenz; mit Apple Health auch die Herzfrequenzvariabilität.
+
+{sparkles} Liquid Glass nach deinem Geschmack: Passe die Glasdarstellung an und erlebe verfeinerte Übergänge und Navigation.
+
+{shield} Zuverlässiger im Alltag: Viele Fehlerkorrekturen verbessern unter anderem Gesundheitsdaten, Schrittzahlen und den Pausentimer.
+
 ## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).

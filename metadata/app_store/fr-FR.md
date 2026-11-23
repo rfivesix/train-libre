@@ -58,15 +58,15 @@ OPEN SOURCE ET DONNÉES OUVERTES :
 Train Libre s’appuie sur les catalogues communautaires Open Food Facts et OpenExerciseDB. Le code source complet est public pour vous permettre de vérifier nos engagements en matière de confidentialité.
 
 ## Release Notes (What's New / Release Notes in this version)
-Sommeil et récupération en un coup d’œil: La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).
+Statistiques repensées: Découvrez des indicateurs plus clairs, une carte d’activité et des vues améliorées pour la nutrition, la progression et les records personnels.
 
-Une meilleure vue pendant l’entraînement: Consultez les séries terminées et prévues par groupe musculaire, le temps écoulé, la progression et le volume.
+Un entraînement plus agréable: Les écrans repensés affichent votre progression et vos groupes musculaires. Réorganisez les séries par glisser-déposer et affichez votre maximum estimé si vous le souhaitez.
 
-Célébrez vos records personnels: Une animation et un retour haptique mettent en valeur vos nouveaux records.
+Sommeil et fréquence cardiaque: Les vues repensées affichent les phases de sommeil et la fréquence cardiaque, ainsi que sa variabilité avec Apple Health.
 
-Le verre à votre goût: Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.
+Liquid Glass à votre goût: Ajustez l’apparence du verre et profitez de transitions et d’une navigation affinées.
 
-Pouls au repos et minuteurs: Le journal et les statistiques affichent le pouls au repos de votre app de santé lorsqu’il est disponible et signalent les estimations. Le comptage des pas et les minuteurs de repos ont été corrigés.
+Plus fiable au quotidien: De nombreuses corrections améliorent les données de santé, le nombre de pas, les minuteurs de repos et bien plus.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.2 (2026-11-23)
+
+{chart_line} Statistiques repensées: Découvrez des indicateurs plus clairs, une carte d’activité et des vues améliorées pour la nutrition, la progression et les records personnels.
+
+{dumbbell} Un entraînement plus agréable: Les écrans repensés affichent votre progression et vos groupes musculaires. Réorganisez les séries par glisser-déposer et affichez votre maximum estimé si vous le souhaitez.
+
+{moon} Sommeil et fréquence cardiaque: Les vues repensées affichent les phases de sommeil et la fréquence cardiaque, ainsi que sa variabilité avec Apple Health.
+
+{sparkles} Liquid Glass à votre goût: Ajustez l’apparence du verre et profitez de transitions et d’une navigation affinées.
+
+{shield} Plus fiable au quotidien: De nombreuses corrections améliorent les données de santé, le nombre de pas, les minuteurs de repos et bien plus.
+
 ## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sommeil et récupération en un coup d’œil: La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).

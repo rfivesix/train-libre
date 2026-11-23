@@ -6,6 +6,18 @@
   Genereer opnieuw met: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.2 (2026-11-23)
+
+{chart_line} Vernieuwde statistieken: Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.
+
+{dumbbell} Een betere trainingservaring: Vernieuwde schermen tonen je voortgang en spiergroepen. Sleep sets naar een andere plek en toon desgewenst je geschatte maximale gewicht.
+
+{moon} Slaap en hartslag: Vernieuwde overzichten tonen slaapfasen en hartslag, en met Apple Health ook hartslagvariabiliteit.
+
+{sparkles} Liquid Glass naar jouw smaak: Pas de glasweergave aan en ontdek verfijnde overgangen en navigatie.
+
+{shield} Elke dag betrouwbaarder: Veel oplossingen verbeteren onder meer gezondheidsgegevens, stappentellingen en rusttimers.
+
 ## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Slaap en herstel in één oogopslag: Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).

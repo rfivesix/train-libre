@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Redesigned statistics',
+          body: 'Explore clearer metrics, a training heatmap, and improved nutrition, progress, and personal record views.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'A better workout experience',
+          body: 'Refreshed workout screens show your progress and muscle groups. Drag to reorder sets and optionally show your estimated one-rep maximum.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Sleep and heart rate',
+          body: 'Redesigned views show sleep stages and heart rate, plus heart rate variability with Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glass your way',
+          body: 'Adjust the glass appearance and enjoy refined transitions and navigation.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'More reliable every day',
+          body: 'Numerous fixes improve health data, step counts, rest timers, and more.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
@@ -328,6 +359,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiken neu gestaltet',
+          body: 'Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Training im Fokus',
+          body: 'Überarbeitete Trainingsansichten zeigen deinen Fortschritt und deine Muskelgruppen. Sortiere Sätze per Ziehen und blende auf Wunsch dein geschätztes Maximalgewicht ein.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Schlaf und Puls',
+          body: 'Die überarbeiteten Ansichten zeigen Schlafphasen und Herzfrequenz; mit Apple Health auch die Herzfrequenzvariabilität.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glass nach deinem Geschmack',
+          body: 'Passe die Glasdarstellung an und erlebe verfeinerte Übergänge und Navigation.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Zuverlässiger im Alltag',
+          body: 'Viele Fehlerkorrekturen verbessern unter anderem Gesundheitsdaten, Schrittzahlen und den Pausentimer.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
@@ -642,6 +704,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiques repensées',
+          body: 'Découvrez des indicateurs plus clairs, une carte d’activité et des vues améliorées pour la nutrition, la progression et les records personnels.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Un entraînement plus agréable',
+          body: 'Les écrans repensés affichent votre progression et vos groupes musculaires. Réorganisez les séries par glisser-déposer et affichez votre maximum estimé si vous le souhaitez.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Sommeil et fréquence cardiaque',
+          body: 'Les vues repensées affichent les phases de sommeil et la fréquence cardiaque, ainsi que sa variabilité avec Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glass à votre goût',
+          body: 'Ajustez l’apparence du verre et profitez de transitions et d’une navigation affinées.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Plus fiable au quotidien',
+          body: 'De nombreuses corrections améliorent les données de santé, le nombre de pas, les minuteurs de repos et bien plus.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
@@ -955,6 +1048,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiche rinnovate',
+          body: 'Scopri metriche più chiare, una mappa delle attività e viste migliorate per nutrizione, progressi e record personali.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Un allenamento migliore',
+          body: 'Le schermate rinnovate mostrano progressi e gruppi muscolari. Trascina le serie per riordinarle e scegli se mostrare il massimale stimato.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Sonno e frequenza cardiaca',
+          body: 'Le viste rinnovate mostrano le fasi del sonno e la frequenza cardiaca, oltre alla sua variabilità con Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glass a modo tuo',
+          body: 'Personalizza l’aspetto del vetro e scopri transizioni e navigazione migliorate.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Più affidabile ogni giorno',
+          body: 'Numerose correzioni migliorano i dati sulla salute, il conteggio dei passi, i timer di recupero e altro ancora.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
@@ -1267,6 +1391,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: '統計画面を刷新',
+          body: '見やすくなった指標、トレーニングのヒートマップ、栄養・進捗・自己記録の改善された画面を確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'より使いやすいワークアウト',
+          body: '刷新された画面で進捗や筋肉グループを確認できます。セットをドラッグして並べ替え、推定最大挙上重量を表示することもできます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: '睡眠と心拍数',
+          body: '刷新された画面で睡眠段階と心拍数を確認できます。Apple Healthでは心拍変動も表示されます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glassを自分好みに',
+          body: 'ガラスの見た目を調整でき、画面遷移やナビゲーションも改善されました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: '毎日の信頼性を向上',
+          body: '健康データ、歩数、休憩タイマーなど、多くの問題を修正しました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
@@ -1583,6 +1738,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'es': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Estadísticas renovadas',
+          body: 'Descubre métricas más claras, un mapa de actividad y mejores vistas de nutrición, progreso y récords personales.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Una mejor experiencia de entrenamiento',
+          body: 'Las vistas renovadas muestran tu progreso y grupos musculares. Arrastra las series para ordenarlas y activa la estimación de tu repetición máxima si lo deseas.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Sueño y frecuencia cardíaca',
+          body: 'Las vistas renovadas muestran las fases del sueño y la frecuencia cardíaca, además de su variabilidad con Apple Health.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glass a tu gusto',
+          body: 'Ajusta el aspecto del cristal y disfruta de transiciones y navegación mejoradas.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Más fiabilidad cada día',
+          body: 'Numerosas correcciones mejoran los datos de salud, el recuento de pasos, los temporizadores de descanso y mucho más.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
       entries: <WhatsNewEntry>[
@@ -1646,6 +1832,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'nl': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1-beta.2',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Vernieuwde statistieken',
+          body: 'Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Een betere trainingservaring',
+          body: 'Vernieuwde schermen tonen je voortgang en spiergroepen. Sleep sets naar een andere plek en toon desgewenst je geschatte maximale gewicht.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Slaap en hartslag',
+          body: 'Vernieuwde overzichten tonen slaapfasen en hartslag, en met Apple Health ook hartslagvariabiliteit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glass naar jouw smaak',
+          body: 'Pas de glasweergave aan en ontdek verfijnde overgangen en navigatie.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Elke dag betrouwbaarder',
+          body: 'Veel oplossingen verbeteren onder meer gezondheidsgegevens, stappentellingen en rusttimers.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.1-beta.1',
       releasedOn: '2026-11-09',
@@ -1715,4 +1932,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.7.1-beta.1';
+const String kWhatsNewGeneratedForVersion = '1.7.1-beta.2';

@@ -67,13 +67,13 @@ https://trainlibre.com
 https://trainlibre.com/privacy-policy/
 
 ## Release Notes (What's New / Release Notes in this version)
-Slaap en herstel in één oogopslag: Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).
+Vernieuwde statistieken: Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.
 
-Meer inzicht tijdens je training: Bekijk voltooide en geplande sets per spiergroep, de verstreken tijd, je voortgang en trainingsvolume.
+Een betere trainingservaring: Vernieuwde schermen tonen je voortgang en spiergroepen. Sleep sets naar een andere plek en toon desgewenst je geschatte maximale gewicht.
 
-Vier persoonlijke records: Nieuwe persoonlijke records worden uitgelicht met een animatie en haptische feedback.
+Slaap en hartslag: Vernieuwde overzichten tonen slaapfasen en hartslag, en met Apple Health ook hartslagvariabiliteit.
 
-Glas naar jouw smaak: Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.
+Liquid Glass naar jouw smaak: Pas de glasweergave aan en ontdek verfijnde overgangen en navigatie.
 
-Rusthartslag en timers: Je dagboek en statistieken tonen de rusthartslag van je gezondheidsapp als die beschikbaar is en markeren schattingen. Stappentellingen en rusttimers zijn verbeterd.
+Elke dag betrouwbaarder: Veel oplossingen verbeteren onder meer gezondheidsgegevens, stappentellingen en rusttimers.
 

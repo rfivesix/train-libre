@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.7.1-beta.2 (2026-11-23)
+
+{chart_line} Redesigned statistics: Explore clearer metrics, a training heatmap, and improved nutrition, progress, and personal record views.
+
+{dumbbell} A better workout experience: Refreshed workout screens show your progress and muscle groups. Drag to reorder sets and optionally show your estimated one-rep maximum.
+
+{moon} Sleep and heart rate: Redesigned views show sleep stages and heart rate, plus heart rate variability with Apple Health.
+
+{sparkles} Liquid Glass your way: Adjust the glass appearance and enjoy refined transitions and navigation.
+
+{shield} More reliable every day: Numerous fixes improve health data, step counts, rest timers, and more.
+
 ## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sleep and recovery at a glance: The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).

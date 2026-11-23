@@ -6,6 +6,18 @@
   Regenera con: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.2 (2026-11-23)
+
+{chart_line} Estadísticas renovadas: Descubre métricas más claras, un mapa de actividad y mejores vistas de nutrición, progreso y récords personales.
+
+{dumbbell} Una mejor experiencia de entrenamiento: Las vistas renovadas muestran tu progreso y grupos musculares. Arrastra las series para ordenarlas y activa la estimación de tu repetición máxima si lo deseas.
+
+{moon} Sueño y frecuencia cardíaca: Las vistas renovadas muestran las fases del sueño y la frecuencia cardíaca, además de su variabilidad con Apple Health.
+
+{sparkles} Liquid Glass a tu gusto: Ajusta el aspecto del cristal y disfruta de transiciones y navegación mejoradas.
+
+{shield} Más fiabilidad cada día: Numerosas correcciones mejoran los datos de salud, el recuento de pasos, los temporizadores de descanso y mucho más.
+
 ## 1.7.1-beta.1 (2026-11-09)
 
 {moon} Sueño y recuperación de un vistazo: La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).
