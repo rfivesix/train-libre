@@ -4,10 +4,19 @@ import 'package:provider/provider.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/workout/domain/classification/exercise_log_mask.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
+import 'package:train_libre/features/workout/domain/models/set_template.dart';
+import 'package:train_libre/features/workout/domain/repositories/workout_repository.dart';
+import 'package:train_libre/features/workout/presentation/live_workout_view_model.dart';
+import 'package:train_libre/features/workout/presentation/widgets/live_workout_set_row.dart';
 import 'package:train_libre/features/workout/presentation/widgets/workout_log_set_row.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/unit_service.dart';
+
+class _UnusedWorkoutRepository implements IWorkoutRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// What each exercise actually renders.
 ///
@@ -54,7 +63,6 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
         child: Scaffold(
           body: WorkoutLogSetRow(
             setLog: _setLog(),
-            rowIndex: 0,
             workingSetIndex: 1,
             exerciseName: 'Test',
             isEditMode: false,
@@ -73,6 +81,82 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
 }
 
 void main() {
+  testWidgets('live set outlines track editability in both themes', (
+    tester,
+  ) async {
+    final manager = LiveWorkoutViewModel.forTesting(
+      workoutDb: _UnusedWorkoutRepository(),
+    );
+    addTearDown(manager.dispose);
+
+    Future<void> pumpRow(Brightness brightness, bool isCompleted) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MultiProvider(
+            providers: [
+              ChangeNotifierProvider.value(value: manager),
+              ChangeNotifierProvider.value(value: manager.unitService),
+              ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+            ],
+            child: Scaffold(
+              body: SizedBox(
+                width: 320,
+                child: LiveWorkoutSetRow(
+                  setIndex: 2,
+                  rowIndex: 1,
+                  templateId: 2,
+                  setLog: _setLog().copyWith(isCompleted: isCompleted),
+                  lastPerfSets: const [],
+                  currentSetTypes: const ['normal', 'normal'],
+                  template: SetTemplate(id: 2, setType: 'normal'),
+                  manager: manager,
+                  mask: ExerciseLogMask.weightAndReps,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    final fields = find.byType(TextField);
+    for (final brightness in Brightness.values) {
+      await pumpRow(brightness, false);
+      expect(fields, findsNWidgets(3));
+      for (var index = 0; index < 3; index++) {
+        final field = tester.widget<TextField>(fields.at(index));
+        expect(field.decoration!.enabledBorder, isA<OutlineInputBorder>());
+        expect(field.decoration!.focusedBorder, isA<OutlineInputBorder>());
+        if (index > 0) {
+          expect(
+            tester.getRect(fields.at(index)).left,
+            greaterThan(tester.getRect(fields.at(index - 1)).right),
+          );
+        }
+      }
+      await tester.tap(fields.first);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<EditableText>(find.byType(EditableText).first)
+            .focusNode
+            .hasFocus,
+        isTrue,
+      );
+
+      await pumpRow(brightness, true);
+      for (final field in tester.widgetList<TextField>(fields)) {
+        expect(field.enabled, isFalse);
+        expect(field.decoration!.disabledBorder, InputBorder.none);
+        expect(field.decoration!.focusedBorder, InputBorder.none);
+      }
+    }
+  });
+
   group('ExerciseLogMask derivation', () {
     test('weight_reps shows weight and reps', () {
       final mask = ExerciseLogMask.forExercise(

@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Workoutweergave",
+  "settingsShowWorkoutE1rm": "Geschat maximum voor één herhaling tonen",
+  "settingsShowWorkoutE1rmSubtitle": "Toont het geschatte maximum per set en de vergelijking tussen sessies.",
   "@@locale": "nl",
   "selectDateTitle": "Datum selecteren",
   "selectTimeTitle": "Tijd selecteren",

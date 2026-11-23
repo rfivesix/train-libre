@@ -10,6 +10,17 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get settingsWorkoutDisplay => 'Visualización de entrenamiento';
+
+  @override
+  String get settingsShowWorkoutE1rm =>
+      'Mostrar el máximo estimado de una repetición';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle =>
+      'Muestra el máximo estimado por serie y la comparación entre sesiones.';
+
+  @override
   String get selectDateTitle => 'Seleccionar fecha';
 
   @override

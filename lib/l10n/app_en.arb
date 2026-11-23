@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Workout display",
+  "settingsShowWorkoutE1rm": "Show estimated one-rep max",
+  "settingsShowWorkoutE1rmSubtitle": "Show estimated one-rep max for sets and session comparisons.",
   "@@locale": "en",
   "selectDateTitle": "Select Date",
   "selectTimeTitle": "Select Time",

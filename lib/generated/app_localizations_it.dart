@@ -10,6 +10,16 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get settingsWorkoutDisplay => 'Visualizzazione allenamento';
+
+  @override
+  String get settingsShowWorkoutE1rm => 'Mostra il massimale stimato';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle =>
+      'Mostra il massimale stimato per serie e il confronto tra sessioni.';
+
+  @override
   String get selectDateTitle => 'Seleziona Data';
 
   @override

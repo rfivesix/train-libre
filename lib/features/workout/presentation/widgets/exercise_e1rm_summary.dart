@@ -1,15 +1,15 @@
 import 'package:material_ui/material_ui.dart';
-
-import '../../../../util/design_constants.dart';
-
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+import '../../../../services/theme_service.dart';
+import '../../../../util/design_constants.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_log.dart';
 import '../live_workout_view_model.dart';
+import 'set_row_style.dart';
 
 /// A widget that calculates and displays the best Estimated 1-Rep Max (e1RM)
 /// for the current session and compares it against the previous session.
@@ -25,6 +25,9 @@ class ExerciseE1rmSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!(context.watch<ThemeService?>()?.showWorkoutE1rm ?? false)) {
+      return const SizedBox.shrink();
+    }
     return Selector<LiveWorkoutViewModel, List<SetLog>>(
       selector: (context, vm) {
         final list = <SetLog>[];
@@ -88,6 +91,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
                     unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
+                    color: setComparisonTextColor(context),
                     fontWeight: FontWeight.w700,
                   ),
                 ),

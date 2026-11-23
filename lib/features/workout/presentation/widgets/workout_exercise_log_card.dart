@@ -9,7 +9,7 @@ import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
-import 'superset_connector_button.dart';
+import 'add_set_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
@@ -54,7 +54,6 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final void Function(int setLogId, String newType)? onSetTypeChanged;
   final int index;
   final bool isDragging;
-  final bool isDraggedItem;
   final String? supersetLabel;
   final Color? supersetColor;
   final bool continuesSupersetAbove;
@@ -96,7 +95,6 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     this.onSetTypeChanged,
     required this.index,
     this.isDragging = false,
-    this.isDraggedItem = false,
     this.supersetLabel,
     this.supersetColor,
     this.continuesSupersetAbove = false,
@@ -126,19 +124,20 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required ColorScheme colorScheme,
     VoidCallback? onTap,
   }) {
+    final textColor = textTheme.titleLarge?.color ?? colorScheme.onSurface;
     final content = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.timer, size: 20, color: colorScheme.primary),
+          Icon(LucideIcons.timer, size: 20, color: textColor),
           const SizedBox(width: 8),
           Text(
             pauseSeconds != null && pauseSeconds > 0
                 ? _formatPauseTime(pauseSeconds)
                 : l10n.timerOffLabel.toUpperCase(),
             style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.primary,
+              color: textColor,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -172,10 +171,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
         exercise?.getLocalizedName(context) ?? exerciseName,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: isDraggedItem ? colorScheme.primary : null,
-        ),
+        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
     final title = supersetLabel == null || supersetColor == null
@@ -269,9 +265,13 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                   ),
                   if (isEditMode && !isDragging)
                     PlatformAdaptivePopupMenu<String>(
-                      icon: const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Icon(LucideIcons.ellipsis_vertical),
+                      key: ValueKey('history_exercise_menu_$index'),
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Icon(
+                          LucideIcons.ellipsis_vertical,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                       items: [
                         PlatformAdaptivePopupMenuItem(
@@ -284,6 +284,16 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                             value: 'timer',
                             label: l10n.editPauseTime,
                             icon: LucideIcons.timer,
+                          ),
+                        if (onToggleSupersetBelow != null)
+                          PlatformAdaptivePopupMenuItem(
+                            value: 'superset',
+                            label: isConnectedBelow
+                                ? l10n.disconnectSuperset
+                                : l10n.connectSuperset,
+                            icon: isConnectedBelow
+                                ? LucideIcons.unlink
+                                : LucideIcons.link,
                           ),
                         PlatformAdaptivePopupMenuItem(
                           value: 'remove',
@@ -299,6 +309,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                             break;
                           case 'timer':
                             onEditPauseTime?.call();
+                            break;
+                          case 'superset':
+                            onToggleSupersetBelow?.call();
                             break;
                           case 'remove':
                             onDeleteExercise(exerciseName);
@@ -479,7 +492,6 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                         ? ValueKey('log_set_${setLog.id}')
                                         : ObjectKey(setLog),
                                     setLog: setLog,
-                                    rowIndex: rowIndex,
                                     workingSetIndex: workingSetIndex,
                                     exerciseName: exerciseName,
                                     isEditMode: isEditMode,
@@ -508,27 +520,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16.0,
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton.icon(
-                                        onPressed: onAddSet,
-                                        icon: const Icon(LucideIcons.plus),
-                                        label: Text(l10n.addSetButton),
-                                      ),
-                                      if (onToggleSupersetBelow != null)
-                                        Flexible(
-                                          child: SupersetConnectorButton(
-                                            key: ValueKey(
-                                              'history_superset_connector_$index',
-                                            ),
-                                            isConnected: isConnectedBelow,
-                                            onPressed: onToggleSupersetBelow!,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                  child: AddSetButton(onPressed: onAddSet),
                                 ),
                             ],
                           ),

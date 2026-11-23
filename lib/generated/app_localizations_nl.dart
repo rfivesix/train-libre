@@ -10,6 +10,17 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get settingsWorkoutDisplay => 'Workoutweergave';
+
+  @override
+  String get settingsShowWorkoutE1rm =>
+      'Geschat maximum voor één herhaling tonen';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle =>
+      'Toont het geschatte maximum per set en de vergelijking tussen sessies.';
+
+  @override
   String get selectDateTitle => 'Datum selecteren';
 
   @override

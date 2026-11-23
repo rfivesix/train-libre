@@ -10,6 +10,15 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
+  String get settingsWorkoutDisplay => 'ワークアウト表示';
+
+  @override
+  String get settingsShowWorkoutE1rm => '推定1回最大重量を表示';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle => 'セットごとの推定1回最大重量とセッション比較を表示します。';
+
+  @override
   String get selectDateTitle => '日付を選択';
 
   @override

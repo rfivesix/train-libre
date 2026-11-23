@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Visualizzazione allenamento",
+  "settingsShowWorkoutE1rm": "Mostra il massimale stimato",
+  "settingsShowWorkoutE1rmSubtitle": "Mostra il massimale stimato per serie e il confronto tra sessioni.",
   "@@locale": "it",
   "selectDateTitle": "Seleziona Data",
   "selectTimeTitle": "Seleziona Ora",

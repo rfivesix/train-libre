@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
+import '../../../../services/theme_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/classification/workout_set_position.dart';
 import 'log_mask_labels.dart';
@@ -20,6 +21,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
 import '../../../../util/design_constants.dart';
 import 'generated_value_morph.dart';
+import 'set_row_style.dart';
+import 'set_type_chip.dart';
 import 'set_type_menu.dart';
 import 'pr_sparkle_burst.dart';
 
@@ -66,38 +69,22 @@ class LiveWorkoutSetRow extends StatelessWidget {
   /// Column widths, shared with the heading above the row.
   SetRowFlex get flex => SetRowFlex.forMask(mask);
 
+  Widget _buildInputColumn({required int flex, required Widget child}) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: child,
+      ),
+    );
+  }
+
   void _removeSet(int templateId) {
     manager.removeSet(templateId);
   }
 
   void _changeSetType(int templateId, String newType) {
     manager.updateSet(templateId, setType: newType);
-  }
-
-  String _getSetDisplayText(String setType, int setIndex) {
-    switch (setType) {
-      case 'warmup':
-        return 'W';
-      case 'failure':
-        return 'F';
-      case 'dropset':
-        return 'D';
-      default:
-        return '$setIndex';
-    }
-  }
-
-  Color _getSetTypeColor(String setType) {
-    switch (setType) {
-      case 'warmup':
-        return Colors.orange;
-      case 'dropset':
-        return Colors.blue;
-      case 'failure':
-        return DesignConstants.brandRedColor;
-      default:
-        return Colors.grey;
-    }
   }
 
   bool _isQualifyingSetForE1rm(
@@ -232,12 +219,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final Color? textColor = isCompleted
         ? (isLightMode ? Colors.black : Colors.white)
         : null;
-    final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
-    final Color rowColor = isColoredRow
-        ? (isLightMode
-              ? Colors.grey.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.1))
-        : Colors.transparent;
+    final comparisonTextColor = setComparisonTextColor(context);
 
     // Hint Logic
     String weightHint = '0';
@@ -283,28 +265,19 @@ class LiveWorkoutSetRow extends StatelessWidget {
         // 1. SET NUMBER
         Expanded(
           flex: flex.index,
-          child: Center(
-            child: SetTypeMenu(
-              currentSetType: log.setType,
-              enabled: !isCompleted,
-              onSetTypeChanged: (newType) =>
-                  _changeSetType(templateId, newType),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4.0,
-                  vertical: 8.0,
-                ),
-                child: Text(
-                  _getSetDisplayText(log.setType, setIndex),
-                  style: TextStyle(
-                    color: isCompleted
-                        ? (log.setType == 'normal'
-                              ? (isLightMode ? Colors.black : Colors.white)
-                              : _getSetTypeColor(log.setType))
-                        : _getSetTypeColor(log.setType),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: SetTypeMenu(
+                currentSetType: log.setType,
+                enabled: !isCompleted,
+                onSetTypeChanged: (newType) =>
+                    _changeSetType(templateId, newType),
+                child: SetTypeChip(
+                  setType: log.setType,
+                  setIndex: setIndex,
+                  isCompleted: isCompleted,
                 ),
               ),
             ),
@@ -392,7 +365,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  color: comparisonTextColor,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -402,7 +375,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ),
 
         // 3. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
-        Expanded(
+        _buildInputColumn(
           flex: flex.primary,
           child: !mask.showsPrimary
               // A plank has nothing to put here. An empty box invites a
@@ -434,10 +407,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: isSuggested ? generatedTextColor : textColor,
                         ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          isDense: true,
-                          fillColor: Colors.transparent,
+                        decoration: setFieldDecoration(
+                          context,
+                          isEditable: !isCompleted,
                           hintText: weightHint,
                           hintStyle: TextStyle(
                             color: Colors.grey.withValues(alpha: 0.5),
@@ -504,7 +476,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ),
 
         // 4. INPUT 2: REPS / TIME
-        Expanded(
+        _buildInputColumn(
           flex: flex.secondary,
           child: !mask.showsSecondary
               ? const SizedBox.shrink()
@@ -622,10 +594,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           ? textColor
                           : generatedTextColor,
                     ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
+                    decoration: setFieldDecoration(
+                      context,
+                      isEditable: !isCompleted,
                       hintText: repHint,
                       hintStyle: TextStyle(
                         color: Colors.grey.withValues(alpha: 0.5),
@@ -723,7 +694,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         // Below "pro" it is gone from every card at once, placeholder
         // included, and the fields beside it widen.
         if (showsIntensity || keepsIntensityPlaceholder(context, mask))
-          Expanded(
+          _buildInputColumn(
             flex: flex.intensity,
             child: !showsIntensity
                 ? const SizedBox.shrink()
@@ -740,10 +711,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
+                    decoration: setFieldDecoration(
+                      context,
+                      isEditable: !isCompleted,
                       hintText: rirHint,
                       hintStyle: TextStyle(
                         color: Colors.grey.withValues(alpha: 0.5),
@@ -767,46 +737,57 @@ class LiveWorkoutSetRow extends StatelessWidget {
           ),
 
         // 6. CHECKBOX
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 48,
-                child: IconButton(
-                  tooltip: isCompleted ? l10n.undo : l10n.doneButtonLabel,
-                  icon: Icon(
-                    isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
-                    color: isCompleted ? Colors.green : Colors.grey,
-                  ),
-                  onPressed: () async {
-                    if (!isCompleted) {
-                      HapticFeedbackService.instance.confirmationFeedback();
-                    } else {
-                      HapticFeedbackService.instance.selectionFeedback();
-                    }
-                    // updateSet fills the input fields with the values it
-                    // resolved from the template, for every completion path.
-                    if (!isCompleted && mask.logsDuration) {
-                      await manager.completeTimedSet(templateId);
-                    } else {
-                      await manager.updateSet(
-                        templateId,
-                        isCompleted: !isCompleted,
-                      );
-                    }
-                  },
+        SizedBox(
+          width: 48,
+          child: IconButton(
+            padding: const EdgeInsets.only(right: 4),
+            alignment: Alignment.centerRight,
+            iconSize: 36,
+            tooltip: isCompleted ? l10n.undo : l10n.doneButtonLabel,
+            icon: Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? Colors.green
+                    : (isLightMode
+                          ? DesignConstants.summaryCardSecondaryLightMode
+                          : DesignConstants.summaryCardDarkMode),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusS,
                 ),
               ),
-            ],
+              child: Icon(
+                LucideIcons.check,
+                size: 22,
+                color: isCompleted ? Colors.white : Colors.grey,
+              ),
+            ),
+            onPressed: () async {
+              if (!isCompleted) {
+                HapticFeedbackService.instance.confirmationFeedback();
+              } else {
+                HapticFeedbackService.instance.selectionFeedback();
+              }
+              // updateSet fills the input fields with the values it
+              // resolved from the template, for every completion path.
+              if (!isCompleted && mask.logsDuration) {
+                await manager.completeTimedSet(templateId);
+              } else {
+                await manager.updateSet(templateId, isCompleted: !isCompleted);
+              }
+            },
           ),
         ),
       ],
     );
 
     final currentSetE1rm = _calculateBrzyckiE1rm(log, requireCompleted: false);
-    final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
+    final showCurrentSetE1rm =
+        (context.watch<ThemeService?>()?.showWorkoutE1rm ?? false) &&
+        !isCardio &&
+        currentSetE1rm != null;
 
     final bool hasPR =
         isCompleted &&
@@ -819,7 +800,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     final rowWithSubInfo = Column(
       children: [
-        rowContent,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: rowContent,
+        ),
         if (showCurrentSetE1rm || hasPR)
           Padding(
             padding: const EdgeInsets.only(right: 12.0, bottom: 4.0),
@@ -837,7 +821,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                       unitService.suffixFor(UnitDimension.weight),
                     ),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: comparisonTextColor,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -860,17 +844,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(LucideIcons.trash, color: Colors.white),
       ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              color: isCompleted
-                  ? Colors.green.withValues(alpha: 0.3)
-                  : rowColor,
-            ),
-          ),
-          rowWithSubInfo,
-        ],
+      child: ColoredBox(
+        color: isCompleted
+            ? Colors.green.withValues(alpha: 0.3)
+            : Colors.transparent,
+        child: rowWithSubInfo,
       ),
     );
   }

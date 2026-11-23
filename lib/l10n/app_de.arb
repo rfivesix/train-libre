@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Workout-Anzeige",
+  "settingsShowWorkoutE1rm": "Geschätztes Einwiederholungsmaximum anzeigen",
+  "settingsShowWorkoutE1rmSubtitle": "Zeigt das geschätzte Einwiederholungsmaximum bei Sätzen und im Sitzungsvergleich.",
   "@@locale": "de",
   "selectDateTitle": "Datum auswählen",
   "selectTimeTitle": "Uhrzeit auswählen",

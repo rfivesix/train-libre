@@ -10,6 +10,17 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get settingsWorkoutDisplay => 'Workout-Anzeige';
+
+  @override
+  String get settingsShowWorkoutE1rm =>
+      'Geschätztes Einwiederholungsmaximum anzeigen';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle =>
+      'Zeigt das geschätzte Einwiederholungsmaximum bei Sätzen und im Sitzungsvergleich.';
+
+  @override
   String get selectDateTitle => 'Datum auswählen';
 
   @override

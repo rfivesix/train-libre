@@ -377,9 +377,9 @@ void main() {
     await tester.tap(find.byIcon(LucideIcons.pencil).first);
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('history_superset_connector_0')),
-    );
+    await tester.tap(find.byKey(const ValueKey('history_exercise_menu_0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Connect as superset'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save').last);
     await tester.pumpAndSettle();
@@ -424,9 +424,9 @@ void main() {
     await tester.tap(find.byIcon(LucideIcons.pencil).first);
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('history_superset_connector_1')),
-    );
+    await tester.tap(find.byKey(const ValueKey('history_exercise_menu_1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dissolve superset'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save').last);
     await tester.pumpAndSettle();

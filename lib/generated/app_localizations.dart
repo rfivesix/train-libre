@@ -108,6 +108,24 @@ abstract class AppLocalizations {
     Locale('nl'),
   ];
 
+  /// No description provided for @settingsWorkoutDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout display'**
+  String get settingsWorkoutDisplay;
+
+  /// No description provided for @settingsShowWorkoutE1rm.
+  ///
+  /// In en, this message translates to:
+  /// **'Show estimated one-rep max'**
+  String get settingsShowWorkoutE1rm;
+
+  /// No description provided for @settingsShowWorkoutE1rmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show estimated one-rep max for sets and session comparisons.'**
+  String get settingsShowWorkoutE1rmSubtitle;
+
   /// No description provided for @selectDateTitle.
   ///
   /// In en, this message translates to:

@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "ワークアウト表示",
+  "settingsShowWorkoutE1rm": "推定1回最大重量を表示",
+  "settingsShowWorkoutE1rmSubtitle": "セットごとの推定1回最大重量とセッション比較を表示します。",
   "@@locale": "ja",
   "selectDateTitle": "日付を選択",
   "selectTimeTitle": "時間を選択",

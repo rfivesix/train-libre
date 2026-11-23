@@ -1271,7 +1271,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: colorScheme.surface,
       appBar: GlobalAppBar(
         titleWidget: Tooltip(
           message: workoutTitle,

@@ -31,7 +31,7 @@ import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'workout_summary_screen.dart';
-import 'widgets/superset_connector_button.dart';
+import 'widgets/add_set_button.dart';
 import 'widgets/workout_card.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/reorderable_set_list.dart';
@@ -479,6 +479,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     required ColorScheme colorScheme,
     required VoidCallback onTap,
   }) {
+    final textColor = textTheme.titleLarge?.color ?? colorScheme.onSurface;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -487,14 +488,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(LucideIcons.timer, size: 20, color: colorScheme.primary),
+            Icon(LucideIcons.timer, size: 20, color: textColor),
             const SizedBox(width: 8),
             Text(
               pauseSeconds != null && pauseSeconds > 0
                   ? _formatPauseTime(pauseSeconds)
                   : l10n.timerOffLabel.toUpperCase(),
               style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.primary,
+                color: textColor,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -514,10 +515,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     required void Function(RoutineExercise)? onEditPauseTime,
     bool isProxy = false,
   }) {
-    final membership = supersetMembershipAt(
-      Provider.of<LiveWorkoutViewModel>(context, listen: false).exercises,
-      index,
-    );
+    final manager = context.read<LiveWorkoutViewModel>();
+    final exercises = manager.exercises;
+    final membership = supersetMembershipAt(exercises, index);
+    final hasNextExercise = index + 1 < exercises.length;
+    final isConnectedBelow =
+        hasNextExercise &&
+        routineExercise.supersetGroup != null &&
+        routineExercise.supersetGroup == exercises[index + 1].supersetGroup;
     final supersetColor = membership == null
         ? null
         : DesignConstants.supersetColors[membership.groupIndex %
@@ -528,7 +533,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         routineExercise.exercise.getLocalizedName(context),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        style: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
     final titleContent = membership == null
@@ -600,9 +607,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               draggableTitle,
               if (!isProxy)
                 PlatformAdaptivePopupMenu<String>(
-                  icon: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Icon(LucideIcons.ellipsis_vertical),
+                  key: ValueKey('live_exercise_menu_$index'),
+                  icon: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      LucideIcons.ellipsis_vertical,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                   items: [
                     PlatformAdaptivePopupMenuItem(
@@ -615,6 +626,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       label: l10n.editPauseTime,
                       icon: LucideIcons.timer,
                     ),
+                    if (hasNextExercise)
+                      PlatformAdaptivePopupMenuItem(
+                        value: 'superset',
+                        label: isConnectedBelow
+                            ? l10n.disconnectSuperset
+                            : l10n.connectSuperset,
+                        icon: isConnectedBelow
+                            ? LucideIcons.unlink
+                            : LucideIcons.link,
+                      ),
                     PlatformAdaptivePopupMenuItem(
                       value: 'remove',
                       label: l10n.removeExercise,
@@ -631,6 +652,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                         if (onEditPauseTime != null) {
                           onEditPauseTime(routineExercise);
                         }
+                        break;
+                      case 'superset':
+                        manager.toggleSupersetAfter(index);
                         break;
                       case 'remove':
                         _removeExercise(routineExercise);
@@ -1055,28 +1079,53 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final flex = SetRowFlex.forMask(mask);
     final showsIntensity = showsIntensityColumn(context, mask);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildHeader(l10n.setLabel, flex: flex.index),
-        _buildHeader(l10n.lastTimeLabel, flex: flex.lastTime),
-        if (primary != null)
-          _buildHeader(primary, flex: flex.primary)
-        else
-          Expanded(flex: flex.primary, child: const SizedBox.shrink()),
-        if (secondary != null)
-          _buildHeader(secondary, flex: flex.secondary)
-        else
-          Expanded(flex: flex.secondary, child: const SizedBox.shrink()),
-        if (showsIntensity)
-          _buildHeader(
-            mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
-            flex: flex.intensity,
-          )
-        else if (keepsIntensityPlaceholder(context, mask))
-          Expanded(flex: flex.intensity, child: const SizedBox.shrink()),
-        const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: flex.index,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: SizedBox(
+                  width: 36,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l10n.setLabel,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _buildHeader(l10n.lastTimeLabel, flex: flex.lastTime),
+          if (primary != null)
+            _buildHeader(primary, flex: flex.primary)
+          else
+            Expanded(flex: flex.primary, child: const SizedBox.shrink()),
+          if (secondary != null)
+            _buildHeader(secondary, flex: flex.secondary)
+          else
+            Expanded(flex: flex.secondary, child: const SizedBox.shrink()),
+          if (showsIntensity)
+            _buildHeader(
+              mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+              flex: flex.intensity,
+            )
+          else if (keepsIntensityPlaceholder(context, mask))
+            Expanded(flex: flex.intensity, child: const SizedBox.shrink()),
+          const SizedBox(width: 48),
+        ],
+      ),
     );
   }
 
@@ -1196,9 +1245,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
     if (!isActive && !isLoading) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      );
+      return Scaffold(backgroundColor: colorScheme.surface);
     }
 
     // Edit rest helper
@@ -1268,7 +1315,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           // The system back swipe won't pop the route automatically because canPop is false.
         },
         child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: colorScheme.surface,
           extendBody: true,
           extendBodyBehindAppBar: true,
           appBar: GlobalAppBar(
@@ -1730,25 +1777,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                     ),
                                                                                     Padding(
                                                                                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                                                                      child: Row(
-                                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                        children: [
-                                                                                          TextButton.icon(
-                                                                                            onPressed: () => _addSet(routineExercise),
-                                                                                            icon: const Icon(LucideIcons.plus),
-                                                                                            label: Text(l10n.addSetButton),
-                                                                                          ),
-                                                                                          if (index + 1 < exercises.length)
-                                                                                            Flexible(
-                                                                                              child: SupersetConnectorButton(
-                                                                                                key: ValueKey('live_superset_connector_$index'),
-                                                                                                isConnected:
-                                                                                                    routineExercise.supersetGroup != null &&
-                                                                                                    routineExercise.supersetGroup == exercises[index + 1].supersetGroup,
-                                                                                                onPressed: () => manager.toggleSupersetAfter(index),
-                                                                                              ),
-                                                                                            ),
-                                                                                        ],
+                                                                                      child: AddSetButton(
+                                                                                        onPressed: () => _addSet(routineExercise),
                                                                                       ),
                                                                                     ),
                                                                                   ],

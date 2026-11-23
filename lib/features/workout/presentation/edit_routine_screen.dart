@@ -989,7 +989,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         child: Scaffold(
           extendBodyBehindAppBar: true,
           extendBody: true,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: colorScheme.surface,
           appBar: GlobalAppBar(
             automaticallyImplyLeading: false,
             leading: Navigator.of(context).canPop()

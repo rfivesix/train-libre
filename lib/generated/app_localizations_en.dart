@@ -10,6 +10,16 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settingsWorkoutDisplay => 'Workout display';
+
+  @override
+  String get settingsShowWorkoutE1rm => 'Show estimated one-rep max';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle =>
+      'Show estimated one-rep max for sets and session comparisons.';
+
+  @override
   String get selectDateTitle => 'Select Date';
 
   @override

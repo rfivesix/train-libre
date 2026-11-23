@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Affichage des entraînements",
+  "settingsShowWorkoutE1rm": "Afficher le maximum estimé sur une répétition",
+  "settingsShowWorkoutE1rmSubtitle": "Affiche le maximum estimé par série et la comparaison des séances.",
   "@@locale": "fr",
   "selectDateTitle": "Choisir une date",
   "selectTimeTitle": "Choisir une heure",

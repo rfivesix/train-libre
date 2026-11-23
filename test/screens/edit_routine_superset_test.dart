@@ -80,7 +80,9 @@ void main() {
     await tester.tap(find.byIcon(LucideIcons.pencil));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('superset_connector_0')));
+    await tester.tap(find.byKey(const ValueKey('routine_exercise_menu_0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Connect as superset'));
     await tester.pumpAndSettle();
     var cards = tester.widgetList<EditRoutineExerciseCard>(
       find.byType(EditRoutineExerciseCard),
@@ -89,7 +91,9 @@ void main() {
     expect(cards.map((card) => card.showPauseAction), [false, true, true]);
     expect(cards.map((card) => card.canDrag), [true, true, true]);
 
-    await tester.tap(find.byKey(const ValueKey('superset_connector_1')));
+    await tester.tap(find.byKey(const ValueKey('routine_exercise_menu_1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Connect as superset'));
     await tester.pumpAndSettle();
     cards = tester.widgetList<EditRoutineExerciseCard>(
       find.byType(EditRoutineExerciseCard),

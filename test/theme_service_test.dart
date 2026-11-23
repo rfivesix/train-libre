@@ -12,6 +12,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ThemeService defaults and persistence', () {
+    test('workout e1rm display preference persists', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final service = ThemeService();
+      await _waitForThemeServiceInit();
+      expect(service.showWorkoutE1rm, isFalse);
+      await service.setShowWorkoutE1rm(true);
+      final restored = ThemeService();
+      await _waitForThemeServiceInit();
+      expect(restored.showWorkoutE1rm, isTrue);
+      service.dispose();
+      restored.dispose();
+    });
     test('loads defaults when no preferences are saved', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
 

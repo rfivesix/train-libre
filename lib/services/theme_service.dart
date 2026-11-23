@@ -19,6 +19,7 @@ class ThemeService extends ChangeNotifier {
   static const _appColorChoiceKey = 'app_color_choice';
   static const _customAppColorKey = 'custom_app_color';
   static const _hapticsEnabledKey = 'haptics_enabled';
+  static const _showWorkoutE1rmKey = 'show_workout_e1rm';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
 
   static const double defaultGlassAppearance = 0.3;
@@ -45,6 +46,8 @@ class ThemeService extends ChangeNotifier {
   AppColorChoice _appColorChoice = AppColorChoice.trainLibre;
   Color _customAppColor = const Color(0xFF6750A4);
   bool _hapticsEnabled = true;
+  bool _showWorkoutE1rm = false;
+  bool _showWorkoutE1rmChanged = false;
   bool _useColorfulMacroBadges = true;
   BaseFoodLanguage _baseFoodLanguage = BaseFoodLanguage.auto;
 
@@ -70,6 +73,24 @@ class ThemeService extends ChangeNotifier {
   /// Whether haptic feedback is enabled globally.
   bool get hapticsEnabled => _hapticsEnabled;
 
+  bool get showWorkoutE1rm => _showWorkoutE1rm;
+
+  Future<void> setShowWorkoutE1rm(bool value) async {
+    _showWorkoutE1rmChanged = true;
+    _showWorkoutE1rm = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showWorkoutE1rmKey, value);
+  }
+
+  Future<void> _loadShowWorkoutE1rm() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!_showWorkoutE1rmChanged) {
+      _showWorkoutE1rm = prefs.getBool(_showWorkoutE1rmKey) ?? false;
+      notifyListeners();
+    }
+  }
+
   /// Whether to use colorful macro badges in the diary.
   /// Hardcoded to always return true per requirements.
   bool get useColorfulMacroBadges => true;
@@ -85,6 +106,7 @@ class ThemeService extends ChangeNotifier {
     _loadAiEnabled();
     _loadAppColorSelection();
     _loadHapticsEnabled();
+    _loadShowWorkoutE1rm();
     _loadUseColorfulMacroBadges();
     _loadBaseFoodLanguage();
   }

@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../generated/app_localizations.dart';
+import 'set_row_style.dart';
 
 /// A visual indicator for a workout set's type (e.g., normal, warmup, failure).
 ///
@@ -34,7 +35,7 @@ class SetTypeChip extends StatelessWidget {
     final Map<String, dynamic> typeInfo = {
       'normal': {
         'char': setIndex.toString(),
-        'color': Theme.of(context).colorScheme.onSurfaceVariant,
+        'color': Theme.of(context).colorScheme.onSurface,
         'label': l10n.set_type_normal,
       },
       'warmup': {
@@ -62,17 +63,14 @@ class SetTypeChip extends StatelessWidget {
       label: typeLabel,
       child: GestureDetector(
         onTap: isCompleted ? null : onTap,
-        child: SizedBox(
-          width: 40, // Fixed width for the column
-          height: 40, // Fixed height
-          child: Center(
-            child: Text(
-              type['char'],
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20, // Larger font size
-                fontWeight: FontWeight.bold,
-              ),
+        child: SetRowTile(
+          isCompleted: isCompleted,
+          child: Text(
+            type['char'],
+            style: TextStyle(
+              color: textColor,
+              fontSize: 20, // Larger font size
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
