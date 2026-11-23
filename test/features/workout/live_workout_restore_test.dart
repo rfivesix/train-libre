@@ -353,6 +353,28 @@ void main() {
     expect([for (final e in restored.exercises) e.pauseSeconds], [120, 60, 90]);
   });
 
+  test('a set reorder within an exercise survives the kill', () async {
+    await startSession();
+    await manager.updateSet(1001, weight: 60, reps: 10);
+    await manager.updateSet(1002, weight: 80, reps: 8);
+    await manager.updateSet(1003, weight: 100, reps: 5);
+
+    // Move first set to last, then move last to first/middle.
+    await manager.reorderSet(100, 0, 2);
+    expect([for (final s in setsOf(manager, 0)) s.weightKg], [80, 100, 60]);
+
+    await manager.reorderSet(100, 2, 1);
+    expect([for (final s in setsOf(manager, 0)) s.weightKg], [80, 60, 100]);
+
+    final restored = await restartApp();
+
+    expect(
+      [for (final s in setsOf(restored, 0)) s.weightKg],
+      [80, 60, 100],
+    );
+    expect([for (final s in setsOf(restored, 0)) s.reps], [8, 10, 5]);
+  });
+
   test('a removed set does not come back', () async {
     await startSession();
     await manager.updateSet(1001, weight: 100, reps: 5);

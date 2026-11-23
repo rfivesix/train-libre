@@ -61,6 +61,15 @@ void main() {
             .right,
         volumeBounds.right,
       );
+      expect(barBounds.bottom, lessThanOrEqualTo(tester.getRect(find.text('00:00')).top));
+      expect(
+        volumeBounds.bottom,
+        lessThanOrEqualTo(
+          tester
+              .getRect(find.byKey(const ValueKey('session-muscle-badge')))
+              .top,
+        ),
+      );
       await tester.pumpWidget(const SizedBox.shrink());
       manager.dispose();
       units.dispose();

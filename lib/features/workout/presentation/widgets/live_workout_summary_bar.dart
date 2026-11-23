@@ -16,6 +16,8 @@ import '../live_workout_view_model.dart';
 
 /// The live workout's progress; the history summary has a separate layout.
 class LiveWorkoutSummaryBar extends StatelessWidget {
+  static const double preferredHeight = 70.0;
+
   const LiveWorkoutSummaryBar({super.key, required this.workout});
 
   final LiveWorkoutViewModel workout;
@@ -27,7 +29,16 @@ class LiveWorkoutSummaryBar extends StatelessWidget {
         .where((s) => s.isCompleted == true)
         .length;
     final total = workout.setLogs.length;
-    final color = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final color = theme.colorScheme;
+    final trackBg = Color.alphaBlend(
+      color.onSurface.withValues(alpha: 0.16),
+      theme.scaffoldBackgroundColor,
+    ).withValues(alpha: 0.65);
+    final badgeBg = Color.alphaBlend(
+      color.onSurface.withValues(alpha: 0.12),
+      theme.scaffoldBackgroundColor,
+    ).withValues(alpha: 0.72);
     final muscles = SessionMuscleCoverage.fromWorkout(
       workout.exercises,
       workout.setLogs,
@@ -42,7 +53,32 @@ class LiveWorkoutSummaryBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 2, bottom: 4),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: total == 0 ? 0 : completed / total,
+                      minHeight: 6,
+                      backgroundColor: trackBg,
+                      color: color.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '${volume.toStringAsFixed(0)} ${units.suffixFor(UnitDimension.weight)}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -83,7 +119,7 @@ class LiveWorkoutSummaryBar extends StatelessWidget {
                           height: 36,
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: color.onSurface.withValues(alpha: 0.08),
+                            color: badgeBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: DualBodyHighlighter(
@@ -103,30 +139,6 @@ class LiveWorkoutSummaryBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: total == 0 ? 0 : completed / total,
-                      minHeight: 6,
-                      backgroundColor: color.onSurface.withValues(alpha: 0.1),
-                      color: color.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '${volume.toStringAsFixed(0)} ${units.suffixFor(UnitDimension.weight)}',
-                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),

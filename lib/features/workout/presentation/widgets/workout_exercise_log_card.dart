@@ -13,6 +13,7 @@ import 'superset_connector_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
+import 'reorderable_set_list.dart';
 import 'workout_log_set_row.dart';
 
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -48,6 +49,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final Function(String exerciseName) onDeleteExercise;
   final VoidCallback onAddSet;
   final Function(int setLogId) onDeleteSet;
+  final void Function(int oldIndex, int newIndex)? onReorderSet;
   final Function(int setLogId)? onSetTypeTap;
   final void Function(int setLogId, String newType)? onSetTypeChanged;
   final int index;
@@ -89,6 +91,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.onDeleteExercise,
     required this.onAddSet,
     required this.onDeleteSet,
+    this.onReorderSet,
     this.onSetTypeTap,
     this.onSetTypeChanged,
     required this.index,
@@ -458,40 +461,47 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                               ),
 
                               // Set Rows
-                              ...sets.asMap().entries.map((setEntry) {
-                                final setLog = setEntry.value;
-                                final rowIndex = setEntry.key;
-                                int workingSetIndex = 0;
-                                for (int i = 0; i <= rowIndex; i++) {
-                                  if (sets[i].setType != 'warmup') {
-                                    workingSetIndex++;
+                              ReorderableSetList(
+                                itemCount: sets.length,
+                                enabled: isEditMode && onReorderSet != null,
+                                onReorderSet: onReorderSet,
+                                itemBuilder: (context, rowIndex) {
+                                  final setLog = sets[rowIndex];
+                                  int workingSetIndex = 0;
+                                  for (int i = 0; i <= rowIndex; i++) {
+                                    if (sets[i].setType != 'warmup') {
+                                      workingSetIndex++;
+                                    }
                                   }
-                                }
 
-                                return WorkoutLogSetRow(
-                                  setLog: setLog,
-                                  rowIndex: rowIndex,
-                                  workingSetIndex: workingSetIndex,
-                                  exerciseName: exerciseName,
-                                  isEditMode: isEditMode,
-                                  mask: mask,
-                                  bodyweightKg: bodyweightKg,
-                                  weightController:
-                                      weightControllers[setLog.id],
-                                  repsController: repsControllers[setLog.id],
-                                  rirController: rirControllers[setLog.id],
-                                  onDelete: () => onDeleteSet(setLog.id!),
-                                  onSetTypeTap: onSetTypeTap != null
-                                      ? () => onSetTypeTap!(setLog.id!)
-                                      : null,
-                                  onSetTypeChanged: onSetTypeChanged != null
-                                      ? (newType) => onSetTypeChanged!(
-                                          setLog.id!,
-                                          newType,
-                                        )
-                                      : null,
-                                );
-                              }),
+                                  return WorkoutLogSetRow(
+                                    key: setLog.id != null
+                                        ? ValueKey('log_set_${setLog.id}')
+                                        : ObjectKey(setLog),
+                                    setLog: setLog,
+                                    rowIndex: rowIndex,
+                                    workingSetIndex: workingSetIndex,
+                                    exerciseName: exerciseName,
+                                    isEditMode: isEditMode,
+                                    mask: mask,
+                                    bodyweightKg: bodyweightKg,
+                                    weightController:
+                                        weightControllers[setLog.id],
+                                    repsController: repsControllers[setLog.id],
+                                    rirController: rirControllers[setLog.id],
+                                    onDelete: () => onDeleteSet(setLog.id!),
+                                    onSetTypeTap: onSetTypeTap != null
+                                        ? () => onSetTypeTap!(setLog.id!)
+                                        : null,
+                                    onSetTypeChanged: onSetTypeChanged != null
+                                        ? (newType) => onSetTypeChanged!(
+                                            setLog.id!,
+                                            newType,
+                                          )
+                                        : null,
+                                  );
+                                },
+                              ),
 
                               if (isEditMode)
                                 Padding(

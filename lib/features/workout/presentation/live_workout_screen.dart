@@ -3,11 +3,13 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:material_ui/material_ui.dart';
 
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/card_morph_route.dart';
+import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/morph_source.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -32,6 +34,7 @@ import 'workout_summary_screen.dart';
 import 'widgets/superset_connector_button.dart';
 import 'widgets/workout_card.dart';
 import 'widgets/reorder_drag_proxy.dart';
+import 'widgets/reorderable_set_list.dart';
 import 'widgets/pr_celebration_banner.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import '../domain/classification/workout_set_position.dart';
@@ -1249,6 +1252,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       manager.syncControllers();
     }
 
+    final double topPadding =
+        MediaQuery.paddingOf(context).top +
+        kToolbarHeight +
+        LiveWorkoutSummaryBar.preferredHeight +
+        DesignConstants.spacingS;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -1261,9 +1270,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         child: Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           extendBody: true,
-          appBar: AppBar(
-            automaticallyImplyLeading:
-                false, // We will provide our own back button
+          extendBodyBehindAppBar: true,
+          appBar: GlobalAppBar(
+            automaticallyImplyLeading: false,
             // Down, not back: this does not leave the workout, it minimizes
             // it into the running workout bar above the bottom navigation.
             leading: IconButton(
@@ -1271,16 +1280,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               icon: const Icon(LucideIcons.chevron_down),
               onPressed: _handleBack,
             ),
-            elevation: 0,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            foregroundColor: colorScheme.onSurface,
-            scrolledUnderElevation: 0,
-            centerTitle: false,
-            title: Text(
-              routineName ?? l10n.freeWorkoutTitle,
-              style: Theme.of(context).textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
+            title: routineName ?? l10n.freeWorkoutTitle,
             actions: [
               TextButton(
                 onPressed: _finishWorkout,
@@ -1293,6 +1293,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 ),
               ),
             ],
+            bottomHeight: LiveWorkoutSummaryBar.preferredHeight,
+            bottom: Consumer<LiveWorkoutViewModel>(
+              builder: (context, vm, _) {
+                return LiveWorkoutSummaryBar(workout: vm);
+              },
+            ),
           ),
           body: isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -1300,54 +1306,45 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                   children: [
                     // Layer 1 (Bottom): The full scrollable viewport container
                     RepaintBoundary(
-                      child: Column(
-                        children: [
-                          Consumer<LiveWorkoutViewModel>(
-                            builder: (context, vm, _) {
-                              return LiveWorkoutSummaryBar(workout: vm);
-                            },
-                          ),
-                          Expanded(
-                            child: exercises.isEmpty
-                                ? _buildEmptyState(context, l10n)
-                                : Listener(
-                                    // A pending auto-scroll must never cancel
-                                    // the user's tap or fight their drag.
-                                    onPointerDown: (_) => _scrollRequest++,
-                                    onPointerMove: (e) {
-                                      if (_isDragActive) {
-                                        final manager =
-                                            Provider.of<LiveWorkoutViewModel>(
-                                              context,
-                                              listen: false,
-                                            );
-                                        _trackReorderHover(
-                                          e.position.dy,
-                                          manager.exercises,
-                                        );
-                                      }
-                                    },
-                                    child: ReorderableListView.builder(
-                                      scrollController: _scrollController,
-                                      buildDefaultDragHandles: false,
-                                      scrollCacheExtent:
-                                          const ScrollCacheExtent.pixels(
-                                            1500.0,
-                                          ),
-                                      header: ReorderHeadroom(
-                                        height: _isDragging
-                                            ? _dynamicHeadroom
-                                            : 0.0,
-                                      ),
-                                      padding: EdgeInsets.only(
-                                        bottom:
-                                            (showRestBar
-                                                ? 220.0
-                                                : DesignConstants
-                                                      .bottomContentSpacer) +
-                                            MediaQuery.paddingOf(context)
-                                                .bottom,
-                                      ),
+                      child: exercises.isEmpty
+                          ? Padding(
+                              padding: EdgeInsets.only(top: topPadding),
+                              child: _buildEmptyState(context, l10n),
+                            )
+                          : Listener(
+                              // A pending auto-scroll must never cancel
+                              // the user's tap or fight their drag.
+                              onPointerDown: (_) => _scrollRequest++,
+                              onPointerMove: (e) {
+                                if (_isDragActive) {
+                                  final manager =
+                                      Provider.of<LiveWorkoutViewModel>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  _trackReorderHover(
+                                    e.position.dy,
+                                    manager.exercises,
+                                  );
+                                }
+                              },
+                              child: ReorderableListView.builder(
+                                scrollController: _scrollController,
+                                buildDefaultDragHandles: false,
+                                scrollCacheExtent:
+                                    const ScrollCacheExtent.pixels(1500.0),
+                                header: ReorderHeadroom(
+                                  height: _isDragging ? _dynamicHeadroom : 0.0,
+                                ),
+                                padding: EdgeInsets.only(
+                                  top: topPadding,
+                                  bottom:
+                                      (showRestBar
+                                          ? 220.0
+                                          : DesignConstants
+                                                .bottomContentSpacer) +
+                                      MediaQuery.paddingOf(context).bottom,
+                                ),
                                       onReorderStart: (index) {
                                         _isDragActive = true;
                                         ReorderHapticFeedback.onDragStart(
@@ -1648,6 +1645,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                               if (prev.length != next.length) {
                                                                                 return true;
                                                                               }
+                                                                              if (!listEquals(prev.keys.toList(), next.keys.toList())) {
+                                                                                return true;
+                                                                              }
                                                                               for (final key in prev.keys) {
                                                                                 final prevLog = prev[key];
                                                                                 final nextLog = next[key];
@@ -1679,34 +1679,55 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                     _buildHeaderRow(routineExercise, l10n),
 
                                                                                     // Set Rows
-                                                                                    ...routineExercise.setTemplates.asMap().entries.map((setEntry) {
-                                                                                      final templateId = setEntry.value.id!;
-                                                                                      final template = setEntry.value; // <--- Template
-                                                                                      final setLog = exerciseSetLogs[templateId];
+                                                                                    ReorderableSetList(
+                                                                                      itemCount: routineExercise.setTemplates.length,
+                                                                                      enabled: routineExercise.id != null,
+                                                                                      onReorderSet: routineExercise.id == null
+                                                                                          ? null
+                                                                                          : (oldIndex, newIndex) => manager.reorderSet(
+                                                                                              routineExercise.id!,
+                                                                                              oldIndex,
+                                                                                              newIndex,
+                                                                                            ),
+                                                                                      itemBuilder: (context, setIndex) {
+                                                                                        final template = routineExercise.setTemplates[setIndex];
+                                                                                        final templateId = template.id!;
+                                                                                        final setLog = exerciseSetLogs[templateId];
 
-                                                                                      if (setLog == null) {
-                                                                                        return const SizedBox.shrink();
-                                                                                      }
-                                                                                      final currentSetTypes = routineExercise.setTemplates
-                                                                                          .map(
-                                                                                            (currentTemplate) => exerciseSetLogs[currentTemplate.id]?.setType ?? currentTemplate.setType,
-                                                                                          )
-                                                                                          .toList();
-                                                                                      final position = WorkoutSetPositionMapper.positionAt(currentSetTypes, setEntry.key);
+                                                                                        if (setLog == null) {
+                                                                                          return SizedBox.shrink(
+                                                                                            key: ValueKey('live_set_$templateId'),
+                                                                                          );
+                                                                                        }
+                                                                                        final currentSetTypes = routineExercise.setTemplates
+                                                                                            .map(
+                                                                                              (currentTemplate) =>
+                                                                                                  exerciseSetLogs[currentTemplate.id]?.setType ??
+                                                                                                  currentTemplate.setType,
+                                                                                            )
+                                                                                            .toList();
+                                                                                        final position = WorkoutSetPositionMapper.positionAt(
+                                                                                          currentSetTypes,
+                                                                                          setIndex,
+                                                                                        );
 
-                                                                                      return LiveWorkoutSetRow(
-                                                                                        setIndex: position.ordinal,
-                                                                                        rowIndex: setEntry.key,
-                                                                                        templateId: templateId,
-                                                                                        setLog: setLog,
-                                                                                        lastPerfSets: manager.lastPerformances[routineExercise.exercise.canonicalName] ?? [],
-                                                                                        currentSetTypes: currentSetTypes,
-                                                                                        template: template,
-                                                                                        manager: manager,
-                                                                                        mask: ExerciseLogMask.forExercise(routineExercise.exercise),
-                                                                                        bodyweightKg: manager.bodyweightKg,
-                                                                                      );
-                                                                                    }),
+                                                                                        return LiveWorkoutSetRow(
+                                                                                          key: ValueKey('live_set_$templateId'),
+                                                                                          setIndex: position.ordinal,
+                                                                                          rowIndex: setIndex,
+                                                                                          templateId: templateId,
+                                                                                          setLog: setLog,
+                                                                                          lastPerfSets:
+                                                                                              manager.lastPerformances[routineExercise.exercise.canonicalName] ??
+                                                                                              [],
+                                                                                          currentSetTypes: currentSetTypes,
+                                                                                          template: template,
+                                                                                          manager: manager,
+                                                                                          mask: ExerciseLogMask.forExercise(routineExercise.exercise),
+                                                                                          bodyweightKg: manager.bodyweightKg,
+                                                                                        );
+                                                                                      },
+                                                                                    ),
                                                                                     Padding(
                                                                                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                                                                       child: Row(
@@ -1749,9 +1770,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       },
                                     ),
                                   ),
-                          ),
-                        ],
-                      ),
                     ),
 
                     // Soft bottom fade-out vignette shadow underneath rest timer, FAB & attribution

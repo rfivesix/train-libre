@@ -1706,6 +1706,42 @@ class LiveWorkoutViewModel extends ChangeNotifier
     unawaited(_syncLiveActivity());
   }
 
+  /// Reorders a set within the exercise matching [routineExerciseId].
+  ///
+  /// [newIndex] uses post-removal coordinates matching [ReorderableListView]'s
+  /// `onReorderItem` callback.
+  Future<void> reorderSet(
+    int routineExerciseId,
+    int oldIndex,
+    int newIndex,
+  ) async {
+    final exIndex = _exercises.indexWhere((e) => e.id == routineExerciseId);
+    if (exIndex == -1) return;
+
+    final exercise = _exercises[exIndex];
+    final templates = List<SetTemplate>.of(exercise.setTemplates);
+    if (oldIndex < 0 ||
+        oldIndex >= templates.length ||
+        newIndex < 0 ||
+        newIndex >= templates.length ||
+        oldIndex == newIndex) {
+      return;
+    }
+
+    final moved = templates.removeAt(oldIndex);
+    templates.insert(newIndex, moved);
+
+    final updatedExercises = List<RoutineExercise>.of(_exercises);
+    updatedExercises[exIndex] = exercise.copyWith(setTemplates: templates);
+    _exercises = updatedExercises;
+
+    await _updateLogOrdersInDatabase();
+    _pendingProgressionUpdate = _applyProgressionSuggestions();
+    unawaited(_pendingProgressionUpdate!);
+    notifyListeners();
+    unawaited(_syncLiveActivity());
+  }
+
   /// Connects or separates the two exercises at a visible card boundary.
   ///
   /// The running session owns its own structure, so changing a superset here

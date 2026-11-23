@@ -1220,6 +1220,22 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     }
   }
 
+  void _reorderSet(ExerciseBlockKey key, int oldIndex, int newIndex) {
+    setState(() {
+      final sets = _groupedSets[key];
+      if (sets == null ||
+          oldIndex < 0 ||
+          oldIndex >= sets.length ||
+          newIndex < 0 ||
+          newIndex >= sets.length ||
+          oldIndex == newIndex) {
+        return;
+      }
+      final moved = sets.removeAt(oldIndex);
+      sets.insert(newIndex, moved);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -1812,9 +1828,22 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                         sets,
                                                       ),
                                                   onAddSet: () {
+                                                    var syntheticId =
+                                                        -DateTime.now()
+                                                            .millisecondsSinceEpoch;
+                                                    while (_weightControllers
+                                                            .containsKey(
+                                                              syntheticId,
+                                                            ) ||
+                                                        sets.any(
+                                                          (s) =>
+                                                              s.id ==
+                                                              syntheticId,
+                                                        )) {
+                                                      syntheticId--;
+                                                    }
                                                     final newSet = SetLog(
-                                                      id: -DateTime.now()
-                                                          .millisecondsSinceEpoch,
+                                                      id: syntheticId,
                                                       workoutLogId: _log!.id!,
                                                       exerciseName:
                                                           exerciseName,
@@ -1856,6 +1885,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                           ?.dispose();
                                                     });
                                                   },
+                                                  onReorderSet:
+                                                      (oldIndex, newIndex) =>
+                                                          _reorderSet(
+                                                            key,
+                                                            oldIndex,
+                                                            newIndex,
+                                                          ),
                                                   onSetTypeTap: (setId) =>
                                                       _showSetTypePicker(setId),
                                                   onSetTypeChanged:

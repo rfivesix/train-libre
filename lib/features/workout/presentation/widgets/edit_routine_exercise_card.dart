@@ -14,6 +14,7 @@ import 'superset_connector_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
+import 'reorderable_set_list.dart';
 import 'routine_set_row_widget.dart';
 
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -37,6 +38,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final Function(SetTemplate) onShowSetTypePicker;
   final Function(SetTemplate, String)? onSetTypeChanged;
   final Function(SetTemplate, int listIndex) onRemoveSet;
+  final void Function(int oldIndex, int newIndex)? onReorderSet;
   final bool isDragging;
   final bool isDraggedItem;
   final bool isEditMode;
@@ -73,6 +75,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required this.onShowSetTypePicker,
     this.onSetTypeChanged,
     required this.onRemoveSet,
+    this.onReorderSet,
     this.isDragging = false,
     this.isDraggedItem = false,
     this.isEditMode = true,
@@ -298,52 +301,58 @@ class EditRoutineExerciseCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildHeaderRow(context, routineExercise, l10n),
-                              ...routineExercise.setTemplates
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                    final setIndex = entry.key;
-                                    final setTemplate = entry.value;
+                              ReorderableSetList(
+                                itemCount: routineExercise.setTemplates.length,
+                                enabled: isEditMode && onReorderSet != null,
+                                onReorderSet: onReorderSet,
+                                itemBuilder: (context, setIndex) {
+                                  final setTemplate =
+                                      routineExercise.setTemplates[setIndex];
 
-                                    int workingSetIndex = 0;
-                                    for (int i = 0; i <= setIndex; i++) {
-                                      if (routineExercise
-                                              .setTemplates[i]
-                                              .setType !=
-                                          'warmup') {
-                                        workingSetIndex++;
-                                      }
+                                  int workingSetIndex = 0;
+                                  for (int i = 0; i <= setIndex; i++) {
+                                    if (routineExercise
+                                            .setTemplates[i]
+                                            .setType !=
+                                        'warmup') {
+                                      workingSetIndex++;
                                     }
+                                  }
 
-                                    return RoutineSetRowWidget(
-                                      key: ValueKey(setTemplate.id),
-                                      setIndex: workingSetIndex,
-                                      rowIndex: setIndex,
-                                      routineExercise: routineExercise,
-                                      template: setTemplate,
-                                      listIndex: setIndex,
-                                      mask: ExerciseLogMask.forExercise(
-                                        routineExercise.exercise,
-                                      ),
-                                      repsController:
-                                          repsControllers[setTemplate.id!]!,
-                                      weightController:
-                                          weightControllers[setTemplate.id!]!,
-                                      rirController:
-                                          rirControllers[setTemplate.id!]!,
-                                      onShowSetTypePicker: () =>
-                                          onShowSetTypePicker(setTemplate),
-                                      onSetTypeChanged: onSetTypeChanged != null
-                                          ? (newType) => onSetTypeChanged!(
-                                              setTemplate,
-                                              newType,
-                                            )
-                                          : null,
-                                      onRemoveSet: () =>
-                                          onRemoveSet(setTemplate, setIndex),
-                                      isEditMode: isEditMode,
-                                    );
-                                  }),
+                                  return RoutineSetRowWidget(
+                                    key: setTemplate.id != null
+                                        ? ValueKey(
+                                            'routine_set_${setTemplate.id}',
+                                          )
+                                        : ObjectKey(setTemplate),
+                                    setIndex: workingSetIndex,
+                                    rowIndex: setIndex,
+                                    routineExercise: routineExercise,
+                                    template: setTemplate,
+                                    listIndex: setIndex,
+                                    mask: ExerciseLogMask.forExercise(
+                                      routineExercise.exercise,
+                                    ),
+                                    repsController:
+                                        repsControllers[setTemplate.id!]!,
+                                    weightController:
+                                        weightControllers[setTemplate.id!]!,
+                                    rirController:
+                                        rirControllers[setTemplate.id!]!,
+                                    onShowSetTypePicker: () =>
+                                        onShowSetTypePicker(setTemplate),
+                                    onSetTypeChanged: onSetTypeChanged != null
+                                        ? (newType) => onSetTypeChanged!(
+                                            setTemplate,
+                                            newType,
+                                          )
+                                        : null,
+                                    onRemoveSet: () =>
+                                        onRemoveSet(setTemplate, setIndex),
+                                    isEditMode: isEditMode,
+                                  );
+                                },
+                              ),
                               if (isEditMode) ...[
                                 const SizedBox(
                                   height: DesignConstants.spacingS,
