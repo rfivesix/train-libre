@@ -6,6 +6,14 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.3 (2026-11-23)
+
+{chart_line} Flüssiger durch Statistiken: Die Übersicht springt beim Zurückscrollen nicht mehr.
+
+{activity} Trainingsrhythmus korrigiert: Trainingstage erscheinen auch über die Zeitumstellung hinweg zuverlässig in der Heatmap.
+
+{dumbbell} Live-Workout verbessert: Die aktive Übung startet sichtbar unterhalb der oberen Leiste.
+
 ## 1.7.1-beta.2 (2026-11-23)
 
 {chart_line} Statistiken neu gestaltet: Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.

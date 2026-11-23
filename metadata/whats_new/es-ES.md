@@ -6,6 +6,14 @@
   Regenera con: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.3 (2026-11-23)
+
+{chart_line} Estadísticas más fluidas: La vista general ya no da saltos al volver a desplazarte hacia arriba.
+
+{activity} Ritmo de entrenamiento corregido: Los días de entrenamiento aparecen correctamente en el mapa de actividad durante los cambios de horario.
+
+{dumbbell} Entrenamientos en directo mejorados: El ejercicio activo aparece debajo de la barra superior.
+
 ## 1.7.1-beta.2 (2026-11-23)
 
 {chart_line} Estadísticas renovadas: Descubre métricas más claras, un mapa de actividad y mejores vistas de nutrición, progreso y récords personales.

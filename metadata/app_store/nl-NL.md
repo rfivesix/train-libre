@@ -67,13 +67,9 @@ https://trainlibre.com
 https://trainlibre.com/privacy-policy/
 
 ## Release Notes (What's New / Release Notes in this version)
-Vernieuwde statistieken: Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.
+Soepelere statistieken: Het overzicht verspringt niet meer wanneer je terug omhoog scrolt.
 
-Een betere trainingservaring: Vernieuwde schermen tonen je voortgang en spiergroepen. Sleep sets naar een andere plek en toon desgewenst je geschatte maximale gewicht.
+Trainingsritme hersteld: Trainingsdagen verschijnen ook rond de overgang tussen zomer- en wintertijd correct in de heatmap.
 
-Slaap en hartslag: Vernieuwde overzichten tonen slaapfasen en hartslag, en met Apple Health ook hartslagvariabiliteit.
-
-Liquid Glass naar jouw smaak: Pas de glasweergave aan en ontdek verfijnde overgangen en navigatie.
-
-Elke dag betrouwbaarder: Veel oplossingen verbeteren onder meer gezondheidsgegevens, stappentellingen en rusttimers.
+Live training verbeterd: De actieve oefening verschijnt zichtbaar onder de bovenbalk.
 

@@ -67,13 +67,9 @@ https://trainlibre.com
 https://trainlibre.com/privacy-policy/
 
 ## Release Notes (What's New / Release Notes in this version)
-Estadísticas renovadas: Descubre métricas más claras, un mapa de actividad y mejores vistas de nutrición, progreso y récords personales.
+Estadísticas más fluidas: La vista general ya no da saltos al volver a desplazarte hacia arriba.
 
-Una mejor experiencia de entrenamiento: Las vistas renovadas muestran tu progreso y grupos musculares. Arrastra las series para ordenarlas y activa la estimación de tu repetición máxima si lo deseas.
+Ritmo de entrenamiento corregido: Los días de entrenamiento aparecen correctamente en el mapa de actividad durante los cambios de horario.
 
-Sueño y frecuencia cardíaca: Las vistas renovadas muestran las fases del sueño y la frecuencia cardíaca, además de su variabilidad con Apple Health.
-
-Liquid Glass a tu gusto: Ajusta el aspecto del cristal y disfruta de transiciones y navegación mejoradas.
-
-Más fiabilidad cada día: Numerosas correcciones mejoran los datos de salud, el recuento de pasos, los temporizadores de descanso y mucho más.
+Entrenamientos en directo mejorados: El ejercicio activo aparece debajo de la barra superior.
 

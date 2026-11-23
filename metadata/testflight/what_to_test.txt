@@ -1,4 +1,4 @@
-Train Libre 1.7.1-beta.2
+Train Libre 1.7.1-beta.3
 
 Please report crashes, lost data, incorrect totals, or unexpected changes. Include your device, iOS version, steps to reproduce, and screenshots where helpful. Health checks depend on permissions and available data.
 
@@ -6,11 +6,11 @@ Please report crashes, lost data, incorrect totals, or unexpected changes. Inclu
 
 2. Sleep, pulse, and steps: Grant Apple Health access and open the diary and sleep and pulse statistics. Check sleep stages, duration, charts, heart rate, and HRV where data is available. In Health settings, use the shield beside Pulse to grant resting heart rate access. Compare the same day in Apple Health, Diary, and Pulse. Check that a day without a reported resting heart rate shows an estimate when regular pulse samples exist. Try manual pulse sync. Compare step totals with Apple Health, including days with both iPhone and Apple Watch data and around midnight. Check empty states and denied permissions.
 
-3. Workouts and rest timer: Start a workout and log completed and planned sets. Check the redesigned workout and summary screens, muscle overview, and volume after editing or deleting sets. Reorder sets in live workouts, routines, and workout details; restart and verify the order persists. Enable and disable estimated one-rep maximum in Appearance and check set rows and the live comparison. Trigger a personal record if possible. Finish a session and confirm it persists after restarting; separately test discarding a session and cancelling its confirmation. Adjust a rest timer in the app and from the Live Activity, including in the background; check the deadline and completion sound.
+3. Workouts and rest timer: Start a workout and log completed and planned sets. Check that the active exercise is visible below the top bar when a workout opens or resumes. Check the redesigned workout and summary screens, muscle overview, and volume after editing or deleting sets. Reorder sets in live workouts, routines, and workout details; restart and verify the order persists. Enable and disable estimated one-rep maximum in Appearance and check set rows and the live comparison. Trigger a personal record if possible. Finish a session and confirm it persists after restarting; separately test discarding a session and cancelling its confirmation. Adjust a rest timer in the app and from the Live Activity, including in the background; check the deadline and completion sound.
 
 4. Appearance and navigation: Change the glass appearance slider and check its preview, menus, icons, sheets, and date/time pickers in light and dark mode. Check scrolling and keyboard visibility in measurement forms. Open and dismiss AI Chat and navigate between diary cards and detail screens.
 
-5. Statistics: Check the overview, nutrition and personal-record screens, and the training heatmap. Open workout days and verify displayed periods and totals.
+5. Statistics: Scroll down and back up through the overview and check for jumps. Check the nutrition and personal-record screens, and verify training heatmap activity across daylight-saving changes. Open workout days and verify displayed periods and totals.
 
 6. Everyday flows: Add and edit foods or meals, check diary totals, and retry or cancel an AI meal analysis. Check the updated food and recipe cards, language selection, and offline startup.
 

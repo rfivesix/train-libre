@@ -58,15 +58,11 @@ OPEN SOURCE ET DONNÉES OUVERTES :
 Train Libre s’appuie sur les catalogues communautaires Open Food Facts et OpenExerciseDB. Le code source complet est public pour vous permettre de vérifier nos engagements en matière de confidentialité.
 
 ## Release Notes (What's New / Release Notes in this version)
-Statistiques repensées: Découvrez des indicateurs plus clairs, une carte d’activité et des vues améliorées pour la nutrition, la progression et les records personnels.
+Statistiques plus fluides: La vue d’ensemble ne saute plus lorsque vous remontez.
 
-Un entraînement plus agréable: Les écrans repensés affichent votre progression et vos groupes musculaires. Réorganisez les séries par glisser-déposer et affichez votre maximum estimé si vous le souhaitez.
+Régularité corrigée: Les jours d’entraînement apparaissent correctement dans la carte d’activité lors des changements d’heure.
 
-Sommeil et fréquence cardiaque: Les vues repensées affichent les phases de sommeil et la fréquence cardiaque, ainsi que sa variabilité avec Apple Health.
-
-Liquid Glass à votre goût: Ajustez l’apparence du verre et profitez de transitions et d’une navigation affinées.
-
-Plus fiable au quotidien: De nombreuses corrections améliorent les données de santé, le nombre de pas, les minuteurs de repos et bien plus.
+Entraînement en direct amélioré: L’exercice actif apparaît sous la barre supérieure.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

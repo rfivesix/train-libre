@@ -16,6 +16,27 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Smoother statistics',
+          body: 'The overview no longer jumps when you scroll back up.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Training consistency fixed',
+          body: 'Workout days appear correctly in the heatmap across daylight saving time changes.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Improved live workouts',
+          body: 'The active exercise starts visibly below the top bar.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
       entries: <WhatsNewEntry>[
@@ -359,6 +380,28 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Flüssiger durch Statistiken',
+          body: 'Die Übersicht springt beim Zurückscrollen nicht mehr.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Trainingsrhythmus korrigiert',
+          body: 'Trainingstage erscheinen auch über die Zeitumstellung hinweg zuverlässig in der Heatmap.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Live-Workout verbessert',
+          body:
+              'Die aktive Übung startet sichtbar unterhalb der oberen Leiste.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
@@ -704,6 +747,27 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiques plus fluides',
+          body: 'La vue d’ensemble ne saute plus lorsque vous remontez.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Régularité corrigée',
+          body: 'Les jours d’entraînement apparaissent correctement dans la carte d’activité lors des changements d’heure.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Entraînement en direct amélioré',
+          body: 'L’exercice actif apparaît sous la barre supérieure.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
       entries: <WhatsNewEntry>[
@@ -1048,6 +1112,27 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiche più fluide',
+          body: 'La panoramica non salta più quando scorri verso l’alto.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Costanza corretta',
+          body: 'I giorni di allenamento appaiono correttamente nella mappa anche durante i cambi d’ora.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Allenamento in corso migliorato',
+          body: 'L’esercizio attivo appare sotto la barra superiore.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
       entries: <WhatsNewEntry>[
@@ -1391,6 +1476,27 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: '統計画面をよりスムーズに',
+          body: '上へスクロールした際に概要がずれる問題を修正しました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'トレーニングの継続状況を修正',
+          body: '夏時間の切り替えをまたぐトレーニング日もヒートマップに正しく表示されます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'ワークアウトを改善',
+          body: '実行中の種目が上部バーの下に表示されます。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
@@ -1738,6 +1844,27 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'es': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Estadísticas más fluidas',
+          body: 'La vista general ya no da saltos al volver a desplazarte hacia arriba.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Ritmo de entrenamiento corregido',
+          body: 'Los días de entrenamiento aparecen correctamente en el mapa de actividad durante los cambios de horario.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Entrenamientos en directo mejorados',
+          body: 'El ejercicio activo aparece debajo de la barra superior.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
       entries: <WhatsNewEntry>[
@@ -1832,6 +1959,27 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'nl': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1-beta.3',
+      releasedOn: '2026-11-23',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Soepelere statistieken',
+          body: 'Het overzicht verspringt niet meer wanneer je terug omhoog scrolt.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Trainingsritme hersteld',
+          body: 'Trainingsdagen verschijnen ook rond de overgang tussen zomer- en wintertijd correct in de heatmap.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Live training verbeterd',
+          body: 'De actieve oefening verschijnt zichtbaar onder de bovenbalk.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.1-beta.2',
       releasedOn: '2026-11-23',
@@ -1932,4 +2080,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.7.1-beta.2';
+const String kWhatsNewGeneratedForVersion = '1.7.1-beta.3';

@@ -6,6 +6,14 @@
   Genereer opnieuw met: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1-beta.3 (2026-11-23)
+
+{chart_line} Soepelere statistieken: Het overzicht verspringt niet meer wanneer je terug omhoog scrolt.
+
+{activity} Trainingsritme hersteld: Trainingsdagen verschijnen ook rond de overgang tussen zomer- en wintertijd correct in de heatmap.
+
+{dumbbell} Live training verbeterd: De actieve oefening verschijnt zichtbaar onder de bovenbalk.
+
 ## 1.7.1-beta.2 (2026-11-23)
 
 {chart_line} Vernieuwde statistieken: Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.

@@ -58,15 +58,11 @@ OPEN SOURCE UND OFFENE DATEN:
 Train Libre nutzt die Community-Kataloge Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – so kannst du unsere Datenschutzversprechen selbst überprüfen.
 
 ## Release Notes (What's New / Release Notes in this version)
-Statistiken neu gestaltet: Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.
+Flüssiger durch Statistiken: Die Übersicht springt beim Zurückscrollen nicht mehr.
 
-Training im Fokus: Überarbeitete Trainingsansichten zeigen deinen Fortschritt und deine Muskelgruppen. Sortiere Sätze per Ziehen und blende auf Wunsch dein geschätztes Maximalgewicht ein.
+Trainingsrhythmus korrigiert: Trainingstage erscheinen auch über die Zeitumstellung hinweg zuverlässig in der Heatmap.
 
-Schlaf und Puls: Die überarbeiteten Ansichten zeigen Schlafphasen und Herzfrequenz; mit Apple Health auch die Herzfrequenzvariabilität.
-
-Liquid Glass nach deinem Geschmack: Passe die Glasdarstellung an und erlebe verfeinerte Übergänge und Navigation.
-
-Zuverlässiger im Alltag: Viele Fehlerkorrekturen verbessern unter anderem Gesundheitsdaten, Schrittzahlen und den Pausentimer.
+Live-Workout verbessert: Die aktive Übung startet sichtbar unterhalb der oberen Leiste.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

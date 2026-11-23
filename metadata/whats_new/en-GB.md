@@ -6,6 +6,14 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.7.1-beta.3 (2026-11-23)
+
+{chart_line} Smoother statistics: The overview no longer jumps when you scroll back up.
+
+{activity} Training consistency fixed: Workout days appear correctly in the heatmap across daylight saving time changes.
+
+{dumbbell} Improved live workouts: The active exercise starts visibly below the top bar.
+
 ## 1.7.1-beta.2 (2026-11-23)
 
 {chart_line} Redesigned statistics: Explore clearer metrics, a training heatmap, and improved nutrition, progress, and personal record views.
