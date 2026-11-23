@@ -19,7 +19,7 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    id("com.android.application") version "9.5.1" apply false
+    id("com.android.application") version "9.5.2" apply false
     id("org.jetbrains.kotlin.android") version "2.4.21" apply false
     // Both are needed by the home screen widgets: Glance composes through the
     // Compose compiler, and the snapshot the app writes is parsed with
