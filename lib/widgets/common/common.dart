@@ -27,5 +27,6 @@ export 'glass_context_menu_overlay.dart';
 // Empty States
 export 'empty_states/app_skeleton.dart';
 export 'empty_states/bobbing_arrow.dart';
+export 'empty_states/card_empty_state_overlay.dart';
 export 'empty_states/cold_start_empty_state.dart';
 export 'empty_states/active_gap_overlay.dart';

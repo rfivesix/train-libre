@@ -4,26 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
-
-### Added
-- Expanded AI Chat app-data access with two new categories — **Pulse & HRV** (`pulse`: `pulse_daily_summary`, `pulse_hourly_aggregates`, `pulse_hrv_samples`, `workout_heart_rate_summary`) and **Statistics & PRs** (`analytics`: `training_overview_stats`, `personal_records`, `weekly_training_consistency`, `muscle_group_volume_summary`, `body_nutrition_trend`) — wired via `AssistantPulseActions` and `AssistantAnalyticsActions`.
-- Added canonical app-summary tables for AI Chat across all major domains: `sleep_nightly_summary` (deduplicated primary nights with deep/REM/light/awake minutes, bedtime/waketime, nocturnal HR min/avg/max, score subscores, and naps), `steps_daily_summary` & `steps_hourly_summary`, `adaptive_nutrition_state` (live Bayesian TDEE, confidence, macro recommendations, diet phase, and next check-in), `bls_micronutrient_daily_summary`, `incomplete_nutrition_days`, `user_preferences_summary`, `favorite_foods`, `custom_foods`, `active_plan_schedule` (supporting both weekly and rolling sequence plans), `recovery_overview` & `muscle_recovery_status` (including historical `asOf` support), and `data_source_status`.
-- Added timeout-protected on-demand Health delta syncs before reading `sleep`, `pulse`, and `steps` in AI Chat, with graceful fallback to local SQLite caches and structured status reporting when tracking is disabled or permissions are missing.
-- Added partial-availability handling, per-category date scopes (`categoryScopes`), scope widening on follow-up `request_data` calls, safe scalar JSON SQL functions (`json_extract`, `json_type`, `json_array_length`), and CTE multi-reference comparisons (up to 3 scans per table) in `AssistantSqlSandbox` and `AssistantChatService`.
-- Expanded `AssistantDocumentationReader` keyword routing to include Sleep, Pulse/HRV, Health Sync, Muscle Recovery, Bayesian TDEE, Adaptive Nutrition Goals, Training & Body Statistics, Supplements, and Measurements documentation.
-
-### Changed
-- Removed bulky `sleep_raw_imports` payloads and bounded high-frequency nocturnal HR/stage and BLS raw tables on long date ranges so multi-week AI Chat queries stay within sandbox limits.
-- Populated real sugar, fiber, salt, and caffeine targets, supplement caffeine, and `is_incomplete_day` flags in `AssistantDiaryActions` and `nutrition_daily_summary`, and included `training_autonomy_level`, `nutrition_autonomy_level`, and `pinned_exercise_notes` in `profile` and `exerciseCatalog` snapshots.
-- Optimized AI Meal Scan direct nutrition estimation for Apple Intelligence (`AppleFoundationPlugin.swift`, `AppleFoundationService`, `AiService`): uses native Swift `@Generable`/`@Guide` guided generation with deterministic greedy decoding (`GenerationOptions(samplingMode: .greedy)`), a concise Apple-specific direct prompt retaining `protein`, `carbs`, `fat`, `sugar`, `fiber`, `salt` (with derived `sodium`), `caffeine`, `isFluid`, and `confidence`, macro-sum plausibility normalization (`<= 100 g` per 100 g), fault-tolerant optional micronutrients, and matching session prewarming.
-- Disabled LiDAR depth capture/scale hints and hid both the LiDAR switches and the nutrition estimation method picker when Apple Intelligence is selected (`AiSettingsScreen`, `AiMealCaptureScreen`), always using direct AI estimation for Apple Intelligence.
-
-### Fixed
-- Connected recorded calorie values across missing or incomplete days in the Statistics overview and Body & Nutrition detail chart. Both views display single measurements and independently available series, and detail tooltips show values for the selected date.
-- Excluded invalid weight readings and required measurements on at least two days to show a weight change.
-- Fixed the Body & Nutrition overview legend overflowing on narrow screens with large text sizes.
-
 ## [1.7.1-beta.3] - 2026-11-23
 
 ### Fixed
@@ -69,6 +49,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Prevented time labels near the end of sleep and pulse charts from overlapping.
 - Fixed the Nutrition statistics bar chart rendering blank on year (`1Y`) and `MAX` timeframes by adaptively bucketing long periods into readable bars, trimming leading untracked `MAX` history, and formatting multi-year axis labels.
 - Restored the classic white shutter with a glass ring in AI Chat and AI Meal Scan. Camera controls over the iOS preview use native Liquid Glass where supported. On Android, the meal and barcode scanners use rounded blur without the extra button outlines.
+- Fixed `MeasurementsScreen` displaying an un-skeletonized mock measurement chart (with placeholder weight values) above the empty-period overlay when no measurements exist for the selected period; the mock chart and list are now wrapped together in a single `Skeletonizer` + `ActiveGapOverlay` while keeping the metric selector interactive.
+- Connected recorded calorie values across missing or incomplete days in the Statistics overview and Body & Nutrition detail chart. Both views display single measurements and independently available series, and detail tooltips show values for the selected date.
+- Excluded invalid weight readings and required measurements on at least two days to show a weight change.
+- Fixed the Body & Nutrition overview legend overflowing on narrow screens with large text sizes.
+
 
 ### Added
 - Added an Appearance setting to show estimated one-rep maximum values in workout set rows and the live session comparison. The display is off by default and does not affect personal records.
@@ -80,6 +65,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a live workout muscle overview showing completed and planned sets by muscle group, excluding cardio exercises.
 - Added a clear-to-tinted glass appearance slider with a live preview of the app's navigation bar and a food illustration.
 - Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
+- Expanded AI Chat app-data access with two new categories — **Pulse & HRV** (`pulse`: `pulse_daily_summary`, `pulse_hourly_aggregates`, `pulse_hrv_samples`, `workout_heart_rate_summary`) and **Statistics & PRs** (`analytics`: `training_overview_stats`, `personal_records`, `weekly_training_consistency`, `muscle_group_volume_summary`, `body_nutrition_trend`) — wired via `AssistantPulseActions` and `AssistantAnalyticsActions`.
+- Added canonical app-summary tables for AI Chat across all major domains: `sleep_nightly_summary` (deduplicated primary nights with deep/REM/light/awake minutes, bedtime/waketime, nocturnal HR min/avg/max, score subscores, and naps), `steps_daily_summary` & `steps_hourly_summary`, `adaptive_nutrition_state` (live Bayesian TDEE, confidence, macro recommendations, diet phase, and next check-in), `bls_micronutrient_daily_summary`, `incomplete_nutrition_days`, `user_preferences_summary`, `favorite_foods`, `custom_foods`, `active_plan_schedule` (supporting both weekly and rolling sequence plans), `recovery_overview` & `muscle_recovery_status` (including historical `asOf` support), and `data_source_status`.
+- Added timeout-protected on-demand Health delta syncs before reading `sleep`, `pulse`, and `steps` in AI Chat, with graceful fallback to local SQLite caches and structured status reporting when tracking is disabled or permissions are missing.
+- Added partial-availability handling, per-category date scopes (`categoryScopes`), scope widening on follow-up `request_data` calls, safe scalar JSON SQL functions (`json_extract`, `json_type`, `json_array_length`), and CTE multi-reference comparisons (up to 3 scans per table) in `AssistantSqlSandbox` and `AssistantChatService`.
+- Expanded `AssistantDocumentationReader` keyword routing to include Sleep, Pulse/HRV, Health Sync, Muscle Recovery, Bayesian TDEE, Adaptive Nutrition Goals, Training & Body Statistics, Supplements, and Measurements documentation.
 
 ### Changed
 - Refreshed set rows in live workouts, routines, and workout details with consistent backgrounds, outlined editable fields, and set-type tiles. Live workouts now show completion status in a checkmark tile and align set controls with the exercise content.
@@ -119,6 +109,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Made food and recipe cards in Add Food more compact with the Statistics Hub's 16-point side insets and plain Lucide plus icons. Centered the food title and subtitle as a block and placed the recipe menu beside the add button.
 - Replaced the global app bar's static uniform blur with a top-to-bottom `ProgressiveBlur` and soft fade vignette that strengthens blur toward the status bar and dissolves seamlessly into page content without a bottom edge line.
 - Moved the `ExerciseDetailScreen` tab bar into `GlobalAppBar.bottom` so scrolled tab content dissolves smoothly behind the progressive blur bar without clipping, and changed populated personal record values to black in light mode and white in dark mode instead of the primary accent color.
+- Removed bulky `sleep_raw_imports` payloads and bounded high-frequency nocturnal HR/stage and BLS raw tables on long date ranges so multi-week AI Chat queries stay within sandbox limits.
+- Populated real sugar, fiber, salt, and caffeine targets, supplement caffeine, and `is_incomplete_day` flags in `AssistantDiaryActions` and `nutrition_daily_summary`, and included `training_autonomy_level`, `nutrition_autonomy_level`, and `pinned_exercise_notes` in `profile` and `exerciseCatalog` snapshots.
+- Optimized AI Meal Scan direct nutrition estimation for Apple Intelligence (`AppleFoundationPlugin.swift`, `AppleFoundationService`, `AiService`): uses native Swift `@Generable`/`@Guide` guided generation with deterministic greedy decoding (`GenerationOptions(samplingMode: .greedy)`), a concise Apple-specific direct prompt retaining `protein`, `carbs`, `fat`, `sugar`, `fiber`, `salt` (with derived `sodium`), `caffeine`, `isFluid`, and `confidence`, macro-sum plausibility normalization (`<= 100 g` per 100 g), fault-tolerant optional micronutrients, and matching session prewarming.
+- Disabled LiDAR depth capture/scale hints and hid both the LiDAR switches and the nutrition estimation method picker when Apple Intelligence is selected (`AiSettingsScreen`, `AiMealCaptureScreen`), always using direct AI estimation for Apple Intelligence.
+- Updated graphical Statistics hub empty states (`BodyMetricsSectionCard`, `MacroSectionCard`, `StatisticsStepsCard`, `SleepSectionCard`, and `WaterSectionCard`) to display a blurred skeleton preview of their charts/visuals underneath each card's existing empty-state message while keeping card headers crisp and cards tappable, and added skeleton chart previews with `ActiveGapOverlay` when no data exists in the currently selected timeframe window on `BodyNutritionCorrelationScreen`, `MacroStatisticsScreen`, and `WaterStatisticsScreen`.
 
 ## [1.7.0] - 2026-11-03
 

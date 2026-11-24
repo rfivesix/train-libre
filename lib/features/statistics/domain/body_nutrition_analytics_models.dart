@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 
 import 'statistics_data_quality_policy.dart';
@@ -124,4 +126,92 @@ class BodyNutritionAnalyticsResult {
 
   bool get hasComparableTrend =>
       normalizedWeightTrend.isNotEmpty && normalizedCaloriesTrend.isNotEmpty;
+
+  factory BodyNutritionAnalyticsResult.mockPreview(DateTimeRange range) {
+    final startDay = DateTime.utc(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final endDay = DateTime.utc(range.end.year, range.end.month, range.end.day);
+    final rawDays = endDay.difference(startDay).inDays + 1;
+    final totalDays = math.max(7, rawDays);
+    final effectiveRange = rawDays < 7
+        ? DateTimeRange(
+            start: startDay,
+            end: startDay.add(const Duration(days: 6)),
+          )
+        : range;
+    final sampleCount = math.min(totalDays, 45);
+    final stepDays = sampleCount <= 1
+        ? 1.0
+        : (totalDays - 1) / (sampleCount - 1);
+
+    final mockDailyWeight = List.generate(sampleCount, (i) {
+      final offset = (i * stepDays).round().clamp(0, totalDays - 1);
+      final progress = sampleCount <= 1 ? 0.0 : i / (sampleCount - 1);
+      final wave = math.sin(progress * math.pi * 2.5) * 0.35;
+      return DailyValuePoint(
+        day: startDay.add(Duration(days: offset)),
+        value: 80.2 - (progress * 1.5) + wave,
+      );
+    }, growable: false);
+
+    final mockDailyCalories = List.generate(sampleCount, (i) {
+      final offset = (i * stepDays).round().clamp(0, totalDays - 1);
+      final progress = sampleCount <= 1 ? 0.0 : i / (sampleCount - 1);
+      final wave = math.cos(progress * math.pi * 3.0) * 180.0;
+      return DailyValuePoint(
+        day: startDay.add(Duration(days: offset)),
+        value: 2350.0 + (progress * 140.0) + wave,
+      );
+    }, growable: false);
+
+    return BodyNutritionAnalyticsResult(
+      range: effectiveRange,
+      totalDays: totalDays,
+      currentWeightKg: 78.7,
+      weightChangeKg: -1.5,
+      avgDailyCalories: 2420.0,
+      weightDays: sampleCount,
+      loggedCalorieDays: sampleCount,
+      weightDaily: mockDailyWeight,
+      smoothedWeight: mockDailyWeight,
+      caloriesDaily: mockDailyCalories,
+      smoothedCalories: mockDailyCalories,
+      normalizedWeightTrend: mockDailyWeight,
+      normalizedCaloriesTrend: mockDailyCalories,
+      normalizedTrendRange: effectiveRange,
+      weightTrend: const BodyNutritionTrendSnapshot(
+        direction: BodyNutritionTrendDirection.falling,
+        slopePerWeek: -0.35,
+        netChange: -1.5,
+        signalToNoise: 2.5,
+      ),
+      calorieTrend: const BodyNutritionTrendSnapshot(
+        direction: BodyNutritionTrendDirection.rising,
+        slopePerWeek: 70.0,
+        netChange: 140.0,
+        signalToNoise: 1.8,
+      ),
+      relationship: BodyNutritionRelationshipType.alignedCutLike,
+      confidence: BodyNutritionConfidence.high,
+      qualitySummary: BodyNutritionDataQualitySummary(
+        spanDays: totalDays,
+        weightDays: sampleCount,
+        calorieDays: sampleCount,
+        overlapDays: sampleCount,
+        weightCoverage: 1.0,
+        calorieCoverage: 1.0,
+        overlapCoverage: 1.0,
+        weightLargestGapDays: 0,
+        calorieLargestGapDays: 0,
+      ),
+      insightType: BodyNutritionInsightType.weightDownCaloriesDown,
+      insightDataQuality: const StatisticsDataQualityAssessment(
+        hasSufficientData: true,
+        reasonHook: '',
+      ),
+    );
+  }
 }

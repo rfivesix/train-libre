@@ -3,11 +3,13 @@
 import 'dart:math';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../util/timeframe_label_formatter.dart';
+import '../../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import '../../../../widgets/common/macro_badge_row.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
@@ -133,12 +135,172 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     final carbsColor = macroColors?.carbs ?? Colors.green.shade400;
     final fatColor = macroColors?.fat ?? Colors.purple.shade300;
 
-    final displayDays = _previewBars(_summary?.dailyIntakes ?? []);
+    final isInitialLoading = _isLoading && _summary == null;
+    final isEmpty =
+        !_isLoading && (_summary == null || _summary!.trackedDays == 0);
+    final useMockData = isInitialLoading || isEmpty;
+    final displaySummary = useMockData
+        ? MacroPeriodSummary.mockPreview(
+            widget.activeBlockType == TimeframeBlock.maxBlock
+                ? TimeframeBlock.week.getRollingBounds()
+                : (widget.isRolling
+                      ? widget.activeBlockType.getRollingBounds()
+                      : widget.activeBlockType.getBounds(
+                          widget.anchorDate ?? DateTime.now(),
+                          DateTime(2020),
+                        )),
+          )
+        : _summary!;
+
+    final displayDays = _previewBars(displaySummary.dailyIntakes);
     int maxKcal = 1;
     for (final d in displayDays) {
       if (d.calories > maxKcal) maxKcal = d.calories;
     }
-    final avgKcal = _summary?.avgCalories ?? 0;
+    final avgKcal = displaySummary.avgCalories;
+
+    Widget bodyContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Mini Bars
+        SizedBox(
+          height: 56,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(
+              displayDays.isEmpty ? 7 : displayDays.length,
+              (index) {
+                if (index >= displayDays.length) {
+                  return Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.08,
+                      ),
+                    ),
+                  );
+                }
+                final item = displayDays[index];
+                if (item.calories <= 0) {
+                  return Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.08,
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  );
+                }
+
+                final ratio = (item.calories / maxKcal).clamp(0.1, 1.0);
+                final carbsKcal = max(0.0, item.carbsGrams * 4);
+                final proteinKcal = max(0.0, item.proteinGrams * 4);
+                final fatKcal = max(0.0, item.fatGrams * 9);
+                final totalMacroKcal = carbsKcal + proteinKcal + fatKcal;
+
+                final cFlex = totalMacroKcal > 0
+                    ? max(1, (carbsKcal / totalMacroKcal * 100).round())
+                    : 33;
+                final fFlex = totalMacroKcal > 0
+                    ? max(1, (fatKcal / totalMacroKcal * 100).round())
+                    : 33;
+                final pFlex = totalMacroKcal > 0
+                    ? max(1, (proteinKcal / totalMacroKcal * 100).round())
+                    : 34;
+
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: displayDays.length <= 7
+                          ? 3.0
+                          : (displayDays.length <= 31 ? 1.0 : 0.5),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final barHeight = constraints.maxHeight * ratio;
+                        return Align(
+                          alignment: Alignment.bottomCenter,
+                          child: SizedBox(
+                            height: barHeight,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: Column(
+                                verticalDirection: VerticalDirection.up,
+                                children: [
+                                  Expanded(
+                                    flex: cFlex,
+                                    child: Container(color: carbsColor),
+                                  ),
+                                  Expanded(
+                                    flex: fFlex,
+                                    child: Container(color: fatColor),
+                                  ),
+                                  Expanded(
+                                    flex: pFlex,
+                                    child: Container(color: proteinColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+
+        // Bottom: average kcal + average P/KH/F badges
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (displaySummary.trackedDays > 0) ...[
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: MacroBadgeRow(
+                    protein: displaySummary.avgProtein,
+                    carbs: displaySummary.avgCarbs,
+                    fat: displaySummary.avgFat,
+                    useBadges: true,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+
+    if (isEmpty) {
+      bodyContent = CardEmptyStateOverlay(
+        isEmpty: true,
+        message: l10n.statisticsEmptyNutrition,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+        child: bodyContent,
+      );
+    } else if (isInitialLoading) {
+      bodyContent = Skeletonizer(
+        enabled: true,
+        child: IgnorePointer(child: bodyContent),
+      );
+    }
 
     return SummaryCard(
       margin: EdgeInsets.zero,
@@ -178,186 +340,11 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                         )),
               trailingIcon: true,
             ),
-              if (!_isLoading &&
-                  _summary != null &&
-                  _summary!.trackedDays == 0) ...[
-                const SizedBox(height: DesignConstants.spacingS),
-                Text(
-                  l10n.statisticsEmptyNutrition,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ] else ...[
-                const SizedBox(height: DesignConstants.spacingM),
-
-                // 7 Mini Bars
-                SizedBox(
-                  height: 56,
-                  child: _isLoading
-                      ? const Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: List.generate(
-                            displayDays.isEmpty ? 7 : displayDays.length,
-                            (index) {
-                              if (index >= displayDays.length) {
-                                return Expanded(
-                                  child: Container(
-                                    height: 4,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 2,
-                                    ),
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.08),
-                                  ),
-                                );
-                              }
-                              final item = displayDays[index];
-                              if (item.calories <= 0) {
-                                return Expanded(
-                                  child: Container(
-                                    height: 4,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              final ratio = (item.calories / maxKcal).clamp(
-                                0.1,
-                                1.0,
-                              );
-                              final carbsKcal = max(0.0, item.carbsGrams * 4);
-                              final proteinKcal = max(
-                                0.0,
-                                item.proteinGrams * 4,
-                              );
-                              final fatKcal = max(0.0, item.fatGrams * 9);
-                              final totalMacroKcal =
-                                  carbsKcal + proteinKcal + fatKcal;
-
-                              final cFlex = totalMacroKcal > 0
-                                  ? max(
-                                      1,
-                                      (carbsKcal / totalMacroKcal * 100)
-                                          .round(),
-                                    )
-                                  : 33;
-                              final fFlex = totalMacroKcal > 0
-                                  ? max(
-                                      1,
-                                      (fatKcal / totalMacroKcal * 100).round(),
-                                    )
-                                  : 33;
-                              final pFlex = totalMacroKcal > 0
-                                  ? max(
-                                      1,
-                                      (proteinKcal / totalMacroKcal * 100)
-                                          .round(),
-                                    )
-                                  : 34;
-
-                              return Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: displayDays.length <= 7
-                                        ? 3.0
-                                        : (displayDays.length <= 31
-                                              ? 1.0
-                                              : 0.5),
-                                  ),
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      final barHeight =
-                                          constraints.maxHeight * ratio;
-                                      return Align(
-                                        alignment: Alignment.bottomCenter,
-                                        child: SizedBox(
-                                          height: barHeight,
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              2,
-                                            ),
-                                            child: Column(
-                                              verticalDirection:
-                                                  VerticalDirection.up,
-                                              children: [
-                                                Expanded(
-                                                  flex: cFlex,
-                                                  child: Container(
-                                                    color: carbsColor,
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  flex: fFlex,
-                                                  child: Container(
-                                                    color: fatColor,
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  flex: pFlex,
-                                                  child: Container(
-                                                    color: proteinColor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
-
-                // Bottom: average kcal + average P/KH/F badges
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (_summary != null && _summary!.trackedDays > 0) ...[
-                      const SizedBox(width: DesignConstants.spacingM),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: MacroBadgeRow(
-                            protein: _summary!.avgProtein,
-                            carbs: _summary!.avgCarbs,
-                            fat: _summary!.avgFat,
-                            useBadges: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ],
-          ),
+            const SizedBox(height: DesignConstants.spacingM),
+            bodyContent,
+          ],
         ),
+      ),
     );
   }
 }

@@ -493,29 +493,37 @@ class _StatisticsHubScreenView extends StatelessWidget {
         (range?.dailyTotals.any((bucket) => bucket.steps > 0) ?? false);
     final subtitleRange = _unifiedRangeLabel(viewModel, l10n);
     final stepsTitle = l10n.steps;
+    final isEmpty = !hasData && !section.isLoading && !section.hasError;
 
-    if (!hasData && !section.isLoading && !section.hasError) {
-      return AnalyticsCardBase.decorateSectionCard(
-        context,
-        state: section,
-        child: _emptyCard(
-          context,
-          l10n.steps,
-          l10n.statisticsEmptySteps,
-          () => const StepsModuleScreen(initialScope: StepsScope.week),
-          chipText: subtitleRange,
-        ),
-      );
-    }
-
-    final displayRange = range ??
-        RangeStepsAggregation(
-          start: DateTime.now().subtract(const Duration(days: 7)),
-          end: DateTime.now(),
-          dailyTotals: const [],
-          totalSteps: 0,
-          averageDailySteps: 0.0,
-        );
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    const mockStepValues = <int>[6420, 8950, 7310, 10420, 8120, 9640, 7840];
+    final displayRange = isEmpty
+        ? RangeStepsAggregation(
+            start: todayStart.subtract(const Duration(days: 6)),
+            end: todayStart,
+            dailyTotals: List<StepsBucket>.generate(
+              mockStepValues.length,
+              (i) => StepsBucket(
+                start: todayStart.subtract(
+                  Duration(days: mockStepValues.length - 1 - i),
+                ),
+                steps: mockStepValues[i],
+              ),
+              growable: false,
+            ),
+            totalSteps: mockStepValues.fold(0, (a, b) => a + b),
+            averageDailySteps:
+                mockStepValues.fold(0, (a, b) => a + b) / mockStepValues.length,
+          )
+        : (range ??
+              RangeStepsAggregation(
+                start: now.subtract(const Duration(days: 7)),
+                end: now,
+                dailyTotals: const [],
+                totalSteps: 0,
+                averageDailySteps: 0.0,
+              ));
 
     // In 7-day mode we show today's steps; in longer ranges we show total steps.
     final bool isSevenDays = viewModel.activeBlockType == TimeframeBlock.week;
@@ -535,6 +543,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
       stepsSubtitle = l10n.statisticsTotalSteps;
     }
 
+    final emptyMessage = isEmpty ? l10n.statisticsEmptySteps : null;
+
     final Widget cardChild = MorphSourceScope(
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => StatisticsStepsCard(
@@ -550,6 +560,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   currentStepsSubtitle: stepsSubtitle,
                   dailyTotals: displayRange.dailyTotals,
                   dailyGoal: viewModel.targetSteps,
+                  emptyStateMessage: emptyMessage,
                 ),
                 onSourceVisibilityChanged: setHidden,
                 builder: (_) => const StepsModuleScreen(
@@ -564,6 +575,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
           currentStepsSubtitle: stepsSubtitle,
           dailyTotals: displayRange.dailyTotals,
           dailyGoal: viewModel.targetSteps,
+          emptyStateMessage: emptyMessage,
         ),
       ),
     );
@@ -610,21 +622,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
         ),
       ),
     );
-    // Only show overlay when tracking IS enabled but no data
-    final hasData = viewModel.sleepState.data?.hasData ?? false;
-    if (hasData) return card;
-    if (viewModel.sleepState.isLoading ||
-        viewModel.sleepState.hasError ||
-        !viewModel.sleepState.hasData) {
-      return card;
-    }
-    return _emptyCard(
-      context,
-      l10n.sleepHubScoreLabel,
-      l10n.statisticsEmptySleep,
-      () => SleepDayOverviewPage(selectedDay: DateTime.now()),
-      chipText: _unifiedRangeLabel(viewModel, l10n),
-    );
+    return card;
   }
 
   Widget _buildPulseSection(
@@ -848,25 +846,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
         ),
       ),
     );
-    final bodyNutrition = viewModel.bodyNutritionState.data;
-    final hasBodyData = bodyNutrition?.hasAnyData ?? false;
-    if (hasBodyData) return card;
-    if (viewModel.bodyNutritionState.isLoading ||
-        viewModel.bodyNutritionState.hasError ||
-        !viewModel.bodyNutritionState.hasData) {
-      return card;
-    }
-    return _emptyCard(
-      context,
-      l10n.sectionBodyNutrition,
-      l10n.statisticsEmptyBody,
-      () => BodyNutritionCorrelationScreen(
-        initialBlock: TimeframeBlock.month,
-        initialAnchorDate: DateTime.now(),
-        initialIsRolling: true,
-      ),
-      chipText: l10n.statisticsOverview30Days,
-    );
+    return card;
   }
 
   Widget _buildMacroSection(

@@ -72,6 +72,70 @@ class MacroPeriodSummary {
     );
   }
 
+  factory MacroPeriodSummary.mockPreview(DateTimeRange range) {
+    final startDay = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final endDay = DateTime(range.end.year, range.end.month, range.end.day);
+    final rawDays =
+        DateTime.utc(endDay.year, endDay.month, endDay.day)
+            .difference(DateTime.utc(startDay.year, startDay.month, startDay.day))
+            .inDays +
+        1;
+    final totalDays = rawDays < 7 ? 7 : rawDays;
+    final effectiveRange = rawDays < 7
+        ? DateTimeRange(
+            start: startDay,
+            end: DateTime(startDay.year, startDay.month, startDay.day + 6),
+          )
+        : range;
+
+    const pattern = <({int kcal, double p, double c, double f})>[
+      (kcal: 2180, p: 155, c: 235, f: 68),
+      (kcal: 2420, p: 170, c: 268, f: 74),
+      (kcal: 1980, p: 145, c: 205, f: 64),
+      (kcal: 2540, p: 175, c: 280, f: 80),
+      (kcal: 2290, p: 160, c: 248, f: 72),
+      (kcal: 2060, p: 150, c: 215, f: 66),
+      (kcal: 2380, p: 165, c: 260, f: 75),
+    ];
+
+    int sumCalories = 0;
+    double sumProtein = 0;
+    double sumCarbs = 0;
+    double sumFat = 0;
+
+    final intakes = List<DailyMacroIntake>.generate(totalDays, (i) {
+      final sample = pattern[i % pattern.length];
+      final date = DateTime(startDay.year, startDay.month, startDay.day + i);
+      sumCalories += sample.kcal;
+      sumProtein += sample.p;
+      sumCarbs += sample.c;
+      sumFat += sample.f;
+      return DailyMacroIntake(
+        date: date,
+        calories: sample.kcal,
+        proteinGrams: sample.p,
+        carbsGrams: sample.c,
+        fatGrams: sample.f,
+        targetCalories: 2300,
+      );
+    }, growable: false);
+
+    return MacroPeriodSummary(
+      range: effectiveRange,
+      dailyIntakes: intakes,
+      avgCalories: (sumCalories / totalDays).round(),
+      avgProtein: sumProtein / totalDays,
+      avgCarbs: sumCarbs / totalDays,
+      avgFat: sumFat / totalDays,
+      totalDays: totalDays,
+      trackedDays: totalDays,
+    );
+  }
+
   /// Starts the range at the first tracked or explicitly incomplete day.
   MacroPeriodSummary trimmedToFirstTracked() {
     final firstTrackedIndex = dailyIntakes.indexWhere(

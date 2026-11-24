@@ -478,11 +478,15 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                 ),
                 if (displayDate.isNotEmpty) ...[
                   const SizedBox(width: DesignConstants.spacingS),
-                  Text(
-                    displayDate,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface
-                          .withValues(alpha: 0.6),
+                  Flexible(
+                    child: Text(
+                      displayDate,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.6),
+                      ),
                     ),
                   ),
                 ],

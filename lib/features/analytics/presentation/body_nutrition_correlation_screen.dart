@@ -1,4 +1,3 @@
-import '../../statistics/domain/statistics_data_quality_policy.dart';
 import '../../statistics/domain/timeframe_block.dart';
 
 import 'package:material_ui/material_ui.dart';
@@ -25,16 +24,25 @@ import 'dart:async';
 
 import '../../../services/telemetry/telemetry_service.dart';
 
+typedef BodyNutritionAnalyticsLoader =
+    Future<BodyNutritionAnalyticsResult> Function({
+      required TimeframeBlock selectedBlockType,
+      required DateTime anchorDate,
+      bool isRolling,
+    });
+
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final TimeframeBlock initialBlock;
   final DateTime? initialAnchorDate;
   final bool initialIsRolling;
+  final BodyNutritionAnalyticsLoader? analyticsLoader;
 
   const BodyNutritionCorrelationScreen({
     super.key,
     this.initialBlock = TimeframeBlock.month,
     this.initialAnchorDate,
     this.initialIsRolling = true,
+    this.analyticsLoader,
   });
 
   @override
@@ -82,7 +90,8 @@ class _BodyNutritionCorrelationScreenState
     final loadEpoch = ++_loadEpoch;
     setState(() => _isLoading = true);
     try {
-      final analytics = await BodyNutritionAnalyticsUtils.build(
+      final loader = widget.analyticsLoader ?? BodyNutritionAnalyticsUtils.build;
+      final analytics = await loader(
         selectedBlockType: _activeBlock,
         anchorDate: _anchorDate,
         isRolling: _isRolling,
@@ -115,14 +124,20 @@ class _BodyNutritionCorrelationScreenState
     final l10n = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
-    final hasNoData = _analytics == null;
-    final displayAnalytics =
-        _analytics ??
-        getMockCorrelationResult(
-          _isRolling
-              ? _activeBlock.getRollingBounds()
-              : _activeBlock.getBounds(_anchorDate, DateTime(2020)),
-        );
+    final isInitialLoading = _isLoading && _analytics == null;
+    final hasNoData =
+        !_isLoading && (_analytics == null || !_analytics!.hasAnyData);
+    final useMockData =
+        isInitialLoading || _analytics == null || !_analytics!.hasAnyData;
+    final mockRange = _activeBlock == TimeframeBlock.maxBlock
+        ? TimeframeBlock.month.getRollingBounds()
+        : (_analytics?.range ??
+              (_isRolling
+                  ? _activeBlock.getRollingBounds()
+                  : _activeBlock.getBounds(_anchorDate, DateTime(2020))));
+    final displayAnalytics = useMockData
+        ? BodyNutritionAnalyticsResult.mockPreview(mockRange)
+        : _analytics!;
 
     Widget bodyContent = _buildBodyContent(l10n, displayAnalytics);
 
@@ -133,6 +148,11 @@ class _BodyNutritionCorrelationScreenState
           enabled: true,
           child: IgnorePointer(child: bodyContent),
         ),
+      );
+    } else if (useMockData) {
+      bodyContent = Skeletonizer(
+        enabled: true,
+        child: IgnorePointer(child: bodyContent),
       );
     }
 
@@ -453,69 +473,6 @@ class _BodyNutritionCorrelationScreenState
         const SizedBox(width: 6),
         Text(label, style: Theme.of(context).textTheme.labelSmall),
       ],
-    );
-  }
-
-  BodyNutritionAnalyticsResult getMockCorrelationResult(DateTimeRange range) {
-    final start = range.start;
-    final end = range.end;
-    final duration = end.difference(start).inDays.clamp(7, 180);
-
-    final mockDailyWeight = List.generate(duration, (i) {
-      final date = start.add(Duration(days: i));
-      return DailyValuePoint(day: date, value: 80.0 - (i * 0.05));
-    });
-
-    final mockDailyCalories = List.generate(duration, (i) {
-      final date = start.add(Duration(days: i));
-      return DailyValuePoint(day: date, value: 2500.0 + (i * 10.0));
-    });
-
-    return BodyNutritionAnalyticsResult(
-      range: range,
-      totalDays: duration,
-      currentWeightKg: 78.5,
-      weightChangeKg: -1.5,
-      avgDailyCalories: 2600.0,
-      weightDays: duration,
-      loggedCalorieDays: duration,
-      weightDaily: mockDailyWeight,
-      smoothedWeight: mockDailyWeight,
-      caloriesDaily: mockDailyCalories,
-      smoothedCalories: mockDailyCalories,
-      normalizedWeightTrend: mockDailyWeight,
-      normalizedCaloriesTrend: mockDailyCalories,
-      normalizedTrendRange: range,
-      weightTrend: const BodyNutritionTrendSnapshot(
-        direction: BodyNutritionTrendDirection.falling,
-        slopePerWeek: -0.35,
-        netChange: -1.5,
-        signalToNoise: 2.5,
-      ),
-      calorieTrend: const BodyNutritionTrendSnapshot(
-        direction: BodyNutritionTrendDirection.rising,
-        slopePerWeek: 70.0,
-        netChange: 300.0,
-        signalToNoise: 1.8,
-      ),
-      relationship: BodyNutritionRelationshipType.alignedCutLike,
-      confidence: BodyNutritionConfidence.high,
-      qualitySummary: BodyNutritionDataQualitySummary(
-        spanDays: duration,
-        weightDays: duration,
-        calorieDays: duration,
-        overlapDays: duration,
-        weightCoverage: 1.0,
-        calorieCoverage: 1.0,
-        overlapCoverage: 1.0,
-        weightLargestGapDays: 0,
-        calorieLargestGapDays: 0,
-      ),
-      insightType: BodyNutritionInsightType.weightDownCaloriesDown,
-      insightDataQuality: const StatisticsDataQualityAssessment(
-        hasSufficientData: true,
-        reasonHook: '',
-      ),
     );
   }
 

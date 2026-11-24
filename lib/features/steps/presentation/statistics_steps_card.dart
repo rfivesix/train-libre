@@ -5,6 +5,7 @@ import '../../../util/design_constants.dart';
 import 'package:intl/intl.dart';
 
 import '../domain/steps_models.dart';
+import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -18,6 +19,7 @@ class StatisticsStepsCard extends StatelessWidget {
   final List<StepsBucket> dailyTotals;
   final int dailyGoal;
   final bool showChevron;
+  final String? emptyStateMessage;
 
   static const double _chipBackgroundOpacity = 0.14;
 
@@ -31,6 +33,7 @@ class StatisticsStepsCard extends StatelessWidget {
     required this.dailyTotals,
     required this.dailyGoal,
     this.showChevron = true,
+    this.emptyStateMessage,
   });
 
   @override
@@ -101,52 +104,60 @@ class StatisticsStepsCard extends StatelessWidget {
             ),
             const SizedBox(height: DesignConstants.spacingL),
             // Body: 2 columns
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Left Column: Huge numbers
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      right: DesignConstants.spacingS,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            numberFormat.format(currentSteps),
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
+            CardEmptyStateOverlay(
+              isEmpty:
+                  emptyStateMessage != null && emptyStateMessage!.isNotEmpty,
+              message: emptyStateMessage ?? '',
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Left Column: Huge numbers
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        right: DesignConstants.spacingS,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              numberFormat.format(currentSteps),
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
                             ),
                           ),
-                        ),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            currentStepsSubtitle,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: primaryColor,
-                              fontWeight: FontWeight.w500,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              currentStepsSubtitle,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: primaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                // Right Column: Bar Chart
-                Expanded(
-                  flex: 3,
-                  child: SizedBox(height: 84, child: _buildBarChart(context)),
-                ),
-              ],
+                  // Right Column: Bar Chart
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(height: 84, child: _buildBarChart(context)),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../sleep/data/sleep_hub_summary_repository.dart';
@@ -42,7 +44,21 @@ class SleepSectionCard extends StatelessWidget {
     }
 
     final summary = state.data;
-    final score = summary?.averageScore;
+    final isEmpty =
+        !state.isLoading &&
+        !state.hasError &&
+        state.hasData &&
+        !(summary?.hasData ?? false);
+    final isInitialLoading = state.isLoading && !state.hasData;
+    final displaySummary = (isEmpty || isInitialLoading)
+        ? const SleepHubSummary(
+            averageScore: 82,
+            averageDuration: Duration(hours: 7, minutes: 38),
+            averageBedtimeMinutes: 23 * 60 + 15,
+            nightsCount: 7,
+          )
+        : summary;
+    final score = displaySummary?.averageScore;
     final scoreText = score == null ? '--' : score.round().toString();
     final scoreValue = score == null
         ? 0.0
@@ -54,8 +70,88 @@ class SleepSectionCard extends StatelessWidget {
         : score >= 60
         ? l10n.sleepQualityAverage
         : l10n.sleepQualityPoor;
-    final durationText = _formatSleepDuration(summary?.averageDuration);
-    final bedtimeText = _formatBedtime(summary?.averageBedtimeMinutes);
+    final durationText = _formatSleepDuration(displaySummary?.averageDuration);
+    final bedtimeText = _formatBedtime(displaySummary?.averageBedtimeMinutes);
+
+    Widget bodyContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildSleepScoreRing(
+              context,
+              scoreValue: scoreValue,
+              scoreText: scoreText,
+            ),
+            const SizedBox(width: DesignConstants.spacingL),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    qualityLabel,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXS),
+                  Text(
+                    displaySummary != null && displaySummary.nightsCount > 0
+                        ? l10n.sleepHubNightsLogged(displaySummary.nightsCount)
+                        : l10n.sleepMeanScoreLabel(scoreText),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  label: l10n.sleepDashboardAsleep,
+                  value: durationText,
+                  subtitle: l10n.sleepHubAverageLabel,
+                  disableShadow: true,
+                  useSecondarySurface: true,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: ValueSummaryCard(
+                  label: l10n.sleepHubBedtimeLabel,
+                  value: bedtimeText,
+                  subtitle: l10n.sleepHubAverageLabel,
+                  disableShadow: true,
+                  useSecondarySurface: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (isEmpty) {
+      bodyContent = CardEmptyStateOverlay(
+        isEmpty: true,
+        message: l10n.statisticsEmptySleep,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+        child: bodyContent,
+      );
+    } else if (isInitialLoading) {
+      bodyContent = Skeletonizer(
+        enabled: true,
+        child: IgnorePointer(child: bodyContent),
+      );
+    }
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -77,66 +173,7 @@ class SleepSectionCard extends StatelessWidget {
                     : null,
               ),
               const SizedBox(height: DesignConstants.spacingM),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildSleepScoreRing(
-                    context,
-                    scoreValue: scoreValue,
-                    scoreText: scoreText,
-                  ),
-                  const SizedBox(width: DesignConstants.spacingL),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          qualityLabel,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingXS),
-                        Text(
-                          summary != null && summary.nightsCount > 0
-                              ? l10n.sleepHubNightsLogged(summary.nightsCount)
-                              : l10n.sleepMeanScoreLabel(scoreText),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: ValueSummaryCard(
-                        label: l10n.sleepDashboardAsleep,
-                        value: durationText,
-                        subtitle: l10n.sleepHubAverageLabel,
-                        disableShadow: true,
-                        useSecondarySurface: true,
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Expanded(
-                      child: ValueSummaryCard(
-                        label: l10n.sleepHubBedtimeLabel,
-                        value: bedtimeText,
-                        subtitle: l10n.sleepHubAverageLabel,
-                        disableShadow: true,
-                        useSecondarySurface: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              bodyContent,
             ],
           ),
         ),

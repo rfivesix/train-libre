@@ -32,6 +32,10 @@ class ActiveGapOverlay extends StatelessWidget {
                     : Colors.white.withValues(alpha: 0.4),
                 child: Center(
                   child: Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingL,
+                      vertical: DesignConstants.spacingM,
+                    ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: DesignConstants.spacingL,
                       vertical: DesignConstants.spacingM,
