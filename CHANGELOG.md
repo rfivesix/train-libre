@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.7.1-beta.3] - 2026-11-23
+## [1.7.1-beta.4] - 2026-11-24
 
 ### Fixed
 - Improved scrolling and idle performance in Diary, Workout, Statistics, and Nutrition by pausing animations in inactive tabs, stopping the hidden AI cloud animation, reducing redundant Nutrition and Statistics loads, and limiting workout timer rebuilds.

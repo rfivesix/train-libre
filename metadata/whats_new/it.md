@@ -6,37 +6,17 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1-beta.3 (2026-11-23)
+## 1.7.1
 
-{chart_line} Statistiche più fluide: La panoramica non salta più quando scorri verso l’alto.
+{chart_line} Statistiche e analisi dei progressi: La panoramica mostra a colpo d’occhio i dati principali e i giorni di allenamento. Le schermate rinnovate ti aiutano a seguire nel dettaglio alimentazione, progressi e record personali.
 
-{activity} Costanza corretta: I giorni di allenamento appaiono correttamente nella mappa anche durante i cambi d’ora.
+{dumbbell} Allenamento in corso e gestione delle serie: Vedi quali serie hai completato e quali restano da fare per ogni gruppo muscolare. Trascina le serie per riordinarle, mostra il massimale stimato per una ripetizione se vuoi e festeggia i nuovi record con un’animazione e un feedback aptico.
 
-{dumbbell} Allenamento in corso migliorato: L’esercizio attivo appare sotto la barra superiore.
+{moon} Analisi del sonno e frequenza cardiaca: La nuova panoramica mostra durata e fasi del sonno e frequenza cardiaca. La frequenza cardiaca a riposo da Apple Salute o Health Connect compare nel diario e nelle statistiche. Con Apple Salute puoi vedere anche la variabilità della frequenza cardiaca.
 
-## 1.7.1-beta.2 (2026-11-23)
+{sparkles} Aspetto di Liquid Glass personalizzabile: Regola l’effetto vetro con il cursore e guarda subito il risultato nell’anteprima. Le transizioni rinnovate rendono più fluido il passaggio da una schermata all’altra.
 
-{chart_line} Statistiche rinnovate: Scopri metriche più chiare, una mappa delle attività e viste migliorate per nutrizione, progressi e record personali.
-
-{dumbbell} Un allenamento migliore: Le schermate rinnovate mostrano progressi e gruppi muscolari. Trascina le serie per riordinarle e scegli se mostrare il massimale stimato.
-
-{moon} Sonno e frequenza cardiaca: Le viste rinnovate mostrano le fasi del sonno e la frequenza cardiaca, oltre alla sua variabilità con Apple Health.
-
-{sparkles} Liquid Glass a modo tuo: Personalizza l’aspetto del vetro e scopri transizioni e navigazione migliorate.
-
-{shield} Più affidabile ogni giorno: Numerose correzioni migliorano i dati sulla salute, il conteggio dei passi, i timer di recupero e altro ancora.
-
-## 1.7.1-beta.1 (2026-11-09)
-
-{moon} Sonno e recupero a colpo d’occhio: La nuova panoramica mostra le fasi del sonno, la durata e la frequenza cardiaca. Con Apple Health puoi vedere anche la variabilità della frequenza cardiaca (HRV).
-
-{dumbbell} Più informazioni durante l’allenamento: Visualizza le serie completate e previste per gruppo muscolare, il tempo trascorso, i progressi e il volume.
-
-{star} Festeggia i record personali: I nuovi record sono evidenziati da un’animazione e da un feedback aptico.
-
-{sparkles} Vetro come piace a te: Regola l’aspetto del vetro con un cursore e osserva subito le modifiche nell’anteprima.
-
-{heart} Frequenza a riposo e timer: Il diario e le statistiche mostrano la frequenza cardiaca a riposo dell’app salute quando è disponibile e indicano i valori stimati. Il conteggio dei passi e i timer di recupero sono stati corretti.
+{shield} Prestazioni e affidabilità migliorate: La panoramica delle statistiche scorre più fluidamente, i giorni di allenamento vengono mostrati correttamente durante i cambi d’ora e sono stati migliorati il conteggio dei passi e il timer di recupero.
 
 ## 1.7.0 (2026-11-03)
 

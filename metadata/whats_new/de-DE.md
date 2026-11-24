@@ -6,37 +6,17 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1-beta.3 (2026-11-23)
+## 1.7.1
 
-{chart_line} Flüssiger durch Statistiken: Die Übersicht springt beim Zurückscrollen nicht mehr.
+{chart_line} Statistiken und Fortschrittsanalyse: Die Übersicht zeigt deine wichtigsten Kennzahlen und Trainingstage auf einen Blick. Überarbeitete Ansichten helfen dir, Ernährung, Fortschritt und persönliche Bestleistungen im Detail zu verfolgen.
 
-{activity} Trainingsrhythmus korrigiert: Trainingstage erscheinen auch über die Zeitumstellung hinweg zuverlässig in der Heatmap.
+{dumbbell} Live-Workout und Satzverwaltung: Sieh, welche Sätze pro Muskelgruppe erledigt sind und welche noch anstehen. Sortiere Sätze per Ziehen, blende auf Wunsch dein geschätztes Maximalgewicht für eine Wiederholung ein und feiere neue Rekorde mit Animation und haptischem Feedback.
 
-{dumbbell} Live-Workout verbessert: Die aktive Übung startet sichtbar unterhalb der oberen Leiste.
+{moon} Schlafanalyse und Herzfrequenz: Die neue Schlafübersicht zeigt Schlafdauer, Schlafphasen und Herzfrequenz. Dein Ruhepuls aus Apple Health oder Health Connect erscheint im Tagebuch und in der Statistik. Mit Apple Health siehst du zusätzlich deine Herzfrequenzvariabilität.
 
-## 1.7.1-beta.2 (2026-11-23)
+{sparkles} Anpassbare Liquid-Glass-Darstellung: Passe die Glasdarstellung mit einem Regler an und sieh das Ergebnis direkt in der Vorschau. Überarbeitete Übergänge machen den Wechsel zwischen Ansichten flüssiger.
 
-{chart_line} Statistiken neu gestaltet: Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.
-
-{dumbbell} Training im Fokus: Überarbeitete Trainingsansichten zeigen deinen Fortschritt und deine Muskelgruppen. Sortiere Sätze per Ziehen und blende auf Wunsch dein geschätztes Maximalgewicht ein.
-
-{moon} Schlaf und Puls: Die überarbeiteten Ansichten zeigen Schlafphasen und Herzfrequenz; mit Apple Health auch die Herzfrequenzvariabilität.
-
-{sparkles} Liquid Glass nach deinem Geschmack: Passe die Glasdarstellung an und erlebe verfeinerte Übergänge und Navigation.
-
-{shield} Zuverlässiger im Alltag: Viele Fehlerkorrekturen verbessern unter anderem Gesundheitsdaten, Schrittzahlen und den Pausentimer.
-
-## 1.7.1-beta.1 (2026-11-09)
-
-{moon} Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).
-
-{dumbbell} Mehr Überblick im Workout: Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.
-
-{star} Bestleistungen feiern: Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.
-
-{sparkles} Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
-
-{heart} Ruhepuls und Timer: Wenn deine Gesundheits-App einen Ruhepuls meldet, erscheint er im Tagebuch und in der Statistik. Schätzwerte sind gekennzeichnet. Schrittzahlen und Pausentimer wurden korrigiert.
+{shield} Verbesserte Leistung und Zuverlässigkeit: Die Statistikübersicht scrollt flüssiger, Trainingstage erscheinen auch rund um die Zeitumstellung korrekt, und Schrittzählung sowie Pausentimer wurden verbessert.
 
 ## 1.7.0 (2026-11-03)
 

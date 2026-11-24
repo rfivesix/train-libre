@@ -67,9 +67,13 @@ https://trainlibre.com
 https://trainlibre.com/privacy-policy/
 
 ## Release Notes (What's New / Release Notes in this version)
-Estadísticas más fluidas: La vista general ya no da saltos al volver a desplazarte hacia arriba.
+Estadísticas y análisis del progreso: Consulta de un vistazo tus métricas principales y tus días de entrenamiento. Las vistas renovadas te ayudan a seguir en detalle tu nutrición, tu progreso y tus récords personales.
 
-Ritmo de entrenamiento corregido: Los días de entrenamiento aparecen correctamente en el mapa de actividad durante los cambios de horario.
+Entrenamientos en directo y gestión de series: Consulta qué series has completado y cuáles quedan pendientes para cada grupo muscular. Arrastra las series para reordenarlas, muestra tu máximo estimado para una repetición si quieres y celebra tus nuevos récords con una animación y respuesta háptica.
 
-Entrenamientos en directo mejorados: El ejercicio activo aparece debajo de la barra superior.
+Análisis del sueño y frecuencia cardíaca: El nuevo resumen del sueño muestra su duración, sus fases y tu frecuencia cardíaca. Tu frecuencia cardíaca en reposo de Apple Health o Health Connect aparece en el diario y en las estadísticas. Con Apple Health también puedes consultar la variabilidad de la frecuencia cardíaca.
+
+Aspecto de Liquid Glass personalizable: Ajusta el efecto de cristal con un control deslizante y comprueba el resultado en la vista previa. Las transiciones renovadas hacen más fluido el cambio entre pantallas.
+
+Mejor rendimiento y fiabilidad: El resumen de estadísticas se desplaza con más fluidez, los días de entrenamiento se muestran correctamente durante los cambios de hora y se han mejorado el recuento de pasos y el temporizador de descanso.
 

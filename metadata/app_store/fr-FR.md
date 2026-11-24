@@ -58,11 +58,15 @@ OPEN SOURCE ET DONNÉES OUVERTES :
 Train Libre s’appuie sur les catalogues communautaires Open Food Facts et OpenExerciseDB. Le code source complet est public pour vous permettre de vérifier nos engagements en matière de confidentialité.
 
 ## Release Notes (What's New / Release Notes in this version)
-Statistiques plus fluides: La vue d’ensemble ne saute plus lorsque vous remontez.
+Statistiques et analyse des progrès: Retrouve en un coup d’œil tes indicateurs clés et tes jours d’entraînement. Les vues repensées facilitent le suivi détaillé de ton alimentation, de tes progrès et de tes records personnels.
 
-Régularité corrigée: Les jours d’entraînement apparaissent correctement dans la carte d’activité lors des changements d’heure.
+Entraînement en direct et gestion des séries: Vois les séries terminées et celles qui restent à faire pour chaque groupe musculaire. Réorganise les séries en les faisant glisser, affiche si tu le souhaites ta charge maximale estimée sur une répétition et célèbre tes nouveaux records avec une animation et un retour haptique.
 
-Entraînement en direct amélioré: L’exercice actif apparaît sous la barre supérieure.
+Analyse du sommeil et fréquence cardiaque: Le nouvel aperçu du sommeil affiche la durée, les phases et la fréquence cardiaque. Ta fréquence cardiaque au repos issue d’Apple Santé ou de Health Connect apparaît dans le journal et les statistiques. Apple Santé te permet aussi de consulter la variabilité de ta fréquence cardiaque.
+
+Apparence Liquid Glass personnalisable: Ajuste l’effet de verre à l’aide d’un curseur et vois le résultat dans l’aperçu. Les transitions retravaillées fluidifient le passage d’un écran à l’autre.
+
+Performances et fiabilité améliorées: Le défilement de l’aperçu des statistiques est plus fluide, les jours d’entraînement s’affichent correctement lors des changements d’heure, et le comptage des pas ainsi que le minuteur de repos ont été améliorés.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

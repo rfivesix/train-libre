@@ -200,13 +200,24 @@ def parse_notes(path):
     return releases
 
 
-def load_all():
+def load_all(version):
+    base_version, separator, _ = version.partition("-")
     notes = {}
     for locale in LOCALE_TO_LANG:
         path = NOTES_DIR / f"{locale}.md"
         if not path.exists():
             raise SystemExit(f"Missing release notes file: {path}")
-        notes[locale] = parse_notes(path)
+        releases = parse_notes(path)
+        if separator and not any(release.version == version for release in releases):
+            # Use the shared notes under the running prerelease's version so
+            # the catalog shows a single entry for those notes.
+            releases = [
+                Release(version, "", release.entries)
+                if release.version == base_version else release
+                for release in releases
+            ]
+            releases.sort(key=lambda release: parse_version(release.version), reverse=True)
+        notes[locale] = releases
     return notes
 
 
@@ -427,7 +438,7 @@ def main():
         args.write = True
 
     version = current_version()
-    notes = load_all()
+    notes = load_all(version)
 
     exit_code = 0
 

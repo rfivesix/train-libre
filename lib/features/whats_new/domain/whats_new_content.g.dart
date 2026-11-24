@@ -16,85 +16,33 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Smoother statistics',
-          body: 'The overview no longer jumps when you scroll back up.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Training consistency fixed',
-          body: 'Workout days appear correctly in the heatmap across daylight saving time changes.',
+          title: 'Statistics and progress analysis',
+          body: 'The overview shows your key metrics and training days at a glance. Redesigned views help you track nutrition, progress and personal records in detail.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Improved live workouts',
-          body: 'The active exercise starts visibly below the top bar.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: 'Redesigned statistics',
-          body: 'Explore clearer metrics, a training heatmap, and improved nutrition, progress, and personal record views.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'A better workout experience',
-          body: 'Refreshed workout screens show your progress and muscle groups. Drag to reorder sets and optionally show your estimated one-rep maximum.',
+          title: 'Live workouts and set management',
+          body: 'See which sets are complete and which are still planned for each muscle group. Drag to reorder sets, display your estimated one-rep max if you like, and celebrate new records with animation and haptic feedback.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: 'Sleep and heart rate',
-          body: 'Redesigned views show sleep stages and heart rate, plus heart rate variability with Apple Health.',
+          title: 'Sleep analysis and heart rate',
+          body: 'The new sleep overview shows sleep duration, sleep stages and heart rate. Your resting heart rate from Apple Health or Health Connect appears in the Diary and Statistics. Apple Health also provides heart rate variability.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glass your way',
-          body: 'Adjust the glass appearance and enjoy refined transitions and navigation.',
+          title: 'Customizable Liquid Glass appearance',
+          body: 'Use the slider to adjust the glass appearance and see the result in the preview. Refined transitions make switching between views smoother.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: 'More reliable every day',
-          body: 'Numerous fixes improve health data, step counts, rest timers, and more.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: 'Sleep and recovery at a glance',
-          body: 'The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'More insight during workouts',
-          body: 'See completed and planned sets by muscle group, along with elapsed time, progress, and training volume.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: 'Celebrate personal records',
-          body: 'New personal records are highlighted with an animation and haptic feedback.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'Glass your way',
-          body: 'Adjust the glass appearance with a slider and see changes immediately in the preview.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Resting pulse and timers',
-          body: 'Your diary and statistics use resting pulse from your health app when available, and label estimates. Step counts and rest timers are more reliable.',
+          title: 'Improved performance and reliability',
+          body: 'The Statistics overview scrolls more smoothly, workout days display correctly around daylight saving time changes, and step counting and rest timers have been improved.',
         ),
       ],
     ),
@@ -381,86 +329,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Flüssiger durch Statistiken',
-          body: 'Die Übersicht springt beim Zurückscrollen nicht mehr.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Trainingsrhythmus korrigiert',
-          body: 'Trainingstage erscheinen auch über die Zeitumstellung hinweg zuverlässig in der Heatmap.',
+          title: 'Statistiken und Fortschrittsanalyse',
+          body: 'Die Übersicht zeigt deine wichtigsten Kennzahlen und Trainingstage auf einen Blick. Überarbeitete Ansichten helfen dir, Ernährung, Fortschritt und persönliche Bestleistungen im Detail zu verfolgen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Live-Workout verbessert',
-          body:
-              'Die aktive Übung startet sichtbar unterhalb der oberen Leiste.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: 'Statistiken neu gestaltet',
-          body: 'Entdecke übersichtlichere Kennzahlen, eine Trainings-Heatmap und verbesserte Ansichten für Ernährung, Fortschritt und Bestleistungen.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Training im Fokus',
-          body: 'Überarbeitete Trainingsansichten zeigen deinen Fortschritt und deine Muskelgruppen. Sortiere Sätze per Ziehen und blende auf Wunsch dein geschätztes Maximalgewicht ein.',
+          title: 'Live-Workout und Satzverwaltung',
+          body: 'Sieh, welche Sätze pro Muskelgruppe erledigt sind und welche noch anstehen. Sortiere Sätze per Ziehen, blende auf Wunsch dein geschätztes Maximalgewicht für eine Wiederholung ein und feiere neue Rekorde mit Animation und haptischem Feedback.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: 'Schlaf und Puls',
-          body: 'Die überarbeiteten Ansichten zeigen Schlafphasen und Herzfrequenz; mit Apple Health auch die Herzfrequenzvariabilität.',
+          title: 'Schlafanalyse und Herzfrequenz',
+          body: 'Die neue Schlafübersicht zeigt Schlafdauer, Schlafphasen und Herzfrequenz. Dein Ruhepuls aus Apple Health oder Health Connect erscheint im Tagebuch und in der Statistik. Mit Apple Health siehst du zusätzlich deine Herzfrequenzvariabilität.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glass nach deinem Geschmack',
-          body: 'Passe die Glasdarstellung an und erlebe verfeinerte Übergänge und Navigation.',
+          title: 'Anpassbare Liquid-Glass-Darstellung',
+          body: 'Passe die Glasdarstellung mit einem Regler an und sieh das Ergebnis direkt in der Vorschau. Überarbeitete Übergänge machen den Wechsel zwischen Ansichten flüssiger.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: 'Zuverlässiger im Alltag',
-          body: 'Viele Fehlerkorrekturen verbessern unter anderem Gesundheitsdaten, Schrittzahlen und den Pausentimer.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: 'Schlaf und Erholung im Blick',
-          body: 'Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Mehr Überblick im Workout',
-          body: 'Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: 'Bestleistungen feiern',
-          body: 'Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'Glas nach deinem Geschmack',
-          body: 'Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Ruhepuls und Timer',
-          body: 'Wenn deine Gesundheits-App einen Ruhepuls meldet, erscheint er im Tagebuch und in der Statistik. Schätzwerte sind gekennzeichnet. Schrittzahlen und Pausentimer wurden korrigiert.',
+          title: 'Verbesserte Leistung und Zuverlässigkeit',
+          body: 'Die Statistikübersicht scrollt flüssiger, Trainingstage erscheinen auch rund um die Zeitumstellung korrekt, und Schrittzählung sowie Pausentimer wurden verbessert.',
         ),
       ],
     ),
@@ -747,85 +642,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Statistiques plus fluides',
-          body: 'La vue d’ensemble ne saute plus lorsque vous remontez.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Régularité corrigée',
-          body: 'Les jours d’entraînement apparaissent correctement dans la carte d’activité lors des changements d’heure.',
+          title: 'Statistiques et analyse des progrès',
+          body: 'Retrouve en un coup d’œil tes indicateurs clés et tes jours d’entraînement. Les vues repensées facilitent le suivi détaillé de ton alimentation, de tes progrès et de tes records personnels.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Entraînement en direct amélioré',
-          body: 'L’exercice actif apparaît sous la barre supérieure.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: 'Statistiques repensées',
-          body: 'Découvrez des indicateurs plus clairs, une carte d’activité et des vues améliorées pour la nutrition, la progression et les records personnels.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Un entraînement plus agréable',
-          body: 'Les écrans repensés affichent votre progression et vos groupes musculaires. Réorganisez les séries par glisser-déposer et affichez votre maximum estimé si vous le souhaitez.',
+          title: 'Entraînement en direct et gestion des séries',
+          body: 'Vois les séries terminées et celles qui restent à faire pour chaque groupe musculaire. Réorganise les séries en les faisant glisser, affiche si tu le souhaites ta charge maximale estimée sur une répétition et célèbre tes nouveaux records avec une animation et un retour haptique.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: 'Sommeil et fréquence cardiaque',
-          body: 'Les vues repensées affichent les phases de sommeil et la fréquence cardiaque, ainsi que sa variabilité avec Apple Health.',
+          title: 'Analyse du sommeil et fréquence cardiaque',
+          body: 'Le nouvel aperçu du sommeil affiche la durée, les phases et la fréquence cardiaque. Ta fréquence cardiaque au repos issue d’Apple Santé ou de Health Connect apparaît dans le journal et les statistiques. Apple Santé te permet aussi de consulter la variabilité de ta fréquence cardiaque.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glass à votre goût',
-          body: 'Ajustez l’apparence du verre et profitez de transitions et d’une navigation affinées.',
+          title: 'Apparence Liquid Glass personnalisable',
+          body: 'Ajuste l’effet de verre à l’aide d’un curseur et vois le résultat dans l’aperçu. Les transitions retravaillées fluidifient le passage d’un écran à l’autre.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: 'Plus fiable au quotidien',
-          body: 'De nombreuses corrections améliorent les données de santé, le nombre de pas, les minuteurs de repos et bien plus.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: 'Sommeil et récupération en un coup d’œil',
-          body: 'La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Une meilleure vue pendant l’entraînement',
-          body: 'Consultez les séries terminées et prévues par groupe musculaire, le temps écoulé, la progression et le volume.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: 'Célébrez vos records personnels',
-          body: 'Une animation et un retour haptique mettent en valeur vos nouveaux records.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'Le verre à votre goût',
-          body: 'Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Pouls au repos et minuteurs',
-          body: 'Le journal et les statistiques affichent le pouls au repos de votre app de santé lorsqu’il est disponible et signalent les estimations. Le comptage des pas et les minuteurs de repos ont été corrigés.',
+          title: 'Performances et fiabilité améliorées',
+          body: 'Le défilement de l’aperçu des statistiques est plus fluide, les jours d’entraînement s’affichent correctement lors des changements d’heure, et le comptage des pas ainsi que le minuteur de repos ont été améliorés.',
         ),
       ],
     ),
@@ -1112,85 +955,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Statistiche più fluide',
-          body: 'La panoramica non salta più quando scorri verso l’alto.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Costanza corretta',
-          body: 'I giorni di allenamento appaiono correttamente nella mappa anche durante i cambi d’ora.',
+          title: 'Statistiche e analisi dei progressi',
+          body: 'La panoramica mostra a colpo d’occhio i dati principali e i giorni di allenamento. Le schermate rinnovate ti aiutano a seguire nel dettaglio alimentazione, progressi e record personali.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Allenamento in corso migliorato',
-          body: 'L’esercizio attivo appare sotto la barra superiore.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: 'Statistiche rinnovate',
-          body: 'Scopri metriche più chiare, una mappa delle attività e viste migliorate per nutrizione, progressi e record personali.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Un allenamento migliore',
-          body: 'Le schermate rinnovate mostrano progressi e gruppi muscolari. Trascina le serie per riordinarle e scegli se mostrare il massimale stimato.',
+          title: 'Allenamento in corso e gestione delle serie',
+          body: 'Vedi quali serie hai completato e quali restano da fare per ogni gruppo muscolare. Trascina le serie per riordinarle, mostra il massimale stimato per una ripetizione se vuoi e festeggia i nuovi record con un’animazione e un feedback aptico.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: 'Sonno e frequenza cardiaca',
-          body: 'Le viste rinnovate mostrano le fasi del sonno e la frequenza cardiaca, oltre alla sua variabilità con Apple Health.',
+          title: 'Analisi del sonno e frequenza cardiaca',
+          body: 'La nuova panoramica mostra durata e fasi del sonno e frequenza cardiaca. La frequenza cardiaca a riposo da Apple Salute o Health Connect compare nel diario e nelle statistiche. Con Apple Salute puoi vedere anche la variabilità della frequenza cardiaca.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glass a modo tuo',
-          body: 'Personalizza l’aspetto del vetro e scopri transizioni e navigazione migliorate.',
+          title: 'Aspetto di Liquid Glass personalizzabile',
+          body: 'Regola l’effetto vetro con il cursore e guarda subito il risultato nell’anteprima. Le transizioni rinnovate rendono più fluido il passaggio da una schermata all’altra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: 'Più affidabile ogni giorno',
-          body: 'Numerose correzioni migliorano i dati sulla salute, il conteggio dei passi, i timer di recupero e altro ancora.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: 'Sonno e recupero a colpo d’occhio',
-          body: 'La nuova panoramica mostra le fasi del sonno, la durata e la frequenza cardiaca. Con Apple Health puoi vedere anche la variabilità della frequenza cardiaca (HRV).',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Più informazioni durante l’allenamento',
-          body: 'Visualizza le serie completate e previste per gruppo muscolare, il tempo trascorso, i progressi e il volume.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: 'Festeggia i record personali',
-          body: 'I nuovi record sono evidenziati da un’animazione e da un feedback aptico.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'Vetro come piace a te',
-          body: 'Regola l’aspetto del vetro con un cursore e osserva subito le modifiche nell’anteprima.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Frequenza a riposo e timer',
-          body: 'Il diario e le statistiche mostrano la frequenza cardiaca a riposo dell’app salute quando è disponibile e indicano i valori stimati. Il conteggio dei passi e i timer di recupero sono stati corretti.',
+          title: 'Prestazioni e affidabilità migliorate',
+          body: 'La panoramica delle statistiche scorre più fluidamente, i giorni di allenamento vengono mostrati correttamente durante i cambi d’ora e sono stati migliorati il conteggio dei passi e il timer di recupero.',
         ),
       ],
     ),
@@ -1477,85 +1268,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: '統計画面をよりスムーズに',
-          body: '上へスクロールした際に概要がずれる問題を修正しました。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'トレーニングの継続状況を修正',
-          body: '夏時間の切り替えをまたぐトレーニング日もヒートマップに正しく表示されます。',
+          title: '統計と進捗分析',
+          body: '主な指標やトレーニング日をひと目で確認できます。刷新された画面で、栄養摂取、進捗、自己ベストを詳しく振り返れます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'ワークアウトを改善',
-          body: '実行中の種目が上部バーの下に表示されます。',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: '統計画面を刷新',
-          body: '見やすくなった指標、トレーニングのヒートマップ、栄養・進捗・自己記録の改善された画面を確認できます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'より使いやすいワークアウト',
-          body: '刷新された画面で進捗や筋肉グループを確認できます。セットをドラッグして並べ替え、推定最大挙上重量を表示することもできます。',
+          title: 'ライブワークアウトとセット管理',
+          body: '筋群ごとに完了したセットと残りのセットを確認できます。ドラッグでセットの順番を変えたり、推定1回最大重量を表示したりできます。自己ベストを更新すると、アニメーションと触覚フィードバックでお知らせします。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: '睡眠と心拍数',
-          body: '刷新された画面で睡眠段階と心拍数を確認できます。Apple Healthでは心拍変動も表示されます。',
+          title: '睡眠分析と心拍数',
+          body: '新しい睡眠概要で、睡眠時間、睡眠段階、心拍数を確認できます。Appleヘルスケアまたはヘルスコネクトの安静時心拍数は、日誌と統計に表示されます。Appleヘルスケアでは心拍変動も確認できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glassを自分好みに',
-          body: 'ガラスの見た目を調整でき、画面遷移やナビゲーションも改善されました。',
+          title: 'Liquid Glassの外観設定',
+          body: 'スライダーでガラスの外観を調整し、プレビューで結果を確認できます。画面の切り替えもより滑らかになりました。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: '毎日の信頼性を向上',
-          body: '健康データ、歩数、休憩タイマーなど、多くの問題を修正しました。',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: '睡眠と回復をひと目で',
-          body: '新しい睡眠の概要で、睡眠段階、睡眠時間、心拍数を確認できます。Apple Healthを使えば心拍変動（HRV）も表示されます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'ワークアウトをより詳しく',
-          body: '筋肉グループ別の完了セットと予定セット、経過時間、進捗、トレーニングボリュームを確認できます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: '自己記録をお祝い',
-          body: '新しい自己記録をアニメーションと触覚フィードバックでお知らせします。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'ガラスの見た目を自分好みに',
-          body: 'スライダーでガラスの見た目を調整し、プレビューですぐに確認できます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: '安静時心拍数とタイマー',
-          body: 'ヘルスケアアプリに安静時心拍数の記録があれば、日記と統計に表示します。推定値にはその旨を表示します。歩数と休憩タイマーも修正しました。',
+          title: 'パフォーマンスと信頼性の向上',
+          body: '統計概要をより滑らかにスクロールでき、夏時間の切り替え前後もトレーニング日が正しく表示されます。歩数の集計と休憩タイマーも改善しました。',
         ),
       ],
     ),
@@ -1844,85 +1583,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'es': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Estadísticas más fluidas',
-          body: 'La vista general ya no da saltos al volver a desplazarte hacia arriba.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Ritmo de entrenamiento corregido',
-          body: 'Los días de entrenamiento aparecen correctamente en el mapa de actividad durante los cambios de horario.',
+          title: 'Estadísticas y análisis del progreso',
+          body: 'Consulta de un vistazo tus métricas principales y tus días de entrenamiento. Las vistas renovadas te ayudan a seguir en detalle tu nutrición, tu progreso y tus récords personales.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Entrenamientos en directo mejorados',
-          body: 'El ejercicio activo aparece debajo de la barra superior.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: 'Estadísticas renovadas',
-          body: 'Descubre métricas más claras, un mapa de actividad y mejores vistas de nutrición, progreso y récords personales.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Una mejor experiencia de entrenamiento',
-          body: 'Las vistas renovadas muestran tu progreso y grupos musculares. Arrastra las series para ordenarlas y activa la estimación de tu repetición máxima si lo deseas.',
+          title: 'Entrenamientos en directo y gestión de series',
+          body: 'Consulta qué series has completado y cuáles quedan pendientes para cada grupo muscular. Arrastra las series para reordenarlas, muestra tu máximo estimado para una repetición si quieres y celebra tus nuevos récords con una animación y respuesta háptica.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: 'Sueño y frecuencia cardíaca',
-          body: 'Las vistas renovadas muestran las fases del sueño y la frecuencia cardíaca, además de su variabilidad con Apple Health.',
+          title: 'Análisis del sueño y frecuencia cardíaca',
+          body: 'El nuevo resumen del sueño muestra su duración, sus fases y tu frecuencia cardíaca. Tu frecuencia cardíaca en reposo de Apple Health o Health Connect aparece en el diario y en las estadísticas. Con Apple Health también puedes consultar la variabilidad de la frecuencia cardíaca.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glass a tu gusto',
-          body: 'Ajusta el aspecto del cristal y disfruta de transiciones y navegación mejoradas.',
+          title: 'Aspecto de Liquid Glass personalizable',
+          body: 'Ajusta el efecto de cristal con un control deslizante y comprueba el resultado en la vista previa. Las transiciones renovadas hacen más fluido el cambio entre pantallas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: 'Más fiabilidad cada día',
-          body: 'Numerosas correcciones mejoran los datos de salud, el recuento de pasos, los temporizadores de descanso y mucho más.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: 'Sueño y recuperación de un vistazo',
-          body: 'La nueva vista de sueño muestra las fases, la duración y la frecuencia cardíaca. Con Apple Health también puedes ver la variabilidad de la frecuencia cardíaca (VFC).',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Más información durante el entrenamiento',
-          body: 'Consulta las series completadas y previstas por grupo muscular, el tiempo transcurrido, el progreso y el volumen.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: 'Celebra tus récords personales',
-          body: 'Los nuevos récords destacan con una animación y respuesta háptica.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'Cristal a tu gusto',
-          body: 'Ajusta el aspecto del cristal con un control deslizante y observa los cambios al instante en la vista previa.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Pulso en reposo y temporizadores',
-          body: 'El diario y las estadísticas muestran el pulso en reposo de tu app de salud cuando está disponible e identifican las estimaciones. Se ha mejorado el recuento de pasos y los temporizadores de descanso.',
+          title: 'Mejor rendimiento y fiabilidad',
+          body: 'El resumen de estadísticas se desplaza con más fluidez, los días de entrenamiento se muestran correctamente durante los cambios de hora y se han mejorado el recuento de pasos y el temporizador de descanso.',
         ),
       ],
     ),
@@ -1960,85 +1647,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'nl': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.7.1-beta.3',
-      releasedOn: '2026-11-23',
+      version: '1.7.1-beta.4',
+      releasedOn: '',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Soepelere statistieken',
-          body: 'Het overzicht verspringt niet meer wanneer je terug omhoog scrolt.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.activity,
-          title: 'Trainingsritme hersteld',
-          body: 'Trainingsdagen verschijnen ook rond de overgang tussen zomer- en wintertijd correct in de heatmap.',
+          title: 'Statistieken en voortgangsanalyse',
+          body: 'Bekijk je belangrijkste cijfers en trainingsdagen in één oogopslag. Vernieuwde schermen helpen je om je voeding, voortgang en persoonlijke records in detail te volgen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Live training verbeterd',
-          body: 'De actieve oefening verschijnt zichtbaar onder de bovenbalk.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.2',
-      releasedOn: '2026-11-23',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.chart_line,
-          title: 'Vernieuwde statistieken',
-          body: 'Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Een betere trainingservaring',
-          body: 'Vernieuwde schermen tonen je voortgang en spiergroepen. Sleep sets naar een andere plek en toon desgewenst je geschatte maximale gewicht.',
+          title: 'Liveworkouts en setbeheer',
+          body: 'Bekijk per spiergroep welke sets klaar zijn en welke nog op het programma staan. Versleep sets om ze te ordenen, toon desgewenst je geschatte maximumgewicht voor één herhaling en vier nieuwe records met animaties en haptische feedback.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.moon,
-          title: 'Slaap en hartslag',
-          body: 'Vernieuwde overzichten tonen slaapfasen en hartslag, en met Apple Health ook hartslagvariabiliteit.',
+          title: 'Slaapanalyse en hartslag',
+          body: 'Het nieuwe slaapoverzicht toont je slaapduur, slaapfasen en hartslag. Je rusthartslag uit Apple Gezondheid of Health Connect staat in je dagboek en statistieken. Met Apple Gezondheid zie je ook je hartslagvariabiliteit.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
-          title: 'Liquid Glass naar jouw smaak',
-          body: 'Pas de glasweergave aan en ontdek verfijnde overgangen en navigatie.',
+          title: 'Aanpasbare Liquid Glass-weergave',
+          body: 'Pas het glaseffect aan met de schuifregelaar en bekijk het resultaat direct in het voorbeeld. Vernieuwde overgangen maken wisselen tussen schermen vloeiender.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.shield,
-          title: 'Elke dag betrouwbaarder',
-          body: 'Veel oplossingen verbeteren onder meer gezondheidsgegevens, stappentellingen en rusttimers.',
-        ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.7.1-beta.1',
-      releasedOn: '2026-11-09',
-      entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.moon,
-          title: 'Slaap en herstel in één oogopslag',
-          body: 'Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Meer inzicht tijdens je training',
-          body: 'Bekijk voltooide en geplande sets per spiergroep, de verstreken tijd, je voortgang en trainingsvolume.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.star,
-          title: 'Vier persoonlijke records',
-          body: 'Nieuwe persoonlijke records worden uitgelicht met een animatie en haptische feedback.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.sparkles,
-          title: 'Glas naar jouw smaak',
-          body: 'Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.heart,
-          title: 'Rusthartslag en timers',
-          body: 'Je dagboek en statistieken tonen de rusthartslag van je gezondheidsapp als die beschikbaar is en markeren schattingen. Stappentellingen en rusttimers zijn verbeterd.',
+          title: 'Betere prestaties en betrouwbaarheid',
+          body: 'Het statistiekenoverzicht scrolt vloeiender, trainingsdagen worden ook rond de overgang tussen zomer- en wintertijd correct weergegeven, en de stappentelling en rusttimer zijn verbeterd.',
         ),
       ],
     ),
@@ -2080,4 +1715,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.7.1-beta.3';
+const String kWhatsNewGeneratedForVersion = '1.7.1-beta.4';

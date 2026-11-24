@@ -6,37 +6,17 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1-beta.3 (2026-11-23)
+## 1.7.1
 
-{chart_line} Statistiques plus fluides: La vue d’ensemble ne saute plus lorsque vous remontez.
+{chart_line} Statistiques et analyse des progrès: Retrouve en un coup d’œil tes indicateurs clés et tes jours d’entraînement. Les vues repensées facilitent le suivi détaillé de ton alimentation, de tes progrès et de tes records personnels.
 
-{activity} Régularité corrigée: Les jours d’entraînement apparaissent correctement dans la carte d’activité lors des changements d’heure.
+{dumbbell} Entraînement en direct et gestion des séries: Vois les séries terminées et celles qui restent à faire pour chaque groupe musculaire. Réorganise les séries en les faisant glisser, affiche si tu le souhaites ta charge maximale estimée sur une répétition et célèbre tes nouveaux records avec une animation et un retour haptique.
 
-{dumbbell} Entraînement en direct amélioré: L’exercice actif apparaît sous la barre supérieure.
+{moon} Analyse du sommeil et fréquence cardiaque: Le nouvel aperçu du sommeil affiche la durée, les phases et la fréquence cardiaque. Ta fréquence cardiaque au repos issue d’Apple Santé ou de Health Connect apparaît dans le journal et les statistiques. Apple Santé te permet aussi de consulter la variabilité de ta fréquence cardiaque.
 
-## 1.7.1-beta.2 (2026-11-23)
+{sparkles} Apparence Liquid Glass personnalisable: Ajuste l’effet de verre à l’aide d’un curseur et vois le résultat dans l’aperçu. Les transitions retravaillées fluidifient le passage d’un écran à l’autre.
 
-{chart_line} Statistiques repensées: Découvrez des indicateurs plus clairs, une carte d’activité et des vues améliorées pour la nutrition, la progression et les records personnels.
-
-{dumbbell} Un entraînement plus agréable: Les écrans repensés affichent votre progression et vos groupes musculaires. Réorganisez les séries par glisser-déposer et affichez votre maximum estimé si vous le souhaitez.
-
-{moon} Sommeil et fréquence cardiaque: Les vues repensées affichent les phases de sommeil et la fréquence cardiaque, ainsi que sa variabilité avec Apple Health.
-
-{sparkles} Liquid Glass à votre goût: Ajustez l’apparence du verre et profitez de transitions et d’une navigation affinées.
-
-{shield} Plus fiable au quotidien: De nombreuses corrections améliorent les données de santé, le nombre de pas, les minuteurs de repos et bien plus.
-
-## 1.7.1-beta.1 (2026-11-09)
-
-{moon} Sommeil et récupération en un coup d’œil: La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).
-
-{dumbbell} Une meilleure vue pendant l’entraînement: Consultez les séries terminées et prévues par groupe musculaire, le temps écoulé, la progression et le volume.
-
-{star} Célébrez vos records personnels: Une animation et un retour haptique mettent en valeur vos nouveaux records.
-
-{sparkles} Le verre à votre goût: Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.
-
-{heart} Pouls au repos et minuteurs : Le journal et les statistiques affichent le pouls au repos de votre app de santé lorsqu’il est disponible et signalent les estimations. Le comptage des pas et les minuteurs de repos ont été corrigés.
+{shield} Performances et fiabilité améliorées: Le défilement de l’aperçu des statistiques est plus fluide, les jours d’entraînement s’affichent correctement lors des changements d’heure, et le comptage des pas ainsi que le minuteur de repos ont été améliorés.
 
 ## 1.7.0 (2026-11-03)
 

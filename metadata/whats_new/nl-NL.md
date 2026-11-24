@@ -6,37 +6,17 @@
   Genereer opnieuw met: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.1-beta.3 (2026-11-23)
+## 1.7.1
 
-{chart_line} Soepelere statistieken: Het overzicht verspringt niet meer wanneer je terug omhoog scrolt.
+{chart_line} Statistieken en voortgangsanalyse: Bekijk je belangrijkste cijfers en trainingsdagen in één oogopslag. Vernieuwde schermen helpen je om je voeding, voortgang en persoonlijke records in detail te volgen.
 
-{activity} Trainingsritme hersteld: Trainingsdagen verschijnen ook rond de overgang tussen zomer- en wintertijd correct in de heatmap.
+{dumbbell} Liveworkouts en setbeheer: Bekijk per spiergroep welke sets klaar zijn en welke nog op het programma staan. Versleep sets om ze te ordenen, toon desgewenst je geschatte maximumgewicht voor één herhaling en vier nieuwe records met animaties en haptische feedback.
 
-{dumbbell} Live training verbeterd: De actieve oefening verschijnt zichtbaar onder de bovenbalk.
+{moon} Slaapanalyse en hartslag: Het nieuwe slaapoverzicht toont je slaapduur, slaapfasen en hartslag. Je rusthartslag uit Apple Gezondheid of Health Connect staat in je dagboek en statistieken. Met Apple Gezondheid zie je ook je hartslagvariabiliteit.
 
-## 1.7.1-beta.2 (2026-11-23)
+{sparkles} Aanpasbare Liquid Glass-weergave: Pas het glaseffect aan met de schuifregelaar en bekijk het resultaat direct in het voorbeeld. Vernieuwde overgangen maken wisselen tussen schermen vloeiender.
 
-{chart_line} Vernieuwde statistieken: Ontdek duidelijkere cijfers, een trainingsheatmap en verbeterde overzichten voor voeding, voortgang en persoonlijke records.
-
-{dumbbell} Een betere trainingservaring: Vernieuwde schermen tonen je voortgang en spiergroepen. Sleep sets naar een andere plek en toon desgewenst je geschatte maximale gewicht.
-
-{moon} Slaap en hartslag: Vernieuwde overzichten tonen slaapfasen en hartslag, en met Apple Health ook hartslagvariabiliteit.
-
-{sparkles} Liquid Glass naar jouw smaak: Pas de glasweergave aan en ontdek verfijnde overgangen en navigatie.
-
-{shield} Elke dag betrouwbaarder: Veel oplossingen verbeteren onder meer gezondheidsgegevens, stappentellingen en rusttimers.
-
-## 1.7.1-beta.1 (2026-11-09)
-
-{moon} Slaap en herstel in één oogopslag: Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).
-
-{dumbbell} Meer inzicht tijdens je training: Bekijk voltooide en geplande sets per spiergroep, de verstreken tijd, je voortgang en trainingsvolume.
-
-{star} Vier persoonlijke records: Nieuwe persoonlijke records worden uitgelicht met een animatie en haptische feedback.
-
-{sparkles} Glas naar jouw smaak: Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.
-
-{heart} Rusthartslag en timers: Je dagboek en statistieken tonen de rusthartslag van je gezondheidsapp als die beschikbaar is en markeren schattingen. Stappentellingen en rusttimers zijn verbeterd.
+{shield} Betere prestaties en betrouwbaarheid: Het statistiekenoverzicht scrolt vloeiender, trainingsdagen worden ook rond de overgang tussen zomer- en wintertijd correct weergegeven, en de stappentelling en rusttimer zijn verbeterd.
 
 ## 1.7.0 (2026-11-03)
 
