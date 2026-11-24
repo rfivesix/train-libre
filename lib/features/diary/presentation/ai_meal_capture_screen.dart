@@ -1,4 +1,3 @@
-import '../../../util/glass_preferences.dart';
 // lib/screens/ai_meal_capture_screen.dart
 
 import 'dart:async';
@@ -12,7 +11,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -41,6 +39,7 @@ import 'meal_editor_screen.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/camera_shutter_button.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_item.dart';
@@ -1760,7 +1759,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                                 tooltip: l10n.aiChatRemoveImage,
                                                 isDarkSurface: true,
                                                 foregroundColor: Colors.white,
-                                                platformViewBackdrop: true,
+                                                useCameraGlass: true,
                                                 onPressed: () =>
                                                     _removeImage(idx),
                                               ),
@@ -2131,7 +2130,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       children: [
         Opacity(
           opacity: _isDictating ? 0.42 : 1,
-          child: _buildFrostedButton(
+          child: _buildScannerActionButton(
             key: _keyGallery,
             icon: LucideIcons.image,
             onTap: _isDictating ? null : _pickFromGallery,
@@ -2141,7 +2140,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         Expanded(child: Center(child: _buildMealVoiceControl(l10n))),
         Opacity(
           opacity: _isDictating ? 0.42 : 1,
-          child: _buildFrostedButton(
+          child: _buildScannerActionButton(
             key: _keyText,
             icon: LucideIcons.pencil,
             isActive: _showTextInput || _textController.text.isNotEmpty,
@@ -2187,7 +2186,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               AnimatedOpacity(
                 opacity: _isDictating ? 0 : 1,
                 duration: const Duration(milliseconds: 220),
-                child: _buildFrostedButton(
+                child: _buildScannerActionButton(
                   icon: LucideIcons.mic,
                   isActive: _isDictating,
                   onTap: null,
@@ -2295,6 +2294,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildScannerCameraActions(AppLocalizations l10n) {
+    final hasPlatformPreview =
+        _cameraPermission.isGranted && (!_isIosSimulator || _useNativeSession);
     return Positioned.fill(
       child: Stack(
         clipBehavior: Clip.none,
@@ -2319,7 +2320,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   },
                   tooltip: l10n.aiCaptureTourStepBarcodeTitle,
                   isDarkSurface: true,
-                  platformViewBackdrop: true,
+                  useCameraGlass: true,
+                  platformViewBackdrop: hasPlatformPreview,
                   foregroundColor: _barcodeDetectionEnabled
                       ? Theme.of(context).colorScheme.onPrimary
                       : Colors.white,
@@ -2329,51 +2331,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 ),
                 Expanded(
                   child: Center(
-                    child: Semantics(
-                      button: true,
+                    child: CameraShutterButton(
+                      key: _keyShutter,
                       label: l10n.aiCaptureTourStepShutterTitle,
-                      child: GestureDetector(
-                        key: _keyShutter,
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _takeShutterPhoto,
-                        child: SizedBox.square(
-                          dimension: 76,
-                          child: GlassAdaptiveScope(
-                            maxQuality: DesignConstants.defaultGlassQuality,
-                            minQuality: DesignConstants.minGlassQuality,
-                            child: AdaptiveGlass(
-                              settings: GlassPreferences.of(context).apply(
-                                DesignConstants.liquidGlassSettings(true),
-                              ),
-                              quality: DesignConstants.defaultGlassQuality,
-                              platformViewBackdrop: true,
-                              useOwnLayer: true,
-                              allowElevation: false,
-                              shape: const LiquidRoundedSuperellipse(
-                                borderRadius: 40,
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 58,
-                                  height: 58,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.22,
-                                        ),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      onPressed: _takeShutterPhoto,
+                      overPlatformView: hasPlatformPreview,
                     ),
                   ),
                 ),
@@ -2381,7 +2343,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
                   tooltip: l10n.aiChatFlash,
                   isDarkSurface: true,
-                  platformViewBackdrop: true,
+                  useCameraGlass: true,
+                  platformViewBackdrop: hasPlatformPreview,
                   backgroundColor: _isFlashOn
                       ? Theme.of(context).colorScheme.primary
                       : null,
@@ -2421,7 +2384,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
   }
 
-  Widget _buildFrostedButton({
+  Widget _buildScannerActionButton({
     Key? key,
     required IconData icon,
     required VoidCallback? onTap,
@@ -2441,7 +2404,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ? Colors.white
           : theme.colorScheme.onSurface,
       backgroundColor: isActive ? theme.colorScheme.primary : null,
-      platformViewBackdrop: true,
+      useCameraGlass: true,
       dimension: 44,
       onPressed: onTap,
     );

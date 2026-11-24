@@ -48,7 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Kept the What's New sheet below the status bar with a 16-point gap, even when the presenting screen has already consumed the top safe area.
 - Prevented time labels near the end of sleep and pulse charts from overlapping.
 - Fixed the Nutrition statistics bar chart rendering blank on year (`1Y`) and `MAX` timeframes by adaptively bucketing long periods into readable bars, trimming leading untracked `MAX` history, and formatting multi-year axis labels.
-
+- Restored the classic white shutter with a glass ring in AI Chat and AI Meal Scan. Camera controls over the iOS preview use native Liquid Glass where supported. On Android, the meal and barcode scanners use rounded blur without the extra button outlines.
 
 ### Added
 - Added an Appearance setting to show estimated one-rep maximum values in workout set rows and the live session comparison. The display is off by default and does not affect personal records.

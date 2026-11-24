@@ -1,5 +1,3 @@
-import '../../../../../util/glass_preferences.dart';
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
@@ -8,12 +6,11 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 import '../../../../../generated/app_localizations.dart';
-import '../../../../../util/design_constants.dart';
+import '../../../../../widgets/common/camera_shutter_button.dart';
 import '../../../../depth_scan/platform/depth_scan_channel.dart';
 import 'header_glass_button.dart';
 
@@ -326,19 +323,20 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const shutterSize = 76.0;
+    const shutterSize = CameraShutterButton.dimension;
     const sideButtonSize = 44.0;
     const controlBottomInset = 16.0;
     const controlBaselineBottom = (shutterSize - sideButtonSize) / 2;
     const controlEdgeInset = controlBottomInset + controlBaselineBottom;
     const minimumPanelWidthForControls =
         controlEdgeInset * 2 + shutterSize + sideButtonSize * 2;
+    final showPreview = _previewMounted || _ready;
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
           fit: StackFit.expand,
           children: [
-            if (_previewMounted || _ready)
+            if (showPreview)
               UiKitView(
                 key: ValueKey(
                   _debugGlassPreview
@@ -434,54 +432,16 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                       icon: LucideIcons.chevron_left,
                       onPressed: _dismiss,
                       isDarkSurface: true,
-                      platformViewBackdrop: true,
+                      useCameraGlass: true,
+                      platformViewBackdrop: showPreview,
                       dimension: sideButtonSize,
                       iconSize: 20,
                     ),
-                    GestureDetector(
+                    CameraShutterButton(
                       key: const ValueKey('ai-chat-camera-shutter'),
-                      onTap: _ready ? _capture : null,
-                      child: Semantics(
-                        button: true,
-                        label: l10n.aiChatCapture,
-                        child: SizedBox.square(
-                          dimension: shutterSize,
-                          child: GlassAdaptiveScope(
-                            maxQuality: DesignConstants.defaultGlassQuality,
-                            minQuality: DesignConstants.minGlassQuality,
-                            child: AdaptiveGlass(
-                              settings: GlassPreferences.of(context).apply(
-                                DesignConstants.liquidGlassSettings(true),
-                              ),
-                              quality: DesignConstants.defaultGlassQuality,
-                              platformViewBackdrop: true,
-                              useOwnLayer: true,
-                              allowElevation: false,
-                              shape: const LiquidRoundedSuperellipse(
-                                borderRadius: 40,
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 58,
-                                  height: 58,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.22,
-                                        ),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      label: l10n.aiChatCapture,
+                      onPressed: _ready ? _capture : null,
+                      overPlatformView: showPreview,
                     ),
                     SizedBox(
                       width: sideButtonSize,
@@ -511,7 +471,8 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                             foregroundColor: _torchOn
                                 ? Theme.of(context).colorScheme.onPrimary
                                 : Colors.white,
-                            platformViewBackdrop: true,
+                            useCameraGlass: true,
+                            platformViewBackdrop: showPreview,
                             dimension: sideButtonSize,
                             iconSize: 20,
                           ),

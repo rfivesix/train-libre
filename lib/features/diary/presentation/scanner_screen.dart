@@ -391,6 +391,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                                 : LucideIcons.zap_off,
                             tooltip: l10n.scannerToggleFlash,
                             isDarkSurface: true,
+                            useCameraGlass: Platform.isAndroid,
                             platformViewBackdrop: true,
                             backgroundColor: _isFlashOn
                                 ? Theme.of(context).colorScheme.primary
