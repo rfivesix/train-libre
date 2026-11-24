@@ -76,6 +76,49 @@ class AppleFoundationService {
     String? systemPrompt,
     List<String>? imagesBase64,
     Duration? timeout,
+    double? temperature,
+    bool? greedy,
+  }) {
+    return _invokeGeneration(
+      method: 'generateMealJson',
+      prompt: prompt,
+      systemPrompt: systemPrompt,
+      imagesBase64: imagesBase64,
+      timeout: timeout,
+      temperature: temperature,
+      greedy: greedy,
+    );
+  }
+
+  /// Uses native Swift `@Generable` guided generation for direct nutrition
+  /// estimation on Apple Intelligence, returning normalized meal JSON.
+  Future<String> generateDirectMealEstimate({
+    required String prompt,
+    String? systemPrompt,
+    List<String>? imagesBase64,
+    Duration? timeout,
+    bool greedy = true,
+    double? temperature,
+  }) {
+    return _invokeGeneration(
+      method: 'generateDirectMealEstimate',
+      prompt: prompt,
+      systemPrompt: systemPrompt,
+      imagesBase64: imagesBase64,
+      timeout: timeout,
+      temperature: temperature,
+      greedy: greedy,
+    );
+  }
+
+  Future<String> _invokeGeneration({
+    required String method,
+    required String prompt,
+    String? systemPrompt,
+    List<String>? imagesBase64,
+    Duration? timeout,
+    double? temperature,
+    bool? greedy,
   }) async {
     if (!_isIos) {
       throw UnsupportedError(
@@ -88,11 +131,13 @@ class AppleFoundationService {
       if (cancellation?.isCancelled ?? false) {
         throw const AiCancelledException();
       }
-      final generation = _channel.invokeMethod<String>('generateMealJson', {
+      final generation = _channel.invokeMethod<String>(method, {
         'requestId': requestId,
         'prompt': prompt,
         'systemPrompt': ?systemPrompt,
         'images': imagesBase64 ?? const <String>[],
+        'temperature': ?temperature,
+        'greedy': ?greedy,
       });
       void cancelNative() {
         unawaited(_channel.invokeMethod<void>(

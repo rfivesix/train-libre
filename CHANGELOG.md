@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Optimized AI Meal Scan direct nutrition estimation for Apple Intelligence (`AppleFoundationPlugin.swift`, `AppleFoundationService`, `AiService`): uses native Swift `@Generable`/`@Guide` guided generation with deterministic greedy decoding (`GenerationOptions(samplingMode: .greedy)`), a concise Apple-specific direct prompt retaining `protein`, `carbs`, `fat`, `sugar`, `fiber`, `salt` (with derived `sodium`), `caffeine`, `isFluid`, and `confidence`, macro-sum plausibility normalization (`<= 100 g` per 100 g), fault-tolerant optional micronutrients, and matching session prewarming.
+- Disabled LiDAR depth capture/scale hints and hid both the LiDAR switches and the nutrition estimation method picker when Apple Intelligence is selected (`AiSettingsScreen`, `AiMealCaptureScreen`), always using direct AI estimation for Apple Intelligence.
+
 ### Fixed
 - Connected recorded calorie values across missing or incomplete days in the Statistics overview and Body & Nutrition detail chart. Both views display single measurements and independently available series, and detail tooltips show values for the selected date.
 - Excluded invalid weight readings and required measurements on at least two days to show a weight change.

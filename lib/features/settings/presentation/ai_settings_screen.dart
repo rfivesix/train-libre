@@ -503,7 +503,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                   : null,
             ),
           ),
-          if (aiEnabled && _hasLidar) ...[
+          if (aiEnabled &&
+              _hasLidar &&
+              _selectedProvider != AiProvider.appleFoundation) ...[
             AppSettingsRow.switchTile(
               title: l10n.aiLidarScaleTitle,
               subtitle: l10n.aiLidarScaleSubtitle,
@@ -528,7 +530,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             ),
           ],
 
-          if (aiEnabled) ...[
+          if (aiEnabled && _selectedProvider != AiProvider.appleFoundation) ...[
             PlatformAdaptivePopupMenu<AiMealNutritionMode>(
               selectedValue: _mealNutritionMode,
               onSelected: (mode) async {

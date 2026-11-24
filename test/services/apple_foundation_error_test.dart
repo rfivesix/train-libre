@@ -90,4 +90,41 @@ void main() {
     expect(() => service.parseMealCandidateForTesting('{"items":['),
         throwsA(isA<AiParseException>()));
   });
+
+  test('generateDirectMealEstimate uses guided method and greedy decoding',
+      () async {
+    String? calledMethod;
+    Map<String, dynamic>? calledArgs;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calledMethod = call.method;
+      calledArgs = Map<String, dynamic>.from(call.arguments as Map);
+      return '{"dishType":"Apfel","items":[{"name":"Apfel","estimatedGrams":150,"servedGrams":150,"isFluid":false,"confidence":0.9,"nutritionPer100g":{"protein":0.3,"carbs":14.0,"fat":0.2,"sugar":10.4,"fiber":2.4,"salt":0.0}}]}';
+    });
+    final service = AppleFoundationService.forTesting();
+    final response = await service.generateDirectMealEstimate(
+      prompt: '150g Apfel',
+      systemPrompt: 'Estimate meal',
+    );
+    expect(calledMethod, 'generateDirectMealEstimate');
+    expect(calledArgs?['greedy'], isTrue);
+    expect(calledArgs?['prompt'], '150g Apfel');
+    expect(calledArgs?['systemPrompt'], 'Estimate meal');
+    expect(response, contains('"dishType":"Apfel"'));
+  });
+
+  test('generateMealJson forwards temperature and greedy options', () async {
+    Map<String, dynamic>? calledArgs;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calledArgs = Map<String, dynamic>.from(call.arguments as Map);
+      return '{"ok":true}';
+    });
+    final service = AppleFoundationService.forTesting();
+    await service.generateMealJson(
+      prompt: 'meal',
+      temperature: 0.2,
+      greedy: false,
+    );
+    expect(calledArgs?['temperature'], 0.2);
+    expect(calledArgs?['greedy'], isFalse);
+  });
 }

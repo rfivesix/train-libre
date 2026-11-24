@@ -106,6 +106,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// noise rather than help.
   bool _barcodeDetectionEnabled = true;
   bool _hasLidar = false;
+  bool _isAppleFoundationProvider = false;
 
   /// True once the unified native session (preview + barcodes + photo + depth)
   /// is available. Only then does the separate scanner camera stay out of the
@@ -199,9 +200,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ),
     );
     WidgetsBinding.instance.addObserver(this);
+    AiService.instance.configurationRevision.addListener(
+      _onAiConfigurationChanged,
+    );
     _checkDbStatus();
+    unawaited(_loadSelectedProvider());
     unawaited(_prepareCamera());
-    unawaited(AiService.instance.prewarm());
 
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,
@@ -210,12 +214,49 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      unawaited(_prewarmSelectedProvider());
       final tourCompleted = await AiMealCaptureTourService.instance
           .isTourCompleted();
       if (!tourCompleted && mounted) {
         _startTour();
       }
     });
+  }
+
+  void _onAiConfigurationChanged() {
+    unawaited(_loadSelectedProvider());
+    unawaited(_prewarmSelectedProvider());
+  }
+
+  Future<void> _loadSelectedProvider() async {
+    try {
+      final provider = await AiService.instance.getSelectedProvider();
+      final isApple = provider == AiProvider.appleFoundation;
+      if (!mounted) return;
+      if (_isAppleFoundationProvider != isApple) {
+        setState(() {
+          _isAppleFoundationProvider = isApple;
+          if (isApple) {
+            _distanceGuidance.update(null);
+            _distanceHint = null;
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _prewarmSelectedProvider() async {
+    if (!mounted) return;
+    try {
+      final matchingContext =
+          await AiMatchingLanguageService.resolveMatchingContext(
+            context: context,
+          );
+      if (!mounted) return;
+      await AiService.instance.prewarm(
+        languageCode: matchingContext.appLanguage,
+      );
+    } catch (_) {}
   }
 
   @override
@@ -261,6 +302,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       appRouteObserver.unsubscribe(this);
     }
     WidgetsBinding.instance.removeObserver(this);
+    AiService.instance.configurationRevision.removeListener(
+      _onAiConfigurationChanged,
+    );
     _stopAiWaitingHaptics();
     _voiceHoldTimer?.cancel();
     _voiceDemoTimer?.cancel();
@@ -613,6 +657,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   void _onLiveDistance(double? distanceCm) {
+    if (_isAppleFoundationProvider) {
+      _clearDistanceHint();
+      return;
+    }
     if (!mounted ||
         !_isTopRoute ||
         _isCameraSuspended ||
@@ -661,11 +709,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (res != null && mounted) {
         final capture = res;
         setState(() {
-          _depthCaptures[capture.imageFile.path] = capture;
+          if (!_isAppleFoundationProvider) {
+            _depthCaptures[capture.imageFile.path] = capture;
+          }
           _images.add(capture.imageFile);
         });
-        if (capture.scaleFacts?.isValid == true ||
-            capture.depthBuffer != null) {
+        if (!_isAppleFoundationProvider &&
+            (capture.scaleFacts?.isValid == true ||
+                capture.depthBuffer != null)) {
           unawaited(
             TelemetryService.instance.trackFeatureUsed(
               featureKey: FeatureKey.lidarDepthCaptured,
@@ -814,7 +865,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final hasImages = _images.isNotEmpty;
     final hasText = text.isNotEmpty;
     final hasVoice = hasText && _textCameFromVoice;
-    final hasLidar = _depthCaptures.values.any((c) => c.depthBuffer != null);
+    var hasLidar =
+        !_isAppleFoundationProvider &&
+        _depthCaptures.values.any((c) => c.depthBuffer != null);
     final inputMode = hasImages && hasText
         ? 'multimodal'
         : (hasImages ? 'photo' : 'text_only');
@@ -940,6 +993,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     try {
       final selectedProvider = await AiService.instance.getSelectedProvider();
+      final isAppleProvider = selectedProvider == AiProvider.appleFoundation;
+      if (isAppleProvider) {
+        hasLidar = false;
+      }
       provider = selectedProvider.name;
       unawaited(scanLog.setProvider(requestId, provider));
       unawaited(() async {
@@ -960,6 +1017,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ? _preProcessor.waitForCompletion(_images)
           : Future<void>.value();
       final depthReady = () async {
+        if (isAppleProvider) return null;
         final enabled = await DepthScanSettings.instance.isDepthImageEnabled();
         return enabled && _lastDepthCapture != null
             ? buildDepthMapAttachment(_lastDepthCapture!)
@@ -971,8 +1029,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       // Switchable so the same meal can be shot with and without the hint;
       // otherwise there is no way to tell whether the measurement helps.
-      final scaleHintEnabled = await DepthScanSettings.instance
-          .isScaleHintEnabled();
+      // Disabled for Apple Intelligence where LiDAR cues hurt on-device estimates.
+      final scaleHintEnabled =
+          !isAppleProvider &&
+          await DepthScanSettings.instance.isScaleHintEnabled();
       final depthFacts = scaleHintEnabled
           ? _lastDepthCapture?.scaleFacts
           : null;
@@ -981,12 +1041,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       // around: the band scale is fitted to the frame, so it only exists once the
       // capture it belongs to does.
       final depthMap = await depthReady;
-      final depthPhotoIndex = _lastDepthCapture == null
+      final depthPhotoIndex = isAppleProvider || _lastDepthCapture == null
           ? -1
           : _images.indexWhere(
               (image) => image.path == _lastDepthCapture!.imageFile.path,
             );
-      final depthLegend = depthMap == null || depthPhotoIndex < 0
+      final depthLegend = isAppleProvider || depthMap == null || depthPhotoIndex < 0
           ? null
           : 'This depth map corresponds to meal photo ${depthPhotoIndex + 1} '
                 '(counting meal photos in order). ${depthMap.describeForPrompt()}';
@@ -1006,7 +1066,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
       );
       final fastMode = await AiService.instance.isFastModeEnabled();
-      final nutritionMode = await AiService.instance.getMealNutritionMode();
+      final nutritionMode = await AiService.instance
+          .getEffectiveMealNutritionMode(selectedProvider);
       final useDirectNutrition =
           nutritionMode == AiMealNutritionMode.directEstimate;
       final cloudProvider = provider != 'ollama' && provider != 'custom';
@@ -1086,9 +1147,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             originalImages: _images,
             initialDate: widget.initialDate,
             initialMealType: resolvedMealType,
-            depthResult: _lastDepthCapture,
-            depthResultsByPath: _depthCaptures,
-            depthFacts: _lastDepthCapture?.scaleFacts,
+            depthResult: isAppleProvider ? null : _lastDepthCapture,
+            depthResultsByPath: isAppleProvider ? const {} : _depthCaptures,
+            depthFacts: isAppleProvider ? null : _lastDepthCapture?.scaleFacts,
             voiceTranscript: text.isNotEmpty ? text : null,
             scanRequestId: requestId,
             usageCollector: usageCollector,
@@ -1569,7 +1630,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             tooltip: l10n.aiCaptureTourReplayTooltip,
             onPressed: _startTour,
           ),
-          if (_hasLidar)
+          if (_hasLidar && !_isAppleFoundationProvider)
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(right: 16),
