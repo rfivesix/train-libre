@@ -1,8 +1,11 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/analytics/presentation/statistics_hub_view_model.dart';
 import 'package:train_libre/features/analytics/presentation/widgets/body_metrics_section_card.dart';
+import 'package:train_libre/features/statistics/domain/body_nutrition_analytics_engine.dart';
 import 'package:train_libre/features/statistics/domain/body_nutrition_analytics_models.dart';
 import 'package:train_libre/features/statistics/domain/statistics_data_quality_policy.dart';
 import 'package:train_libre/generated/app_localizations.dart';
@@ -10,32 +13,46 @@ import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/services/unit_service.dart';
 
 void main() {
-  testWidgets(
-    'BodyMetricsSectionCard renders legend in Wrap without overflow on Dynamic Type XXL',
-    (tester) async {
-      tester.view.physicalSize = const Size(375, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+  setUp(() {
+    SharedPreferences.setMockInitialValues({'unit_system': 'metric'});
+  });
 
-      final unitService = UnitService();
+  testWidgets(
+    'BodyMetricsSectionCard fits sparse data and its legend at XXL text size',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final result = BodyNutritionAnalyticsEngine.build(
+        range: DateTimeRange(
+          start: DateTime.utc(2025, 11, 1),
+          end: DateTime.utc(2025, 11, 9),
+        ),
+        weightPoints: const [],
+        caloriesByDay: {
+          DateTime.utc(2025, 11, 2): 2000,
+          DateTime.utc(2025, 11, 6): 2200,
+        },
+      );
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<UnitService>.value(
-          value: unitService,
+        ChangeNotifierProvider(
+          create: (_) => UnitService(),
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('de'),
             home: MediaQuery(
               data: const MediaQueryData(
-                size: Size(375, 800),
+                size: Size(320, 640),
                 textScaler: TextScaler.linear(2.0),
               ),
               child: Scaffold(
                 body: SingleChildScrollView(
                   child: BodyMetricsSectionCard(
-                    state:
-                        const SectionLoadState<BodyNutritionAnalyticsResult>(),
+                    state: SectionLoadState(data: result),
                     onRetry: () {},
                     onTap: () {},
                   ),
@@ -48,7 +65,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.byType(Wrap), findsOneWidget);
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      expect(chart.data.lineBarsData.single.spots.map((spot) => spot.x), [
+        1,
+        5,
+      ]);
+      expect(find.text('Gesamtgewicht (kg)'), findsOneWidget);
+      expect(find.text('Gesamtkalorien (kcal)'), findsOneWidget);
     },
   );
 

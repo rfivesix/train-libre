@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+- Connected recorded calorie values across missing or incomplete days in the Statistics overview and Body & Nutrition detail chart. Both views display single measurements and independently available series, and detail tooltips show values for the selected date.
+- Excluded invalid weight readings and required measurements on at least two days to show a weight change.
+- Fixed the Body & Nutrition overview legend overflowing on narrow screens with large text sizes.
+
 ## [1.7.1-beta.3] - 2026-11-23
 
 ### Fixed

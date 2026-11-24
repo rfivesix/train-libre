@@ -114,7 +114,9 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: DesignConstants.spacingS),
-              Row(
+              Wrap(
+                spacing: DesignConstants.spacingM,
+                runSpacing: DesignConstants.spacingXS,
                 children: [
                   _legendDot(
                     context,
@@ -124,7 +126,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
                     ),
                     shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: DesignConstants.spacingM),
                   _legendDot(
                     context,
                     color: const Color(0xFFF97316),

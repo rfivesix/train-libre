@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -42,18 +43,22 @@ class BodyNutritionNormalizedTrendChart extends StatefulWidget {
 
 class _BodyNutritionNormalizedTrendChartState
     extends State<BodyNutritionNormalizedTrendChart> {
-  int? _lastVibratedIndex;
-  List<LineBarSpot>? _activeTooltipSpots;
+  double? _activeX;
+
+  @override
+  void didUpdateWidget(BodyNutritionNormalizedTrendChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.range != widget.range) _activeX = null;
+  }
 
   @override
   Widget build(BuildContext context) {
     final range = widget.range;
-    final weightSeries = widget.weightSeries;
-    final calorieSeries = widget.calorieSeries;
     final compact = widget.compact;
 
     final l10n = AppLocalizations.of(context)!;
-    if (weightSeries.isEmpty || calorieSeries.isEmpty || range == null) {
+    if (range == null ||
+        (widget.weightSeries.isEmpty && widget.calorieSeries.isEmpty)) {
       return AnalyticsChartDefaults.stateView(
         context: context,
         l10n: l10n,
@@ -76,8 +81,28 @@ class _BodyNutritionNormalizedTrendChartState
           ).difference(firstDay).inDays +
           1,
     );
-    final maxXInt = math.max(0, spanDays - 1);
-    final maxX = math.max(1, maxXInt).toDouble();
+    final maxX = math.max(1, spanDays - 1).toDouble();
+
+    bool isInRange(DailyValuePoint point) {
+      final offset = _dayOffset(point.day, firstDay);
+      return offset >= 0 && offset < spanDays;
+    }
+
+    final excludedDays = {
+      for (final day in widget.incompleteNutritionDays)
+        DateTime.utc(day.year, day.month, day.day),
+    };
+    final calorieSeries = widget.calorieSeries
+        .where((point) {
+          final day = point.day;
+          return point.value.isFinite &&
+              point.value > 0 &&
+              isInRange(point) &&
+              !excludedDays.contains(
+                DateTime.utc(day.year, day.month, day.day),
+              );
+        })
+        .toList(growable: false);
 
     final locale = Localizations.localeOf(context).toString();
     final unitService = Provider.of<UnitService>(context);
@@ -85,7 +110,11 @@ class _BodyNutritionNormalizedTrendChartState
     // Convert weight series (stored in metric kg) into display units according
     // to the user's preference so scales, ticks and tooltips show the right
     // values (kg or lbs).
-    final rawDisplayWeightSeries = weightSeries
+    final rawDisplayWeightSeries = widget.weightSeries
+        .where(
+          (point) =>
+              point.value.isFinite && point.value > 0 && isInRange(point),
+        )
         .map(
           (p) => DailyValuePoint(
             day: p.day,
@@ -121,44 +150,14 @@ class _BodyNutritionNormalizedTrendChartState
     final weightPoints = _buildPoints(
       series: displayWeightSeries,
       firstDay: firstDay,
-      maxX: maxX,
       scale: weightScale,
-      aggregationMethod: AggregationMethod.average,
     );
     final caloriePoints = _buildPoints(
       series: calorieSeries,
       firstDay: firstDay,
-      maxX: maxX,
       scale: calorieScale,
-      aggregationMethod: AggregationMethod.average,
-      gapDays: widget.incompleteNutritionDays,
     );
-    // Debug: when used as compact (hub), print range and last raw-series dates
-    assert(() {
-      if (compact) {
-        try {
-          final lastWeight = weightSeries.isNotEmpty
-              ? weightSeries.last.day
-              : null;
-          final lastCal = calorieSeries.isNotEmpty
-              ? calorieSeries.last.day
-              : null;
-          debugPrint(
-            '[chart-debug] compact range=${range.start}..${range.end} spanDays=$spanDays',
-          );
-          debugPrint(
-            '[chart-debug] weightSeries count=${weightSeries.length} last=$lastWeight',
-          );
-          debugPrint(
-            '[chart-debug] calorieSeries count=${calorieSeries.length} last=$lastCal',
-          );
-        } catch (e, st) {
-          debugPrint('[chart-debug] error reading series: $e\n$st');
-        }
-      }
-      return true;
-    }());
-    if (weightPoints.isEmpty || caloriePoints.isEmpty) {
+    if (weightPoints.isEmpty && caloriePoints.isEmpty) {
       return AnalyticsChartDefaults.stateView(
         context: context,
         l10n: l10n,
@@ -168,22 +167,22 @@ class _BodyNutritionNormalizedTrendChartState
     }
 
     final series = [
-      _ChartSeries(
-        label: l10n.analyticsWeightTrendLabel(
-          context.read<UnitService>().suffixFor(UnitDimension.weight),
+      if (weightPoints.isNotEmpty)
+        _ChartSeries(
+          label: l10n.analyticsWeightTrendLabel(weightScale.unit),
+          color: Theme.of(context).colorScheme.primary,
+          scale: weightScale,
+          points: weightPoints,
+          kind: _SeriesKind.weight,
         ),
-        color: Theme.of(context).colorScheme.primary,
-        scale: weightScale,
-        points: weightPoints,
-        dotShape: _SeriesDotShape.circle,
-      ),
-      _ChartSeries(
-        label: l10n.analyticsCaloriesTrendLabel,
-        color: const Color(0xFFF97316),
-        scale: calorieScale,
-        points: caloriePoints,
-        dotShape: _SeriesDotShape.square,
-      ),
+      if (caloriePoints.isNotEmpty)
+        _ChartSeries(
+          label: l10n.analyticsCaloriesTrendLabel,
+          color: const Color(0xFFF97316),
+          scale: calorieScale,
+          points: caloriePoints,
+          kind: _SeriesKind.calories,
+        ),
     ];
 
     final xLabelPositions = _xLabelPositions(spanDays);
@@ -205,41 +204,18 @@ class _BodyNutritionNormalizedTrendChartState
       borderData: AnalyticsChartDefaults.noBorder,
       lineTouchData: LineTouchData(
         enabled: true,
-        handleBuiltInTouches: true,
+        handleBuiltInTouches: false,
         touchSpotThreshold: 18,
         touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
-          if (event is FlPanEndEvent || event is FlTapUpEvent) {
-            _lastVibratedIndex = null;
-            if (_activeTooltipSpots != null) {
-              setState(() {
-                _activeTooltipSpots = null;
-              });
-            }
-            return;
-          }
-          final spots = response?.lineBarSpots;
-          if (spots != null && spots.isNotEmpty) {
-            final idx = spots.first.spotIndex;
-            if (idx != _lastVibratedIndex) {
-              _lastVibratedIndex = idx;
-              if (HapticFeedbackService.instance.isEnabled) {
-                HapticFeedback.lightImpact();
-              }
-            }
-            if (_activeTooltipSpots != spots) {
-              setState(() {
-                _activeTooltipSpots = spots;
-              });
-            }
+          final x = event.isInterestedForInteractions
+              ? response?.lineBarSpots?.firstOrNull?.x
+              : null;
+          if (x == _activeX) return;
+          setState(() => _activeX = x);
+          if (x != null && HapticFeedbackService.instance.isEnabled) {
+            HapticFeedback.lightImpact();
           }
         },
-        touchTooltipData: LineTouchTooltipData(
-          getTooltipItems: (touchedSpots) => List<LineTooltipItem?>.filled(
-            touchedSpots.length,
-            null,
-            growable: false,
-          ),
-        ),
       ),
       titlesData: compact
           ? AnalyticsChartDefaults.hiddenTitles
@@ -249,7 +225,7 @@ class _BodyNutritionNormalizedTrendChartState
               ),
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
-                  showTitles: !widget.edgeToEdge,
+                  showTitles: !widget.edgeToEdge && weightPoints.isNotEmpty,
                   reservedSize: 52,
                   interval: 0.5,
                   getTitlesWidget: (value, meta) {
@@ -266,7 +242,7 @@ class _BodyNutritionNormalizedTrendChartState
               ),
               rightTitles: AxisTitles(
                 sideTitles: SideTitles(
-                  showTitles: !widget.edgeToEdge,
+                  showTitles: !widget.edgeToEdge && caloriePoints.isNotEmpty,
                   reservedSize: 56,
                   interval: 0.5,
                   getTitlesWidget: (value, meta) {
@@ -324,74 +300,7 @@ class _BodyNutritionNormalizedTrendChartState
                 ),
               ),
             ),
-      lineBarsData: series
-          .map(
-            (seriesConfig) => AnalyticsChartDefaults.straightLine(
-              spots: seriesConfig.points
-                  .map((point) => point.spot)
-                  .toList(growable: false),
-              barWidth: compact ? 3.2 : 4.0,
-              isStrokeCapRound: true,
-              color: seriesConfig.color,
-              belowBarData:
-                  seriesConfig.label ==
-                      l10n.analyticsWeightTrendLabel(
-                        context.read<UnitService>().suffixFor(
-                          UnitDimension.weight,
-                        ),
-                      )
-                  ? BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          seriesConfig.color.withValues(alpha: 0.22),
-                          seriesConfig.color.withValues(alpha: 0.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    )
-                  : BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          seriesConfig.color.withValues(alpha: 0.08),
-                          seriesConfig.color.withValues(alpha: 0.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-              dotData: FlDotData(
-                show: true,
-                checkToShowDot: (spot, bar) {
-                  if (seriesConfig.points.length <= 2) {
-                    return true;
-                  }
-                  final index = bar.spots.indexOf(spot);
-                  return index == 0 || index == bar.spots.length - 1;
-                },
-                getDotPainter: (spot, percent, bar, index) {
-                  final strokeColor = Theme.of(context).scaffoldBackgroundColor;
-                  return switch (seriesConfig.dotShape) {
-                    _SeriesDotShape.circle => FlDotCirclePainter(
-                      radius: compact ? 3.0 : 4.5,
-                      color: seriesConfig.color,
-                      strokeWidth: 2,
-                      strokeColor: strokeColor,
-                    ),
-                    _SeriesDotShape.square => FlDotSquarePainter(
-                      size: compact ? 6.0 : 8.0,
-                      color: seriesConfig.color,
-                      strokeWidth: 2,
-                      strokeColor: strokeColor,
-                    ),
-                  };
-                },
-              ),
-            ),
-          )
-          .toList(growable: false),
+      lineBarsData: [for (final item in series) _buildLine(context, item)],
     );
 
     final chartWidget = LineChart(chartData);
@@ -406,9 +315,8 @@ class _BodyNutritionNormalizedTrendChartState
 
       double yToTop(double y) => (maxY - y) / yRange * (totalHeight - 42.0);
 
-      // Ticks to label
-      final leftTicks = [1.0, 0.5, 0.0];
-      final rightTicks = [1.0, 0.5, 0.0];
+      const ticks = [1.0, 0.5, 0.0];
+      final activeX = _activeX;
 
       return SizedBox(
         width: double.infinity,
@@ -422,30 +330,31 @@ class _BodyNutritionNormalizedTrendChartState
             children: [
               chartWidget,
               // Left Y-axis labels drawn on top
-              for (final tick in leftTicks)
-                Positioned(
-                  top: yToTop(tick) - 8,
-                  left: leftInset,
-                  child: _axisTitle(context, tick, weightScale),
-                ),
-              // Right Y-axis labels drawn on top
-              for (final tick in rightTicks)
-                Positioned(
-                  top: yToTop(tick) - 8,
-                  right: rightInset,
-                  child: _axisTitle(
-                    context,
-                    tick,
-                    calorieScale,
-                    alignRight: true,
+              for (final tick in ticks)
+                if (weightPoints.isNotEmpty)
+                  Positioned(
+                    top: yToTop(tick) - 8,
+                    left: leftInset,
+                    child: _axisTitle(context, tick, weightScale),
                   ),
-                ),
-              if (_activeTooltipSpots != null &&
-                  _activeTooltipSpots!.isNotEmpty)
+              // Right Y-axis labels drawn on top
+              for (final tick in ticks)
+                if (caloriePoints.isNotEmpty)
+                  Positioned(
+                    top: yToTop(tick) - 8,
+                    right: rightInset,
+                    child: _axisTitle(
+                      context,
+                      tick,
+                      calorieScale,
+                      alignRight: true,
+                    ),
+                  ),
+              if (activeX != null)
                 _buildTooltipOverlay(
                   context: context,
                   series: series,
-                  touchedSpots: _activeTooltipSpots!,
+                  activeX: activeX,
                   chartWidth: MediaQuery.of(context).size.width,
                   totalHeight: totalHeight,
                   plotHeight: totalHeight - 42.0,
@@ -463,99 +372,81 @@ class _BodyNutritionNormalizedTrendChartState
   List<_ChartPoint> _buildPoints({
     required List<DailyValuePoint> series,
     required DateTime firstDay,
-    required double maxX,
     required _SeriesScale scale,
-    AggregationMethod aggregationMethod = AggregationMethod.average,
-    Set<DateTime> gapDays = const {},
   }) {
-    final Map<int, List<DailyValuePoint>> groupedByX = {};
-    final maxXInt = maxX.round();
+    final groupedByX = <int, ({double sum, int count})>{};
     for (final point in series) {
-      final xIndex = _xOf(point.day, firstDay).round();
-      final y = point.value;
-      if (!y.isFinite || xIndex < 0 || xIndex > maxXInt) continue;
-
-      // BOLT OPTIMIZATION: Avoid .putIfAbsent() to prevent closure allocation per point
-      var list = groupedByX[xIndex];
-      if (list == null) {
-        list = [];
-        groupedByX[xIndex] = list;
-      }
-      list.add(point);
-    }
-
-    final deduplicatedByX = <int, _ChartPoint>{};
-    groupedByX.forEach((xIndex, points) {
-      final day = points.first.day;
-
-      // BOLT OPTIMIZATION: Replace .map().reduce() with a single-pass loop
-      // to eliminate intermediate array allocations
-      var sum = 0.0;
-      for (final p in points) {
-        sum += p.value;
-      }
-
-      final accumulatedValue = (aggregationMethod == AggregationMethod.sum)
-          ? sum
-          : sum / points.length;
-
-      deduplicatedByX[xIndex] = _ChartPoint(
-        day: day,
-        rawValue: accumulatedValue,
-        spot: FlSpot(xIndex.toDouble(), scale.toPlotValue(accumulatedValue)),
+      final x = _dayOffset(point.day, firstDay);
+      final previous = groupedByX[x];
+      groupedByX[x] = (
+        sum: (previous?.sum ?? 0.0) + point.value,
+        count: (previous?.count ?? 0) + 1,
       );
-    });
-
-    final orderedPoints = deduplicatedByX.values.toList(growable: true)
-      ..sort((a, b) => a.spot.x.compareTo(b.spot.x));
-    if (orderedPoints.isEmpty) {
-      return const [];
     }
-    final firstPoint = orderedPoints.first;
-    final lastPoint = orderedPoints.last;
-    final gapsByX = {for (final day in gapDays) _xOf(day, firstDay): day};
-    if (firstPoint.spot.x > 0 &&
-        !gapsByX.keys.any((x) => x >= 0 && x < firstPoint.spot.x)) {
-      orderedPoints.insert(
-        0,
-        _ChartPoint(
-          day: firstPoint.day,
-          rawValue: firstPoint.rawValue,
-          spot: FlSpot(0, firstPoint.spot.y),
+
+    final orderedX = groupedByX.keys.toList()..sort();
+    return orderedX
+        .map((x) {
+          final group = groupedByX[x]!;
+          final value = group.sum / group.count;
+          return _ChartPoint(
+            day: firstDay.add(Duration(days: x)),
+            rawValue: value,
+            spot: FlSpot(x.toDouble(), scale.toPlotValue(value)),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  LineChartBarData _buildLine(BuildContext context, _ChartSeries series) {
+    final compact = widget.compact;
+    final isWeight = series.kind == _SeriesKind.weight;
+    final strokeColor = Theme.of(context).scaffoldBackgroundColor;
+    final spots = [for (final point in series.points) point.spot];
+    final indicators = [
+      for (final (index, spot) in spots.indexed)
+        if (spot.x == _activeX) index,
+    ];
+
+    return AnalyticsChartDefaults.straightLine(
+      spots: spots,
+      barWidth: compact ? 3.2 : 4.0,
+      isStrokeCapRound: true,
+      color: series.color,
+      belowBarData: BarAreaData(
+        show: true,
+        gradient: LinearGradient(
+          colors: [
+            series.color.withValues(alpha: isWeight ? 0.22 : 0.08),
+            series.color.withValues(alpha: 0.0),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-      );
-    }
-    if (lastPoint.spot.x < maxXInt &&
-        !gapsByX.keys.any((x) => x > lastPoint.spot.x && x <= maxXInt)) {
-      orderedPoints.add(
-        _ChartPoint(
-          day: lastPoint.day,
-          rawValue: lastPoint.rawValue,
-          spot: FlSpot(maxXInt.toDouble(), lastPoint.spot.y),
-        ),
-      );
-    }
-
-    if (gapsByX.isEmpty) return orderedPoints;
-    final pointsByX = {
-      for (final point in orderedPoints) point.spot.x: point,
-      for (final gap in gapsByX.entries)
-        if (gap.key > firstPoint.spot.x && gap.key < lastPoint.spot.x)
-          gap.key: _ChartPoint(
-            day: gap.value,
-            rawValue: double.nan,
-            spot: FlSpot.nullSpot,
+      ),
+      dotData: FlDotData(
+        show: true,
+        checkToShowDot: (spot, _) => spot == spots.first || spot == spots.last,
+        getDotPainter: (_, _, _, _) => switch (series.kind) {
+          _SeriesKind.weight => FlDotCirclePainter(
+            radius: compact ? 3.0 : 4.5,
+            color: series.color,
+            strokeWidth: 2,
+            strokeColor: strokeColor,
           ),
-    };
-    final orderedX = pointsByX.keys.toList()..sort();
-    return [for (final x in orderedX) pointsByX[x]!];
+          _SeriesKind.calories => FlDotSquarePainter(
+            size: compact ? 6.0 : 8.0,
+            color: series.color,
+            strokeWidth: 2,
+            strokeColor: strokeColor,
+          ),
+        },
+      ),
+    ).copyWith(showingIndicators: indicators);
   }
 
-  double _xOf(DateTime day, DateTime firstDay) {
-    final d1 = DateTime.utc(day.year, day.month, day.day);
-    final d2 = DateTime.utc(firstDay.year, firstDay.month, firstDay.day);
-    return d1.difference(d2).inDays.toDouble();
-  }
+  int _dayOffset(DateTime day, DateTime firstDay) =>
+      DateTime.utc(day.year, day.month, day.day).difference(firstDay).inDays;
 
   Set<int> _xLabelPositions(int spanDays) {
     if (spanDays <= 1) return {0};
@@ -604,28 +495,23 @@ class _BodyNutritionNormalizedTrendChartState
   Widget _buildTooltipOverlay({
     required BuildContext context,
     required List<_ChartSeries> series,
-    required List<LineBarSpot> touchedSpots,
+    required double activeX,
     required double chartWidth,
     required double totalHeight,
     required double plotHeight,
     required double maxX,
   }) {
-    final firstSpot = touchedSpots.first;
-    final seriesIndex = firstSpot.barIndex;
-    if (seriesIndex < 0 || seriesIndex >= series.length) {
-      return const SizedBox.shrink();
+    final rows = <(_ChartSeries, _ChartPoint)>[];
+    for (final item in series) {
+      final point = item.points.where((p) => p.spot.x == activeX).firstOrNull;
+      if (point != null) rows.add((item, point));
     }
+    if (rows.isEmpty) return const SizedBox.shrink();
 
-    final selectedSeries = series[seriesIndex];
-    final pointIndex = firstSpot.spotIndex;
-    if (pointIndex < 0 || pointIndex >= selectedSeries.points.length) {
-      return const SizedBox.shrink();
-    }
-
-    final point = selectedSeries.points[pointIndex];
-    final tooltipWidth = 192.0;
-    final tooltipHeight = 74.0 + (touchedSpots.length - 1) * 20.0;
-    final xCenter = (firstSpot.x / maxX) * chartWidth;
+    final point = rows.first.$2;
+    final tooltipWidth = math.min(192.0, chartWidth - 24.0);
+    final tooltipHeight = 74.0 + (rows.length - 1) * 20.0;
+    final xCenter = (activeX / maxX) * chartWidth;
     final left = (xCenter - tooltipWidth / 2).clamp(
       12.0,
       chartWidth - tooltipWidth - 12.0,
@@ -673,39 +559,19 @@ class _BodyNutritionNormalizedTrendChartState
                   ),
                 ),
                 const SizedBox(height: 6),
-                for (final spot in touchedSpots)
-                  _buildTooltipRow(context, series, spot),
+                for (final (item, point) in rows)
+                  Text(
+                    '${item.label}: ${item.scale.formatRaw(point.rawValue)}',
+                    style: baseStyle.copyWith(
+                      color: item.color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTooltipRow(
-    BuildContext context,
-    List<_ChartSeries> series,
-    LineBarSpot touchedSpot,
-  ) {
-    final seriesIndex = touchedSpot.barIndex;
-    if (seriesIndex < 0 || seriesIndex >= series.length) {
-      return const SizedBox.shrink();
-    }
-
-    final selectedSeries = series[seriesIndex];
-    final pointIndex = touchedSpot.spotIndex;
-    if (pointIndex < 0 || pointIndex >= selectedSeries.points.length) {
-      return const SizedBox.shrink();
-    }
-
-    final point = selectedSeries.points[pointIndex];
-    return Text(
-      '${selectedSeries.label}: ${selectedSeries.scale.formatRaw(point.rawValue)}',
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: selectedSeries.color,
-        fontWeight: FontWeight.w700,
-        fontSize: 13,
       ),
     );
   }
@@ -729,17 +595,17 @@ class _ChartSeries {
     required this.color,
     required this.scale,
     required this.points,
-    required this.dotShape,
+    required this.kind,
   });
 
   final String label;
   final Color color;
   final _SeriesScale scale;
   final List<_ChartPoint> points;
-  final _SeriesDotShape dotShape;
+  final _SeriesKind kind;
 }
 
-enum _SeriesDotShape { circle, square }
+enum _SeriesKind { weight, calories }
 
 class _SeriesScale {
   const _SeriesScale({
@@ -837,5 +703,3 @@ String _formatNumber(double value, int fractionDigits, String? locale) {
     decimalDigits: fractionDigits,
   ).format(normalized);
 }
-
-enum AggregationMethod { average, sum }

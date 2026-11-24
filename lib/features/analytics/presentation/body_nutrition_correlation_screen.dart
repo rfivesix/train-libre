@@ -421,9 +421,7 @@ class _BodyNutritionCorrelationScreenState
             child: BodyNutritionNormalizedTrendChart(
               range: data.range,
               weightSeries: data.weightDaily,
-              calorieSeries: data.caloriesDaily
-                  .where((point) => point.value > 0)
-                  .toList(growable: false),
+              calorieSeries: data.caloriesDaily,
               incompleteNutritionDays: data.incompleteNutritionDays,
               edgeToEdge: true,
             ),

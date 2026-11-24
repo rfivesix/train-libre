@@ -27,24 +27,15 @@ class BodyNutritionAnalyticsEngine {
     final weightByDay = weightSeries.weightByDay;
     final excludedDays = incompleteDays.map(normalizeDay).toSet();
     final loggedCaloriesByDay = <DateTime, double>{};
-    final caloriesDaily = <DailyValuePoint>[];
     final weightDaily = weightSeries.weightDaily;
 
-    final today = DateTime.now();
-    final todayUtc = DateTime.utc(today.year, today.month, today.day);
+    final today = normalizeDay(DateTime.now());
 
     for (final day in allDays) {
-      final isToday =
-          day.year == todayUtc.year &&
-          day.month == todayUtc.month &&
-          day.day == todayUtc.day;
-
-      if (!isToday && !excludedDays.contains(day)) {
-        final calories = caloriesByDay[day] ?? 0.0;
-        if (calories > 0) {
-          loggedCaloriesByDay[day] = calories;
-        }
-        caloriesDaily.add(DailyValuePoint(day: day, value: calories));
+      if (day == today || excludedDays.contains(day)) continue;
+      final calories = caloriesByDay[day];
+      if (calories != null && calories.isFinite && calories > 0) {
+        loggedCaloriesByDay[day] = calories;
       }
     }
 
@@ -147,7 +138,7 @@ class BodyNutritionAnalyticsEngine {
       loggedCalorieDays: loggedCalorieDays,
       weightDaily: weightDaily,
       smoothedWeight: smoothedWeight,
-      caloriesDaily: caloriesDaily,
+      caloriesDaily: loggedCaloriesSeries,
       incompleteNutritionDays: excludedDays,
       smoothedCalories: smoothedCalories,
       normalizedWeightTrend: normalizedComparison.weightSeries,
@@ -204,6 +195,7 @@ class BodyNutritionAnalyticsEngine {
     final sorted = points.toList()..sort((a, b) => a.date.compareTo(b.date));
     final map = <DateTime, double>{};
     for (final point in sorted) {
+      if (!point.value.isFinite || point.value <= 0) continue;
       map[normalizeDay(point.date)] = point.value;
     }
     return map;
@@ -650,8 +642,8 @@ class BodyNutritionAnalyticsEngine {
     List<DailyValuePoint> smoothedWeight,
     List<DailyValuePoint> rawWeight,
   ) {
+    if (rawWeight.length < 2) return null;
     final source = smoothedWeight.length >= 2 ? smoothedWeight : rawWeight;
-    if (source.length < 2) return null;
     return source.last.value - source.first.value;
   }
 
