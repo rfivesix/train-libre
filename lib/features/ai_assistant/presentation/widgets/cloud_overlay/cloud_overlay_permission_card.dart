@@ -59,11 +59,40 @@ class CloudOverlayPermissionCard extends StatelessWidget {
     );
     final scopeStart = pendingAccess?.scope['start']?.toString();
     final scopeEnd = pendingAccess?.scope['end']?.toString();
-    final periodLine = isDe
-        ? 'Zeitraum: $localizedScopeLabel'
-              '${scopeStart == null ? '' : ' — $scopeStart bis ${scopeEnd ?? scopeStart}'}'
-        : 'Period: $localizedScopeLabel'
-              '${scopeStart == null ? '' : ' — $scopeStart to ${scopeEnd ?? scopeStart}'}';
+    final rawCategoryScopes = pendingAccess?.scope['categoryScopes'];
+    final categoryScopeParts = <String>[];
+    if (rawCategoryScopes is Map && rawCategoryScopes.isNotEmpty) {
+      for (final entry in rawCategoryScopes.entries) {
+        final val = entry.value;
+        if (val is! Map) continue;
+        final catLabel = AssistantDataCategory.localizeName(
+          entry.key.toString(),
+          locale,
+        );
+        final cs = val['start']?.toString();
+        final ce = val['end']?.toString();
+        final cLabel = localizeAssistantScopeLabel(
+          val['label']?.toString() ?? 'date range',
+          locale,
+        );
+        if (cs != null) {
+          categoryScopeParts.add(
+            isDe
+                ? '$catLabel: $cLabel ($cs bis ${ce ?? cs})'
+                : '$catLabel: $cLabel ($cs to ${ce ?? cs})',
+          );
+        }
+      }
+    }
+    final periodLine = categoryScopeParts.isNotEmpty
+        ? (isDe
+              ? 'Zeiträume: ${categoryScopeParts.join('; ')}'
+              : 'Periods: ${categoryScopeParts.join('; ')}')
+        : (isDe
+              ? 'Zeitraum: $localizedScopeLabel'
+                    '${scopeStart == null ? '' : ' — $scopeStart bis ${scopeEnd ?? scopeStart}'}'
+              : 'Period: $localizedScopeLabel'
+                    '${scopeStart == null ? '' : ' — $scopeStart to ${scopeEnd ?? scopeStart}'}');
     final card = Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: DecoratedBox(

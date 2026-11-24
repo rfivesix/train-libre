@@ -59,11 +59,38 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
     );
     final start = access.scope['start']?.toString();
     final end = access.scope['end']?.toString();
-    final scopeText = start == null
-        ? localizedScopeLabel
-        : isDe
-        ? '$localizedScopeLabel ($start bis ${end ?? start})'
-        : '$localizedScopeLabel ($start to ${end ?? start})';
+    final rawCategoryScopes = access.scope['categoryScopes'];
+    final categoryScopeLines = <String>[];
+    if (rawCategoryScopes is Map && rawCategoryScopes.isNotEmpty) {
+      for (final entry in rawCategoryScopes.entries) {
+        final val = entry.value;
+        if (val is! Map) continue;
+        final catLabel = AssistantDataCategory.localizeName(
+          entry.key.toString(),
+          locale,
+        );
+        final cs = val['start']?.toString();
+        final ce = val['end']?.toString();
+        final cLabel = localizeAssistantScopeLabel(
+          val['label']?.toString() ?? 'date range',
+          locale,
+        );
+        if (cs != null) {
+          categoryScopeLines.add(
+            isDe
+                ? '$catLabel: $cLabel ($cs bis ${ce ?? cs})'
+                : '$catLabel: $cLabel ($cs to ${ce ?? cs})',
+          );
+        }
+      }
+    }
+    final scopeText = categoryScopeLines.isNotEmpty
+        ? categoryScopeLines.join('\n')
+        : (start == null
+              ? localizedScopeLabel
+              : isDe
+              ? '$localizedScopeLabel ($start bis ${end ?? start})'
+              : '$localizedScopeLabel ($start to ${end ?? start})');
     final statusText = localizeAccessStatus(access.status, isDe: isDe);
     final modelDisplay = formatModelDisplayName(
       access.providerId,

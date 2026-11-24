@@ -112,32 +112,40 @@ class AssistantTrainingActions implements AssistantDataAction {
         );
       case AssistantDataCategory.recovery:
         final today = DateTime.now();
-        if (scope != null && !_sameDay(scope.end, today)) {
-          return AssistantActionResult(
-            category: category,
-            status: AssistantActionStatus.error,
-            error: 'Historical recovery snapshots are not available.',
-          );
-        }
+        final asOf = (scope == null || _sameDay(scope.end, today))
+            ? null
+            : DateTime(
+                scope.end.year,
+                scope.end.month,
+                scope.end.day,
+                23,
+                59,
+                59,
+              );
         final days = scope == null
-            ? 14
-            : DateTime.utc(scope.end.year, scope.end.month, scope.end.day)
-                      .difference(
-                        DateTime.utc(
-                          scope.start.year,
-                          scope.start.month,
-                          scope.start.day,
-                        ),
-                      )
-                      .inDays +
-                  1;
-        final recovery = await WorkoutLocalDataSource(database)
-            .getRecoveryAnalytics(lookbackDays: days);
+            ? 21
+            : (DateTime.utc(scope.end.year, scope.end.month, scope.end.day)
+                          .difference(
+                            DateTime.utc(
+                              scope.start.year,
+                              scope.start.month,
+                              scope.start.day,
+                            ),
+                          )
+                          .inDays +
+                      1)
+                  .clamp(14, 21);
+        final recovery = await WorkoutLocalDataSource(
+          database,
+        ).getRecoveryAnalytics(lookbackDays: days, asOf: asOf);
+        final refDate = asOf == null
+            ? 'current'
+            : '${asOf.year.toString().padLeft(4, '0')}-${asOf.month.toString().padLeft(2, '0')}-${asOf.day.toString().padLeft(2, '0')}';
         return AssistantActionResult(
           category: category,
           status: AssistantActionStatus.success,
           records: [
-            {'ref': 'recovery:current', ...recovery},
+            {'ref': 'recovery:$refDate', 'asOf': refDate, ...recovery},
           ],
         );
       default:

@@ -86,10 +86,61 @@ class AssistantSqlSandbox {
         .toList();
     final tableRows = <String, List<Map<String, dynamic>>>{};
     final tableColumns = <String, Map<String, String>>{};
+    final statusRows = <Map<String, dynamic>>[];
+    for (final result in results) {
+      if (result.sourceStatus != null) {
+        statusRows.add({
+          'category': result.category.name,
+          ...result.sourceStatus!,
+        });
+      } else if (result.status == AssistantActionStatus.unavailable) {
+        statusRows.add({
+          'category': result.category.name,
+          'status': 'unavailable',
+          'tracking_enabled': 0,
+          'permission_state': null,
+          'last_synced_at': null,
+          'detail': result.error ?? 'Data source unavailable.',
+        });
+      }
+    }
+    if (statusRows.isNotEmpty) {
+      tableRows['data_source_status'] = statusRows;
+      tableColumns['data_source_status'] = const {
+        'category': 'TEXT',
+        'status': 'TEXT',
+        'tracking_enabled': 'INTEGER',
+        'permission_state': 'TEXT',
+        'last_synced_at': 'TEXT',
+        'detail': 'TEXT',
+      };
+    }
+
+    Object rowKey(Map<String, dynamic> row) {
+      final id = row['id']?.toString();
+      if (id != null && id.isNotEmpty) return 'id:$id';
+      final localId = row['local_id']?.toString();
+      if (localId != null && localId.isNotEmpty) return 'local_id:$localId';
+      final nativeId = row['native_id']?.toString();
+      if (nativeId != null && nativeId.isNotEmpty) return 'native_id:$nativeId';
+      final bucketStart = row['bucket_start_ms']?.toString();
+      if (bucketStart != null && bucketStart.isNotEmpty) {
+        return 'bucket:$bucketStart';
+      }
+      return jsonEncode(row, toEncodable: _jsonEncodable);
+    }
+
     for (final result in successful) {
       if (result.tables.isEmpty) {
         if (result.records.isNotEmpty) {
-          tableRows['data_${result.category.name}'] = result.records;
+          final rows = tableRows.putIfAbsent(
+            'data_${result.category.name}',
+            () => [],
+          );
+          final known = rows.map(rowKey).toSet();
+          for (final row in result.records) {
+            if (known.add(rowKey(row))) rows.add(row);
+          }
         }
         continue;
       }
@@ -98,32 +149,22 @@ class AssistantSqlSandbox {
             .putIfAbsent(entry.key, () => <String, String>{})
             .addAll(result.tableColumns[entry.key] ?? const {});
         final rows = tableRows.putIfAbsent(entry.key, () => []);
-        final known = <Object>{};
-        for (final row in rows) {
-          final id = row['id']?.toString();
-          final localId = row['local_id']?.toString();
-          final key = (id != null && id.isNotEmpty)
-              ? 'id:$id'
-              : (localId != null && localId.isNotEmpty)
-              ? 'local_id:$localId'
-              : jsonEncode(row, toEncodable: _jsonEncodable);
-          known.add(key);
-        }
+        final known = rows.map(rowKey).toSet();
         for (final row in entry.value) {
-          final id = row['id']?.toString();
-          final localId = row['local_id']?.toString();
-          final key = (id != null && id.isNotEmpty)
-              ? 'id:$id'
-              : (localId != null && localId.isNotEmpty)
-              ? 'local_id:$localId'
-              : jsonEncode(row, toEncodable: _jsonEncodable);
-          if (known.add(key)) rows.add(row);
+          if (known.add(rowKey(row))) rows.add(row);
         }
       }
       if (result.tables.isNotEmpty &&
           result.tableColumns.values.every((columns) => columns.isEmpty) &&
           result.records.isNotEmpty) {
-        tableRows['data_${result.category.name}'] = result.records;
+        final rows = tableRows.putIfAbsent(
+          'data_${result.category.name}',
+          () => [],
+        );
+        final known = rows.map(rowKey).toSet();
+        for (final row in result.records) {
+          if (known.add(rowKey(row))) rows.add(row);
+        }
       }
     }
     final datasets = [
@@ -352,11 +393,25 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
           'Routines: `workout_logs.routine_id = routines.id`. Saved recipes (`meals`, `meal_items`) require a separate recipes approval; meal_entries has no recipe foreign key.',
       'Routine and plan relationships: `routine_exercises.routine_id = routines.id`, `routine_exercises.exercise_id = exercises.id`, and `routine_set_templates.routine_exercise_id = routine_exercises.id`. '
           'Muscle/equipment assignments are in `exercise_muscles` and `exercise_equipment`; routine plans and prescription questions need the approved `routines` category. '
-          '`training_plan_revisions.plan_id = training_plans.id`; use the latest effective revision or `active_plan_week` for the active schedule, and join `training_plan_occurrences` by activation_id/date/slot_index for actual occurrence status. '
+          '`training_plan_revisions.plan_id = training_plans.id`; use `active_plan_schedule` (supports both weekly and rolling sequence plans, with `is_next_slot`, `sequence_cursor`, and `sequence_cycle`) or `active_plan_week` for the active schedule, and join `training_plan_occurrences` by activation_id/date/slot_index for actual occurrence status. '
           'If needed workout, routine, exercise-assignment, or plan tables are not listed as available, request their category approval instead of saying the assignment is missing.',
+      'Sleep, Pulse/HRV, and Steps: '
+          'For sleep, always prefer `sleep_nightly_summary` as the app-calculated source of truth: one deduplicated primary night per `night_date` (local wake date), with `bedtime_local`, `waketime_local`, `in_bed_minutes`, `total_sleep_minutes`, `deep_minutes`, `rem_minutes`, `light_minutes`, `awake_minutes`, `unspecified_sleep_minutes`, `sleep_efficiency_pct`, `avg_sleep_heart_rate_bpm`, `min_sleep_heart_rate_bpm`, `max_sleep_heart_rate_bpm`, `interruptions_count`, `interruptions_wake_minutes`, `score`, `score_completeness`, subscores, `duration_ceiling_applied`, `nap_count`, and `nap_total_minutes`. '
+          'Note: `sleep_nightly_analyses.resting_heart_rate_bpm` is actually the nocturnal average sleep heart rate, NOT daytime resting pulse. '
+          'For pulse and HRV, use `pulse_daily_summary` (daily avg/min/max BPM, `resting_bpm` with `resting_bpm_is_estimated`, and daily SDNN HRV metrics in ms), `pulse_hourly_aggregates` (hourly buckets with `local_date`, `local_hour`, `avg_bpm`, `min_bpm`, `max_bpm`), `pulse_hrv_samples` (individual SDNN ms readings), and `workout_heart_rate_summary` (avg/min/max BPM per logged workout). '
+          'For steps, always prefer `steps_daily_summary` (`date`, `steps`, `target_steps`, `goal_met`, `delta_to_target`) as the app-deduplicated source of truth rather than summing raw `health_step_segments` (which may contain overlapping sources). For 1-3 day scopes, `steps_hourly_summary` gives deduplicated hourly totals.',
+      'Goals, TDEE, Analytics, Recovery, Preferences & Status: '
+          '`adaptive_nutrition_state` contains the live Bayesian TDEE estimate (`estimated_tdee_kcal`, `tdee_std_dev_kcal`, `tdee_confidence`, `observed_intake_kcal`, `observed_weight_slope_kg_per_week`), latest generated/applied macro recommendations, diet phase, and next check-in timestamp. '
+          '`nutrition_daily_summary` includes `sugar_g`, `fiber_g`, `salt_g`, `caffeine_mg`, their targets, and `is_incomplete_day` (1 = marked incomplete by the user and excluded from app averages). `incomplete_nutrition_days` lists incomplete dates; `bls_micronutrient_daily_summary` provides pre-aggregated daily BLS micronutrients. '
+          '`training_overview_stats`, `personal_records` (all-time exercise PRs, rep-bracket PRs, and period PRs), `weekly_training_consistency`, `muscle_group_volume_summary`, and `body_nutrition_trend` (7-day smoothed weight & calorie correlation) mirror the Statistics hub. '
+          '`recovery_overview` and `muscle_recovery_status` expose muscular readiness (`state`, `readiness_score`, `hours_since_last_session`, `residual_load`, `high_session_fatigue`). '
+          '`user_preferences_summary` holds extra nutrient targets, activity level, and health-tracking toggles; `favorite_foods` and `custom_foods` live under `recipes`. '
+          '`data_source_status` reports whether health sources (steps, sleep, pulse) are disabled, missing permissions, or fell back to cached data—always inspect it if a category has no rows.',
+      'SQL capabilities: scalar JSON functions `json_extract`, `json_type`, and `json_array_length` are available for JSON text columns, and CTEs may reference an approved table up to three times (e.g. comparing two periods).',
       'Known units: weightKg and weight_kg are kilograms; caloriesKcal and calories_kcal are kilocalories; '
           'fields ending in Grams or _g are grams; fields ending in Milliliters or _ml are milliliters; '
           'fields ending in Minutes or _minutes are minutes; fields ending in Seconds or _seconds are seconds; '
+          'fields ending in _bpm are beats per minute; fields ending in _ms (SDNN) are milliseconds; '
           'caffeine_mg is milligrams. Measurement values use their accompanying unit column.',
     ].join('\n');
     replyTo.send({
@@ -480,6 +535,9 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
     'ifnull',
     'iif',
     'instr',
+    'json_array_length',
+    'json_extract',
+    'json_type',
     'julianday',
     'length',
     'lower',
@@ -519,7 +577,7 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
     }
   }
   final referenced = <String>{};
-  final repeatedTables = <String>{};
+  final referenceCounts = <String, int>{};
   for (final reference
       in statement.selfAndDescendants.whereType<TableReference>()) {
     final name = reference.tableName.toLowerCase();
@@ -529,13 +587,15 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
         'The query references a table outside the approved data snapshot.',
       );
     }
-    if (allowedTables.contains(name) && !referenced.add(name)) {
-      repeatedTables.add(name);
+    if (allowedTables.contains(name)) {
+      referenced.add(name);
+      referenceCounts[name] = (referenceCounts[name] ?? 0) + 1;
     }
   }
-  if (referenced.length > 10 || repeatedTables.isNotEmpty) {
+  if (referenced.length > 10 ||
+      referenceCounts.values.any((count) => count > 3)) {
     throw const AssistantSqlQueryException(
-      'A query can use at most ten approved tables and cannot self-join a table.',
+      'A query can use at most ten approved tables and reference each table at most three times.',
     );
   }
   if (referenced.isEmpty) {

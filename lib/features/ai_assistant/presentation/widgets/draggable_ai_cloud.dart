@@ -22,10 +22,12 @@ import '../../../workout/domain/repositories/workout_repository.dart';
 import '../../../settings/presentation/ai_settings_screen.dart';
 import '../../application/assistant_chat_service.dart';
 import '../../../../services/voice/voice_dictation_service.dart';
+import '../../data/assistant_analytics_actions.dart';
 import '../../data/assistant_diary_actions.dart';
 import '../../data/assistant_database_snapshot_reader.dart';
 import '../../data/assistant_health_actions.dart';
 import '../../data/assistant_history_repository.dart';
+import '../../data/assistant_pulse_actions.dart';
 import '../../data/assistant_training_actions.dart';
 import '../../domain/assistant_data_action.dart';
 import '../ai_global_cloud_presentation.dart';
@@ -342,13 +344,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   workouts: workouts,
                   database: database,
                 ),
-                AssistantDiaryActions(diary),
+                AssistantDiaryActions(diary, database: database),
                 AssistantHealthActions(
                   database: database,
                   steps: HealthStepsAggregationRepository(),
                   profile: profile,
                   goals: goals,
                 ),
+                AssistantPulseActions(database: database),
+                AssistantAnalyticsActions(database: database),
               ],
             ),
           ]),

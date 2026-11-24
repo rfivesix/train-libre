@@ -4,8 +4,13 @@ import 'dart:io';
 import 'package:drift/drift.dart' as drift;
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 
+import '../../../core/infrastructure/user_preferences_repository.dart';
 import '../../../data/drift_database.dart';
 import '../../../services/bls_food_catalog_refresh_service.dart';
+import '../../../services/health/steps_sync_service.dart';
+import '../../nutrition_recommendation/data/recommendation_repository.dart';
+import '../../pulse/application/pulse_tracking_service.dart';
+import '../../sleep/platform/sleep_sync_service.dart';
 import '../domain/assistant_data_action.dart';
 import '../domain/assistant_data_request.dart';
 
@@ -43,6 +48,8 @@ class AssistantDatabaseSnapshotReader {
       'target_water': 'INTEGER',
       'target_steps': 'INTEGER',
       'experience_level': 'TEXT',
+      'training_autonomy_level': 'TEXT',
+      'nutrition_autonomy_level': 'TEXT',
     },
   };
 
@@ -56,12 +63,55 @@ class AssistantDatabaseSnapshotReader {
       'protein_g': 'REAL',
       'carbs_g': 'REAL',
       'fat_g': 'REAL',
+      'sugar_g': 'REAL',
+      'fiber_g': 'REAL',
+      'salt_g': 'REAL',
+      'caffeine_mg': 'REAL',
       'water_ml': 'REAL',
       'target_calories_kcal': 'INTEGER',
       'target_protein_g': 'INTEGER',
       'target_carbs_g': 'INTEGER',
       'target_fat_g': 'INTEGER',
       'target_water_ml': 'INTEGER',
+      'target_sugar_g': 'INTEGER',
+      'target_fiber_g': 'INTEGER',
+      'target_salt_g': 'INTEGER',
+      'target_caffeine_mg': 'INTEGER',
+      'is_incomplete_day': 'INTEGER',
+    },
+    'sleep_nightly_summary': {
+      'night_date': 'TEXT',
+      'session_id': 'TEXT',
+      'bedtime_local': 'TEXT',
+      'waketime_local': 'TEXT',
+      'in_bed_minutes': 'INTEGER',
+      'total_sleep_minutes': 'INTEGER',
+      'deep_minutes': 'INTEGER',
+      'rem_minutes': 'INTEGER',
+      'light_minutes': 'INTEGER',
+      'awake_minutes': 'INTEGER',
+      'unspecified_sleep_minutes': 'INTEGER',
+      'sleep_efficiency_pct': 'REAL',
+      'avg_sleep_heart_rate_bpm': 'REAL',
+      'min_sleep_heart_rate_bpm': 'REAL',
+      'max_sleep_heart_rate_bpm': 'REAL',
+      'interruptions_count': 'INTEGER',
+      'interruptions_wake_minutes': 'INTEGER',
+      'score': 'REAL',
+      'sleep_quality_bucket': 'TEXT',
+      'score_completeness': 'REAL',
+      'regularity_sri': 'REAL',
+      'regularity_valid_days': 'INTEGER',
+      'regularity_is_stable': 'INTEGER',
+      'duration_ceiling_applied': 'INTEGER',
+      'duration_subscore': 'REAL',
+      'continuity_subscore': 'REAL',
+      'deep_subscore': 'REAL',
+      'rem_subscore': 'REAL',
+      'regularity_subscore': 'REAL',
+      'nap_count': 'INTEGER',
+      'nap_total_minutes': 'INTEGER',
+      'source_platform': 'TEXT',
     },
     'active_plan_week': {
       'plan_id': 'TEXT',
@@ -70,6 +120,25 @@ class AssistantDatabaseSnapshotReader {
       'date': 'TEXT',
       'weekday_index': 'INTEGER',
       'slot_index': 'INTEGER',
+      'revision_id': 'TEXT',
+      'revision_number': 'INTEGER',
+      'routine_uuid': 'TEXT',
+      'routine_name': 'TEXT',
+      'is_rest': 'INTEGER',
+      'status': 'TEXT',
+      'workout_log_id': 'TEXT',
+      'routine_snapshot': 'TEXT',
+    },
+    'active_plan_schedule': {
+      'plan_id': 'TEXT',
+      'plan_name': 'TEXT',
+      'plan_kind': 'TEXT',
+      'date': 'TEXT',
+      'weekday_index': 'INTEGER',
+      'slot_index': 'INTEGER',
+      'is_next_slot': 'INTEGER',
+      'sequence_cursor': 'INTEGER',
+      'sequence_cycle': 'INTEGER',
       'revision_id': 'TEXT',
       'revision_number': 'INTEGER',
       'routine_uuid': 'TEXT',
@@ -95,6 +164,85 @@ class AssistantDatabaseSnapshotReader {
       'is_missing': 'INTEGER',
       'origin': 'TEXT',
       'reference': 'TEXT',
+    },
+    'bls_micronutrient_daily_summary': {
+      'date': 'TEXT',
+      'component_code': 'TEXT',
+      'nutrient_name': 'TEXT',
+      'name_de': 'TEXT',
+      'name_en': 'TEXT',
+      'nutrient_group': 'TEXT',
+      'unit': 'TEXT',
+      'consumed_value': 'REAL',
+      'food_count': 'INTEGER',
+      'is_incomplete_day': 'INTEGER',
+    },
+    'user_preferences_summary': {
+      'target_sugar_g': 'INTEGER',
+      'target_fiber_g': 'INTEGER',
+      'target_salt_g': 'INTEGER',
+      'target_caffeine_mg': 'INTEGER',
+      'overview_extra_nutrient': 'TEXT',
+      'prior_activity_level': 'TEXT',
+      'extra_cardio_hours_option': 'TEXT',
+      'steps_tracking_enabled': 'INTEGER',
+      'sleep_tracking_enabled': 'INTEGER',
+      'pulse_tracking_enabled': 'INTEGER',
+    },
+    'favorite_foods': {
+      'barcode': 'TEXT',
+      'name': 'TEXT',
+      'brand': 'TEXT',
+      'calories': 'INTEGER',
+      'protein': 'REAL',
+      'carbs': 'REAL',
+      'fat': 'REAL',
+      'is_fluid': 'INTEGER',
+      'source': 'TEXT',
+      'category': 'TEXT',
+    },
+    'custom_foods': {
+      'id': 'TEXT',
+      'barcode': 'TEXT',
+      'name': 'TEXT',
+      'brand': 'TEXT',
+      'calories': 'INTEGER',
+      'protein': 'REAL',
+      'carbs': 'REAL',
+      'fat': 'REAL',
+      'sugar': 'REAL',
+      'fiber': 'REAL',
+      'salt': 'REAL',
+      'caffeine_mg_per_100g': 'REAL',
+      'is_fluid': 'INTEGER',
+      'category': 'TEXT',
+    },
+    'recovery_overview': {
+      'as_of': 'TEXT',
+      'has_data': 'INTEGER',
+      'overall_state': 'TEXT',
+      'recovering_count': 'INTEGER',
+      'ready_count': 'INTEGER',
+      'fresh_count': 'INTEGER',
+      'tracked_count': 'INTEGER',
+    },
+    'muscle_recovery_status': {
+      'muscle_group': 'TEXT',
+      'state': 'TEXT',
+      'readiness_score': 'REAL',
+      'hours_since_last_session': 'REAL',
+      'last_session_at': 'TEXT',
+      'last_session_load': 'REAL',
+      'last_session_direct_load': 'REAL',
+      'last_session_indirect_load': 'REAL',
+      'residual_load': 'REAL',
+      'avg_rir': 'REAL',
+      'high_session_fatigue': 'INTEGER',
+      'eligible_set_count': 'INTEGER',
+      'sets_with_rir': 'INTEGER',
+      'data_confidence': 'TEXT',
+      'recovering_upper_hours': 'INTEGER',
+      'ready_upper_hours': 'INTEGER',
     },
   };
 
@@ -297,11 +445,30 @@ class AssistantDatabaseSnapshotReader {
         };
         final activeWeek = _activeWeekSchedule(tables);
         if (activeWeek.isNotEmpty) tables['active_plan_week'] = activeWeek;
+        final activeSchedule = _activePlanSchedule(tables);
+        if (activeSchedule.isNotEmpty) {
+          tables['active_plan_schedule'] = activeSchedule;
+        }
         return tables;
       case AssistantDataCategory.diary:
       case AssistantDataCategory.nutrition:
         return _readNutritionSnapshot(scope);
       case AssistantDataCategory.steps:
+        final days = scope == null
+            ? 0
+            : DateTime.utc(scope.end.year, scope.end.month, scope.end.day)
+                      .difference(
+                        DateTime.utc(
+                          scope.start.year,
+                          scope.start.month,
+                          scope.start.day,
+                        ),
+                      )
+                      .inDays +
+                  1;
+        // For longer horizons, steps_daily_summary from AssistantHealthActions
+        // provides deduplicated daily totals without raw segment bloat.
+        if (days > 30) return const {};
         final range = _range(scope);
         return {
           'health_step_segments': await _select(
@@ -311,78 +478,7 @@ class AssistantDatabaseSnapshotReader {
           ),
         };
       case AssistantDataCategory.sleep:
-        final dateRange = _range(scope, dateOnly: true);
-        final analysisWhere = _dateWhere(
-          'night_date',
-          dateRange,
-          hasDeletedAt: false,
-        );
-        final analyses = await _select(
-          'sleep_nightly_analyses',
-          analysisWhere,
-          values: dateRange,
-        );
-        final sessionsByAnalysis = analyses
-            .map((row) => row['session_id'])
-            .whereType<String>()
-            .toSet();
-        List<Map<String, dynamic>> scopedSessions;
-        if (scope == null) {
-          scopedSessions = await _select('sleep_canonical_sessions', '');
-        } else {
-          final msRange = _range(scope, milliseconds: true);
-          final secRange = _range(scope);
-          scopedSessions = await _select(
-            'sleep_canonical_sessions',
-            ' WHERE (started_at >= ? AND started_at < ?) OR (ended_at > ? AND ended_at <= ?) OR (started_at >= ? AND started_at < ?) OR (ended_at > ? AND ended_at <= ?)',
-            values: [
-              msRange[0],
-              msRange[1],
-              msRange[0],
-              msRange[1],
-              secRange[0],
-              secRange[1],
-              secRange[0],
-              secRange[1],
-            ],
-          );
-        }
-        final sessionIds = {
-          ...sessionsByAnalysis,
-          ...scopedSessions.map((row) => row['id']).whereType<String>(),
-        }.toList();
-        final analysisSessions = sessionIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await _select(
-                'sleep_canonical_sessions',
-                ' WHERE id IN (${List.filled(sessionIds.length, '?').join(',')})',
-                values: sessionIds,
-              );
-        final ids = sessionIds.isEmpty
-            ? 'IN (NULL)'
-            : 'IN (${List.filled(sessionIds.length, '?').join(',')})';
-        final rawImports = sessionIds.isEmpty
-            ? <Map<String, dynamic>>[]
-            : await _select(
-                'sleep_raw_imports',
-                ' WHERE id IN (SELECT raw_import_id FROM sleep_canonical_sessions WHERE id $ids)',
-                values: sessionIds,
-              );
-        return {
-          'sleep_canonical_sessions': analysisSessions,
-          'sleep_canonical_stage_segments': await _select(
-            'sleep_canonical_stage_segments',
-            ' WHERE session_id $ids',
-            values: sessionIds,
-          ),
-          'sleep_canonical_heart_rate_samples': await _select(
-            'sleep_canonical_heart_rate_samples',
-            ' WHERE session_id $ids',
-            values: sessionIds,
-          ),
-          'sleep_nightly_analyses': analyses,
-          'sleep_raw_imports': rawImports,
-        };
+        return _readSleepSnapshot(scope);
       case AssistantDataCategory.measurements:
         final range = _range(scope);
         return {
@@ -409,6 +505,7 @@ class AssistantDatabaseSnapshotReader {
           ),
         };
       case AssistantDataCategory.profile:
+        final prefsRow = await _readUserPreferencesSummary();
         return {
           'profiles': await _select(
             'profiles',
@@ -429,8 +526,11 @@ class AssistantDatabaseSnapshotReader {
               'target_water',
               'target_steps',
               'experience_level',
+              'training_autonomy_level',
+              'nutrition_autonomy_level',
             ],
           ),
+          if (prefsRow != null) 'user_preferences_summary': [prefsRow],
         };
       case AssistantDataCategory.supplements:
         return {
@@ -499,6 +599,8 @@ class AssistantDatabaseSnapshotReader {
                 values: overrideIds,
               );
         final blsNutrients = await _readBlsFoodNutrients(recipeBarcodes);
+        final favoriteFoods = await _readFavoriteFoods();
+        final customFoods = await _readCustomFoods();
         return {
           'meals': mealRows,
           'meal_items': mealItems,
@@ -507,6 +609,8 @@ class AssistantDatabaseSnapshotReader {
           'user_food_overrides': overrides,
           'user_food_override_translations': overrideTranslations,
           'bls_food_nutrients': blsNutrients,
+          if (favoriteFoods.isNotEmpty) 'favorite_foods': favoriteFoods,
+          if (customFoods.isNotEmpty) 'custom_foods': customFoods,
         };
       case AssistantDataCategory.exerciseCatalog:
         const exerciseIds =
@@ -547,6 +651,10 @@ class AssistantDatabaseSnapshotReader {
           'exercise_tags',
           ' WHERE exercise_id IN ($exerciseIds)',
         );
+        final pinnedNotes = await _select(
+          'pinned_exercise_notes',
+          ' WHERE deleted_at IS NULL AND exercise_id IN ($exerciseIds)',
+        );
         _enrichExercises(
           exercises: exercises,
           translations: exerciseTranslations,
@@ -565,8 +673,11 @@ class AssistantDatabaseSnapshotReader {
           'equipment': equipment,
           'equipment_translations': equipmentTranslations,
           'exercise_tags': exerciseTags,
+          if (pinnedNotes.isNotEmpty) 'pinned_exercise_notes': pinnedNotes,
         };
+      case AssistantDataCategory.pulse:
       case AssistantDataCategory.recovery:
+      case AssistantDataCategory.analytics:
         return const {};
     }
   }
@@ -1011,8 +1122,18 @@ class AssistantDatabaseSnapshotReader {
       values: range.isEmpty ? const [] : [range.last, ...range],
     );
 
-    // 7. Daily goals history: include rows in range plus the active goal at range start.
+    // 7. Daily goals history & incomplete nutrition days in scope.
     final dailyGoalsHistory = await _readScopedDailyGoalsHistory(range);
+    final incompleteDays = await _readIncompleteNutritionDays(scope);
+    final incompleteDaySet = {
+      for (final row in incompleteDays)
+        if (row['day'] is String) row['day'] as String,
+    };
+    final blsDailySummary = _buildBlsMicronutrientDailySummary(
+      nutritionLogs: nutritionLogs,
+      blsNutrients: blsNutrients,
+      incompleteDays: incompleteDaySet,
+    );
 
     return {
       'meal_entries': mealEntries,
@@ -1026,7 +1147,13 @@ class AssistantDatabaseSnapshotReader {
       'supplement_settings_history': supplementSettingsHistory,
       'user_food_overrides': overrides,
       'user_food_override_translations': overrideTranslations,
-      'bls_food_nutrients': blsNutrients,
+      // Keep raw BLS nutrient table when bounded; for large multi-week scopes
+      // rely on the compact daily micronutrient summary to prevent sandbox bloat.
+      if (blsNutrients.length <= 8000) 'bls_food_nutrients': blsNutrients,
+      if (blsDailySummary.isNotEmpty)
+        'bls_micronutrient_daily_summary': blsDailySummary,
+      if (incompleteDays.isNotEmpty)
+        'incomplete_nutrition_days': incompleteDays,
       'daily_goals_history': dailyGoalsHistory,
     };
   }
@@ -1413,6 +1540,581 @@ class AssistantDatabaseSnapshotReader {
   String _day(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
+  Future<Map<String, List<Map<String, dynamic>>>> _readSleepSnapshot(
+    AssistantDateScope? scope,
+  ) async {
+    final dateRange = _range(scope, dateOnly: true);
+    final analysisWhere = _dateWhere(
+      'night_date',
+      dateRange,
+      hasDeletedAt: false,
+    );
+    final analyses = await _select(
+      'sleep_nightly_analyses',
+      analysisWhere,
+      values: dateRange,
+    );
+    final sessionsByAnalysis = analyses
+        .map((row) => row['session_id'])
+        .whereType<String>()
+        .toSet();
+    List<Map<String, dynamic>> scopedSessions;
+    if (scope == null) {
+      scopedSessions = await _select('sleep_canonical_sessions', '');
+    } else {
+      final msRange = _range(scope, milliseconds: true);
+      final secRange = _range(scope);
+      scopedSessions = await _select(
+        'sleep_canonical_sessions',
+        ' WHERE (started_at >= ? AND started_at < ?) OR (ended_at > ? AND ended_at <= ?) OR (started_at >= ? AND started_at < ?) OR (ended_at > ? AND ended_at <= ?)',
+        values: [
+          msRange[0],
+          msRange[1],
+          msRange[0],
+          msRange[1],
+          secRange[0],
+          secRange[1],
+          secRange[0],
+          secRange[1],
+        ],
+      );
+    }
+    final sessionIds = {
+      ...sessionsByAnalysis,
+      ...scopedSessions.map((row) => row['id']).whereType<String>(),
+    }.toList();
+    final analysisSessions = sessionIds.isEmpty
+        ? <Map<String, dynamic>>[]
+        : await _select(
+            'sleep_canonical_sessions',
+            ' WHERE id IN (${_placeholders(sessionIds.length)})',
+            values: sessionIds,
+          );
+    final stageSegments = sessionIds.isEmpty
+        ? <Map<String, dynamic>>[]
+        : await _select(
+            'sleep_canonical_stage_segments',
+            ' WHERE session_id IN (${_placeholders(sessionIds.length)})',
+            values: sessionIds,
+          );
+    final hrSamples = sessionIds.isEmpty
+        ? <Map<String, dynamic>>[]
+        : await _select(
+            'sleep_canonical_heart_rate_samples',
+            ' WHERE session_id IN (${_placeholders(sessionIds.length)})',
+            values: sessionIds,
+          );
+
+    final nightlySummary = _buildSleepNightlySummary(
+      analyses: analyses,
+      sessions: analysisSessions,
+      stageSegments: stageSegments,
+      hrSamples: hrSamples,
+    );
+
+    final scopeDays = scope == null
+        ? 0
+        : DateTime.utc(scope.end.year, scope.end.month, scope.end.day)
+                  .difference(
+                    DateTime.utc(
+                      scope.start.year,
+                      scope.start.month,
+                      scope.start.day,
+                    ),
+                  )
+                  .inDays +
+              1;
+    // Exclude raw sleep_raw_imports (huge raw platform JSON blobs) and omit
+    // high-frequency per-sample sleep HR rows on multi-week ranges where
+    // sleep_nightly_summary already carries avg/min/max sleep HR.
+    final includeRawHrSamples = scopeDays <= 7 && hrSamples.length <= 2500;
+    final includeRawStageSegments =
+        scopeDays <= 31 && stageSegments.length <= 8000;
+
+    return {
+      'sleep_nightly_summary': nightlySummary,
+      'sleep_nightly_analyses': analyses,
+      'sleep_canonical_sessions': analysisSessions,
+      if (includeRawStageSegments)
+        'sleep_canonical_stage_segments': stageSegments,
+      if (includeRawHrSamples) 'sleep_canonical_heart_rate_samples': hrSamples,
+    };
+  }
+
+  List<Map<String, dynamic>> _buildSleepNightlySummary({
+    required List<Map<String, dynamic>> analyses,
+    required List<Map<String, dynamic>> sessions,
+    required List<Map<String, dynamic>> stageSegments,
+    required List<Map<String, dynamic>> hrSamples,
+  }) {
+    final sessionsById = <String, Map<String, dynamic>>{
+      for (final s in sessions)
+        if (s['id'] is String) s['id'] as String: s,
+    };
+    final stagesBySession = <String, List<Map<String, dynamic>>>{};
+    for (final seg in stageSegments) {
+      final sid = seg['session_id'] as String?;
+      if (sid != null) {
+        stagesBySession.putIfAbsent(sid, () => []).add(seg);
+      }
+    }
+    final hrBySession = <String, List<double>>{};
+    for (final sample in hrSamples) {
+      final sid = sample['session_id'] as String?;
+      final bpm = (sample['bpm'] as num?)?.toDouble();
+      if (sid != null && bpm != null && bpm.isFinite && bpm > 0) {
+        hrBySession.putIfAbsent(sid, () => []).add(bpm);
+      }
+    }
+
+    int sessionLengthMs(Map<String, dynamic> analysis) {
+      final session = sessionsById[analysis['session_id']];
+      if (session == null) return 0;
+      final start = (session['started_at'] as num?)?.toInt() ?? 0;
+      final end = (session['ended_at'] as num?)?.toInt() ?? 0;
+      return end > start ? end - start : 0;
+    }
+
+    int comparePrimary(Map<String, dynamic> a, Map<String, dynamic> b) {
+      final aScored = a['score'] != null;
+      final bScored = b['score'] != null;
+      if (aScored && !bScored) return -1;
+      if (bScored && !aScored) return 1;
+      final byLen = sessionLengthMs(b).compareTo(sessionLengthMs(a));
+      if (byLen != 0) return byLen;
+      final aAt = (a['analyzed_at'] as num?)?.toInt() ?? 0;
+      final bAt = (b['analyzed_at'] as num?)?.toInt() ?? 0;
+      return bAt.compareTo(aAt);
+    }
+
+    final primaryByNight = <String, Map<String, dynamic>>{};
+    for (final row in analyses) {
+      final night = row['night_date'] as String?;
+      if (night == null || night.isEmpty) continue;
+      final current = primaryByNight[night];
+      if (current == null || comparePrimary(row, current) < 0) {
+        primaryByNight[night] = row;
+      }
+    }
+
+    // Track naps grouped by wake local date.
+    final napCountByDate = <String, int>{};
+    final napMinutesByDate = <String, int>{};
+    for (final session in sessions) {
+      if (session['session_type'] == 'nap') {
+        final started = _dateValue(session['started_at']);
+        final ended = _dateValue(session['ended_at']);
+        final mins = ended.difference(started).inMinutes;
+        if (mins > 0) {
+          final key = _day(ended);
+          napCountByDate.update(key, (v) => v + 1, ifAbsent: () => 1);
+          napMinutesByDate.update(key, (v) => v + mins, ifAbsent: () => mins);
+        }
+      }
+    }
+
+    final sortedNights = primaryByNight.keys.toList()..sort();
+    final rows = <Map<String, dynamic>>[];
+    for (final night in sortedNights) {
+      final analysis = primaryByNight[night]!;
+      final sessionId = analysis['session_id'] as String?;
+      final session = sessionId == null ? null : sessionsById[sessionId];
+      final bedtime = session == null
+          ? null
+          : _dateValue(session['started_at']);
+      final waketime = session == null ? null : _dateValue(session['ended_at']);
+      final inBedMinutes = (bedtime != null && waketime != null)
+          ? waketime.difference(bedtime).inMinutes
+          : null;
+
+      int deepSec = 0;
+      int remSec = 0;
+      int lightSec = 0;
+      int awakeSec = 0;
+      int unspecifiedSec = 0;
+      var hasStageRows = false;
+      for (final seg in stagesBySession[sessionId] ?? const []) {
+        final sStart = _dateValue(seg['started_at']);
+        final sEnd = _dateValue(seg['ended_at']);
+        final sec = sEnd.difference(sStart).inSeconds;
+        if (sec <= 0) continue;
+        hasStageRows = true;
+        switch (seg['stage']?.toString()) {
+          case 'deep':
+            deepSec += sec;
+          case 'rem':
+            remSec += sec;
+          case 'light':
+            lightSec += sec;
+          case 'awake':
+          case 'outOfBed':
+            awakeSec += sec;
+          case 'asleepUnspecified':
+            unspecifiedSec += sec;
+        }
+      }
+
+      final hrs = hrBySession[sessionId] ?? const <double>[];
+      double? avgHr = (analysis['resting_heart_rate_bpm'] as num?)?.toDouble();
+      double? minHr;
+      double? maxHr;
+      if (hrs.isNotEmpty) {
+        var sum = 0.0;
+        var minVal = double.infinity;
+        var maxVal = double.negativeInfinity;
+        for (final bpm in hrs) {
+          sum += bpm;
+          if (bpm < minVal) minVal = bpm;
+          if (bpm > maxVal) maxVal = bpm;
+        }
+        avgHr ??= sum / hrs.length;
+        minHr = (minVal * 10).roundToDouble() / 10;
+        maxHr = (maxVal * 10).roundToDouble() / 10;
+      }
+      if (avgHr != null) {
+        avgHr = (avgHr * 10).roundToDouble() / 10;
+      }
+
+      Map<String, dynamic>? breakdown;
+      final rawBreakdown = analysis['score_breakdown_json'];
+      if (rawBreakdown is String && rawBreakdown.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(rawBreakdown);
+          if (decoded is Map<String, dynamic>) breakdown = decoded;
+        } catch (_) {}
+      }
+
+      final score = (analysis['score'] as num?)?.toDouble();
+      final bucket = score == null
+          ? 'unavailable'
+          : score >= 80
+          ? 'good'
+          : score >= 60
+          ? 'average'
+          : 'poor';
+
+      rows.add({
+        'night_date': night,
+        'session_id': sessionId,
+        'bedtime_local': bedtime?.toIso8601String(),
+        'waketime_local': waketime?.toIso8601String(),
+        'in_bed_minutes': inBedMinutes,
+        'total_sleep_minutes': analysis['total_sleep_minutes'],
+        'deep_minutes': hasStageRows ? (deepSec / 60).round() : null,
+        'rem_minutes': hasStageRows ? (remSec / 60).round() : null,
+        'light_minutes': hasStageRows ? (lightSec / 60).round() : null,
+        'awake_minutes': hasStageRows ? (awakeSec / 60).round() : null,
+        'unspecified_sleep_minutes': hasStageRows
+            ? (unspecifiedSec / 60).round()
+            : null,
+        'sleep_efficiency_pct': analysis['sleep_efficiency_pct'],
+        'avg_sleep_heart_rate_bpm': avgHr,
+        'min_sleep_heart_rate_bpm': minHr,
+        'max_sleep_heart_rate_bpm': maxHr,
+        'interruptions_count': analysis['interruptions_count'],
+        'interruptions_wake_minutes': analysis['interruptions_wake_minutes'],
+        'score': score,
+        'sleep_quality_bucket': bucket,
+        'score_completeness': analysis['score_completeness'],
+        'regularity_sri': analysis['regularity_sri'],
+        'regularity_valid_days': analysis['regularity_valid_days'],
+        'regularity_is_stable': analysis['regularity_is_stable'],
+        'duration_ceiling_applied':
+            (breakdown?['durationScoreCap'] != null &&
+                score != null &&
+                (breakdown!['durationScoreCap'] as num).toDouble() <=
+                    score + 0.01)
+            ? 1
+            : 0,
+        'duration_subscore': (breakdown?['durationScore'] as num?)?.toDouble(),
+        'continuity_subscore': (breakdown?['continuityScore'] as num?)
+            ?.toDouble(),
+        'deep_subscore': (breakdown?['deepScore'] as num?)?.toDouble(),
+        'rem_subscore': (breakdown?['remScore'] as num?)?.toDouble(),
+        'regularity_subscore': (breakdown?['regularityScore'] as num?)
+            ?.toDouble(),
+        'nap_count': napCountByDate[night] ?? 0,
+        'nap_total_minutes': napMinutesByDate[night] ?? 0,
+        'source_platform': analysis['source_platform'],
+      });
+    }
+    return rows;
+  }
+
+  Future<List<Map<String, dynamic>>> _readIncompleteNutritionDays(
+    AssistantDateScope? scope,
+  ) async {
+    try {
+      if (scope == null) {
+        return await _select('incomplete_nutrition_days', '');
+      }
+      return await _select(
+        'incomplete_nutrition_days',
+        ' WHERE day >= ? AND day <= ? ORDER BY day ASC',
+        values: [_day(scope.start), _day(scope.end)],
+      );
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  List<Map<String, dynamic>> _buildBlsMicronutrientDailySummary({
+    required List<Map<String, dynamic>> nutritionLogs,
+    required List<Map<String, dynamic>> blsNutrients,
+    required Set<String> incompleteDays,
+  }) {
+    if (nutritionLogs.isEmpty || blsNutrients.isEmpty) return const [];
+    final nutrientsByBarcode = <String, List<Map<String, dynamic>>>{};
+    for (final row in blsNutrients) {
+      final barcode = row['barcode'] as String?;
+      final val = (row['value_per_100g'] as num?)?.toDouble();
+      if (barcode == null || val == null || !val.isFinite) continue;
+      nutrientsByBarcode.putIfAbsent(barcode, () => []).add(row);
+    }
+    if (nutrientsByBarcode.isEmpty) return const [];
+
+    final totals = <String, Map<String, dynamic>>{};
+    for (final log in nutritionLogs) {
+      final barcode = log['effective_barcode'] as String?;
+      if (barcode == null || !barcode.startsWith('bls:')) continue;
+      final amount = (log['amount'] as num?)?.toDouble() ?? 0.0;
+      if (amount <= 0) continue;
+      final items = nutrientsByBarcode[barcode];
+      if (items == null || items.isEmpty) continue;
+      final dateKey = _day(_dateValue(log['consumed_at']));
+      final factor = amount / 100.0;
+      for (final nutrient in items) {
+        final code = nutrient['component_code'] as String? ?? '';
+        if (code.isEmpty) continue;
+        final key = '$dateKey|$code';
+        final added = (nutrient['value_per_100g'] as num).toDouble() * factor;
+        final existing = totals[key];
+        if (existing == null) {
+          totals[key] = {
+            'date': dateKey,
+            'component_code': code,
+            'nutrient_name': nutrient['nutrient_name'],
+            'name_de': nutrient['name_de'],
+            'name_en': nutrient['name_en'],
+            'nutrient_group': nutrient['nutrient_group'],
+            'unit': nutrient['unit'],
+            'consumed_value': added,
+            'food_count': 1,
+            'is_incomplete_day': incompleteDays.contains(dateKey) ? 1 : 0,
+          };
+        } else {
+          existing['consumed_value'] =
+              (existing['consumed_value'] as double) + added;
+          existing['food_count'] = (existing['food_count'] as int) + 1;
+        }
+      }
+    }
+    return totals.values.map((row) {
+      final val = row['consumed_value'] as double;
+      row['consumed_value'] = (val * 1000).roundToDouble() / 1000;
+      return row;
+    }).toList();
+  }
+
+  Future<Map<String, dynamic>?> _readUserPreferencesSummary() async {
+    try {
+      final prefs = UserPreferencesRepository.instance;
+      final targetSugar = await prefs.getTargetSugar();
+      final targetFiber = await prefs.getTargetFiber();
+      final targetSalt = await prefs.getTargetSalt();
+      final targetCaffeine = await prefs.getTargetCaffeine();
+      final extraNutrient = await prefs.getOverviewExtraNutrient();
+
+      String? priorActivity;
+      String? extraCardio;
+      try {
+        final recRepo = RecommendationRepository();
+        priorActivity = (await recRepo.getPriorActivityLevel()).name;
+        extraCardio = (await recRepo.getExtraCardioHoursOption()).name;
+      } catch (_) {}
+
+      int? stepsEnabled;
+      int? sleepEnabled;
+      int? pulseEnabled;
+      try {
+        stepsEnabled = (await StepsSyncService().isTrackingEnabled()) ? 1 : 0;
+        sleepEnabled =
+            (await SleepSyncService(database: database).isTrackingEnabled())
+            ? 1
+            : 0;
+        pulseEnabled = (await PulseTrackingService().isTrackingEnabled())
+            ? 1
+            : 0;
+      } catch (_) {}
+
+      return {
+        'target_sugar_g': targetSugar,
+        'target_fiber_g': targetFiber,
+        'target_salt_g': targetSalt,
+        'target_caffeine_mg': targetCaffeine,
+        'overview_extra_nutrient': extraNutrient,
+        'prior_activity_level': priorActivity,
+        'extra_cardio_hours_option': extraCardio,
+        'steps_tracking_enabled': stepsEnabled,
+        'sleep_tracking_enabled': sleepEnabled,
+        'pulse_tracking_enabled': pulseEnabled,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _readFavoriteFoods() async {
+    try {
+      final rows = await database
+          .customSelect('''
+            SELECT f.barcode,
+                   COALESCE(o.name, p.name) AS name,
+                   COALESCE(o.brand, p.brand) AS brand,
+                   COALESCE(o.calories, p.calories) AS calories,
+                   COALESCE(o.protein, p.protein) AS protein,
+                   COALESCE(o.carbs, p.carbs) AS carbs,
+                   COALESCE(o.fat, p.fat) AS fat,
+                   CASE WHEN COALESCE(o.is_fluid, p.is_fluid, 0) = 1
+                          OR COALESCE(o.is_liquid, p.is_liquid, 0) = 1
+                        THEN 1 ELSE 0 END AS is_fluid,
+                   p.source AS source,
+                   COALESCE(o.category, p.category) AS category
+            FROM favorites f
+            LEFT JOIN products p ON p.barcode = f.barcode AND p.deleted_at IS NULL
+            LEFT JOIN user_food_overrides o ON o.barcode = f.barcode AND o.deleted_at IS NULL
+            WHERE f.deleted_at IS NULL
+            ORDER BY f.created_at DESC
+            LIMIT 250
+            ''')
+          .get();
+      return rows.map((row) => Map<String, dynamic>.from(row.data)).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _readCustomFoods() async {
+    try {
+      final rows = await database
+          .customSelect('''
+            SELECT id, barcode, name, brand, calories, protein, carbs, fat,
+                   sugar, fiber, salt,
+                   COALESCE(caffeine_mg_per_100g, caffeine) AS caffeine_mg_per_100g,
+                   CASE WHEN is_fluid = 1 OR is_liquid = 1 THEN 1 ELSE 0 END AS is_fluid,
+                   category
+            FROM products
+            WHERE deleted_at IS NULL AND source = 'user'
+            ORDER BY usage_count DESC, updated_at DESC
+            LIMIT 250
+            ''')
+          .get();
+      return rows.map((row) => Map<String, dynamic>.from(row.data)).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  List<Map<String, dynamic>> _activePlanSchedule(
+    Map<String, List<Map<String, dynamic>>> tables,
+  ) {
+    final activePlans = (tables['training_plans'] ?? const [])
+        .where((plan) => plan['is_active'] == true || plan['is_active'] == 1)
+        .toList();
+    if (activePlans.isEmpty) return const [];
+    final plan = activePlans.first;
+    final kind = plan['kind']?.toString();
+    if (kind == 'week') {
+      final weekRows = _activeWeekSchedule(tables);
+      final todayStr = _day((nowProvider?.call() ?? DateTime.now()).toLocal());
+      return [
+        for (final row in weekRows)
+          {
+            ...row,
+            'is_next_slot': row['date'] == todayStr ? 1 : 0,
+            'sequence_cursor': null,
+            'sequence_cycle': null,
+          },
+      ];
+    }
+    if (kind != 'sequence') return const [];
+
+    final planId = plan['id'];
+    if (planId is! String) return const [];
+    final revisions =
+        (tables['training_plan_revisions'] ?? const [])
+            .where((row) => row['plan_id'] == planId)
+            .toList()
+          ..sort(
+            (a, b) =>
+                (a['number'] as num? ?? 0).compareTo(b['number'] as num? ?? 0),
+          );
+    if (revisions.isEmpty) return const [];
+    final revision = revisions.last;
+    if (revision['days_json'] is! String) return const [];
+    final days = jsonDecode(revision['days_json'] as String);
+    if (days is! List || days.isEmpty) return const [];
+
+    final rawCursor = (plan['sequence_cursor'] as num?)?.toInt() ?? 0;
+    final cursor = rawCursor % days.length;
+    final cycle = (plan['sequence_cycle'] as num?)?.toInt() ?? 0;
+    final activations =
+        (tables['training_plan_activations'] ?? const [])
+            .where((row) => row['plan_id'] == planId && row['ended_on'] == null)
+            .toList()
+          ..sort(
+            (a, b) => _dateValue(
+              a['started_on'],
+            ).compareTo(_dateValue(b['started_on'])),
+          );
+    final activeActivationId = activations.isEmpty
+        ? null
+        : activations.last['id'];
+    final occurrences = (tables['training_plan_occurrences'] ?? const [])
+        .where(
+          (row) =>
+              activeActivationId == null ||
+              row['activation_id'] == activeActivationId,
+        )
+        .toList();
+
+    final result = <Map<String, dynamic>>[];
+    for (var index = 0; index < days.length; index++) {
+      if (days[index] is! Map) continue;
+      final day = Map<String, dynamic>.from(days[index] as Map);
+      final routine = day['routineSnapshot'] is Map
+          ? Map<String, dynamic>.from(day['routineSnapshot'] as Map)
+          : null;
+      final latestOccurrence = occurrences
+          .where((row) => row['slot_index'] == index)
+          .lastOrNull;
+      result.add({
+        'plan_id': planId,
+        'plan_name': plan['name'],
+        'plan_kind': 'sequence',
+        'date': null,
+        'weekday_index': null,
+        'slot_index': index,
+        'is_next_slot': index == cursor ? 1 : 0,
+        'sequence_cursor': cursor,
+        'sequence_cycle': cycle,
+        'revision_id': revision['id'],
+        'revision_number': revision['number'],
+        'routine_uuid': day['routineUuid'],
+        'routine_name': routine?['name'],
+        'is_rest': routine == null ? 1 : 0,
+        'status': routine == null
+            ? 'rest'
+            : (index == cursor
+                  ? 'next'
+                  : (latestOccurrence?['status'] ?? 'planned')),
+        'workout_log_id': latestOccurrence?['workout_log_id'],
+        'routine_snapshot': routine,
+      });
+    }
+    return result;
+  }
+
   List<Map<String, dynamic>> _activeWeekSchedule(
     Map<String, List<Map<String, dynamic>>> tables,
   ) {
@@ -1583,7 +2285,10 @@ class AssistantComprehensiveDataAction implements AssistantDataAction {
     if (matches.length != 1) throw StateError('No unique action for $category');
     final semantic = await matches.single.read(category, scope);
     if (semantic.status != AssistantActionStatus.success) return semantic;
-    final tables = await reader.read(category, scope);
+    final tables = <String, List<Map<String, dynamic>>>{
+      ...semantic.tables,
+      ...await reader.read(category, scope),
+    };
     if (category == AssistantDataCategory.nutrition) {
       // Use the app's own aggregation as the source of truth for chatbot
       // totals. Raw rows remain available for an itemized explanation.
@@ -1601,24 +2306,87 @@ class AssistantComprehensiveDataAction implements AssistantDataAction {
               'protein_g': record['proteinGrams'],
               'carbs_g': record['carbsGrams'],
               'fat_g': record['fatGrams'],
+              'sugar_g': record['sugarGrams'],
+              'fiber_g': record['fiberGrams'],
+              'salt_g': record['saltGrams'],
+              'caffeine_mg': record['caffeineMg'],
               'water_ml': record['waterMilliliters'],
               'target_calories_kcal': record['targetCaloriesKcal'],
               'target_protein_g': record['targetProteinGrams'],
               'target_carbs_g': record['targetCarbsGrams'],
               'target_fat_g': record['targetFatGrams'],
               'target_water_ml': record['targetWaterMilliliters'],
+              'target_sugar_g': record['targetSugarGrams'],
+              'target_fiber_g': record['targetFiberGrams'],
+              'target_salt_g': record['targetSaltGrams'],
+              'target_caffeine_mg': record['targetCaffeineMg'],
+              'is_incomplete_day': record['isIncompleteDay'] == true ? 1 : 0,
             },
       ];
       if (dailySummaryRows.isNotEmpty) {
         tables['nutrition_daily_summary'] = dailySummaryRows;
       }
     }
+    if (category == AssistantDataCategory.recovery &&
+        semantic.records.isNotEmpty) {
+      final rec = semantic.records.first;
+      final totals = rec['totals'] is Map
+          ? Map<String, dynamic>.from(rec['totals'] as Map)
+          : const <String, dynamic>{};
+      tables['recovery_overview'] = [
+        {
+          'as_of': rec['asOf'] ?? 'current',
+          'has_data': rec['hasData'] == true ? 1 : 0,
+          'overall_state': rec['overallState'],
+          'recovering_count': totals['recovering'] ?? 0,
+          'ready_count': totals['ready'] ?? 0,
+          'fresh_count': totals['fresh'] ?? 0,
+          'tracked_count': totals['tracked'] ?? 0,
+        },
+      ];
+      final muscles = rec['muscles'];
+      if (muscles is List && muscles.isNotEmpty) {
+        tables['muscle_recovery_status'] = [
+          for (final item in muscles)
+            if (item is Map)
+              {
+                'muscle_group': item['muscleGroup'],
+                'state': item['state'],
+                'readiness_score': item['readinessScore'],
+                'hours_since_last_session':
+                    item['hoursSinceLastSignificantLoad'],
+                'last_session_at': item['lastSignificantLoadAt'],
+                'last_session_load': item['lastSessionLoad'],
+                'last_session_direct_load': item['lastSessionDirectLoad'],
+                'last_session_indirect_load': item['lastSessionIndirectLoad'],
+                'residual_load': item['residualLoad'],
+                'avg_rir': item['avgRir'],
+                'high_session_fatigue': item['highSessionFatigue'] == true
+                    ? 1
+                    : 0,
+                'eligible_set_count': item['eligibleSetCount'],
+                'sets_with_rir': item['setsWithRir'],
+                'data_confidence': item['dataConfidence'],
+                'recovering_upper_hours': item['recoveringUpperHours'],
+                'ready_upper_hours': item['readyUpperHours'],
+              },
+        ];
+      }
+    }
+    final resolvedColumns = await reader.columnsFor(tables);
+    for (final entry in semantic.tableColumns.entries) {
+      resolvedColumns[entry.key] = {
+        ...?resolvedColumns[entry.key],
+        ...entry.value,
+      };
+    }
     return AssistantActionResult(
       category: category,
       status: semantic.status,
       records: semantic.records,
       tables: tables,
-      tableColumns: await reader.columnsFor(tables),
+      tableColumns: resolvedColumns,
+      sourceStatus: semantic.sourceStatus,
       error: semantic.error,
     );
   }

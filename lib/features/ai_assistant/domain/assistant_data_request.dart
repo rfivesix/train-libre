@@ -4,6 +4,7 @@ enum AssistantDataCategory {
   nutrition,
   steps,
   sleep,
+  pulse,
   recovery,
   measurements,
   goals,
@@ -12,7 +13,8 @@ enum AssistantDataCategory {
   recipes,
   exerciseCatalog,
   routines,
-  trainingPlans;
+  trainingPlans,
+  analytics;
 
   bool get isCurrentSnapshot =>
       this == goals ||
@@ -21,7 +23,12 @@ enum AssistantDataCategory {
       this == recipes ||
       this == exerciseCatalog ||
       this == routines ||
-      this == trainingPlans;
+      this == trainingPlans ||
+      this == analytics;
+
+  /// Snapshots that do not require a date range, but can optionally accept one
+  /// (for example to scope trend analyses alongside all-time records).
+  bool get acceptsOptionalDateScope => this == analytics;
 
   String localizedLabel(String locale) {
     final isDe = locale.toLowerCase().startsWith('de');
@@ -32,6 +39,7 @@ enum AssistantDataCategory {
       AssistantDataCategory.nutrition => isDe ? 'Ernährung' : 'nutrition',
       AssistantDataCategory.steps => isDe ? 'Schritte' : 'steps',
       AssistantDataCategory.sleep => isDe ? 'Schlaf' : 'sleep',
+      AssistantDataCategory.pulse => isDe ? 'Puls & HRV' : 'pulse & HRV',
       AssistantDataCategory.recovery => isDe ? 'Regeneration' : 'recovery',
       AssistantDataCategory.measurements =>
         isDe ? 'Körpermessungen' : 'measurements',
@@ -45,6 +53,8 @@ enum AssistantDataCategory {
       AssistantDataCategory.routines => isDe ? 'Routinen' : 'routines',
       AssistantDataCategory.trainingPlans =>
         isDe ? 'Trainingspläne' : 'training plans',
+      AssistantDataCategory.analytics =>
+        isDe ? 'Statistiken & Bestleistungen' : 'statistics & PRs',
     };
   }
 
@@ -163,6 +173,39 @@ class AssistantDateScope {
   final DateTime end;
   final String label;
 
+  /// True when this inclusive civil-date range covers every day in [other].
+  bool covers(AssistantDateScope other) {
+    final thisStart = DateTime.utc(start.year, start.month, start.day);
+    final thisEnd = DateTime.utc(end.year, end.month, end.day);
+    final otherStart = DateTime.utc(
+      other.start.year,
+      other.start.month,
+      other.start.day,
+    );
+    final otherEnd = DateTime.utc(
+      other.end.year,
+      other.end.month,
+      other.end.day,
+    );
+    return !thisStart.isAfter(otherStart) && !thisEnd.isBefore(otherEnd);
+  }
+
+  AssistantDateScope union(AssistantDateScope other) {
+    final thisStart = DateTime(start.year, start.month, start.day);
+    final thisEnd = DateTime(end.year, end.month, end.day);
+    final otherStart = DateTime(
+      other.start.year,
+      other.start.month,
+      other.start.day,
+    );
+    final otherEnd = DateTime(other.end.year, other.end.month, other.end.day);
+    return AssistantDateScope(
+      thisStart.isBefore(otherStart) ? thisStart : otherStart,
+      thisEnd.isAfter(otherEnd) ? thisEnd : otherEnd,
+      other.label,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'start': _date(start),
     'end': _date(end),
@@ -177,30 +220,59 @@ class AssistantDateScope {
 }
 
 class AssistantDataRequest {
-  const AssistantDataRequest({required this.categories, required this.scope});
+  const AssistantDataRequest({
+    required this.categories,
+    required this.scope,
+    this.categoryScopes = const {},
+  });
   final Set<AssistantDataCategory> categories;
   final AssistantDateScope? scope;
+  final Map<AssistantDataCategory, AssistantDateScope> categoryScopes;
+
+  AssistantDateScope? scopeFor(AssistantDataCategory category) =>
+      categoryScopes[category] ?? scope;
+
+  Map<String, dynamic> scopeToJson() {
+    final base = scope?.toJson() ?? <String, dynamic>{'label': 'current'};
+    if (categoryScopes.isEmpty) return base;
+    return {
+      ...base,
+      'categoryScopes': {
+        for (final entry in categoryScopes.entries)
+          entry.key.name: entry.value.toJson(),
+      },
+    };
+  }
 
   void validate() {
     if (categories.isEmpty) throw ArgumentError('No data category');
-    if (categories.any((category) => !category.isCurrentSnapshot) &&
-        scope == null) {
-      throw ArgumentError('Date scope required');
+    for (final category in categories) {
+      if (!category.isCurrentSnapshot && scopeFor(category) == null) {
+        throw ArgumentError('Date scope required');
+      }
     }
-    if (scope != null) {
+    void validateOne(AssistantDateScope target) {
       final days =
-          DateTime.utc(scope!.end.year, scope!.end.month, scope!.end.day)
+          DateTime.utc(target.end.year, target.end.month, target.end.day)
               .difference(
                 DateTime.utc(
-                  scope!.start.year,
-                  scope!.start.month,
-                  scope!.start.day,
+                  target.start.year,
+                  target.start.month,
+                  target.start.day,
                 ),
               )
               .inDays;
       if (days < 0 || days > 366) {
         throw ArgumentError('Date range must span at most 367 days');
       }
+    }
+
+    if (scope != null) validateOne(scope!);
+    for (final entry in categoryScopes.entries) {
+      if (!categories.contains(entry.key)) {
+        throw ArgumentError('Scope provided for unrequested category');
+      }
+      validateOne(entry.value);
     }
   }
 }

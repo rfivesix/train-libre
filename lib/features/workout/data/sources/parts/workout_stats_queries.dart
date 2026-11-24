@@ -1312,10 +1312,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   /// Recovery analytics based on the v2 residual training-load model.
   Future<Map<String, dynamic>> getRecoveryAnalytics({
     int lookbackDays = RecoveryDomainService.recoveryLookbackDays,
+    DateTime? asOf,
   }) async {
     final stopwatch = Stopwatch()..start();
-    final now = DateTime.now();
+    final now = asOf ?? DateTime.now();
     final since = now.subtract(Duration(days: lookbackDays));
+    final upperBound = asOf ?? now.add(const Duration(days: 1));
     final dbInstance = await database;
     final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
@@ -1340,7 +1342,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
               dbInstance.workoutLogs.status.equals('completed') &
               dbInstance.workoutLogs.startTime.isBetweenValues(
                 since,
-                now.add(const Duration(days: 1)),
+                upperBound,
               ),
         );
 

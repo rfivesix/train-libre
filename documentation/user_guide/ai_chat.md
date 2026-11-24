@@ -9,7 +9,7 @@ Train Libre's built-in AI chat can answer training and nutrition questions, help
 3. Tap the floating AI cloud to open the assistant. If you prefer to hide the cloud, turn off **Show floating AI assistant** in AI Features and open **AI Chat** from the app's **+** menu instead. Hiding the cloud does not disable AI; turning off **Enable AI Features** hides AI entry points.
 4. Type a question and send it. An empty chat also offers starter prompts for nutrition, recovery, and meal suggestions; select one to use its question.
 
-You can ask general questions without asking the assistant to inspect your records. For a useful data question, name the period and what you want to compare, for example: “Compare my logged workouts over the last four weeks” or “How do today's calories and macros compare with my targets?” Missing or incomplete logs can make an answer misleading.
+You can ask general questions without asking the assistant to inspect your records. For a useful data question, name the period and what you want to compare, for example: “Compare my logged workouts over the last four weeks”, “How did my sleep, resting pulse, and HRV look this week?”, “What are my all-time PRs and current TDEE estimate?”, or “How do today's calories and macros compare with my targets?” Missing or incomplete logs (or disabled Health integrations) can limit an answer; the assistant reports when a health data source is disabled or lacks permission.
 
 ## Let the assistant use app data
 
