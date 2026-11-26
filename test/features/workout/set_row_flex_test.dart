@@ -31,22 +31,24 @@ void main() {
     // room than the two input fields beside it.
     final cardio = flexFor('distance_time');
     expect(cardio.lastTime, greaterThan(cardio.primary));
-    expect(cardio.lastTime, greaterThan(cardio.secondary));
+    expect(cardio.lastTime, greaterThanOrEqualTo(cardio.secondary));
   });
 
   test('the duration field keeps every share it had', () {
-    // It is a text field, not a label, so it clips instead of scaling down:
-    // taking a share from it turned "02:00" into "02:0". The room for
-    // "last time" comes from the set number and the distance field instead.
     final cardio = flexFor('distance_time');
     expect(cardio.secondary, 4, reason: 'the duration column narrowed again');
     expect(cardio.index, lessThan(cardio.primary));
+    expect(
+      cardio.index / total(cardio),
+      greaterThanOrEqualTo(
+        flexFor('weight_reps').index / total(flexFor('weight_reps')),
+      ),
+    );
   });
 
   test('widening "last time" did not change either row total', () {
     // The checkbox is a fixed 56px beside these, so each shape has to keep
     // summing to what it summed to before or every column shifts under it.
-    // Cardio was 2:3:4:4:2 and is now 2:5:3:3:2 — the same 15.
     expect(total(flexFor('distance_time')), 15);
     expect(total(flexFor('weight_reps')), 8);
   });
@@ -63,7 +65,7 @@ void main() {
   });
 
   test('only a row with both distance and duration counts as cardio', () {
-    expect(flexFor('distance_time').lastTime, 5);
+    expect(flexFor('distance_time').lastTime, 4);
     expect(flexFor('time_weight').lastTime, 2);
     expect(flexFor('bodyweight_reps').lastTime, 2);
   });

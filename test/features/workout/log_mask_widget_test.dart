@@ -157,6 +157,66 @@ void main() {
     }
   });
 
+  testWidgets('live duration control has an outline while editable', (
+    tester,
+  ) async {
+    final manager = LiveWorkoutViewModel.forTesting(
+      workoutDb: _UnusedWorkoutRepository(),
+    );
+    addTearDown(manager.dispose);
+    final mask = ExerciseLogMask.forExercise(
+      _exercise(trackingType: 'distance_time'),
+    );
+
+    for (final brightness in Brightness.values) {
+      for (final completed in [false, true]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(brightness: brightness),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: manager),
+                ChangeNotifierProvider.value(value: manager.unitService),
+                ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+              ],
+              child: Scaffold(
+                body: SizedBox(
+                  width: 320,
+                  child: LiveWorkoutSetRow(
+                    setIndex: 2,
+                    rowIndex: 1,
+                    templateId: 2,
+                    setLog: _setLog().copyWith(isCompleted: completed),
+                    lastPerfSets: const [],
+                    currentSetTypes: const ['normal', 'normal'],
+                    template: SetTemplate(id: 2, setType: 'normal'),
+                    manager: manager,
+                    mask: mask,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final durationBox = tester.widget<Container>(
+          find
+              .ancestor(
+                of: find.text('00:45'),
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        final decoration = durationBox.decoration! as BoxDecoration;
+        expect(decoration.border != null, !completed);
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
   group('ExerciseLogMask derivation', () {
     test('weight_reps shows weight and reps', () {
       final mask = ExerciseLogMask.forExercise(

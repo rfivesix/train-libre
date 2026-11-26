@@ -4,6 +4,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../util/glass_preferences.dart';
+import '../../../../util/time_util.dart';
 import '../../../../widgets/common/app_button.dart';
 
 class LiveWorkoutRestBar extends StatelessWidget {
@@ -14,6 +15,9 @@ class LiveWorkoutRestBar extends StatelessWidget {
     required this.remainingRestSeconds,
     required this.onAdjustRestTime,
     required this.onCancelRest,
+    this.actionLabel,
+    this.actionIcon,
+    this.formatAsStopwatch = false,
   });
 
   final bool isRunning;
@@ -21,6 +25,9 @@ class LiveWorkoutRestBar extends StatelessWidget {
   final int remainingRestSeconds;
   final void Function(int seconds) onAdjustRestTime;
   final VoidCallback onCancelRest;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final bool formatAsStopwatch;
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +37,9 @@ class LiveWorkoutRestBar extends StatelessWidget {
     final radius = DesignConstants.workoutOverlayHeight / 2;
     final minutes = remainingRestSeconds ~/ 60;
     final seconds = remainingRestSeconds % 60;
-    final timer =
-        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    final timer = formatAsStopwatch
+        ? formatDuration(Duration(seconds: remainingRestSeconds))
+        : '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
     Widget adjustment(String text, int delta) => SizedBox(
       width: 48,
@@ -127,12 +135,18 @@ class LiveWorkoutRestBar extends StatelessWidget {
                       height: 38,
                       child: AppButton.primary(
                         onPressed: onCancelRest,
-                        label: isDoneBanner
-                            ? l10n.snackbar_button_ok
-                            : l10n.skipButton,
-                        tooltip: isDoneBanner
-                            ? l10n.snackbar_button_ok
-                            : l10n.skipButton,
+                        icon: actionIcon,
+                        label: actionIcon != null
+                            ? ''
+                            : actionLabel ??
+                                  (isDoneBanner
+                                      ? l10n.snackbar_button_ok
+                                      : l10n.skipButton),
+                        tooltip:
+                            actionLabel ??
+                            (isDoneBanner
+                                ? l10n.snackbar_button_ok
+                                : l10n.skipButton),
                       ),
                     ),
                   ],

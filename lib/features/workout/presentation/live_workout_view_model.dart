@@ -278,6 +278,33 @@ class LiveWorkoutViewModel extends ChangeNotifier
     unawaited(_syncLiveActivity());
   }
 
+  /// Adjusts the running stopwatch without allowing a negative elapsed time.
+  void adjustSetTimer(int seconds) {
+    final id = _activeSetTimerId;
+    final startedAt = _setTimerStartedAt;
+    if (id == null || startedAt == null) return;
+    final now = DateTime.now();
+    final elapsed = now.difference(startedAt);
+    final adjusted = elapsed + Duration(seconds: seconds);
+    _setTimerStartedAt = adjusted.isNegative ? now : now.subtract(adjusted);
+    _setTimerBaseSeconds = setTimerElapsedSeconds(id);
+    notifyListeners();
+    unawaited(_syncLiveActivity());
+  }
+
+  void _discardSetTimer(int? templateId) {
+    if (_activeSetTimerId == templateId && templateId != null) {
+      _setTimerTicker?.cancel();
+      _activeSetTimerId = null;
+      _setTimerStartedAt = null;
+      _setTimerBaseSeconds = 0;
+    }
+    if (_pausedSetTimerId == templateId && templateId != null) {
+      _pausedSetTimerId = null;
+      _pausedSetTimerElapsedSeconds = 0;
+    }
+  }
+
   bool _isDurationSet(int templateId) {
     for (final exercise in _exercises) {
       if (exercise.setTemplates.any((template) => template.id == templateId)) {
@@ -1040,6 +1067,11 @@ class LiveWorkoutViewModel extends ChangeNotifier
     }
 
     _setLogs[templateId] = finalSet;
+    if (_pausedSetTimerId == templateId &&
+        (duration != null || clearDuration)) {
+      // A manual edit after stopping replaces the time used on resume.
+      _pausedSetTimerElapsedSeconds = finalSet.durationSeconds ?? 0;
+    }
     if ((isCompleted == true && oldLog.isCompleted != true) ||
         duration != null ||
         clearDuration) {
@@ -1531,6 +1563,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
     if (log.id != null) {
       await _repository.deleteSetLogs([log.id!]);
     }
+    _discardSetTimer(templateId);
     _setLogs.remove(templateId);
     _completedWorkingOrder.remove(templateId);
 
@@ -1666,6 +1699,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
     final idsToDelete = <int>[];
     for (var t in re.setTemplates) {
+      _discardSetTimer(t.id);
       final log = _setLogs[t.id];
       if (log != null) {
         if (log.id != null) idsToDelete.add(log.id!);

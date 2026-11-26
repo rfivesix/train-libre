@@ -481,92 +481,119 @@ class LiveWorkoutSetRow extends StatelessWidget {
           child: !mask.showsSecondary
               ? const SizedBox.shrink()
               : mask.logsDuration
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: !isCompleted && !setTimerRunning
-                            ? () async {
-                                final currentSeconds = log.durationSeconds ?? 0;
-                                final newDuration = await adaptive_pickers
-                                    .showAdaptiveDurationPicker(
-                                      context: context,
-                                      initialDuration: Duration(
-                                        seconds: currentSeconds,
-                                      ),
-                                      title: l10n.durationLabel,
-                                      allowClear: true,
+              ? Container(
+                  height: 36,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusS,
+                    ),
+                    border: isCompleted
+                        ? null
+                        : Border.all(
+                            color: Theme.of(context).colorScheme.onSurface
+                                .withValues(alpha: 0.28),
+                          ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: !isCompleted && !setTimerRunning
+                              ? () async {
+                                  final currentSeconds =
+                                      log.durationSeconds ?? 0;
+                                  final newDuration = await adaptive_pickers
+                                      .showAdaptiveDurationPicker(
+                                        context: context,
+                                        initialDuration: Duration(
+                                          seconds: currentSeconds,
+                                        ),
+                                        title: l10n.durationLabel,
+                                        allowClear: true,
+                                      );
+                                  if (newDuration != null) {
+                                    final seconds = newDuration.inSeconds;
+                                    final clearDuration = seconds == 0;
+                                    manager.repsControllers[templateId]?.text =
+                                        formatPauseDuration(seconds);
+                                    await manager.updateSet(
+                                      templateId,
+                                      duration: seconds,
+                                      clearDuration: clearDuration,
                                     );
-                                if (newDuration != null) {
-                                  final seconds = newDuration.inSeconds;
-                                  final clearDuration = seconds == 0;
-                                  manager.repsControllers[templateId]?.text =
-                                      formatPauseDuration(seconds);
-                                  await manager.updateSet(
-                                    templateId,
-                                    duration: seconds,
-                                    clearDuration: clearDuration,
-                                  );
+                                  }
                                 }
-                              }
-                            : null,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            formatDuration(
-                              Duration(
-                                seconds: setTimerRunning
-                                    ? timerState.elapsed
-                                    : log.durationSeconds ?? 0,
+                              : null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                formatDuration(
+                                  Duration(
+                                    seconds: setTimerRunning
+                                        ? timerState.elapsed
+                                        : log.durationSeconds ?? 0,
+                                  ),
+                                ),
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      textColor ??
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
                               ),
                             ),
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  textColor ??
-                                  Theme.of(context).colorScheme.onSurface,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
+                          ),
+                        ),
+                      ),
+                      if (!isCompleted)
+                        Container(
+                          width: 30,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(
+                                color: Theme.of(context).colorScheme.onSurface
+                                    .withValues(alpha: 0.28),
+                              ),
+                            ),
+                          ),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            tooltip: setTimerRunning
+                                ? l10n.setTimerStop
+                                : l10n.setTimerStart,
+                            onPressed: !canTimeCurrentSet
+                                ? null
+                                : () {
+                                    if (setTimerRunning) {
+                                      manager.stopSetTimer(templateId);
+                                    } else {
+                                      manager.startSetTimer(templateId);
+                                    }
+                                  },
+                            icon: Icon(
+                              setTimerRunning
+                                  ? Icons.stop_rounded
+                                  : Icons.play_arrow_rounded,
+                              size: 22,
+                              color: setTimerRunning
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    if (!isCompleted)
-                      SizedBox(
-                        width: 34,
-                        height: 36,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                          tooltip: setTimerRunning
-                              ? l10n.setTimerStop
-                              : l10n.setTimerStart,
-                          onPressed: !canTimeCurrentSet
-                              ? null
-                              : () {
-                                  if (setTimerRunning) {
-                                    manager.stopSetTimer(templateId);
-                                  } else {
-                                    manager.startSetTimer(templateId);
-                                  }
-                                },
-                          icon: Icon(
-                            setTimerRunning
-                                ? LucideIcons.square
-                                : LucideIcons.play,
-                            size: 17,
-                            color: setTimerRunning
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 )
               : GeneratedValueMorph(
                   suggestionKey: mask.logsDuration ? null : suggestionKey,

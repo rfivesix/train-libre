@@ -1250,6 +1250,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
       (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone,
     );
+    final showSetTimerBar = context.select<LiveWorkoutViewModel, bool>(
+      (vm) => vm.activeSetTimerId != null,
+    );
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
@@ -1395,8 +1398,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                 padding: EdgeInsets.only(
                                   top: topPadding,
                                   bottom:
-                                      (showRestBar
-                                          ? 220.0
+                                      (showRestBar || showSetTimerBar
+                                          ? 220.0 +
+                                                (showRestBar && showSetTimerBar
+                                                    ? DesignConstants
+                                                              .workoutOverlayHeight +
+                                                          8.0
+                                                    : 0.0)
                                           : DesignConstants
                                                 .bottomContentSpacer) +
                                       MediaQuery.paddingOf(context).bottom,
@@ -1844,39 +1852,57 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                   child: AnimatedBuilder(
                                     animation: manager,
                                     builder: (context, _) {
-                                      final isRunning =
+                                      final activeTimerId =
+                                          manager.activeSetTimerId;
+                                      final isRestRunning =
                                           manager.remainingRestSeconds > 0;
-                                      final isDoneBanner =
-                                          !isRunning && manager.showRestDone;
-                                      final showRestBar =
-                                          isRunning || isDoneBanner;
-
-                                      return AnimatedSlide(
+                                      final showRest =
+                                          isRestRunning || manager.showRestDone;
+                                      return AnimatedSize(
                                         duration: const Duration(
                                           milliseconds: 320,
                                         ),
                                         curve: Curves.easeInOutCubic,
-                                        offset: showRestBar
-                                            ? Offset.zero
-                                            : const Offset(0.0, 1.25),
-                                        child: AnimatedOpacity(
-                                          duration: const Duration(
-                                            milliseconds: 280,
-                                          ),
-                                          curve: Curves.easeInOutCubic,
-                                          opacity: showRestBar ? 1.0 : 0.0,
-                                          child: IgnorePointer(
-                                            ignoring: !showRestBar,
-                                            child: LiveWorkoutRestBar(
-                                              isRunning: isRunning,
-                                              isDoneBanner: isDoneBanner,
-                                              remainingRestSeconds:
-                                                  manager.remainingRestSeconds,
-                                              onAdjustRestTime:
-                                                  manager.adjustRestTime,
-                                              onCancelRest: manager.cancelRest,
-                                            ),
-                                          ),
+                                        alignment: Alignment.bottomCenter,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (activeTimerId != null)
+                                              LiveWorkoutRestBar(
+                                                key: const ValueKey(
+                                                  'live_set_timer_bar',
+                                                ),
+                                                isRunning: true,
+                                                isDoneBanner: false,
+                                                remainingRestSeconds: manager
+                                                    .setTimerElapsedSeconds(
+                                                      activeTimerId,
+                                                    ),
+                                                onAdjustRestTime:
+                                                    manager.adjustSetTimer,
+                                                onCancelRest: () =>
+                                                    manager.stopSetTimer(
+                                                      activeTimerId,
+                                                    ),
+                                                actionLabel: l10n.setTimerStop,
+                                                actionIcon: Icons.stop_rounded,
+                                                formatAsStopwatch: true,
+                                              ),
+                                            if (showRest)
+                                              LiveWorkoutRestBar(
+                                                key: const ValueKey(
+                                                  'live_rest_timer_bar',
+                                                ),
+                                                isRunning: isRestRunning,
+                                                isDoneBanner: !isRestRunning,
+                                                remainingRestSeconds: manager
+                                                    .remainingRestSeconds,
+                                                onAdjustRestTime:
+                                                    manager.adjustRestTime,
+                                                onCancelRest:
+                                                    manager.cancelRest,
+                                              ),
+                                          ],
                                         ),
                                       );
                                     },
@@ -1891,15 +1917,19 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
                     Consumer<LiveWorkoutViewModel>(
                       builder: (context, vm, child) {
-                        final showRestBar =
-                            vm.remainingRestSeconds > 0 || vm.showRestDone;
+                        final barCount =
+                            (vm.remainingRestSeconds > 0 || vm.showRestDone
+                                ? 1
+                                : 0) +
+                            (vm.activeSetTimerId != null ? 1 : 0);
                         return AnimatedPositioned(
                           duration: const Duration(milliseconds: 320),
                           curve: Curves.easeInOutCubic,
-                          bottom: showRestBar
-                              ? (20.0 +
-                                    DesignConstants.workoutOverlayHeight +
-                                    8.0) // 12.0px outer padding + 8.0px inner bottom margin + 64.0px rest bar height + 8.0px gap = 92.0px
+                          bottom: barCount > 0
+                              ? 20.0 +
+                                    barCount *
+                                        (DesignConstants.workoutOverlayHeight +
+                                            8.0)
                               : (12.0 + MediaQuery.paddingOf(context).bottom),
                           right: 16.0,
                           child: RepaintBoundary(

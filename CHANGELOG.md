@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1-beta.4] - 2026-11-24
 
 ### Fixed
+- Enlarged the inline timer's play and stop icons without changing the control size.
+- Separated the duration and timer action in live workout set fields for clearer alignment.
+- Matched cardio set number tiles to the width of other live workout sets and refined the timer icons.
+- Balanced the spacing around the time and timer control in live workout set rows.
+- Restored the outline around editable duration fields in live workout set rows.
 - Improved scrolling and idle performance in Diary, Workout, Statistics, and Nutrition by pausing animations in inactive tabs, stopping the hidden AI cloud animation, reducing redundant Nutrition and Statistics loads, and limiting workout timer rebuilds.
 - Fixed the Statistics overview jumping when scrolling back to the top, missing training heatmap activity across daylight-saving transitions, and live workouts positioning exercises behind the app bar.
 - Fixed tapping exercise titles in `WorkoutExerciseLogCard` (Workout Detail Screen) doing nothing for exercises without a catalog entry (e.g. `Rowing Machine`, `Klimmzüge`) by opening `ExerciseDetailScreen` with a fallback `Exercise` model.
@@ -56,6 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ### Added
+- Added a floating stopwatch bar for timed sets in live workouts, with 15-second adjustments and a stop action alongside the rest timer.
 - Added an Appearance setting to show estimated one-rep maximum values in workout set rows and the live session comparison. The display is off by default and does not affect personal records.
 - Added vertical drag-and-drop reordering (`ReorderableSetList`) for sets within exercises across `LiveWorkoutScreen`, `EditRoutineScreen`, and `WorkoutLogDetailScreen` (in edit mode), persisting updated set order via `LiveWorkoutViewModel.reorderSet`, `replaceSetTemplatesForExercise`, and `updateSetLogs`.
 - Added `StatisticsSampleDataSeeder` and Developer Settings actions (`Statistik-Beispieldaten laden` / `Statistik-Beispieldaten entfernen`) to populate and clear 45 days of realistic statistics sample data (macros, BLS micronutrients, calorie goal history, measurements, water, workouts/sets, steps, pulse, and sleep) for emulator/simulator testing without overwriting existing user data.
