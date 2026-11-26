@@ -537,7 +537,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       _weightControllers[setLog.id!] = TextEditingController(text: val1);
       _repsControllers[setLog.id!] = TextEditingController(text: val2);
       _rirControllers[setLog.id!] = TextEditingController(
-        text: setLog.rir?.toString() ?? '',
+        text: isCardio
+            ? (setLog.rir?.toString() ?? '')
+            : (setLog.rpe?.toString().replaceFirst(RegExp(r'\.0$'), '') ??
+                  (setLog.rir == null ? '' : (10 - setLog.rir!).toString())),
       );
     }
 
@@ -858,6 +861,26 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       final initialSetIds = _log!.sets.map((s) => s.id!).toSet();
       final currentSets = _groupedSets.values.expand((sets) => sets).toList();
 
+      for (final set in currentSets) {
+        if (_isCardio(ExerciseBlockKey.fromSet(set))) continue;
+        final raw = _rirControllers[set.id]?.text.trim() ?? '';
+        if (raw.isEmpty) continue;
+        final value = double.tryParse(raw.replaceAll(',', '.'));
+        final original =
+            set.rpe ?? (set.rir == null ? null : (10 - set.rir!).toDouble());
+        if (value != original &&
+            (value == null ||
+                value < 6 ||
+                value > 10 ||
+                (value * 2).roundToDouble() != value * 2)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(l10n.rpeInvalid)));
+          }
+          return;
+        }
+      }
+
       final idsToDelete = initialSetIds
           .difference(currentSets.map((s) => s.id!).toSet())
           .toList();
@@ -885,7 +908,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           final val2 = isCardio
               ? (parsePauseDuration(repsText) ?? 0).toDouble()
               : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
-          final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
+          final intensityText = _rirControllers[setLog.id!]?.text ?? '';
+          final rir = int.tryParse(intensityText);
+          final rpe = double.tryParse(intensityText.replaceAll(',', '.'));
+          final initialRpe =
+              setLog.rpe ??
+              (setLog.rir == null ? null : (10 - setLog.rir!).toDouble());
+          final rpeChanged = rpe != initialRpe;
 
           SetLog updatedSet;
 
@@ -906,8 +935,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
             updatedSet = setLog.copyWith(
               weightKg: val1,
               reps: val2.toInt(),
-              rir: rir,
-              clearRir: rir == null,
+              rpe: rpeChanged ? rpe : null,
+              clearRpe: rpeChanged && rpe == null,
+              clearRir: rpeChanged,
               logOrder: currentOrder++,
               // Cardio Felder nullen
               distanceKm: null,
@@ -1354,9 +1384,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
               ),
               children: [
                 if (_isEditMode)
-                  ReorderHeadroom(
-                    height: _isDragging ? _dynamicHeadroom : 0.0,
-                  ),
+                  ReorderHeadroom(height: _isDragging ? _dynamicHeadroom : 0.0),
                 // Header Info (3-column KPI grid, date/time & notes)
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -1473,276 +1501,189 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                   ),
                 ),
 
-                      if (_exerciseDetails.isNotEmpty) ...[
-                        Builder(
-                          builder: (context) {
-                            final heatmapWidget = _buildMuscleHeatmap(l10n);
-                            if (heatmapWidget is SizedBox) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal:
-                                    DesignConstants.screenPaddingHorizontal,
-                                vertical: DesignConstants.spacingM,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AppSectionHeader(
-                                    title: l10n.muscleSplitLabel,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                  const SizedBox(
-                                    height: DesignConstants.spacingM,
-                                  ),
-                                  heatmapWidget,
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                      if (_heartRateSummary?.hasData == true)
-                        Padding(
-                          padding: DesignConstants.cardPadding.copyWith(top: 0),
-                          child: WorkoutHeartRateSection(
-                            summary: _heartRateSummary!,
-                            pulseTrackingEnabled: _pulseTrackingEnabled,
-                          ),
-                        ),
-
-                      // NEW RECORDS SECTION
-                      if (_newRecordsPerExercise.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.screenPaddingHorizontal,
-                          ),
-                          child: AppSectionHeader(
-                            title: l10n.workoutRecordsTitle,
-                            padding: EdgeInsets.zero,
-                            action: AlgorithmInfoButton(
-                              title: l10n.estimatedOneRepMaxInfoTitle,
-                              explanation:
-                                  l10n.estimatedOneRepMaxInfoExplanation,
-                              keyPoints: l10n.estimatedOneRepMaxInfoPoints
-                                  .split('\n'),
-                              technicalTitle:
-                                  l10n.estimatedOneRepMaxInfoDetailsTitle,
-                              technicalExplanation:
-                                  l10n.estimatedOneRepMaxInfoDetails,
-                              citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingS),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.screenPaddingHorizontal,
-                          ),
-                          child: Column(
-                            children: _newRecordsPerExercise.entries.map((
-                              entry,
-                            ) {
-                              return ExerciseRecordCard(
-                                exerciseName:
-                                    _exerciseDetails[entry.key]
-                                        ?.getLocalizedName(context) ??
-                                    entry.key.exerciseName,
-                                records: entry.value,
-                                unitService: context.read<UnitService>(),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingL),
-                      ],
-
-                      // EXERCISE LIST SECTION HEADER
-                      Padding(
+                if (_exerciseDetails.isNotEmpty) ...[
+                  Builder(
+                    builder: (context) {
+                      final heatmapWidget = _buildMuscleHeatmap(l10n);
+                      if (heatmapWidget is SizedBox) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: DesignConstants.screenPaddingHorizontal,
-                          vertical: DesignConstants.spacingS,
+                          vertical: DesignConstants.spacingM,
                         ),
-                        child: AppSectionHeader(
-                          title: l10n.workout,
-                          padding: EdgeInsets.zero,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppSectionHeader(
+                              title: l10n.muscleSplitLabel,
+                              padding: EdgeInsets.zero,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingM),
+                            heatmapWidget,
+                          ],
                         ),
+                      );
+                    },
+                  ),
+                ],
+                if (_heartRateSummary?.hasData == true)
+                  Padding(
+                    padding: DesignConstants.cardPadding.copyWith(top: 0),
+                    child: WorkoutHeartRateSection(
+                      summary: _heartRateSummary!,
+                      pulseTrackingEnabled: _pulseTrackingEnabled,
+                    ),
+                  ),
+
+                // NEW RECORDS SECTION
+                if (_newRecordsPerExercise.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: AppSectionHeader(
+                      title: l10n.workoutRecordsTitle,
+                      padding: EdgeInsets.zero,
+                      action: AlgorithmInfoButton(
+                        title: l10n.estimatedOneRepMaxInfoTitle,
+                        explanation: l10n.estimatedOneRepMaxInfoExplanation,
+                        keyPoints: l10n.estimatedOneRepMaxInfoPoints.split(
+                          '\n',
+                        ),
+                        technicalTitle: l10n.estimatedOneRepMaxInfoDetailsTitle,
+                        technicalExplanation:
+                            l10n.estimatedOneRepMaxInfoDetails,
+                        citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: Column(
+                      children: _newRecordsPerExercise.entries.map((entry) {
+                        return ExerciseRecordCard(
+                          exerciseName:
+                              _exerciseDetails[entry.key]?.getLocalizedName(
+                                context,
+                              ) ??
+                              entry.key.exerciseName,
+                          records: entry.value,
+                          unitService: context.read<UnitService>(),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                ],
 
-                      // Sets
-                      if (!_isEditMode)
-                        ..._groupedSets.entries.toList().asMap().entries.map((
-                          indexedEntry,
-                        ) {
-                          final index = indexedEntry.key;
-                          final entry = indexedEntry.value;
-                          final key = entry.key;
-                          final exerciseName = key.exerciseName;
-                          final Exercise? exercise = _exerciseDetails[key];
-                          final List<SetLog> sets = entry.value;
-                          final isCardio = _isCardio(key);
-                          final supersetStyle = _historySupersetStyleAt(index);
+                // EXERCISE LIST SECTION HEADER
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.screenPaddingHorizontal,
+                    vertical: DesignConstants.spacingS,
+                  ),
+                  child: AppSectionHeader(
+                    title: l10n.workout,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
 
-                          return WorkoutExerciseLogCard(
-                            exerciseName: exerciseName,
-                            exercise: exercise,
-                            sets: sets,
-                            isEditMode: false,
-                            isCardio: isCardio,
-                            mask: _maskFor(key),
-                            bodyweightKg: _bodyweightKg,
-                            weightControllers: _weightControllers,
-                            repsControllers: _repsControllers,
-                            rirControllers: _rirControllers,
-                            exerciseNote: _exerciseNotes[key],
-                            pauseSeconds: _pauseSecondsForSets(sets),
-                            onEditPauseTime: () => _editPauseTime(context, key),
-                            onEditNotes: (_) =>
-                                _editExerciseNotes(context, key),
-                            onDeleteExercise: (_) {
-                              setState(() {
-                                for (var set in sets) {
-                                  _weightControllers.remove(set.id!)?.dispose();
-                                  _repsControllers.remove(set.id!)?.dispose();
-                                  _rirControllers.remove(set.id!)?.dispose();
-                                }
-                                _groupedSets.remove(key);
-                                _exerciseNotes.remove(key);
-                              });
-                            },
-                            onAddSet: () {},
-                            onDeleteSet: (setId) {},
-                            onSetTypeTap: (setId) {},
-                            onSetTypeChanged: (setId, newType) =>
-                                _changeSetType(setId, newType),
-                            index: -1,
-                            supersetLabel: supersetStyle?.label,
-                            supersetColor: supersetStyle?.color,
-                            continuesSupersetAbove:
-                                supersetStyle?.continuesAbove ?? false,
-                            continuesSupersetBelow:
-                                supersetStyle?.continuesBelow ?? false,
-                          );
-                        })
-                      else ...[
-                        Listener(
-                          onPointerMove: (e) {
-                            if (_isDragActive) {
-                              _trackReorderHover(e.position.dy);
-                            }
-                          },
-                          child: ReorderableListView.builder(
-                            buildDefaultDragHandles: false,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            onReorderStart: (index) {
-                              if (!_isEditMode) return;
-                              _isDragActive = true;
-                              ReorderHapticFeedback.onDragStart(index);
-                              _scrollAnchor.discard();
-                              _collapseTimer?.cancel();
-                              _expandTimer?.cancel();
-                              if (!_isDragging) {
-                                setState(() {
-                                  _isDragging = true;
-                                });
-                              }
-                            },
-                            onReorderEnd: (index) {
-                              _isDragActive = false;
-                              ReorderHapticFeedback.onDragEnd();
-                              _scheduleExpandAfterDrop();
-                            },
-                            proxyDecorator:
-                                (
-                                  Widget child,
-                                  int index,
-                                  Animation<double> animation,
-                                ) {
-                                  if (index >= 0 &&
-                                      index < _groupedSets.length) {
-                                    final entry = _groupedSets.entries
-                                        .elementAt(index);
-                                    final key = entry.key;
-                                    final exerciseName = key.exerciseName;
-                                    final Exercise? exercise =
-                                        _exerciseDetails[key];
-                                    final List<SetLog> sets = entry.value;
-                                    final isCardio = _isCardio(key);
-                                    final supersetStyle =
-                                        _historySupersetStyleAt(index);
+                // Sets
+                if (!_isEditMode)
+                  ..._groupedSets.entries.toList().asMap().entries.map((
+                    indexedEntry,
+                  ) {
+                    final index = indexedEntry.key;
+                    final entry = indexedEntry.value;
+                    final key = entry.key;
+                    final exerciseName = key.exerciseName;
+                    final Exercise? exercise = _exerciseDetails[key];
+                    final List<SetLog> sets = entry.value;
+                    final isCardio = _isCardio(key);
+                    final supersetStyle = _historySupersetStyleAt(index);
 
-                                    final proxyChild = WorkoutExerciseLogCard(
-                                      exerciseName: exerciseName,
-                                      exercise: exercise,
-                                      sets: sets,
-                                      isEditMode: true,
-                                      isCardio: isCardio,
-                                      mask: _maskFor(key),
-                                      bodyweightKg: _bodyweightKg,
-                                      isDragging: true,
-                                      weightControllers: _weightControllers,
-                                      repsControllers: _repsControllers,
-                                      rirControllers: _rirControllers,
-                                      exerciseNote: _exerciseNotes[key],
-                                      pauseSeconds: _pauseSecondsForSets(sets),
-                                      onEditPauseTime: () {},
-                                      onEditNotes: (_) {},
-                                      onDeleteExercise: (_) {},
-                                      onAddSet: () {},
-                                      onDeleteSet: (_) {},
-                                      onSetTypeTap: (_) {},
-                                      onSetTypeChanged: (_, _) {},
-                                      index: index,
-                                      supersetLabel: supersetStyle?.label,
-                                      supersetColor: supersetStyle?.color,
-                                    );
-                                    return buildReorderDragProxy(
-                                      context,
-                                      proxyChild,
-                                      animation,
-                                    );
-                                  }
-                                  return buildReorderDragProxy(
-                                    context,
-                                    child,
-                                    animation,
-                                  );
-                                },
-                            onReorderItem: (int oldIndex, int newIndex) {
-                              setState(() {
-                                final entries =
-                                    reorderWithSupersets<
-                                      MapEntry<ExerciseBlockKey, List<SetLog>>
-                                    >(
-                                      items: _groupedSets.entries.toList(),
-                                      oldIndex: oldIndex,
-                                      newIndex: newIndex,
-                                      getGroup: (entry) => entry.value.isEmpty
-                                          ? null
-                                          : entry.value.first.supersetGroup,
-                                      withGroup: (entry, group) =>
-                                          MapEntry(entry.key, [
-                                            for (final set in entry.value)
-                                              group == null
-                                                  ? set.copyWith(
-                                                      clearSupersetGroup: true,
-                                                    )
-                                                  : set.copyWith(
-                                                      supersetGroup: group,
-                                                    ),
-                                          ]),
-                                    );
-                                _groupedSets.clear();
-                                for (var entry in entries) {
-                                  _groupedSets[entry.key] = entry.value;
-                                }
-                              });
-                            },
-                            itemCount: _groupedSets.length,
-                            itemBuilder: (context, index) {
+                    return WorkoutExerciseLogCard(
+                      exerciseName: exerciseName,
+                      exercise: exercise,
+                      sets: sets,
+                      isEditMode: false,
+                      isCardio: isCardio,
+                      mask: _maskFor(key),
+                      bodyweightKg: _bodyweightKg,
+                      weightControllers: _weightControllers,
+                      repsControllers: _repsControllers,
+                      rirControllers: _rirControllers,
+                      exerciseNote: _exerciseNotes[key],
+                      pauseSeconds: _pauseSecondsForSets(sets),
+                      onEditPauseTime: () => _editPauseTime(context, key),
+                      onEditNotes: (_) => _editExerciseNotes(context, key),
+                      onDeleteExercise: (_) {
+                        setState(() {
+                          for (var set in sets) {
+                            _weightControllers.remove(set.id!)?.dispose();
+                            _repsControllers.remove(set.id!)?.dispose();
+                            _rirControllers.remove(set.id!)?.dispose();
+                          }
+                          _groupedSets.remove(key);
+                          _exerciseNotes.remove(key);
+                        });
+                      },
+                      onAddSet: () {},
+                      onDeleteSet: (setId) {},
+                      onSetTypeTap: (setId) {},
+                      onSetTypeChanged: (setId, newType) =>
+                          _changeSetType(setId, newType),
+                      index: -1,
+                      supersetLabel: supersetStyle?.label,
+                      supersetColor: supersetStyle?.color,
+                      continuesSupersetAbove:
+                          supersetStyle?.continuesAbove ?? false,
+                      continuesSupersetBelow:
+                          supersetStyle?.continuesBelow ?? false,
+                    );
+                  })
+                else ...[
+                  Listener(
+                    onPointerMove: (e) {
+                      if (_isDragActive) {
+                        _trackReorderHover(e.position.dy);
+                      }
+                    },
+                    child: ReorderableListView.builder(
+                      buildDefaultDragHandles: false,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      onReorderStart: (index) {
+                        if (!_isEditMode) return;
+                        _isDragActive = true;
+                        ReorderHapticFeedback.onDragStart(index);
+                        _scrollAnchor.discard();
+                        _collapseTimer?.cancel();
+                        _expandTimer?.cancel();
+                        if (!_isDragging) {
+                          setState(() {
+                            _isDragging = true;
+                          });
+                        }
+                      },
+                      onReorderEnd: (index) {
+                        _isDragActive = false;
+                        ReorderHapticFeedback.onDragEnd();
+                        _scheduleExpandAfterDrop();
+                      },
+                      proxyDecorator:
+                          (
+                            Widget child,
+                            int index,
+                            Animation<double> animation,
+                          ) {
+                            if (index >= 0 && index < _groupedSets.length) {
                               final entry = _groupedSets.entries.elementAt(
                                 index,
                               );
@@ -1755,282 +1696,318 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 index,
                               );
 
-                              final isDeleting = _deletingExercises.contains(
-                                key,
+                              final proxyChild = WorkoutExerciseLogCard(
+                                exerciseName: exerciseName,
+                                exercise: exercise,
+                                sets: sets,
+                                isEditMode: true,
+                                isCardio: isCardio,
+                                mask: _maskFor(key),
+                                bodyweightKg: _bodyweightKg,
+                                isDragging: true,
+                                weightControllers: _weightControllers,
+                                repsControllers: _repsControllers,
+                                rirControllers: _rirControllers,
+                                exerciseNote: _exerciseNotes[key],
+                                pauseSeconds: _pauseSecondsForSets(sets),
+                                onEditPauseTime: () {},
+                                onEditNotes: (_) {},
+                                onDeleteExercise: (_) {},
+                                onAddSet: () {},
+                                onDeleteSet: (_) {},
+                                onSetTypeTap: (_) {},
+                                onSetTypeChanged: (_, _) {},
+                                index: index,
+                                supersetLabel: supersetStyle?.label,
+                                supersetColor: supersetStyle?.color,
                               );
-
-                              return KeyedSubtree(
-                                key: _scrollAnchor.keyFor(key.anchorId),
-                                child: AnimatedSize(
-                                  duration: kReorderCardResizeDuration,
-                                  curve: Curves.easeInOutCubic,
-                                  alignment: Alignment.topCenter,
-                                  child: isDeleting
-                                      ? const SizedBox(
-                                          width: double.infinity,
-                                          height: 0,
-                                        )
-                                      : AnimatedOpacity(
-                                          duration: const Duration(
-                                            milliseconds: 180,
-                                          ),
-                                          curve: Curves.easeOut,
-                                          opacity: isDeleting ? 0.0 : 1.0,
-                                          child: RepaintBoundary(
-                                            key: ValueKey(key.anchorId),
-                                            child: Column(
-                                              children: [
-                                                WorkoutExerciseLogCard(
-                                                  exerciseName: exerciseName,
-                                                  exercise: exercise,
-                                                  sets: sets,
-                                                  isEditMode: true,
-                                                  isCardio: isCardio,
-                                                  mask: _maskFor(key),
-                                                  bodyweightKg: _bodyweightKg,
-                                                  isDragging: _isDragging,
-                                                  onPointerDown: (e) =>
-                                                      _onDragPointerDown(
-                                                        e,
-                                                        key.anchorId,
-                                                        index,
-                                                      ),
-                                                  onPointerMove:
-                                                      _onDragPointerMove,
-                                                  onPointerUp: _onDragPointerUp,
-                                                  onPointerCancel:
-                                                      _onDragPointerCancel,
-                                                  weightControllers:
-                                                      _weightControllers,
-                                                  repsControllers:
-                                                      _repsControllers,
-                                                  rirControllers:
-                                                      _rirControllers,
-                                                  exerciseNote:
-                                                      _exerciseNotes[key],
-                                                  pauseSeconds:
-                                                      _pauseSecondsForSets(
-                                                        sets,
-                                                      ),
-                                                  onEditPauseTime: () =>
-                                                      _editPauseTime(
-                                                        context,
-                                                        key,
-                                                      ),
-                                                  onEditNotes: (_) =>
-                                                      _editExerciseNotes(
-                                                        context,
-                                                        key,
-                                                      ),
-                                                  onDeleteExercise: (_) =>
-                                                      _onDeleteExercise(
-                                                        key,
-                                                        sets,
-                                                      ),
-                                                  onAddSet: () {
-                                                    var syntheticId =
-                                                        -DateTime.now()
-                                                            .millisecondsSinceEpoch;
-                                                    while (_weightControllers
-                                                            .containsKey(
-                                                              syntheticId,
-                                                            ) ||
-                                                        sets.any(
-                                                          (s) =>
-                                                              s.id ==
-                                                              syntheticId,
-                                                        )) {
-                                                      syntheticId--;
-                                                    }
-                                                    final newSet = SetLog(
-                                                      id: syntheticId,
-                                                      workoutLogId: _log!.id!,
-                                                      exerciseName:
-                                                          exerciseName,
-                                                      setType: 'normal',
-                                                      isCompleted: true,
-                                                      exerciseBlock:
-                                                          key.exerciseBlock,
-                                                      restTimeSeconds:
-                                                          _pauseSecondsForSets(
-                                                            sets,
-                                                          ),
-                                                    );
-                                                    setState(() {
-                                                      sets.add(newSet);
-                                                      _weightControllers[newSet
-                                                              .id!] =
-                                                          TextEditingController();
-                                                      _repsControllers[newSet
-                                                              .id!] =
-                                                          TextEditingController();
-                                                      _rirControllers[newSet
-                                                              .id!] =
-                                                          TextEditingController();
-                                                    });
-                                                  },
-                                                  onDeleteSet: (setId) {
-                                                    setState(() {
-                                                      sets.removeWhere(
-                                                        (s) => s.id == setId,
-                                                      );
-                                                      _weightControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                      _repsControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                      _rirControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                    });
-                                                  },
-                                                  onReorderSet:
-                                                      (oldIndex, newIndex) =>
-                                                          _reorderSet(
-                                                            key,
-                                                            oldIndex,
-                                                            newIndex,
-                                                          ),
-                                                  onSetTypeTap: (setId) =>
-                                                      _showSetTypePicker(setId),
-                                                  onSetTypeChanged:
-                                                      (setId, newType) =>
-                                                          _changeSetType(
-                                                            setId,
-                                                            newType,
-                                                          ),
-                                                  index: index,
-                                                  supersetLabel:
-                                                      supersetStyle?.label,
-                                                  supersetColor:
-                                                      supersetStyle?.color,
-                                                  continuesSupersetAbove:
-                                                      supersetStyle
-                                                          ?.continuesAbove ??
-                                                      false,
-                                                  continuesSupersetBelow:
-                                                      supersetStyle
-                                                          ?.continuesBelow ??
-                                                      false,
-                                                  onToggleSupersetBelow:
-                                                      index + 1 <
-                                                          _groupedSets.length
-                                                      ? () =>
-                                                            _toggleSupersetAfter(
-                                                              index,
-                                                            )
-                                                      : null,
-                                                  isConnectedBelow:
-                                                      index + 1 <
-                                                          _groupedSets.length &&
-                                                      entry
-                                                              .value
-                                                              .first
-                                                              .supersetGroup !=
-                                                          null &&
-                                                      entry
-                                                              .value
-                                                              .first
-                                                              .supersetGroup ==
-                                                          _groupedSets.entries
-                                                              .elementAt(
-                                                                index + 1,
-                                                              )
-                                                              .value
-                                                              .first
-                                                              .supersetGroup,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                              return buildReorderDragProxy(
+                                context,
+                                proxyChild,
+                                animation,
+                              );
+                            }
+                            return buildReorderDragProxy(
+                              context,
+                              child,
+                              animation,
+                            );
+                          },
+                      onReorderItem: (int oldIndex, int newIndex) {
+                        setState(() {
+                          final entries =
+                              reorderWithSupersets<
+                                MapEntry<ExerciseBlockKey, List<SetLog>>
+                              >(
+                                items: _groupedSets.entries.toList(),
+                                oldIndex: oldIndex,
+                                newIndex: newIndex,
+                                getGroup: (entry) => entry.value.isEmpty
+                                    ? null
+                                    : entry.value.first.supersetGroup,
+                                withGroup: (entry, group) => MapEntry(
+                                  entry.key,
+                                  [
+                                    for (final set in entry.value)
+                                      group == null
+                                          ? set.copyWith(
+                                              clearSupersetGroup: true,
+                                            )
+                                          : set.copyWith(supersetGroup: group),
+                                  ],
                                 ),
                               );
-                            },
-                          ),
-                        ),
-                      ],
+                          _groupedSets.clear();
+                          for (var entry in entries) {
+                            _groupedSets[entry.key] = entry.value;
+                          }
+                        });
+                      },
+                      itemCount: _groupedSets.length,
+                      itemBuilder: (context, index) {
+                        final entry = _groupedSets.entries.elementAt(index);
+                        final key = entry.key;
+                        final exerciseName = key.exerciseName;
+                        final Exercise? exercise = _exerciseDetails[key];
+                        final List<SetLog> sets = entry.value;
+                        final isCardio = _isCardio(key);
+                        final supersetStyle = _historySupersetStyleAt(index);
 
-                      // Add Exercise (Edit Mode)
-                      if (_isEditMode)
-                        Padding(
-                          padding: const EdgeInsets.all(
-                            DesignConstants.spacingL,
-                          ),
-                          child: MorphSourceScope(
-                            builder: (context, setHidden) => Builder(
-                              builder: (btnCtx) {
-                                // Flies with the container, so the catalog
-                                // dissolves out of the button instead of
-                                // being there from the first frame.
-                                late final Widget addButton;
-                                addButton = TextButton.icon(
-                                  onPressed: () async {
-                                    final selectedExercise =
-                                        await Navigator.of(context)
-                                            .push<Exercise>(
-                                              CardMorphRoute(
-                                                sourceContext: btnCtx,
-                                                sourceBorderRadius: 14.0,
-                                                sourceBuilder: (_) => addButton,
-                                                onSourceVisibilityChanged:
-                                                    setHidden,
-                                                builder: (context) =>
-                                                    const ExerciseCatalogScreen(
-                                                      isSelectionMode: true,
+                        final isDeleting = _deletingExercises.contains(key);
+
+                        return KeyedSubtree(
+                          key: _scrollAnchor.keyFor(key.anchorId),
+                          child: AnimatedSize(
+                            duration: kReorderCardResizeDuration,
+                            curve: Curves.easeInOutCubic,
+                            alignment: Alignment.topCenter,
+                            child: isDeleting
+                                ? const SizedBox(
+                                    width: double.infinity,
+                                    height: 0,
+                                  )
+                                : AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 180),
+                                    curve: Curves.easeOut,
+                                    opacity: isDeleting ? 0.0 : 1.0,
+                                    child: RepaintBoundary(
+                                      key: ValueKey(key.anchorId),
+                                      child: Column(
+                                        children: [
+                                          WorkoutExerciseLogCard(
+                                            exerciseName: exerciseName,
+                                            exercise: exercise,
+                                            sets: sets,
+                                            isEditMode: true,
+                                            isCardio: isCardio,
+                                            mask: _maskFor(key),
+                                            bodyweightKg: _bodyweightKg,
+                                            isDragging: _isDragging,
+                                            onPointerDown: (e) =>
+                                                _onDragPointerDown(
+                                                  e,
+                                                  key.anchorId,
+                                                  index,
+                                                ),
+                                            onPointerMove: _onDragPointerMove,
+                                            onPointerUp: _onDragPointerUp,
+                                            onPointerCancel:
+                                                _onDragPointerCancel,
+                                            weightControllers:
+                                                _weightControllers,
+                                            repsControllers: _repsControllers,
+                                            rirControllers: _rirControllers,
+                                            exerciseNote: _exerciseNotes[key],
+                                            pauseSeconds: _pauseSecondsForSets(
+                                              sets,
+                                            ),
+                                            onEditPauseTime: () =>
+                                                _editPauseTime(context, key),
+                                            onEditNotes: (_) =>
+                                                _editExerciseNotes(
+                                                  context,
+                                                  key,
+                                                ),
+                                            onDeleteExercise: (_) =>
+                                                _onDeleteExercise(key, sets),
+                                            onAddSet: () {
+                                              var syntheticId = -DateTime.now()
+                                                  .millisecondsSinceEpoch;
+                                              while (_weightControllers
+                                                      .containsKey(
+                                                        syntheticId,
+                                                      ) ||
+                                                  sets.any(
+                                                    (s) => s.id == syntheticId,
+                                                  )) {
+                                                syntheticId--;
+                                              }
+                                              final newSet = SetLog(
+                                                id: syntheticId,
+                                                workoutLogId: _log!.id!,
+                                                exerciseName: exerciseName,
+                                                setType: 'normal',
+                                                isCompleted: true,
+                                                exerciseBlock:
+                                                    key.exerciseBlock,
+                                                restTimeSeconds:
+                                                    _pauseSecondsForSets(sets),
+                                              );
+                                              setState(() {
+                                                sets.add(newSet);
+                                                _weightControllers[newSet.id!] =
+                                                    TextEditingController();
+                                                _repsControllers[newSet.id!] =
+                                                    TextEditingController();
+                                                _rirControllers[newSet.id!] =
+                                                    TextEditingController();
+                                              });
+                                            },
+                                            onDeleteSet: (setId) {
+                                              setState(() {
+                                                sets.removeWhere(
+                                                  (s) => s.id == setId,
+                                                );
+                                                _weightControllers
+                                                    .remove(setId)
+                                                    ?.dispose();
+                                                _repsControllers
+                                                    .remove(setId)
+                                                    ?.dispose();
+                                                _rirControllers
+                                                    .remove(setId)
+                                                    ?.dispose();
+                                              });
+                                            },
+                                            onReorderSet:
+                                                (oldIndex, newIndex) =>
+                                                    _reorderSet(
+                                                      key,
+                                                      oldIndex,
+                                                      newIndex,
                                                     ),
-                                              ),
-                                            );
-                                    if (selectedExercise != null) {
-                                      setState(() {
-                                        final exerciseBlock =
-                                            _nextExerciseBlock();
-                                        final exerciseName = selectedExercise
-                                            .getLocalizedName(context);
-                                        final key = ExerciseBlockKey(
-                                          exerciseBlock: exerciseBlock,
-                                          exerciseName: exerciseName,
-                                        );
-                                        // Store exercise details locally so _isCardio and name work.
-                                        _exerciseDetails[key] =
-                                            selectedExercise;
-
-                                        final newSet = SetLog(
-                                          id: -DateTime.now()
-                                              .millisecondsSinceEpoch,
-                                          workoutLogId: _log!.id!,
-                                          exerciseName: exerciseName,
-                                          setType: 'normal',
-                                          isCompleted: true,
-                                          exerciseBlock: exerciseBlock,
-                                          // Set default values
-                                          weightKg: 0,
-                                          reps: 0,
-                                          distanceKm: 0,
-                                          durationSeconds: 0,
-                                        );
-                                        _groupedSets[key] = [newSet];
-
-                                        _weightControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _repsControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _rirControllers[newSet.id!] =
-                                            TextEditingController();
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(LucideIcons.plus),
-                                  label: Text(l10n.addExerciseToWorkoutButton),
-                                );
-                                return addButton;
-                              },
-                            ),
+                                            onSetTypeTap: (setId) =>
+                                                _showSetTypePicker(setId),
+                                            onSetTypeChanged: (
+                                              setId,
+                                              newType,
+                                            ) => _changeSetType(setId, newType),
+                                            index: index,
+                                            supersetLabel: supersetStyle?.label,
+                                            supersetColor: supersetStyle?.color,
+                                            continuesSupersetAbove:
+                                                supersetStyle?.continuesAbove ??
+                                                false,
+                                            continuesSupersetBelow:
+                                                supersetStyle?.continuesBelow ??
+                                                false,
+                                            onToggleSupersetBelow:
+                                                index + 1 < _groupedSets.length
+                                                ? () => _toggleSupersetAfter(
+                                                    index,
+                                                  )
+                                                : null,
+                                            isConnectedBelow:
+                                                index + 1 <
+                                                    _groupedSets.length &&
+                                                entry
+                                                        .value
+                                                        .first
+                                                        .supersetGroup !=
+                                                    null &&
+                                                entry
+                                                        .value
+                                                        .first
+                                                        .supersetGroup ==
+                                                    _groupedSets.entries
+                                                        .elementAt(index + 1)
+                                                        .value
+                                                        .first
+                                                        .supersetGroup,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                           ),
-                        ),
-                    ],
+                        );
+                      },
+                    ),
                   ),
+                ],
+
+                // Add Exercise (Edit Mode)
+                if (_isEditMode)
+                  Padding(
+                    padding: const EdgeInsets.all(DesignConstants.spacingL),
+                    child: MorphSourceScope(
+                      builder: (context, setHidden) => Builder(
+                        builder: (btnCtx) {
+                          // Flies with the container, so the catalog
+                          // dissolves out of the button instead of
+                          // being there from the first frame.
+                          late final Widget addButton;
+                          addButton = TextButton.icon(
+                            onPressed: () async {
+                              final selectedExercise =
+                                  await Navigator.of(context).push<Exercise>(
+                                    CardMorphRoute(
+                                      sourceContext: btnCtx,
+                                      sourceBorderRadius: 14.0,
+                                      sourceBuilder: (_) => addButton,
+                                      onSourceVisibilityChanged: setHidden,
+                                      builder: (context) =>
+                                          const ExerciseCatalogScreen(
+                                            isSelectionMode: true,
+                                          ),
+                                    ),
+                                  );
+                              if (selectedExercise != null) {
+                                setState(() {
+                                  final exerciseBlock = _nextExerciseBlock();
+                                  final exerciseName = selectedExercise
+                                      .getLocalizedName(context);
+                                  final key = ExerciseBlockKey(
+                                    exerciseBlock: exerciseBlock,
+                                    exerciseName: exerciseName,
+                                  );
+                                  // Store exercise details locally so _isCardio and name work.
+                                  _exerciseDetails[key] = selectedExercise;
+
+                                  final newSet = SetLog(
+                                    id: -DateTime.now().millisecondsSinceEpoch,
+                                    workoutLogId: _log!.id!,
+                                    exerciseName: exerciseName,
+                                    setType: 'normal',
+                                    isCompleted: true,
+                                    exerciseBlock: exerciseBlock,
+                                    // Set default values
+                                    weightKg: 0,
+                                    reps: 0,
+                                    distanceKm: 0,
+                                    durationSeconds: 0,
+                                  );
+                                  _groupedSets[key] = [newSet];
+
+                                  _weightControllers[newSet.id!] =
+                                      TextEditingController();
+                                  _repsControllers[newSet.id!] =
+                                      TextEditingController();
+                                  _rirControllers[newSet.id!] =
+                                      TextEditingController();
+                                });
+                              }
+                            },
+                            icon: const Icon(LucideIcons.plus),
+                            label: Text(l10n.addExerciseToWorkoutButton),
+                          );
+                          return addButton;
+                        },
+                      ),
+                    ),
+                  ),
+              ],
+            ),
     );
   }
 

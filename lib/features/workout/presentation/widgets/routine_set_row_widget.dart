@@ -217,8 +217,12 @@ class RoutineSetRowWidget extends StatelessWidget {
                   controller: rirController,
                   readOnly: !isEditMode,
                   textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                  ],
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) =>
                       FocusManager.instance.primaryFocus?.unfocus(),

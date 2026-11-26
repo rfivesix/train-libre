@@ -1148,7 +1148,7 @@
   "onboardingMissionTitle": "Onze missie",
   "onboardingMissionBody": "Train Libre is er voor toegewijde natural bodybuilders die vooruitgang willen boeken op basis van wetenschap en gegevens.",
   "onboardingFeatureWorkoutTitle": "Training bijhouden",
-  "onboardingFeatureWorkoutBody": "Registreer sets (RIR/RPE) en houd het herstel van je spieren bij.",
+  "onboardingFeatureWorkoutBody": "Registreer sets (RPE) en houd het herstel van je spieren bij.",
   "onboardingFeatureTdeeTitle": "Adaptief energieverbruik",
   "onboardingFeatureTdeeBody": "Een geïntegreerd Kalman-filter berekent je werkelijke calorieverbruik.",
   "onboardingFeatureNutritionTitle": "Voeding en water",
@@ -1531,7 +1531,7 @@
   "recoveryDetailAverageRpe": "gemiddelde RPE",
   "recoveryMovementPatterns": "Bewegingspatronen",
   "recoveryDetailForecast": "Verwachting",
-  "recoveryDetailRirData": "RIR-gegevens",
+  "recoveryDetailRirData": "RPE-gegevens",
   "recoveryCompactHours": "≈ {hours} h",
   "@recoveryCompactHours": {
     "placeholders": {
@@ -1562,7 +1562,7 @@
       }
     }
   },
-  "recoveryRirCoverage": "RIR geregistreerd voor {covered} van {total} sets",
+  "recoveryRirCoverage": "RPE geregistreerd voor {covered} van {total} sets",
   "@recoveryRirCoverage": {
     "placeholders": {
       "covered": {
@@ -3565,7 +3565,7 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "Geschikt als je net begint: gericht op de basis, met gewicht en herhalingen. Gebruikt eenvoudige dagelijkse spiernamen zoals “schouders”.",
   "experienceLevelAdvancedDescription": "Voor regelmatige sportschoolgangers: gedetailleerde anatomische spierindeling in de catalogus en trainingen (bijv. voorste, middelste en achterste deltaspier).",
-  "experienceLevelProDescription": "Alleen aanbevolen voor ervaren krachtsporters die goed kunnen inschatten wanneer ze niet meer kunnen: voegt intensiteitsregistratie met RIR (herhalingen in reserve) en cardio-intensiteitszones toe.",
+  "experienceLevelProDescription": "Voor ervaren sporters die hun inspanning goed kunnen inschatten: voegt RPE en cardio-intensiteitszones toe.",
   "diaryWeightLabel": "Gewicht",
   "diaryWeightPitch": "Met een geschiedenis van gewichtsmetingen wordt je caloriedoel nauwkeuriger.",
   "diaryWeightStaleNudge": "Het is alweer even geleden. Regelmatige registraties houden je caloriedoel nauwkeurig.",
@@ -4487,5 +4487,18 @@
   "diaryIncompleteDayTitle": "Onvolledige dag",
   "diaryIncompleteDayDetail": "Niet meegenomen in voedingsstatistieken",
   "diaryNutritionDayIncompleteStatus": "Onvolledig · Uitgesloten van voedingsstatistieken",
-  "nutritionStatisticsDayCoverage": "{included, plural, one{1 dag geanalyseerd} other{{included} dagen geanalyseerd}} · {incomplete} onvolledig"
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 dag geanalyseerd} other{{included} dagen geanalyseerd}} · {incomplete} onvolledig",
+  "rpeEffortTitle": "Ervaren inspanning",
+  "rpeQuestion": "Hoe zwaar was deze set?",
+  "rpeNoReps": "Geen herhalingen meer mogelijk",
+  "rpeRepsLeft": "Nog ongeveer {count} herhalingen mogelijk",
+  "rpeFourPlus": "Nog 4 of meer herhalingen mogelijk",
+  "rpeClear": "Wissen",
+  "rpeSave": "Opslaan",
+  "rpeHelpTitle": "Wat is RPE?",
+  "rpeHelpBody": "RPE beschrijft hoe zwaar een set voelde. Schat hoeveel herhalingen je nog had kunnen doen.",
+  "rpeInvalid": "Voer een RPE van 6 tot 10 in, in stappen van 0,5.",
+  "rpeMaximumEffort": "Maximale inspanning",
+  "rpeHardEffort": "Zwaar",
+  "rpeModerateEffort": "Matig"
 }

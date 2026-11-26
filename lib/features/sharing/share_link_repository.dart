@@ -246,6 +246,7 @@ class ShareLinkRepository {
           targetReps: set['reps'] as String?,
           targetWeight: (set['weight'] as num?)?.toDouble(),
           targetRir: (set['rir'] as num?)?.toInt(),
+          targetRpe: (set['rpe'] as num?)?.toDouble(),
           targetRepMin: set['repMin'] as int?,
           targetRepMax: set['repMax'] as int?,
         );

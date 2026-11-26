@@ -66,7 +66,7 @@ SetLog _log({
   int? rir,
   double? distanceKm,
   int? durationSeconds,
-  int? rpe,
+  double? rpe,
 }) => SetLog(
   workoutLogId: 1,
   exerciseName: exerciseName,
@@ -140,7 +140,7 @@ void main() {
       expect(content.badgeColorHex, '#FF9800');
       expect(content.metricPrimary, '72,5 kg');
       expect(content.metricSecondary, '8 Wdh');
-      expect(content.metricTertiary, '(RIR 2)');
+      expect(content.metricTertiary, '(RPE 8)');
       expect(content.metricSeparator, '×');
       expect(content.canCompleteSet, isTrue);
     });

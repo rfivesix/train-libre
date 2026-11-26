@@ -771,10 +771,7 @@ class SleepPipelineService {
       final hasWakeObservation = sourceSegments.any(
         (s) =>
             s.stage == CanonicalSleepStage.awake ||
-            s.stage == CanonicalSleepStage.outOfBed ||
-            s.stage == CanonicalSleepStage.light ||
-            s.stage == CanonicalSleepStage.deep ||
-            s.stage == CanonicalSleepStage.rem,
+            s.stage == CanonicalSleepStage.outOfBed,
       );
       final coreScoreInput = SleepScoringInput(
         durationMinutes: combinedTotalSleepMinutes > 0

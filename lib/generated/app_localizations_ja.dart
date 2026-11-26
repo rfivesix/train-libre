@@ -2757,7 +2757,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingFeatureWorkoutTitle => 'ワークアウトトラッカー';
 
   @override
-  String get onboardingFeatureWorkoutBody => 'セット（RIR/RPE）を記録し、筋肉の回復を追跡します。';
+  String get onboardingFeatureWorkoutBody => 'セット（RPE）を記録し、筋肉の回復を追跡します。';
 
   @override
   String get onboardingFeatureTdeeTitle => '適応型TDEE';
@@ -3551,7 +3551,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recoveryDetailForecast => '見通し';
 
   @override
-  String get recoveryDetailRirData => 'RIRデータ';
+  String get recoveryDetailRirData => 'RPEデータ';
 
   @override
   String recoveryCompactHours(int hours) {
@@ -3570,7 +3570,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String recoveryRirCoverage(int covered, int total) {
-    return 'RIRを記録したセット: $covered/$total';
+    return 'RPEを記録したセット: $covered/$total';
   }
 
   @override
@@ -7334,7 +7334,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get experienceLevelProDescription =>
-      '限界までの余力を正確に把握できる経験者向け：RIR (余力回数) による強度管理や有酸素運動の強度ゾーンを追加します。';
+      '運動強度を正確に判断できる経験者向け：RPEと有酸素運動の強度ゾーンを追加します。';
 
   @override
   String get diaryWeightLabel => '体重';
@@ -9467,4 +9467,45 @@ class AppLocalizationsJa extends AppLocalizations {
   String nutritionStatisticsDayCoverage(int included, int incomplete) {
     return '$included日を集計 · $incomplete日が未完了';
   }
+
+  @override
+  String get rpeEffortTitle => '自覚的運動強度';
+
+  @override
+  String get rpeQuestion => 'このセットのきつさは？';
+
+  @override
+  String get rpeNoReps => 'もう反復できない';
+
+  @override
+  String rpeRepsLeft(Object count) {
+    return 'あと約$count回可能';
+  }
+
+  @override
+  String get rpeFourPlus => 'あと4回以上可能';
+
+  @override
+  String get rpeClear => 'クリア';
+
+  @override
+  String get rpeSave => '保存';
+
+  @override
+  String get rpeHelpTitle => 'RPEとは？';
+
+  @override
+  String get rpeHelpBody => 'RPEはセットのきつさを示します。あと何回できたかを推定します。';
+
+  @override
+  String get rpeInvalid => 'RPEを6から10まで0.5刻みで入力してください。';
+
+  @override
+  String get rpeMaximumEffort => '最大の努力';
+
+  @override
+  String get rpeHardEffort => 'きつい';
+
+  @override
+  String get rpeModerateEffort => '中程度';
 }

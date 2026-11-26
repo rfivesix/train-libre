@@ -461,6 +461,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
               targetReps: t.targetReps,
               targetWeight: t.targetWeight,
               targetRir: t.targetRir,
+              targetRpe: t.targetRpe,
               targetRepMin: t.targetRepMin,
               targetRepMax: t.targetRepMax,
             ),
@@ -499,6 +500,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         targetReps: drift.Value(setTemplate.targetReps),
         targetWeight: drift.Value(setTemplate.targetWeight),
         targetRir: drift.Value(setTemplate.targetRir),
+        targetRpe: drift.Value(setTemplate.targetRpe),
         targetRepMin: drift.Value(setTemplate.targetRepMin ?? parsed?.min),
         targetRepMax: drift.Value(setTemplate.targetRepMax ?? parsed?.max),
       ),
@@ -534,6 +536,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                 targetReps: drift.Value(t.targetReps),
                 targetWeight: drift.Value(t.targetWeight),
                 targetRir: drift.Value(t.targetRir),
+                targetRpe: drift.Value(t.targetRpe),
                 targetRepMin: drift.Value(t.targetRepMin ?? parsed?.min),
                 targetRepMax: drift.Value(t.targetRepMax ?? parsed?.max),
               ),
@@ -994,6 +997,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                   targetReps: drift.Value(t.targetReps),
                   targetWeight: drift.Value(t.targetWeight),
                   targetRir: drift.Value(t.targetRir),
+                  targetRpe: drift.Value(t.targetRpe),
                   createdAt: drift.Value(t.createdAt),
                   updatedAt: drift.Value(t.updatedAt),
                 ),
@@ -1034,12 +1038,14 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         String? targetReps;
         double? targetWeight;
         int? targetRir;
+        double? targetRpe;
 
         if (originalTemplates.isNotEmpty) {
           final lastTemplate = originalTemplates.last;
           targetReps = lastTemplate.targetReps;
           targetWeight = lastTemplate.targetWeight;
           targetRir = lastTemplate.targetRir;
+          targetRpe = lastTemplate.targetRpe;
         }
         // Leave targetReps, targetWeight, and targetRir unset when no prior
         // template exists so syncing structure/order never overwrites or fills
@@ -1054,6 +1060,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                 targetReps: drift.Value(targetReps),
                 targetWeight: drift.Value(targetWeight),
                 targetRir: drift.Value(targetRir),
+                targetRpe: drift.Value(targetRpe),
               ),
             );
 
@@ -1170,6 +1177,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           final targetReps = setLog.reps?.toString();
           final targetWeight = setLog.weight;
           final targetRir = setLog.rir;
+          final targetRpe = setLog.rpe;
 
           await dbInstance
               .into(dbInstance.routineSetTemplates)
@@ -1180,6 +1188,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                   targetReps: drift.Value(targetReps),
                   targetWeight: drift.Value(targetWeight),
                   targetRir: drift.Value(targetRir),
+                  targetRpe: drift.Value(targetRpe),
                 ),
               );
         }

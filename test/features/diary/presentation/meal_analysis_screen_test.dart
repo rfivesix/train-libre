@@ -1,3 +1,4 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 // test/features/diary/presentation/meal_analysis_screen_test.dart
 
 import 'package:material_ui/material_ui.dart';
@@ -19,7 +20,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: MealAnalysisScreen(
             controller: controller,
@@ -70,7 +71,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: MealAnalysisScreen(
             controller: controller,

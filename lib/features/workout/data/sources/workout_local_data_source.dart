@@ -156,6 +156,7 @@ class WorkoutLocalDataSource {
       prescribedRepMax: row.prescribedRepMax,
       prescribedWeight: row.prescribedWeight,
       prescribedRir: row.prescribedRir,
+      prescribedRpe: row.prescribedRpe,
       prescriptionOverridden: row.prescriptionOverridden,
       valuesAutoFilled: row.valuesAutoFilled,
       substitutedForExerciseId: row.substitutedForExerciseId,

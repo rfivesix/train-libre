@@ -587,6 +587,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
           prescribedRepMax: isRoutineWorkout ? repRange?.max : null,
           prescribedWeight: isRoutineWorkout ? template.targetWeight : null,
           prescribedRir: isRoutineWorkout ? template.targetRir : null,
+          prescribedRpe: isRoutineWorkout ? template.targetRpe : null,
         );
 
         final id = await _repository.insertSetLog(newSetLog);
@@ -725,6 +726,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
             targetRepMin: s.prescribedRepMin,
             targetRepMax: s.prescribedRepMax,
             targetRir: s.rir,
+            targetRpe: s.rpe,
           ),
         );
 
@@ -980,6 +982,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
     String? setType,
     int? rir,
     bool clearRir = false,
+    double? rpe,
+    bool clearRpe = false,
     double? distance,
     bool clearDistance = false,
     int? duration,
@@ -1020,6 +1024,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
       setType: setType,
       rir: rir,
       clearRir: clearRir,
+      rpe: rpe,
+      clearRpe: clearRpe,
       distance: distance,
       clearDistance: clearDistance,
       duration: duration,
@@ -1511,6 +1517,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
           inheritedRange?.max ?? (repProgressionSupported ? 12 : null),
       targetWeight: null,
       targetRir: precedingWorkingTemplate?.targetRir,
+      targetRpe: precedingWorkingTemplate?.targetRpe,
     );
 
     // copyWith rather than the constructor: rebuilding it by hand dropped the

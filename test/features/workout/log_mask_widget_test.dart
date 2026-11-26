@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/workout/domain/classification/exercise_log_mask.dart';
@@ -81,6 +82,46 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
 }
 
 void main() {
+  testWidgets('empty live RPE stays empty even with a routine target', (
+    tester,
+  ) async {
+    final manager = LiveWorkoutViewModel.forTesting(
+      workoutDb: _UnusedWorkoutRepository(),
+    );
+    addTearDown(manager.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: manager),
+            ChangeNotifierProvider.value(value: manager.unitService),
+            ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+          ],
+          child: Scaffold(
+            body: SizedBox(
+              width: 320,
+              child: LiveWorkoutSetRow(
+                setIndex: 0,
+                rowIndex: 0,
+                templateId: 2,
+                setLog: _setLog().copyWith(isCompleted: false),
+                lastPerfSets: const [],
+                currentSetTypes: const ['normal'],
+                template: SetTemplate(id: 2, setType: 'normal', targetRpe: 8.5),
+                manager: manager,
+                mask: ExerciseLogMask.weightAndReps,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('8.5'), findsNothing);
+    expect(find.byIcon(LucideIcons.gauge), findsOneWidget);
+  });
   testWidgets('live set outlines track editability in both themes', (
     tester,
   ) async {
@@ -126,8 +167,9 @@ void main() {
     final fields = find.byType(TextField);
     for (final brightness in Brightness.values) {
       await pumpRow(brightness, false);
-      expect(fields, findsNWidgets(3));
-      for (var index = 0; index < 3; index++) {
+      expect(fields, findsNWidgets(2));
+      expect(find.byIcon(LucideIcons.gauge), findsOneWidget);
+      for (var index = 0; index < 2; index++) {
         final field = tester.widget<TextField>(fields.at(index));
         expect(field.decoration!.enabledBorder, isA<OutlineInputBorder>());
         expect(field.decoration!.focusedBorder, isA<OutlineInputBorder>());

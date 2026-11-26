@@ -463,7 +463,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                         _buildHeader(
                                           mask.logsDistance
                                               ? l10n.cardioIntensityShortLabel
-                                              : 'RIR',
+                                              : 'RPE',
                                           flex: 2,
                                         ),
                                       ],

@@ -79,7 +79,7 @@ void main() {
     for (final icon in [LucideIcons.chevron_up, LucideIcons.trash]) {
       final circle = tester.getRect(
         find
-            .ancestor(of: find.byIcon(icon), matching: find.byType(Container))
+            .ancestor(of: find.byIcon(icon), matching: find.byType(SizedBox))
             .first,
       );
       expect(circle.height, DesignConstants.floatingBarPillSize);

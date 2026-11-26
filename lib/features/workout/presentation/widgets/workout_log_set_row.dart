@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -236,8 +235,9 @@ class WorkoutLogSetRow extends StatelessWidget {
                 ? TextFormField(
                     controller: rirController,
                     textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) =>
                         FocusManager.instance.primaryFocus?.unfocus(),
@@ -252,7 +252,15 @@ class WorkoutLogSetRow extends StatelessWidget {
                     ),
                   )
                 : Text(
-                    setLog.rir?.toString() ?? '-',
+                    mask.logsDistance
+                        ? (setLog.rir?.toString() ?? '-')
+                        : (setLog.rpe?.toString().replaceFirst(
+                                RegExp(r'\.0$'),
+                                '',
+                              ) ??
+                              (setLog.rir == null
+                                  ? '-'
+                                  : (10 - setLog.rir!).toString())),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 18,

@@ -25,7 +25,9 @@ class ShareExportFormatter {
       ];
       if (set['reps'] != null) parts.add('${set['reps']} ${l10n.repsShort}');
       if (set['weight'] is num) parts.add(weight(set['weight'] as num));
-      if (set['rir'] != null) parts.add('RIR ${set['rir']}');
+      final rpe = set['rpe'] as num? ??
+          (set['rir'] is num ? 10 - (set['rir'] as num) : null);
+      if (rpe != null) parts.add('RPE ${number.format(rpe)}');
       return parts.join(' · ');
     }
 
@@ -159,7 +161,7 @@ class ShareExportFormatter {
           for (final entry in group.asMap().entries) {
             final rawSet = entry.value;
             buffer.writeln(
-              '  ${setLine({'type': rawSet['set_type'], 'reps': rawSet['reps'], 'weight': rawSet['weight_kg'], 'rir': rawSet['rir']}, entry.key)}',
+              '  ${setLine({'type': rawSet['set_type'], 'reps': rawSet['reps'], 'weight': rawSet['weight_kg'], 'rir': rawSet['rir'], 'rpe': rawSet['rpe']}, entry.key)}',
             );
           }
         }

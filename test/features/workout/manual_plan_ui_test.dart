@@ -13,10 +13,11 @@ import 'package:train_libre/widgets/common/empty_states/cold_start_empty_state.d
 import 'package:train_libre/widgets/common/glass_fab.dart';
 import 'package:train_libre/widgets/common/summary_card.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 Widget _app(Widget child, {Locale locale = const Locale('de')}) => MaterialApp(
   locale: locale,
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  localizationsDelegates: appLocalizationDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(body: child),
 );

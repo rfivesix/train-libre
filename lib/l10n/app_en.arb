@@ -1106,7 +1106,7 @@
   "onboardingMissionTitle": "Our Mission",
   "onboardingMissionBody": "Train Libre is for dedicated natural bodybuilders who demand science-based, data-driven progress.",
   "onboardingFeatureWorkoutTitle": "Workout Tracker",
-  "onboardingFeatureWorkoutBody": "Log sets (RIR/RPE) and follow your muscle recovery.",
+  "onboardingFeatureWorkoutBody": "Log sets (RPE) and follow your muscle recovery.",
   "onboardingFeatureTdeeTitle": "Adaptive TDEE",
   "onboardingFeatureTdeeBody": "An integrated Kalman filter calculates your real calorie expenditure.",
   "onboardingFeatureNutritionTitle": "Nutrition & Water",
@@ -1471,14 +1471,14 @@
   "recoveryDetailAverageRpe": "average RPE",
   "recoveryMovementPatterns": "Movement patterns",
   "recoveryDetailForecast": "Forecast",
-  "recoveryDetailRirData": "RIR data",
+  "recoveryDetailRirData": "RPE data",
   "recoveryCompactHours": "≈ {hours} h",
   "@recoveryCompactHours": {"placeholders": {"hours": {"type": "int"}}},
   "recoverySessionLoadAndAge": "{load} load units · {hours} h ago",
   "@recoverySessionLoadAndAge": {"placeholders": {"load": {"type": "String"}, "hours": {"type": "int"}}},
   "recoveryLastSessionDetails": "Last session: {load} load units · {hours} h ago",
   "@recoveryLastSessionDetails": {"placeholders": {"load": {"type": "String"}, "hours": {"type": "int"}}},
-  "recoveryRirCoverage": "RIR recorded for {covered} of {total} sets",
+  "recoveryRirCoverage": "RPE recorded for {covered} of {total} sets",
   "@recoveryRirCoverage": {"placeholders": {"covered": {"type": "int"}, "total": {"type": "int"}}},
   "recoveryLastLoadedHours": "Last significantly loaded: {hours} h ago",
   "@recoveryLastLoadedHours": {
@@ -3413,7 +3413,7 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "Best when starting out: focuses on the essentials with weight and reps. Uses simple everyday muscle terms like “Shoulders”.",
   "experienceLevelAdvancedDescription": "For regular gym-goers: detailed anatomical muscle breakdowns across the catalog and workouts (e.g. front, lateral, and rear deltoid).",
-  "experienceLevelProDescription": "Recommended only for experienced lifters with reliable gauge of failure: adds intensity logging via RIR (Reps in Reserve) and cardio intensity zones.",
+  "experienceLevelProDescription": "Recommended only for experienced lifters who can gauge effort reliably: adds RPE intensity logging and cardio intensity zones.",
   "diaryWeightLabel": "Weight",
   "diaryWeightPitch": "Your calorie target gets more accurate with a weight history",
   "diaryWeightStaleNudge": "It has been a while – regular entries keep your calorie target accurate",
@@ -4223,5 +4223,18 @@
         "type": "int"
       }
     }
-  }
+  },
+  "rpeEffortTitle": "Perceived effort",
+  "rpeQuestion": "How hard was this set?",
+  "rpeNoReps": "No repetitions left",
+  "rpeRepsLeft": "About {count} repetitions left",
+  "rpeFourPlus": "4 or more repetitions left",
+  "rpeClear": "Clear",
+  "rpeSave": "Save",
+  "rpeHelpTitle": "What is RPE?",
+  "rpeHelpBody": "RPE describes how hard a set felt. Estimate how many repetitions you could still have completed.",
+  "rpeInvalid": "Enter an RPE from 6 to 10 in steps of 0.5.",
+  "rpeMaximumEffort": "Maximum effort",
+  "rpeHardEffort": "Hard",
+  "rpeModerateEffort": "Moderate"
 }

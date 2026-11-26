@@ -438,7 +438,7 @@ class ImportManager {
             reps: _parseNumber(row['reps'])?.round(),
             distanceKm: distance,
             durationSeconds: duration,
-            rpe: _parseNumber(row['rpe'])?.round(),
+            rpe: _parseNumber(row['rpe'])?.toDouble(),
             rir: _parseNumber(row['rir'])?.round(),
             logOrder: setOrder++,
             exerciseBlock: exerciseBlock,

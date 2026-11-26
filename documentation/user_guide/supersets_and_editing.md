@@ -14,7 +14,7 @@ You can also change superset connections in a saved workout: open **Workout Deta
 ## Edit a saved workout
 
 1. Open the workout from your workout history and tap **Edit** on the **Workout Details** screen.
-2. Edit the values in a set row. Strength exercises show weight and reps; cardio exercises use distance and duration. The effort field is available when the **RIR** column is shown.
+2. Edit the values in a set row. Strength exercises show weight and reps; cardio exercises use distance and duration. The effort field is available when the **RPE** column is shown.
 3. Use **Add Set** to add a set. Tap the trash icon at the end of a set row to remove that set. Drag an exercise card to change the exercise order.
 4. To add an exercise, tap **Add Exercise to Workout** at the bottom and choose one from the catalog. To remove an exercise and its sets from this workout, tap the trash icon on its card (the **Remove Exercise** control).
 5. You can also edit the workout date and time, duration when available, and **Notes**. Tap **Save** in the top-right corner to save your edits.

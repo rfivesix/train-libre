@@ -151,9 +151,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
         '  ${l10n.recoveryDataConfidence}: ${muscle.dataConfidence}',
         '  ${l10n.recoveryDetailEligibleSets}: ${muscle.eligibleSetCount}; ${l10n.recoveryDetailResidualLoad}: ${number.format(muscle.residualLoad ?? 0)}; ${l10n.recoveryDetailDirectLoad}: ${number.format(muscle.lastSessionDirectLoad ?? 0)}; ${l10n.recoveryDetailIndirectLoad}: ${number.format(muscle.lastSessionIndirectLoad ?? 0)}',
         '  ${l10n.recoveryDetailForecast}: ${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}; ${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))} (Schwellen: ${muscle.recoveringUpperHours} h / ${muscle.readyUpperHours} h)',
-        if (showsIntensity && muscle.avgRir != null)
-          '  ${l10n.recoveryDetailAverageRir}: ${number.format(muscle.avgRir!)}',
-        if (muscle.avgRpe != null)
+        if (showsIntensity && muscle.avgRpe != null)
           '  ${l10n.recoveryDetailAverageRpe}: ${number.format(muscle.avgRpe!)}',
         '  ${muscle.highSessionFatigue ? l10n.recoveryFatigueContextHigh : l10n.recoveryFatigueContextBaseline}',
         if (muscle.movementPatterns.isNotEmpty)

@@ -33,7 +33,7 @@ void main() {
         .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
         .get();
     final names = tables.map((row) => row.read<String>('name')).toSet();
-    expect(database.schemaVersion, 49);
+    expect(database.schemaVersion, 50);
     expect(
       names,
       containsAll([
@@ -76,7 +76,7 @@ void main() {
         .get();
     final columnNames = columns.map((row) => row.read<String>('name')).toSet();
 
-    expect(database.schemaVersion, 49);
+    expect(database.schemaVersion, 50);
     expect(columnNames, contains('last_used_at'));
     await database.close();
   });

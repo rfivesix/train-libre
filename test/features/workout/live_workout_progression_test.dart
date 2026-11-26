@@ -417,6 +417,29 @@ void main() {
   });
 
   test(
+    'clearing failure effort removes both representations from storage',
+    () async {
+      final workout = await dataSource.startWorkout(routineName: 'Failure');
+      await viewModel.loadInitialData(workout, [
+        routine(id: 1, exercise: exercise(), templates: rangedTemplates()),
+      ]);
+      await viewModel.updateSet(101, setType: 'failure');
+      await viewModel.updateSet(101, clearRpe: true, clearRir: true);
+      await viewModel.updateSet(101, reps: 5);
+
+      expect(viewModel.setLogs[101]!.rpe, isNull);
+      expect(viewModel.setLogs[101]!.rir, isNull);
+      final rows = await repository.getSetLogsForWorkout(workout.id!);
+      final persisted = rows.firstWhere(
+        (row) => row.id == viewModel.setLogs[101]!.id,
+      );
+      expect(persisted.rpe, isNull);
+      expect(persisted.rir, isNull);
+      expect(persisted.setType, 'failure');
+    },
+  );
+
+  test(
     'finishing removes untouched empty set rows from workout history',
     () async {
       final workout = await dataSource.startWorkout(routineName: 'Empty rows');

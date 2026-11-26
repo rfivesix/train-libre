@@ -46,7 +46,7 @@ void main() {
         .customSelect('PRAGMA table_info(food_categories)')
         .get();
 
-    expect(database.schemaVersion, 49);
+    expect(database.schemaVersion, 50);
     expect(
       productColumns.map((row) => row.read<String>('name')),
       containsAll(['name_es', 'category_es', 'name_nl', 'category_nl']),

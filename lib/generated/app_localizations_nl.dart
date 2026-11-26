@@ -2831,7 +2831,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get onboardingFeatureWorkoutBody =>
-      'Registreer sets (RIR/RPE) en houd het herstel van je spieren bij.';
+      'Registreer sets (RPE) en houd het herstel van je spieren bij.';
 
   @override
   String get onboardingFeatureTdeeTitle => 'Adaptief energieverbruik';
@@ -3686,7 +3686,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recoveryDetailForecast => 'Verwachting';
 
   @override
-  String get recoveryDetailRirData => 'RIR-gegevens';
+  String get recoveryDetailRirData => 'RPE-gegevens';
 
   @override
   String recoveryCompactHours(int hours) {
@@ -3705,7 +3705,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String recoveryRirCoverage(int covered, int total) {
-    return 'RIR geregistreerd voor $covered van $total sets';
+    return 'RPE geregistreerd voor $covered van $total sets';
   }
 
   @override
@@ -7644,7 +7644,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get experienceLevelProDescription =>
-      'Alleen aanbevolen voor ervaren krachtsporters die goed kunnen inschatten wanneer ze niet meer kunnen: voegt intensiteitsregistratie met RIR (herhalingen in reserve) en cardio-intensiteitszones toe.';
+      'Voor ervaren sporters die hun inspanning goed kunnen inschatten: voegt RPE en cardio-intensiteitszones toe.';
 
   @override
   String get diaryWeightLabel => 'Gewicht';
@@ -9941,4 +9941,46 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0 · $incomplete onvolledig';
   }
+
+  @override
+  String get rpeEffortTitle => 'Ervaren inspanning';
+
+  @override
+  String get rpeQuestion => 'Hoe zwaar was deze set?';
+
+  @override
+  String get rpeNoReps => 'Geen herhalingen meer mogelijk';
+
+  @override
+  String rpeRepsLeft(Object count) {
+    return 'Nog ongeveer $count herhalingen mogelijk';
+  }
+
+  @override
+  String get rpeFourPlus => 'Nog 4 of meer herhalingen mogelijk';
+
+  @override
+  String get rpeClear => 'Wissen';
+
+  @override
+  String get rpeSave => 'Opslaan';
+
+  @override
+  String get rpeHelpTitle => 'Wat is RPE?';
+
+  @override
+  String get rpeHelpBody =>
+      'RPE beschrijft hoe zwaar een set voelde. Schat hoeveel herhalingen je nog had kunnen doen.';
+
+  @override
+  String get rpeInvalid => 'Voer een RPE van 6 tot 10 in, in stappen van 0,5.';
+
+  @override
+  String get rpeMaximumEffort => 'Maximale inspanning';
+
+  @override
+  String get rpeHardEffort => 'Zwaar';
+
+  @override
+  String get rpeModerateEffort => 'Matig';
 }

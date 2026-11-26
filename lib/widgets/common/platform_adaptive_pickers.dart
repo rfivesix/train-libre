@@ -6,6 +6,7 @@ export 'adaptive_target_rate_picker.dart';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as flutter_material;
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -368,7 +369,9 @@ Future<DateTime?> _showGlassDatePicker({
                       padding: const EdgeInsets.symmetric(
                         horizontal: DesignConstants.spacingS,
                       ),
-                      child: TableCalendar<void>(
+                      child: flutter_material.Material(
+                        type: flutter_material.MaterialType.transparency,
+                        child: TableCalendar<void>(
                         firstDay: firstDate,
                         lastDay: lastDate,
                         focusedDay: focusedDate,
@@ -426,6 +429,7 @@ Future<DateTime?> _showGlassDatePicker({
                             color: theme.colorScheme.onPrimary,
                             fontWeight: FontWeight.w700,
                           ),
+                        ),
                         ),
                       ),
                     )

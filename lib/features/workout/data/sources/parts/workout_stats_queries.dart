@@ -1383,6 +1383,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
             reps: setRow.reps ?? 0,
             durationSeconds: setRow.durationSeconds ?? 0,
             rir: setRow.rir,
+            rpe: setRow.rpe?.toDouble(),
             setType: setRow.setType,
           ),
         );
@@ -1400,6 +1401,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
             reps: setRow.reps ?? 0,
             durationSeconds: setRow.durationSeconds ?? 0,
             rir: setRow.rir,
+            rpe: setRow.rpe?.toDouble(),
             setType: setRow.setType,
           ),
         );

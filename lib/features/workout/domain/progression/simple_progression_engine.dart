@@ -16,7 +16,7 @@ class SimpleProgressionEngine {
   /// A recorded RIR makes the fixed 95% back-off less severe. Missing RIR
   /// deliberately stays on the original 95% rule, so beginners receive the
   /// exact same suggestions as before.
-  static double fatigueRetentionForRir(int? rir) {
+  static double fatigueRetentionForRir(num? rir) {
     final bounded = (rir ?? 0).clamp(0, 4).toDouble();
     return fatigueRetentionPerSet + (bounded * 0.01);
   }
@@ -31,7 +31,7 @@ class SimpleProgressionEngine {
     required RepRange? target,
     required LoadIncrement increment,
     required LoadMode mode,
-    int? previousRir,
+    num? previousRir,
     double? bodyweightKg,
   }) {
     if (previousLoadKg == null && mode != LoadMode.bodyweight) {
@@ -143,7 +143,7 @@ class SimpleProgressionEngine {
     required RepRange? target,
     required LoadIncrement increment,
     required LoadMode mode,
-    int? previousRir,
+    num? previousRir,
     double? bodyweightKg,
   }) {
     if (target == null) {
@@ -352,7 +352,7 @@ class SimpleProgressionEngine {
   static double? _projectLoadForReps({
     required double? loggedLoadKg,
     required int? reps,
-    int? rir,
+    num? rir,
     required int targetReps,
     required LoadMode mode,
     required double? bodyweightKg,
@@ -374,9 +374,9 @@ class SimpleProgressionEngine {
     );
   }
 
-  static int? _repsToFailure(int? reps, int? rir) {
+  static int? _repsToFailure(int? reps, num? rir) {
     if (reps == null) return null;
-    return reps + (rir == null ? 0 : math.max(0, rir));
+    return reps + (rir == null ? 0 : math.max(0, rir).floor());
   }
 
   static double? _toLoggedLoad({

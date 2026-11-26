@@ -36,7 +36,7 @@ void main() {
           .read<String>('value'),
       'kept',
     );
-    expect(database.schemaVersion, 49);
+    expect(database.schemaVersion, 50);
     await database.close();
   });
 }

@@ -40,7 +40,7 @@ void main() {
       expect(resultCleared.updatedSet.rir, isNull);
     });
 
-    test('failure sets always record RIR zero', () {
+    test('marking a set as failure records RIR zero', () {
       final oldLog = SetLog(
         id: 1,
         workoutLogId: 10,
@@ -53,6 +53,26 @@ void main() {
 
       expect(result.updatedSet.setType, 'failure');
       expect(result.updatedSet.rir, 0);
+    });
+
+    test('cleared effort stays cleared on later failure-set edits', () {
+      final failure = SetLog(
+        workoutLogId: 10,
+        exerciseName: 'Bench Press',
+        setType: 'failure',
+        rpe: 10,
+        rir: 0,
+      );
+      final cleared = useCase
+          .execute(oldLog: failure, clearRpe: true, clearRir: true)
+          .updatedSet;
+      expect(cleared.rpe, isNull);
+      expect(cleared.rir, isNull);
+      expect(cleared.setType, 'failure');
+
+      final edited = useCase.execute(oldLog: cleared, reps: 5).updatedSet;
+      expect(edited.rpe, isNull);
+      expect(edited.rir, isNull);
     });
 
     test('RIR zero does not turn a normal set into a failure set', () {

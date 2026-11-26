@@ -35,7 +35,7 @@ Use this versioned JSON envelope, which is the format accepted by the app’s sh
         "equipment": "bodyweight",
         "pause": 120,
         "sets": [
-          {"type": "normal", "reps": "6-10", "rir": 2}
+          {"type": "normal", "reps": "6-10", "rpe": 8.5}
         ]
       }
     ]
@@ -47,7 +47,7 @@ The example uses the active OpenExerciseDB record `"475"` / `"Pull-Up"`. Routine
 
 Each exercise requires a nonblank string `name` and a `sets` array of at most 100 entries. Optional exercise fields are `uuid` (string or null), `category` (string), `muscles` and `secondaryMuscles` (arrays of strings), `tracking`, `loadMode`, and `equipment` (strings), `pause` and `superset` (numbers), `notes` (string up to 10,000 characters), and `progression` (string). These are the exact accepted JSON keys; use camel case where shown.
 
-Each set requires `type` (string). Optional `reps` is a string; `weight` and `rir` are numbers; `repMin` and `repMax` are integers. The codec checks these types but does not enforce an enum or numeric range for these fields. The app’s set-type controls use `normal`, `warmup`, `failure`, and `dropset`; use one of those values. Weight is in kilograms. Provide only fields that make sense for the exercise and user’s request.
+Each set requires `type` (string). Optional `reps` is a string; `weight` and `rpe` are numbers; `repMin` and `repMax` are integers. Legacy `rir` targets remain supported. Use RPE 6–10 in half steps for new targets. The codec checks types but does not enforce an enum or numeric range. The app’s set-type controls use `normal`, `warmup`, `failure`, and `dropset`; use one of those values. Weight is in kilograms. Provide only fields that make sense for the exercise and user’s request.
 
 The codec ignores additional object keys, but omit unsupported fields to keep the file clear. Do not add root keys such as `name` or `exercises`; the routine name and exercise list belong at `n` and `d.exercises` respectively.
 

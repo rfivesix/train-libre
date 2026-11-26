@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/performance/jank_recorder.dart';
 import 'package:train_libre/features/settings/presentation/performance_diagnostics_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 FrameTiming _frame({required int buildMs, required int rasterMs}) {
   final int buildFinish = buildMs * 1000;
@@ -22,7 +23,7 @@ FrameTiming _frame({required int buildMs, required int rasterMs}) {
 
 Widget _wrap(Widget child) => MaterialApp(
   locale: const Locale('de'),
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  localizationsDelegates: appLocalizationDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: child,
 );

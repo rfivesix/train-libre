@@ -7,6 +7,7 @@ import 'package:train_libre/features/workout/domain/repositories/workout_reposit
 import 'package:train_libre/features/workout/presentation/widgets/workout_history_app_bar_button.dart';
 import 'package:train_libre/features/workout/presentation/workout_history_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/util/design_constants.dart';
 
 class _FakeWorkoutRepository implements IWorkoutRepository {
@@ -31,7 +32,7 @@ void main() {
       value: repository ?? _FakeWorkoutRepository(),
       child: MaterialApp(
         locale: const Locale('de'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData(
           brightness: brightness,
@@ -59,7 +60,9 @@ void main() {
     expect(iconFinder, findsOneWidget);
 
     // Verify tooltip
-    final tooltipFinder = find.byTooltip('Workout-Verlauf');
+    final tooltipFinder = find.byWidgetPredicate(
+      (widget) => widget is Tooltip && widget.message == 'Workout-Verlauf',
+    );
     expect(tooltipFinder, findsOneWidget);
 
     // Verify semantics

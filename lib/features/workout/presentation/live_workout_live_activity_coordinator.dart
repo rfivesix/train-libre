@@ -47,6 +47,7 @@ abstract class LiveWorkoutLiveActivityHost {
     double? weight,
     int? reps,
     int? rir,
+    double? rpe,
     bool? isCompleted,
   });
 }
@@ -309,7 +310,11 @@ class LiveWorkoutLiveActivityCoordinator {
           templateId,
           weight: log.weightKg,
           reps: log.reps,
-          rir: log.rir ?? template.targetRir,
+          rpe:
+              log.rpe ??
+              (log.rir == null ? null : 10.0 - log.rir!) ??
+              template.targetRpe ??
+              (template.targetRir == null ? null : 10.0 - template.targetRir!),
           isCompleted: true,
         );
         return;

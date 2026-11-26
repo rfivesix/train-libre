@@ -1148,7 +1148,7 @@
   "onboardingMissionTitle": "Nuestra misión",
   "onboardingMissionBody": "Train Libre es para culturistas naturales comprometidos que buscan progresar con datos y basándose en la ciencia.",
   "onboardingFeatureWorkoutTitle": "Registro de entrenamiento",
-  "onboardingFeatureWorkoutBody": "Registra series (RIR/RPE) y sigue la recuperación de tus músculos.",
+  "onboardingFeatureWorkoutBody": "Registra series (RPE) y sigue la recuperación de tus músculos.",
   "onboardingFeatureTdeeTitle": "Gasto energético adaptativo",
   "onboardingFeatureTdeeBody": "Un filtro de Kalman integrado calcula tu gasto calórico real.",
   "onboardingFeatureNutritionTitle": "Nutrición y agua",
@@ -1531,7 +1531,7 @@
   "recoveryDetailAverageRpe": "RPE medio",
   "recoveryMovementPatterns": "Patrones de movimiento",
   "recoveryDetailForecast": "Previsión",
-  "recoveryDetailRirData": "Datos de RIR",
+  "recoveryDetailRirData": "Datos de RPE",
   "recoveryCompactHours": "≈ {hours} h",
   "@recoveryCompactHours": {
     "placeholders": {
@@ -1562,7 +1562,7 @@
       }
     }
   },
-  "recoveryRirCoverage": "RIR registrado en {covered} de {total} series",
+  "recoveryRirCoverage": "RPE registrado en {covered} de {total} series",
   "@recoveryRirCoverage": {
     "placeholders": {
       "covered": {
@@ -3565,7 +3565,7 @@
   "experienceLevelPro": "Profesional",
   "experienceLevelBeginnerDescription": "Ideal para empezar: se centra en lo esencial, el peso y las repeticiones. Usa términos musculares sencillos, como «hombros».",
   "experienceLevelAdvancedDescription": "Para quienes entrenan con regularidad: muestra detalles anatómicos de los músculos en el catálogo y los entrenamientos (p. ej., deltoides anterior, lateral y posterior).",
-  "experienceLevelProDescription": "Solo recomendado para levantadores con experiencia y una buena percepción del fallo: añade el registro de intensidad mediante RIR (repeticiones en reserva) y zonas de intensidad cardiovascular.",
+  "experienceLevelProDescription": "Para deportistas con experiencia que saben valorar el esfuerzo: añade RPE y zonas de intensidad cardiovascular.",
   "diaryWeightLabel": "Peso",
   "diaryWeightPitch": "Tu objetivo de calorías será más preciso si registras tu peso con regularidad.",
   "diaryWeightStaleNudge": "Hace tiempo que no lo registras: las entradas regulares mantienen preciso tu objetivo de calorías.",
@@ -4487,5 +4487,18 @@
   "diaryIncompleteDayTitle": "Día incompleto",
   "diaryIncompleteDayDetail": "Excluido de las estadísticas de nutrición",
   "diaryNutritionDayIncompleteStatus": "Incompleto · Excluido de las estadísticas de nutrición",
-  "nutritionStatisticsDayCoverage": "{included, plural, one{1 día analizado} other{{included} días analizados}} · {incomplete} incompletos"
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 día analizado} other{{included} días analizados}} · {incomplete} incompletos",
+  "rpeEffortTitle": "Esfuerzo percibido",
+  "rpeQuestion": "¿Qué tan difícil fue esta serie?",
+  "rpeNoReps": "No quedaban repeticiones",
+  "rpeRepsLeft": "Quedaban unas {count} repeticiones",
+  "rpeFourPlus": "Quedaban 4 o más repeticiones",
+  "rpeClear": "Borrar",
+  "rpeSave": "Guardar",
+  "rpeHelpTitle": "¿Qué es RPE?",
+  "rpeHelpBody": "RPE describe el esfuerzo de una serie. Estima cuántas repeticiones más podrías haber hecho.",
+  "rpeInvalid": "Introduce un RPE de 6 a 10 en pasos de 0,5.",
+  "rpeMaximumEffort": "Esfuerzo máximo",
+  "rpeHardEffort": "Difícil",
+  "rpeModerateEffort": "Moderado"
 }

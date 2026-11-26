@@ -11,7 +11,7 @@ Start a free workout or routine, record each exercise set, and finish with a sav
 ## Record exercises and sets
 
 1. For each set, enter values in the columns shown for that exercise. Strength exercises use **Weight** and **Reps**; other exercises can show **Distance**, **Time**, or both, according to what that exercise tracks. Weight uses your selected unit system.
-2. If the **RIR** column is shown, enter the number of repetitions you think you could still have completed. The field is optional and may not appear for every exercise or setting.
+2. If the **RPE** column is shown, select how hard the set felt. RPE 10 means no repetitions remained, RPE 8 means about two remained, and RPE 6 means four or more remained. Half steps are available. The field is optional and may not appear for every exercise or setting.
 3. Tap the circle at the right of the row to mark the set complete. For a timed set, you can start and stop the set timer with the play/stop control in its **Time** field; completing the set records the elapsed time. Tap the check again to undo completion.
 4. Use **Add Set** below an exercise to add another set.
 

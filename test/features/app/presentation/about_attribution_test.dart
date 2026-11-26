@@ -1,3 +1,4 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -14,7 +15,7 @@ import 'package:train_libre/widgets/common/app_link_row.dart';
 /// wrong attribution for the data actually shipped.
 Widget _wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
   locale: locale,
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  localizationsDelegates: appLocalizationDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: child,
 );

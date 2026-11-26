@@ -5109,7 +5109,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeatureWorkoutBody.
   ///
   /// In en, this message translates to:
-  /// **'Log sets (RIR/RPE) and follow your muscle recovery.'**
+  /// **'Log sets (RPE) and follow your muscle recovery.'**
   String get onboardingFeatureWorkoutBody;
 
   /// No description provided for @onboardingFeatureTdeeTitle.
@@ -6536,7 +6536,7 @@ abstract class AppLocalizations {
   /// No description provided for @recoveryDetailRirData.
   ///
   /// In en, this message translates to:
-  /// **'RIR data'**
+  /// **'RPE data'**
   String get recoveryDetailRirData;
 
   /// No description provided for @recoveryCompactHours.
@@ -6560,7 +6560,7 @@ abstract class AppLocalizations {
   /// No description provided for @recoveryRirCoverage.
   ///
   /// In en, this message translates to:
-  /// **'RIR recorded for {covered} of {total} sets'**
+  /// **'RPE recorded for {covered} of {total} sets'**
   String recoveryRirCoverage(int covered, int total);
 
   /// No description provided for @recoveryLastLoadedHours.
@@ -13289,7 +13289,7 @@ abstract class AppLocalizations {
   /// No description provided for @experienceLevelProDescription.
   ///
   /// In en, this message translates to:
-  /// **'Recommended only for experienced lifters with reliable gauge of failure: adds intensity logging via RIR (Reps in Reserve) and cardio intensity zones.'**
+  /// **'Recommended only for experienced lifters who can gauge effort reliably: adds RPE intensity logging and cardio intensity zones.'**
   String get experienceLevelProDescription;
 
   /// No description provided for @diaryWeightLabel.
@@ -17288,6 +17288,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{included, plural, one{1 day analyzed} other{{included} days analyzed}} · {incomplete} incomplete'**
   String nutritionStatisticsDayCoverage(int included, int incomplete);
+
+  /// No description provided for @rpeEffortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Perceived effort'**
+  String get rpeEffortTitle;
+
+  /// No description provided for @rpeQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How hard was this set?'**
+  String get rpeQuestion;
+
+  /// No description provided for @rpeNoReps.
+  ///
+  /// In en, this message translates to:
+  /// **'No repetitions left'**
+  String get rpeNoReps;
+
+  /// No description provided for @rpeRepsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'About {count} repetitions left'**
+  String rpeRepsLeft(Object count);
+
+  /// No description provided for @rpeFourPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'4 or more repetitions left'**
+  String get rpeFourPlus;
+
+  /// No description provided for @rpeClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get rpeClear;
+
+  /// No description provided for @rpeSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get rpeSave;
+
+  /// No description provided for @rpeHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is RPE?'**
+  String get rpeHelpTitle;
+
+  /// No description provided for @rpeHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'RPE describes how hard a set felt. Estimate how many repetitions you could still have completed.'**
+  String get rpeHelpBody;
+
+  /// No description provided for @rpeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an RPE from 6 to 10 in steps of 0.5.'**
+  String get rpeInvalid;
+
+  /// No description provided for @rpeMaximumEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum effort'**
+  String get rpeMaximumEffort;
+
+  /// No description provided for @rpeHardEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get rpeHardEffort;
+
+  /// No description provided for @rpeModerateEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get rpeModerateEffort;
 }
 
 class _AppLocalizationsDelegate

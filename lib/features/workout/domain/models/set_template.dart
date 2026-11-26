@@ -19,6 +19,9 @@ class SetTemplate {
   /// The target Reps in Reserve (RIR).
   final int? targetRir;
 
+  /// Target perceived exertion; supports half steps.
+  final double? targetRpe;
+
   /// The minimum target repetitions parsed from targetReps.
   final int? targetRepMin;
 
@@ -32,6 +35,7 @@ class SetTemplate {
     this.targetReps,
     this.targetWeight,
     this.targetRir,
+    this.targetRpe,
     this.targetRepMin,
     this.targetRepMax,
   });
@@ -44,6 +48,7 @@ class SetTemplate {
       targetReps: map['target_reps'],
       targetWeight: (map['target_weight'] as num?)?.toDouble(),
       targetRir: map['target_rir'],
+      targetRpe: (map['target_rpe'] as num?)?.toDouble(),
       targetRepMin: map['target_rep_min'],
       targetRepMax: map['target_rep_max'],
     );
@@ -57,6 +62,7 @@ class SetTemplate {
       'target_reps': targetReps,
       'target_weight': targetWeight,
       'target_rir': targetRir,
+      'target_rpe': targetRpe,
       'target_rep_min': targetRepMin,
       'target_rep_max': targetRepMax,
     };
@@ -69,6 +75,8 @@ class SetTemplate {
     String? targetReps,
     double? targetWeight,
     int? targetRir,
+    double? targetRpe,
+    bool clearTargetRpe = false,
     bool clearTargetRir = false,
     int? targetRepMin,
     int? targetRepMax,
@@ -79,6 +87,7 @@ class SetTemplate {
       targetReps: targetReps ?? this.targetReps,
       targetWeight: targetWeight ?? this.targetWeight,
       targetRir: clearTargetRir ? null : (targetRir ?? this.targetRir),
+      targetRpe: clearTargetRpe ? null : (targetRpe ?? this.targetRpe),
       targetRepMin: targetRepMin ?? this.targetRepMin,
       targetRepMax: targetRepMax ?? this.targetRepMax,
     );

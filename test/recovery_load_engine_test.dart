@@ -13,6 +13,7 @@ void main() {
     DateTime? completedAt,
     int reps = 10,
     int? rir = 2,
+    double? rpe,
     String setType = 'normal',
     String? pattern,
     double? catalogContribution,
@@ -24,6 +25,7 @@ void main() {
       role: role,
       reps: reps,
       rir: rir,
+      rpe: rpe,
       setType: setType,
       movementPattern: pattern,
       catalogContribution: catalogContribution,
@@ -176,6 +178,27 @@ void main() {
         expect(result.dataConfidence, 'low');
       },
     );
+
+    test('uses fractional RPE over legacy RIR for exposure and coverage', () {
+      final result = muscle([
+        set(session: 'effort', muscle: 'chest', rir: 4, rpe: 8.5),
+      ], 'chest');
+      expect(result.lastSessionLoad, closeTo(0.85, 0.0001));
+      expect(result.setsWithRir, 1);
+      expect(result.toMap()['avgRpe'], 8.5);
+      expect(result.dataConfidence, 'high');
+    });
+
+    test('equivalent migrated RPE preserves the RIR recovery load', () {
+      final legacy = muscle([
+        set(session: 'old', muscle: 'chest', rir: 2),
+      ], 'chest');
+      final migrated = muscle([
+        set(session: 'new', muscle: 'chest', rir: 2, rpe: 8),
+      ], 'chest');
+      expect(migrated.lastSessionLoad, legacy.lastSessionLoad);
+      expect(migrated.readinessScore, legacy.readinessScore);
+    });
 
     test('uses the workout completion time as the recovery clock', () {
       final result = muscle([

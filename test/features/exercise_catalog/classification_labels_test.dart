@@ -1,3 +1,4 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/exercise_catalog/domain/exercise_classification_labels.dart';
@@ -67,7 +68,7 @@ void main() {
     late BuildContext captured;
     await tester.pumpWidget(
       MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: Locale(locale),
         home: Builder(

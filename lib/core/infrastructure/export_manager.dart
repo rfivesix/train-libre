@@ -63,7 +63,7 @@ class WorkoutRowDto {
   final double? weight;
   final int? reps;
   final int? rir;
-  final int? rpe;
+  final double? rpe;
   final String? setNotes;
   final String? workoutComments;
   final int? exerciseBlock;
@@ -1276,12 +1276,7 @@ class ExportManager {
       }
 
       if (rowData.rpe != null) {
-        writeCell(
-          workoutSheet,
-          6,
-          rowIndex,
-          IntCellValue(rowData.rpe!.toInt()),
-        );
+        writeCell(workoutSheet, 6, rowIndex, DoubleCellValue(rowData.rpe!));
       } else {
         writeCell(workoutSheet, 6, rowIndex, TextCellValue(''));
       }

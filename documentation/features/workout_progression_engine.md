@@ -46,16 +46,19 @@ For a fixed repetition target, when a valid estimate is available for up to 12
 effective repetitions, the app projects a load capable of that target from the
 previous first set's estimated 1RM, while limiting a harder step to one
 standard equipment increment. A decrease can be larger when the estimate
-calls for it. A recorded RIR contributes to that estimate as
-additional repetitions to failure; a missing RIR uses only the performed
-repetitions. If the estimate is unavailable or the target exceeds 12 reps, it
+calls for it. A recorded strength RPE is converted to estimated repetitions
+in reserve (`10 − RPE`), with legacy RIR used when RPE is absent. The whole
+number of estimated reserve repetitions is added to the performed repetitions;
+a half repetition is rounded down for this estimate. Missing effort uses only
+the performed repetitions. If the estimate is unavailable or the target exceeds 12 reps, it
 holds the prior load. Without a repetition target it repeats the prior load
 and leaves repetitions empty.
 
 For each later loaded set, the app estimates capacity from the immediately
 preceding completed set using the Brzycki equation, then multiplies it by a
-per-set retention factor. Missing RIR or RIR `0` retain 95% capacity; RIR `1`
-through `4+` retain 96% through 99% (values above 4 use the 99% cap). The next
+per-set retention factor. Missing effort or RPE `10` retains 95% capacity;
+RPE `9` through `6` retains 96% through 99%. Intermediate half steps are
+interpolated, and lower RPE is capped at 99%. The next
 test load is normally the previous real load. For external and
 weighted-bodyweight modes, when routine weights define a different positive
 next-set weight at least one equipment increment away, their ratio to the

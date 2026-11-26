@@ -13,6 +13,20 @@ import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../services/training_autonomy_service.dart';
 import '../../../../util/design_constants.dart';
 
+/// Supplies a custom next action for a focused workout field.
+class WorkoutKeyboardNextAction extends InheritedWidget {
+  const WorkoutKeyboardNextAction({
+    super.key,
+    required this.onNext,
+    required super.child,
+  });
+  final VoidCallback? onNext;
+
+  @override
+  bool updateShouldNotify(WorkoutKeyboardNextAction oldWidget) =>
+      onNext != oldWidget.onNext;
+}
+
 /// Glass accessory controls shown above the keyboard on workout screens.
 class WorkoutKeyboardAccessoryBar extends StatefulWidget {
   const WorkoutKeyboardAccessoryBar({
@@ -90,6 +104,12 @@ class _WorkoutKeyboardAccessoryBarState
   bool _hasNextFocus() {
     final current = FocusManager.instance.primaryFocus;
     final currentContext = current?.context;
+    if (currentContext
+            ?.findAncestorWidgetOfExactType<WorkoutKeyboardNextAction>()
+            ?.onNext !=
+        null) {
+      return true;
+    }
     final scope = current?.nearestScope;
     if (current == null ||
         currentContext == null ||
@@ -163,8 +183,19 @@ class _WorkoutKeyboardAccessoryBarState
                 icon: LucideIcons.chevron_right,
                 semanticLabel: l10n.appTourNext,
                 tooltip: l10n.workoutKeyboardNextField,
-                onPressed: () =>
-                    FocusManager.instance.primaryFocus?.nextFocus(),
+                onPressed: () {
+                  final focus = FocusManager.instance.primaryFocus;
+                  final action = focus?.context
+                      ?.findAncestorWidgetOfExactType<
+                        WorkoutKeyboardNextAction
+                      >()
+                      ?.onNext;
+                  if (action != null) {
+                    action();
+                  } else {
+                    focus?.nextFocus();
+                  }
+                },
                 circular: true,
               ),
               const SizedBox(width: 8),

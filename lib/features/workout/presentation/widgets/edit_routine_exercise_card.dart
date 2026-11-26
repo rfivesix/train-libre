@@ -421,7 +421,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
         if (context.watch<ExperienceLevelService>().showsIntensity) ...[
           const SizedBox(width: 8),
           _buildHeader(
-            mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+            mask.logsDistance ? l10n.cardioIntensityLabel : 'RPE',
             flex: 2,
           ),
         ],

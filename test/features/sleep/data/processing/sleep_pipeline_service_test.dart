@@ -164,9 +164,11 @@ void main() {
 
     final score = analysis.readNullable<double>('score');
     expect(score, isNotNull);
+    // Asleep-only stages do not establish wake time or time in bed, so
+    // continuity is unavailable along with architecture and heart rate.
     expect(
       analysis.readNullable<double>('score_completeness'),
-      closeTo(0.80, 0.0001),
+      closeTo(0.55, 0.0001),
     );
 
     await db.close();

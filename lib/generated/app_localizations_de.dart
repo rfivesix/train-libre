@@ -2823,7 +2823,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingFeatureWorkoutBody =>
-      'Logge Sätze (RIR/RPE) und verfolge deine Muskel-Regeneration.';
+      'Logge Sätze (RPE) und verfolge deine Muskel-Regeneration.';
 
   @override
   String get onboardingFeatureTdeeTitle => 'Adaptives TDEE';
@@ -3673,7 +3673,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recoveryDetailForecast => 'Prognose';
 
   @override
-  String get recoveryDetailRirData => 'RIR-Daten';
+  String get recoveryDetailRirData => 'RPE-Daten';
 
   @override
   String recoveryCompactHours(int hours) {
@@ -3692,7 +3692,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String recoveryRirCoverage(int covered, int total) {
-    return 'RIR für $covered von $total Sätzen erfasst';
+    return 'RPE für $covered von $total Sätzen erfasst';
   }
 
   @override
@@ -7630,7 +7630,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get experienceLevelProDescription =>
-      'Nur für erfahrene Athleten mit verlässlichem Muskelversagen: Zusätzliche Intensitätssteuerung über RIR (Reps in Reserve im Satz) und Cardio-Intensität.';
+      'Für erfahrene Sportler mit guter Einschätzung der Anstrengung: ergänzt RPE und Cardio-Intensitätszonen.';
 
   @override
   String get diaryWeightLabel => 'Gewicht';
@@ -9923,4 +9923,47 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0 · $incomplete unvollständig';
   }
+
+  @override
+  String get rpeEffortTitle => 'Empfundene Anstrengung';
+
+  @override
+  String get rpeQuestion => 'Wie schwer war dieser Satz?';
+
+  @override
+  String get rpeNoReps => 'Keine Wiederholung mehr möglich';
+
+  @override
+  String rpeRepsLeft(Object count) {
+    return 'Noch etwa $count Wiederholungen möglich';
+  }
+
+  @override
+  String get rpeFourPlus => 'Noch 4 oder mehr Wiederholungen möglich';
+
+  @override
+  String get rpeClear => 'Löschen';
+
+  @override
+  String get rpeSave => 'Speichern';
+
+  @override
+  String get rpeHelpTitle => 'Was ist RPE?';
+
+  @override
+  String get rpeHelpBody =>
+      'RPE beschreibt, wie schwer sich ein Satz angefühlt hat. Schätze, wie viele Wiederholungen du noch geschafft hättest.';
+
+  @override
+  String get rpeInvalid =>
+      'Gib einen RPE-Wert von 6 bis 10 in 0,5er-Schritten ein.';
+
+  @override
+  String get rpeMaximumEffort => 'Maximale Anstrengung';
+
+  @override
+  String get rpeHardEffort => 'Schwer';
+
+  @override
+  String get rpeModerateEffort => 'Moderat';
 }

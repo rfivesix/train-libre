@@ -1,3 +1,4 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -99,7 +100,7 @@ void main() {
         value: units,
         child: MaterialApp(
           locale: Locale(language),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(
             useMaterial3: false,

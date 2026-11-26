@@ -4595,6 +4595,17 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _targetRpeMeta = const VerificationMeta(
+    'targetRpe',
+  );
+  @override
+  late final GeneratedColumn<double> targetRpe = GeneratedColumn<double>(
+    'target_rpe',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _targetRepMinMeta = const VerificationMeta(
     'targetRepMin',
   );
@@ -4629,6 +4640,7 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
     targetReps,
     targetWeight,
     targetRir,
+    targetRpe,
     targetRepMin,
     targetRepMax,
   ];
@@ -4709,6 +4721,12 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
         targetRir.isAcceptableOrUnknown(data['target_rir']!, _targetRirMeta),
       );
     }
+    if (data.containsKey('target_rpe')) {
+      context.handle(
+        _targetRpeMeta,
+        targetRpe.isAcceptableOrUnknown(data['target_rpe']!, _targetRpeMeta),
+      );
+    }
     if (data.containsKey('target_rep_min')) {
       context.handle(
         _targetRepMinMeta,
@@ -4776,6 +4794,10 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
         DriftSqlType.int,
         data['${effectivePrefix}target_rir'],
       ),
+      targetRpe: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}target_rpe'],
+      ),
       targetRepMin: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}target_rep_min'],
@@ -4805,6 +4827,7 @@ class RoutineSetTemplate extends DataClass
   final String? targetReps;
   final double? targetWeight;
   final int? targetRir;
+  final double? targetRpe;
   final int? targetRepMin;
   final int? targetRepMax;
   const RoutineSetTemplate({
@@ -4818,6 +4841,7 @@ class RoutineSetTemplate extends DataClass
     this.targetReps,
     this.targetWeight,
     this.targetRir,
+    this.targetRpe,
     this.targetRepMin,
     this.targetRepMax,
   });
@@ -4841,6 +4865,9 @@ class RoutineSetTemplate extends DataClass
     }
     if (!nullToAbsent || targetRir != null) {
       map['target_rir'] = Variable<int>(targetRir);
+    }
+    if (!nullToAbsent || targetRpe != null) {
+      map['target_rpe'] = Variable<double>(targetRpe);
     }
     if (!nullToAbsent || targetRepMin != null) {
       map['target_rep_min'] = Variable<int>(targetRepMin);
@@ -4871,6 +4898,9 @@ class RoutineSetTemplate extends DataClass
       targetRir: targetRir == null && nullToAbsent
           ? const Value.absent()
           : Value(targetRir),
+      targetRpe: targetRpe == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetRpe),
       targetRepMin: targetRepMin == null && nullToAbsent
           ? const Value.absent()
           : Value(targetRepMin),
@@ -4896,6 +4926,7 @@ class RoutineSetTemplate extends DataClass
       targetReps: serializer.fromJson<String?>(json['targetReps']),
       targetWeight: serializer.fromJson<double?>(json['targetWeight']),
       targetRir: serializer.fromJson<int?>(json['targetRir']),
+      targetRpe: serializer.fromJson<double?>(json['targetRpe']),
       targetRepMin: serializer.fromJson<int?>(json['targetRepMin']),
       targetRepMax: serializer.fromJson<int?>(json['targetRepMax']),
     );
@@ -4914,6 +4945,7 @@ class RoutineSetTemplate extends DataClass
       'targetReps': serializer.toJson<String?>(targetReps),
       'targetWeight': serializer.toJson<double?>(targetWeight),
       'targetRir': serializer.toJson<int?>(targetRir),
+      'targetRpe': serializer.toJson<double?>(targetRpe),
       'targetRepMin': serializer.toJson<int?>(targetRepMin),
       'targetRepMax': serializer.toJson<int?>(targetRepMax),
     };
@@ -4930,6 +4962,7 @@ class RoutineSetTemplate extends DataClass
     Value<String?> targetReps = const Value.absent(),
     Value<double?> targetWeight = const Value.absent(),
     Value<int?> targetRir = const Value.absent(),
+    Value<double?> targetRpe = const Value.absent(),
     Value<int?> targetRepMin = const Value.absent(),
     Value<int?> targetRepMax = const Value.absent(),
   }) => RoutineSetTemplate(
@@ -4943,6 +4976,7 @@ class RoutineSetTemplate extends DataClass
     targetReps: targetReps.present ? targetReps.value : this.targetReps,
     targetWeight: targetWeight.present ? targetWeight.value : this.targetWeight,
     targetRir: targetRir.present ? targetRir.value : this.targetRir,
+    targetRpe: targetRpe.present ? targetRpe.value : this.targetRpe,
     targetRepMin: targetRepMin.present ? targetRepMin.value : this.targetRepMin,
     targetRepMax: targetRepMax.present ? targetRepMax.value : this.targetRepMax,
   );
@@ -4964,6 +4998,7 @@ class RoutineSetTemplate extends DataClass
           ? data.targetWeight.value
           : this.targetWeight,
       targetRir: data.targetRir.present ? data.targetRir.value : this.targetRir,
+      targetRpe: data.targetRpe.present ? data.targetRpe.value : this.targetRpe,
       targetRepMin: data.targetRepMin.present
           ? data.targetRepMin.value
           : this.targetRepMin,
@@ -4986,6 +5021,7 @@ class RoutineSetTemplate extends DataClass
           ..write('targetReps: $targetReps, ')
           ..write('targetWeight: $targetWeight, ')
           ..write('targetRir: $targetRir, ')
+          ..write('targetRpe: $targetRpe, ')
           ..write('targetRepMin: $targetRepMin, ')
           ..write('targetRepMax: $targetRepMax')
           ..write(')'))
@@ -5004,6 +5040,7 @@ class RoutineSetTemplate extends DataClass
     targetReps,
     targetWeight,
     targetRir,
+    targetRpe,
     targetRepMin,
     targetRepMax,
   );
@@ -5021,6 +5058,7 @@ class RoutineSetTemplate extends DataClass
           other.targetReps == this.targetReps &&
           other.targetWeight == this.targetWeight &&
           other.targetRir == this.targetRir &&
+          other.targetRpe == this.targetRpe &&
           other.targetRepMin == this.targetRepMin &&
           other.targetRepMax == this.targetRepMax);
 }
@@ -5036,6 +5074,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
   final Value<String?> targetReps;
   final Value<double?> targetWeight;
   final Value<int?> targetRir;
+  final Value<double?> targetRpe;
   final Value<int?> targetRepMin;
   final Value<int?> targetRepMax;
   const RoutineSetTemplatesCompanion({
@@ -5049,6 +5088,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     this.targetReps = const Value.absent(),
     this.targetWeight = const Value.absent(),
     this.targetRir = const Value.absent(),
+    this.targetRpe = const Value.absent(),
     this.targetRepMin = const Value.absent(),
     this.targetRepMax = const Value.absent(),
   });
@@ -5063,6 +5103,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     this.targetReps = const Value.absent(),
     this.targetWeight = const Value.absent(),
     this.targetRir = const Value.absent(),
+    this.targetRpe = const Value.absent(),
     this.targetRepMin = const Value.absent(),
     this.targetRepMax = const Value.absent(),
   }) : routineExerciseId = Value(routineExerciseId);
@@ -5077,6 +5118,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     Expression<String>? targetReps,
     Expression<double>? targetWeight,
     Expression<int>? targetRir,
+    Expression<double>? targetRpe,
     Expression<int>? targetRepMin,
     Expression<int>? targetRepMax,
   }) {
@@ -5091,6 +5133,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
       if (targetReps != null) 'target_reps': targetReps,
       if (targetWeight != null) 'target_weight': targetWeight,
       if (targetRir != null) 'target_rir': targetRir,
+      if (targetRpe != null) 'target_rpe': targetRpe,
       if (targetRepMin != null) 'target_rep_min': targetRepMin,
       if (targetRepMax != null) 'target_rep_max': targetRepMax,
     });
@@ -5107,6 +5150,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     Value<String?>? targetReps,
     Value<double?>? targetWeight,
     Value<int?>? targetRir,
+    Value<double?>? targetRpe,
     Value<int?>? targetRepMin,
     Value<int?>? targetRepMax,
   }) {
@@ -5121,6 +5165,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
       targetReps: targetReps ?? this.targetReps,
       targetWeight: targetWeight ?? this.targetWeight,
       targetRir: targetRir ?? this.targetRir,
+      targetRpe: targetRpe ?? this.targetRpe,
       targetRepMin: targetRepMin ?? this.targetRepMin,
       targetRepMax: targetRepMax ?? this.targetRepMax,
     );
@@ -5159,6 +5204,9 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     if (targetRir.present) {
       map['target_rir'] = Variable<int>(targetRir.value);
     }
+    if (targetRpe.present) {
+      map['target_rpe'] = Variable<double>(targetRpe.value);
+    }
     if (targetRepMin.present) {
       map['target_rep_min'] = Variable<int>(targetRepMin.value);
     }
@@ -5181,6 +5229,7 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
           ..write('targetReps: $targetReps, ')
           ..write('targetWeight: $targetWeight, ')
           ..write('targetRir: $targetRir, ')
+          ..write('targetRpe: $targetRpe, ')
           ..write('targetRepMin: $targetRepMin, ')
           ..write('targetRepMax: $targetRepMax')
           ..write(')'))
@@ -6244,11 +6293,11 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
   );
   static const VerificationMeta _rpeMeta = const VerificationMeta('rpe');
   @override
-  late final GeneratedColumn<int> rpe = GeneratedColumn<int>(
+  late final GeneratedColumn<double> rpe = GeneratedColumn<double>(
     'rpe',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _rirMeta = const VerificationMeta('rir');
@@ -6419,6 +6468,17 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _prescribedRpeMeta = const VerificationMeta(
+    'prescribedRpe',
+  );
+  @override
+  late final GeneratedColumn<double> prescribedRpe = GeneratedColumn<double>(
+    'prescribed_rpe',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _prescriptionOverriddenMeta =
       const VerificationMeta('prescriptionOverridden');
   @override
@@ -6512,6 +6572,7 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
     prescribedRepMax,
     prescribedWeight,
     prescribedRir,
+    prescribedRpe,
     prescriptionOverridden,
     valuesAutoFilled,
     substitutedForExerciseId,
@@ -6730,6 +6791,15 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         ),
       );
     }
+    if (data.containsKey('prescribed_rpe')) {
+      context.handle(
+        _prescribedRpeMeta,
+        prescribedRpe.isAcceptableOrUnknown(
+          data['prescribed_rpe']!,
+          _prescribedRpeMeta,
+        ),
+      );
+    }
     if (data.containsKey('prescription_overridden')) {
       context.handle(
         _prescriptionOverriddenMeta,
@@ -6829,7 +6899,7 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         data['${effectivePrefix}reps'],
       ),
       rpe: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.double,
         data['${effectivePrefix}rpe'],
       ),
       rir: attachedDatabase.typeMapping.read(
@@ -6892,6 +6962,10 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         DriftSqlType.int,
         data['${effectivePrefix}prescribed_rir'],
       ),
+      prescribedRpe: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}prescribed_rpe'],
+      ),
       prescriptionOverridden: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}prescription_overridden'],
@@ -6933,7 +7007,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   final String? exerciseNameSnapshot;
   final double? weight;
   final int? reps;
-  final int? rpe;
+  final double? rpe;
   final int? rir;
   final String setType;
   final int? restTimeSeconds;
@@ -6968,6 +7042,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
 
   /// Prescribed Reps in Reserve.
   final int? prescribedRir;
+  final double? prescribedRpe;
 
   /// Whether the prescription was overridden by the user.
   final bool prescriptionOverridden;
@@ -7011,6 +7086,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     this.prescribedRepMax,
     this.prescribedWeight,
     this.prescribedRir,
+    this.prescribedRpe,
     required this.prescriptionOverridden,
     required this.valuesAutoFilled,
     this.substitutedForExerciseId,
@@ -7044,7 +7120,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       map['reps'] = Variable<int>(reps);
     }
     if (!nullToAbsent || rpe != null) {
-      map['rpe'] = Variable<int>(rpe);
+      map['rpe'] = Variable<double>(rpe);
     }
     if (!nullToAbsent || rir != null) {
       map['rir'] = Variable<int>(rir);
@@ -7082,6 +7158,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     }
     if (!nullToAbsent || prescribedRir != null) {
       map['prescribed_rir'] = Variable<int>(prescribedRir);
+    }
+    if (!nullToAbsent || prescribedRpe != null) {
+      map['prescribed_rpe'] = Variable<double>(prescribedRpe);
     }
     map['prescription_overridden'] = Variable<bool>(prescriptionOverridden);
     map['values_auto_filled'] = Variable<bool>(valuesAutoFilled);
@@ -7160,6 +7239,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       prescribedRir: prescribedRir == null && nullToAbsent
           ? const Value.absent()
           : Value(prescribedRir),
+      prescribedRpe: prescribedRpe == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prescribedRpe),
       prescriptionOverridden: Value(prescriptionOverridden),
       valuesAutoFilled: Value(valuesAutoFilled),
       substitutedForExerciseId: substitutedForExerciseId == null && nullToAbsent
@@ -7194,7 +7276,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       ),
       weight: serializer.fromJson<double?>(json['weight']),
       reps: serializer.fromJson<int?>(json['reps']),
-      rpe: serializer.fromJson<int?>(json['rpe']),
+      rpe: serializer.fromJson<double?>(json['rpe']),
       rir: serializer.fromJson<int?>(json['rir']),
       setType: serializer.fromJson<String>(json['setType']),
       restTimeSeconds: serializer.fromJson<int?>(json['restTimeSeconds']),
@@ -7212,6 +7294,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       prescribedRepMax: serializer.fromJson<int?>(json['prescribedRepMax']),
       prescribedWeight: serializer.fromJson<double?>(json['prescribedWeight']),
       prescribedRir: serializer.fromJson<int?>(json['prescribedRir']),
+      prescribedRpe: serializer.fromJson<double?>(json['prescribedRpe']),
       prescriptionOverridden: serializer.fromJson<bool>(
         json['prescriptionOverridden'],
       ),
@@ -7242,7 +7325,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'exerciseNameSnapshot': serializer.toJson<String?>(exerciseNameSnapshot),
       'weight': serializer.toJson<double?>(weight),
       'reps': serializer.toJson<int?>(reps),
-      'rpe': serializer.toJson<int?>(rpe),
+      'rpe': serializer.toJson<double?>(rpe),
       'rir': serializer.toJson<int?>(rir),
       'setType': serializer.toJson<String>(setType),
       'restTimeSeconds': serializer.toJson<int?>(restTimeSeconds),
@@ -7258,6 +7341,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'prescribedRepMax': serializer.toJson<int?>(prescribedRepMax),
       'prescribedWeight': serializer.toJson<double?>(prescribedWeight),
       'prescribedRir': serializer.toJson<int?>(prescribedRir),
+      'prescribedRpe': serializer.toJson<double?>(prescribedRpe),
       'prescriptionOverridden': serializer.toJson<bool>(prescriptionOverridden),
       'valuesAutoFilled': serializer.toJson<bool>(valuesAutoFilled),
       'substitutedForExerciseId': serializer.toJson<String?>(
@@ -7282,7 +7366,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     Value<String?> exerciseNameSnapshot = const Value.absent(),
     Value<double?> weight = const Value.absent(),
     Value<int?> reps = const Value.absent(),
-    Value<int?> rpe = const Value.absent(),
+    Value<double?> rpe = const Value.absent(),
     Value<int?> rir = const Value.absent(),
     String? setType,
     Value<int?> restTimeSeconds = const Value.absent(),
@@ -7298,6 +7382,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     Value<int?> prescribedRepMax = const Value.absent(),
     Value<double?> prescribedWeight = const Value.absent(),
     Value<int?> prescribedRir = const Value.absent(),
+    Value<double?> prescribedRpe = const Value.absent(),
     bool? prescriptionOverridden,
     bool? valuesAutoFilled,
     Value<String?> substitutedForExerciseId = const Value.absent(),
@@ -7351,6 +7436,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     prescribedRir: prescribedRir.present
         ? prescribedRir.value
         : this.prescribedRir,
+    prescribedRpe: prescribedRpe.present
+        ? prescribedRpe.value
+        : this.prescribedRpe,
     prescriptionOverridden:
         prescriptionOverridden ?? this.prescriptionOverridden,
     valuesAutoFilled: valuesAutoFilled ?? this.valuesAutoFilled,
@@ -7421,6 +7509,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       prescribedRir: data.prescribedRir.present
           ? data.prescribedRir.value
           : this.prescribedRir,
+      prescribedRpe: data.prescribedRpe.present
+          ? data.prescribedRpe.value
+          : this.prescribedRpe,
       prescriptionOverridden: data.prescriptionOverridden.present
           ? data.prescriptionOverridden.value
           : this.prescriptionOverridden,
@@ -7469,6 +7560,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ..write('prescribedRepMax: $prescribedRepMax, ')
           ..write('prescribedWeight: $prescribedWeight, ')
           ..write('prescribedRir: $prescribedRir, ')
+          ..write('prescribedRpe: $prescribedRpe, ')
           ..write('prescriptionOverridden: $prescriptionOverridden, ')
           ..write('valuesAutoFilled: $valuesAutoFilled, ')
           ..write('substitutedForExerciseId: $substitutedForExerciseId, ')
@@ -7507,6 +7599,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     prescribedRepMax,
     prescribedWeight,
     prescribedRir,
+    prescribedRpe,
     prescriptionOverridden,
     valuesAutoFilled,
     substitutedForExerciseId,
@@ -7544,6 +7637,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           other.prescribedRepMax == this.prescribedRepMax &&
           other.prescribedWeight == this.prescribedWeight &&
           other.prescribedRir == this.prescribedRir &&
+          other.prescribedRpe == this.prescribedRpe &&
           other.prescriptionOverridden == this.prescriptionOverridden &&
           other.valuesAutoFilled == this.valuesAutoFilled &&
           other.substitutedForExerciseId == this.substitutedForExerciseId &&
@@ -7564,7 +7658,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<String?> exerciseNameSnapshot;
   final Value<double?> weight;
   final Value<int?> reps;
-  final Value<int?> rpe;
+  final Value<double?> rpe;
   final Value<int?> rir;
   final Value<String> setType;
   final Value<int?> restTimeSeconds;
@@ -7580,6 +7674,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<int?> prescribedRepMax;
   final Value<double?> prescribedWeight;
   final Value<int?> prescribedRir;
+  final Value<double?> prescribedRpe;
   final Value<bool> prescriptionOverridden;
   final Value<bool> valuesAutoFilled;
   final Value<String?> substitutedForExerciseId;
@@ -7613,6 +7708,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.prescribedRepMax = const Value.absent(),
     this.prescribedWeight = const Value.absent(),
     this.prescribedRir = const Value.absent(),
+    this.prescribedRpe = const Value.absent(),
     this.prescriptionOverridden = const Value.absent(),
     this.valuesAutoFilled = const Value.absent(),
     this.substitutedForExerciseId = const Value.absent(),
@@ -7647,6 +7743,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.prescribedRepMax = const Value.absent(),
     this.prescribedWeight = const Value.absent(),
     this.prescribedRir = const Value.absent(),
+    this.prescribedRpe = const Value.absent(),
     this.prescriptionOverridden = const Value.absent(),
     this.valuesAutoFilled = const Value.absent(),
     this.substitutedForExerciseId = const Value.absent(),
@@ -7665,7 +7762,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<String>? exerciseNameSnapshot,
     Expression<double>? weight,
     Expression<int>? reps,
-    Expression<int>? rpe,
+    Expression<double>? rpe,
     Expression<int>? rir,
     Expression<String>? setType,
     Expression<int>? restTimeSeconds,
@@ -7681,6 +7778,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<int>? prescribedRepMax,
     Expression<double>? prescribedWeight,
     Expression<int>? prescribedRir,
+    Expression<double>? prescribedRpe,
     Expression<bool>? prescriptionOverridden,
     Expression<bool>? valuesAutoFilled,
     Expression<String>? substitutedForExerciseId,
@@ -7716,6 +7814,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       if (prescribedRepMax != null) 'prescribed_rep_max': prescribedRepMax,
       if (prescribedWeight != null) 'prescribed_weight': prescribedWeight,
       if (prescribedRir != null) 'prescribed_rir': prescribedRir,
+      if (prescribedRpe != null) 'prescribed_rpe': prescribedRpe,
       if (prescriptionOverridden != null)
         'prescription_overridden': prescriptionOverridden,
       if (valuesAutoFilled != null) 'values_auto_filled': valuesAutoFilled,
@@ -7739,7 +7838,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Value<String?>? exerciseNameSnapshot,
     Value<double?>? weight,
     Value<int?>? reps,
-    Value<int?>? rpe,
+    Value<double?>? rpe,
     Value<int?>? rir,
     Value<String>? setType,
     Value<int?>? restTimeSeconds,
@@ -7755,6 +7854,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Value<int?>? prescribedRepMax,
     Value<double?>? prescribedWeight,
     Value<int?>? prescribedRir,
+    Value<double?>? prescribedRpe,
     Value<bool>? prescriptionOverridden,
     Value<bool>? valuesAutoFilled,
     Value<String?>? substitutedForExerciseId,
@@ -7789,6 +7889,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       prescribedRepMax: prescribedRepMax ?? this.prescribedRepMax,
       prescribedWeight: prescribedWeight ?? this.prescribedWeight,
       prescribedRir: prescribedRir ?? this.prescribedRir,
+      prescribedRpe: prescribedRpe ?? this.prescribedRpe,
       prescriptionOverridden:
           prescriptionOverridden ?? this.prescriptionOverridden,
       valuesAutoFilled: valuesAutoFilled ?? this.valuesAutoFilled,
@@ -7839,7 +7940,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       map['reps'] = Variable<int>(reps.value);
     }
     if (rpe.present) {
-      map['rpe'] = Variable<int>(rpe.value);
+      map['rpe'] = Variable<double>(rpe.value);
     }
     if (rir.present) {
       map['rir'] = Variable<int>(rir.value);
@@ -7885,6 +7986,9 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     }
     if (prescribedRir.present) {
       map['prescribed_rir'] = Variable<int>(prescribedRir.value);
+    }
+    if (prescribedRpe.present) {
+      map['prescribed_rpe'] = Variable<double>(prescribedRpe.value);
     }
     if (prescriptionOverridden.present) {
       map['prescription_overridden'] = Variable<bool>(
@@ -7940,6 +8044,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
           ..write('prescribedRepMax: $prescribedRepMax, ')
           ..write('prescribedWeight: $prescribedWeight, ')
           ..write('prescribedRir: $prescribedRir, ')
+          ..write('prescribedRpe: $prescribedRpe, ')
           ..write('prescriptionOverridden: $prescriptionOverridden, ')
           ..write('valuesAutoFilled: $valuesAutoFilled, ')
           ..write('substitutedForExerciseId: $substitutedForExerciseId, ')
@@ -39763,6 +39868,7 @@ typedef $$RoutineSetTemplatesTableCreateCompanionBuilder =
       Value<String?> targetReps,
       Value<double?> targetWeight,
       Value<int?> targetRir,
+      Value<double?> targetRpe,
       Value<int?> targetRepMin,
       Value<int?> targetRepMax,
     });
@@ -39778,6 +39884,7 @@ typedef $$RoutineSetTemplatesTableUpdateCompanionBuilder =
       Value<String?> targetReps,
       Value<double?> targetWeight,
       Value<int?> targetRir,
+      Value<double?> targetRpe,
       Value<int?> targetRepMin,
       Value<int?> targetRepMax,
     });
@@ -39869,6 +39976,11 @@ class $$RoutineSetTemplatesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get targetRpe => $composableBuilder(
+    column: $table.targetRpe,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get targetRepMin => $composableBuilder(
     column: $table.targetRepMin,
     builder: (column) => ColumnFilters(column),
@@ -39957,6 +40069,11 @@ class $$RoutineSetTemplatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get targetRpe => $composableBuilder(
+    column: $table.targetRpe,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get targetRepMin => $composableBuilder(
     column: $table.targetRepMin,
     builder: (column) => ColumnOrderings(column),
@@ -40030,6 +40147,9 @@ class $$RoutineSetTemplatesTableAnnotationComposer
 
   GeneratedColumn<int> get targetRir =>
       $composableBuilder(column: $table.targetRir, builder: (column) => column);
+
+  GeneratedColumn<double> get targetRpe =>
+      $composableBuilder(column: $table.targetRpe, builder: (column) => column);
 
   GeneratedColumn<int> get targetRepMin => $composableBuilder(
     column: $table.targetRepMin,
@@ -40111,6 +40231,7 @@ class $$RoutineSetTemplatesTableTableManager
                 Value<String?> targetReps = const Value.absent(),
                 Value<double?> targetWeight = const Value.absent(),
                 Value<int?> targetRir = const Value.absent(),
+                Value<double?> targetRpe = const Value.absent(),
                 Value<int?> targetRepMin = const Value.absent(),
                 Value<int?> targetRepMax = const Value.absent(),
               }) => RoutineSetTemplatesCompanion(
@@ -40124,6 +40245,7 @@ class $$RoutineSetTemplatesTableTableManager
                 targetReps: targetReps,
                 targetWeight: targetWeight,
                 targetRir: targetRir,
+                targetRpe: targetRpe,
                 targetRepMin: targetRepMin,
                 targetRepMax: targetRepMax,
               ),
@@ -40139,6 +40261,7 @@ class $$RoutineSetTemplatesTableTableManager
                 Value<String?> targetReps = const Value.absent(),
                 Value<double?> targetWeight = const Value.absent(),
                 Value<int?> targetRir = const Value.absent(),
+                Value<double?> targetRpe = const Value.absent(),
                 Value<int?> targetRepMin = const Value.absent(),
                 Value<int?> targetRepMax = const Value.absent(),
               }) => RoutineSetTemplatesCompanion.insert(
@@ -40152,6 +40275,7 @@ class $$RoutineSetTemplatesTableTableManager
                 targetReps: targetReps,
                 targetWeight: targetWeight,
                 targetRir: targetRir,
+                targetRpe: targetRpe,
                 targetRepMin: targetRepMin,
                 targetRepMax: targetRepMax,
               ),
@@ -41158,7 +41282,7 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<String?> exerciseNameSnapshot,
   Value<double?> weight,
   Value<int?> reps,
-  Value<int?> rpe,
+  Value<double?> rpe,
   Value<int?> rir,
   Value<String> setType,
   Value<int?> restTimeSeconds,
@@ -41174,6 +41298,7 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<int?> prescribedRepMax,
   Value<double?> prescribedWeight,
   Value<int?> prescribedRir,
+  Value<double?> prescribedRpe,
   Value<bool> prescriptionOverridden,
   Value<bool> valuesAutoFilled,
   Value<String?> substitutedForExerciseId,
@@ -41192,7 +41317,7 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<String?> exerciseNameSnapshot,
   Value<double?> weight,
   Value<int?> reps,
-  Value<int?> rpe,
+  Value<double?> rpe,
   Value<int?> rir,
   Value<String> setType,
   Value<int?> restTimeSeconds,
@@ -41208,6 +41333,7 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<int?> prescribedRepMax,
   Value<double?> prescribedWeight,
   Value<int?> prescribedRir,
+  Value<double?> prescribedRpe,
   Value<bool> prescriptionOverridden,
   Value<bool> valuesAutoFilled,
   Value<String?> substitutedForExerciseId,
@@ -41308,7 +41434,7 @@ class $$SetLogsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get rpe => $composableBuilder(
+  ColumnFilters<double> get rpe => $composableBuilder(
     column: $table.rpe,
     builder: (column) => ColumnFilters(column),
   );
@@ -41385,6 +41511,11 @@ class $$SetLogsTableFilterComposer
 
   ColumnFilters<int> get prescribedRir => $composableBuilder(
     column: $table.prescribedRir,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get prescribedRpe => $composableBuilder(
+    column: $table.prescribedRpe,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41514,7 +41645,7 @@ class $$SetLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get rpe => $composableBuilder(
+  ColumnOrderings<double> get rpe => $composableBuilder(
     column: $table.rpe,
     builder: (column) => ColumnOrderings(column),
   );
@@ -41591,6 +41722,11 @@ class $$SetLogsTableOrderingComposer
 
   ColumnOrderings<int> get prescribedRir => $composableBuilder(
     column: $table.prescribedRir,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get prescribedRpe => $composableBuilder(
+    column: $table.prescribedRpe,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -41706,7 +41842,7 @@ class $$SetLogsTableAnnotationComposer
   GeneratedColumn<int> get reps =>
       $composableBuilder(column: $table.reps, builder: (column) => column);
 
-  GeneratedColumn<int> get rpe =>
+  GeneratedColumn<double> get rpe =>
       $composableBuilder(column: $table.rpe, builder: (column) => column);
 
   GeneratedColumn<int> get rir =>
@@ -41771,6 +41907,11 @@ class $$SetLogsTableAnnotationComposer
 
   GeneratedColumn<int> get prescribedRir => $composableBuilder(
     column: $table.prescribedRir,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get prescribedRpe => $composableBuilder(
+    column: $table.prescribedRpe,
     builder: (column) => column,
   );
 
@@ -41885,7 +42026,7 @@ class $$SetLogsTableTableManager
                 Value<String?> exerciseNameSnapshot = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
                 Value<int?> reps = const Value.absent(),
-                Value<int?> rpe = const Value.absent(),
+                Value<double?> rpe = const Value.absent(),
                 Value<int?> rir = const Value.absent(),
                 Value<String> setType = const Value.absent(),
                 Value<int?> restTimeSeconds = const Value.absent(),
@@ -41901,6 +42042,7 @@ class $$SetLogsTableTableManager
                 Value<int?> prescribedRepMax = const Value.absent(),
                 Value<double?> prescribedWeight = const Value.absent(),
                 Value<int?> prescribedRir = const Value.absent(),
+                Value<double?> prescribedRpe = const Value.absent(),
                 Value<bool> prescriptionOverridden = const Value.absent(),
                 Value<bool> valuesAutoFilled = const Value.absent(),
                 Value<String?> substitutedForExerciseId = const Value.absent(),
@@ -41935,6 +42077,7 @@ class $$SetLogsTableTableManager
                 prescribedRepMax: prescribedRepMax,
                 prescribedWeight: prescribedWeight,
                 prescribedRir: prescribedRir,
+                prescribedRpe: prescribedRpe,
                 prescriptionOverridden: prescriptionOverridden,
                 valuesAutoFilled: valuesAutoFilled,
                 substitutedForExerciseId: substitutedForExerciseId,
@@ -41954,7 +42097,7 @@ class $$SetLogsTableTableManager
                 Value<String?> exerciseNameSnapshot = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
                 Value<int?> reps = const Value.absent(),
-                Value<int?> rpe = const Value.absent(),
+                Value<double?> rpe = const Value.absent(),
                 Value<int?> rir = const Value.absent(),
                 Value<String> setType = const Value.absent(),
                 Value<int?> restTimeSeconds = const Value.absent(),
@@ -41970,6 +42113,7 @@ class $$SetLogsTableTableManager
                 Value<int?> prescribedRepMax = const Value.absent(),
                 Value<double?> prescribedWeight = const Value.absent(),
                 Value<int?> prescribedRir = const Value.absent(),
+                Value<double?> prescribedRpe = const Value.absent(),
                 Value<bool> prescriptionOverridden = const Value.absent(),
                 Value<bool> valuesAutoFilled = const Value.absent(),
                 Value<String?> substitutedForExerciseId = const Value.absent(),
@@ -42004,6 +42148,7 @@ class $$SetLogsTableTableManager
                 prescribedRepMax: prescribedRepMax,
                 prescribedWeight: prescribedWeight,
                 prescribedRir: prescribedRir,
+                prescribedRpe: prescribedRpe,
                 prescriptionOverridden: prescriptionOverridden,
                 valuesAutoFilled: valuesAutoFilled,
                 substitutedForExerciseId: substitutedForExerciseId,

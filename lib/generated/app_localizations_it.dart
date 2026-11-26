@@ -2833,7 +2833,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get onboardingFeatureWorkoutBody =>
-      'Registra le serie (RIR/RPE) e segui il recupero muscolare.';
+      'Registra le serie (RPE) e segui il recupero muscolare.';
 
   @override
   String get onboardingFeatureTdeeTitle => 'TDEE adattivo';
@@ -3691,7 +3691,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get recoveryDetailForecast => 'Previsione';
 
   @override
-  String get recoveryDetailRirData => 'Dati RIR';
+  String get recoveryDetailRirData => 'Dati RPE';
 
   @override
   String recoveryCompactHours(int hours) {
@@ -3710,7 +3710,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String recoveryRirCoverage(int covered, int total) {
-    return 'RIR registrato per $covered serie su $total';
+    return 'RPE registrato per $covered serie su $total';
   }
 
   @override
@@ -7668,7 +7668,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get experienceLevelProDescription =>
-      'Consigliato solo ad atleti esperti con stima affidabile del cedimento: aggiunge il monitoraggio RIR (ripetizioni di riserva) e zone di intensità cardio.';
+      'Per atleti esperti capaci di valutare lo sforzo: aggiunge RPE e zone di intensità cardio.';
 
   @override
   String get diaryWeightLabel => 'Peso';
@@ -9972,4 +9972,46 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0 · $incomplete incompleti';
   }
+
+  @override
+  String get rpeEffortTitle => 'Sforzo percepito';
+
+  @override
+  String get rpeQuestion => 'Quanto è stata difficile la serie?';
+
+  @override
+  String get rpeNoReps => 'Nessuna ripetizione rimasta';
+
+  @override
+  String rpeRepsLeft(Object count) {
+    return 'Circa $count ripetizioni rimaste';
+  }
+
+  @override
+  String get rpeFourPlus => '4 o più ripetizioni rimaste';
+
+  @override
+  String get rpeClear => 'Cancella';
+
+  @override
+  String get rpeSave => 'Salva';
+
+  @override
+  String get rpeHelpTitle => 'Cos’è RPE?';
+
+  @override
+  String get rpeHelpBody =>
+      'RPE descrive lo sforzo percepito. Stima quante ripetizioni avresti ancora potuto fare.';
+
+  @override
+  String get rpeInvalid => 'Inserisci un RPE da 6 a 10 a intervalli di 0,5.';
+
+  @override
+  String get rpeMaximumEffort => 'Sforzo massimo';
+
+  @override
+  String get rpeHardEffort => 'Difficile';
+
+  @override
+  String get rpeModerateEffort => 'Moderato';
 }

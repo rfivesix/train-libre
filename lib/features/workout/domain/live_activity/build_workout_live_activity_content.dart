@@ -212,8 +212,16 @@ _MetricLine _strengthMetrics(
       ? ''
       : '$repsRaw ${strings.repsShort}';
 
-  final rir = next.log.rir ?? next.template?.targetRir;
-  final rirText = rir == null ? '' : '(${strings.rirLabel} $rir)';
+  final loggedRir = next.log.rir;
+  final targetRir = next.template?.targetRir;
+  final rpe =
+      next.log.rpe ??
+      (loggedRir == null ? null : 10.0 - loggedRir) ??
+      next.template?.targetRpe ??
+      (targetRir == null ? null : 10.0 - targetRir);
+  final rpeText = rpe == null
+      ? ''
+      : '(${strings.rpeLabel} ${_formatDecimal(rpe.toDouble(), localeName)})';
 
   // Both numbers are required to tick the set off. A missing one shows as a
   // dash rather than being skipped, so the line keeps its shape and it is
@@ -223,7 +231,7 @@ _MetricLine _strengthMetrics(
   return _MetricLine(
     primary: weightText.isEmpty ? _unknownValue : weightText,
     secondary: repsText.isEmpty ? _unknownValue : repsText,
-    tertiary: rirText,
+    tertiary: rpeText,
     separator: '×',
     compactPrimary: weightText.isEmpty ? _unknownValue : weightText,
     compactSecondary: '× ${repsRaw ?? _unknownValue}',
@@ -256,7 +264,9 @@ _MetricLine _durationMetrics(
       : '${_formatDecimal(unitService.convertDisplayValue(weight, UnitDimension.weight), localeName)} ${strings.weightUnit}';
 
   final rpe = next.log.rpe;
-  final rpeText = rpe == null ? '' : '(${strings.rpeLabel} $rpe)';
+  final rpeText = rpe == null
+      ? ''
+      : '(${strings.rpeLabel} ${_formatDecimal(rpe.toDouble(), localeName)})';
 
   final primaryText = mask.logsWeight
       ? weightText

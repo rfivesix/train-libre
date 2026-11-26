@@ -1127,7 +1127,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             Expanded(flex: flex.secondary, child: const SizedBox.shrink()),
           if (showsIntensity)
             _buildHeader(
-              mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+              mask.logsDistance ? l10n.cardioIntensityLabel : 'RPE',
               flex: flex.intensity,
             )
           else if (keepsIntensityPlaceholder(context, mask))

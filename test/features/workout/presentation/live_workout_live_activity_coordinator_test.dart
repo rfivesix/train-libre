@@ -189,6 +189,7 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
     double? weight,
     int? reps,
     int? rir,
+    double? rpe,
     bool? isCompleted,
   }) async {
     updatedSets.add({

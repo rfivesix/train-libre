@@ -78,6 +78,7 @@ class ShareLinkPayload {
                 (set['reps'] != null && set['reps'] is! String) ||
                 (set['weight'] != null && set['weight'] is! num) ||
                 (set['rir'] != null && set['rir'] is! num) ||
+                (set['rpe'] != null && set['rpe'] is! num) ||
                 (set['repMin'] != null && set['repMin'] is! int) ||
                 (set['repMax'] != null && set['repMax'] is! int)) {
               throw const FormatException('Invalid routine set');
@@ -260,11 +261,12 @@ class ShareLinkPayload {
                 'weight_kg',
                 'distance_km',
                 'prescribed_weight',
+                'rpe',
+                'prescribed_rpe',
               ].every((key) => raw[key] == null || raw[key] is num) ||
               !const [
                 'reps',
                 'rir',
-                'rpe',
                 'rest_time_seconds',
                 'duration_seconds',
                 'log_order',
@@ -368,6 +370,7 @@ class ShareLinkCodec {
                         'reps': set.targetReps,
                         'weight': set.targetWeight,
                         'rir': set.targetRir,
+                        'rpe': set.targetRpe,
                         'repMin': set.targetRepMin,
                         'repMax': set.targetRepMax,
                       },

@@ -1,3 +1,4 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -29,11 +30,18 @@ Widget _wrap(Widget child, IWorkoutRepository repo) {
     ],
     child: MaterialApp(
       locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: child,
     ),
   );
+}
+
+Future<void> _openEdit(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('workout_detail_actions_menu')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Edit').last);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -146,7 +154,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap edit button to enter edit mode
-    await tester.tap(find.byIcon(LucideIcons.pencil));
+    await _openEdit(tester);
     await tester.pumpAndSettle();
 
     // The weight input field is keyed by set localId
@@ -284,7 +292,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await _openEdit(tester);
     await tester.pumpAndSettle();
 
     final firstCard = find.byType(WorkoutExerciseLogCard).first;
@@ -339,7 +347,7 @@ void main() {
       expect(find.text('01:30'), findsOneWidget);
       expect(find.byIcon(LucideIcons.timer), findsOneWidget);
 
-      await tester.tap(find.byIcon(LucideIcons.pencil).first);
+      await _openEdit(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('01:30'), findsOneWidget);
@@ -374,7 +382,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await _openEdit(tester);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('history_exercise_menu_0')));
@@ -421,7 +429,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await _openEdit(tester);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('history_exercise_menu_1')));

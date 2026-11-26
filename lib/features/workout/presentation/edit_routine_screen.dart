@@ -8,7 +8,6 @@ import 'package:material_ui/material_ui.dart';
 
 import 'dart:async';
 
-
 import '../data/sources/workout_local_data_source.dart';
 import '../data/manual_training_plan_repository.dart';
 import 'manual_plan_text.dart';
@@ -395,7 +394,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
-            text: st.targetRir?.toString() ?? '',
+            text: isCardio
+                ? (st.targetRir?.toString() ?? '')
+                : ((st.targetRpe ??
+                              (st.targetRir == null
+                                  ? null
+                                  : (10 - st.targetRir!).toDouble()))
+                          ?.toString()
+                          .replaceFirst(RegExp(r'\.0$'), '') ??
+                      ''),
           );
         }
       }
@@ -467,7 +474,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
-            text: st.targetRir?.toString() ?? '',
+            text: isCardio
+                ? (st.targetRir?.toString() ?? '')
+                : ((st.targetRpe ??
+                              (st.targetRir == null
+                                  ? null
+                                  : (10 - st.targetRir!).toDouble()))
+                          ?.toString()
+                          .replaceFirst(RegExp(r'\.0$'), '') ??
+                      ''),
           );
         }
         setState(() {
@@ -492,6 +507,29 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         );
       }
       return false;
+    }
+
+    for (final exercise in _routineExercises) {
+      if (exercise.exercise.isCardio) continue;
+      for (final set in exercise.setTemplates) {
+        final raw = _rirControllers[set.id]?.text.trim() ?? '';
+        if (raw.isEmpty) continue;
+        final value = double.tryParse(raw.replaceAll(',', '.'));
+        final oldValue =
+            set.targetRpe ??
+            (set.targetRir == null ? null : (10 - set.targetRir!).toDouble());
+        if (value != oldValue &&
+            (value == null ||
+                value < 6 ||
+                value > 10 ||
+                (value * 2).roundToDouble() != value * 2)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(l10n.rpeInvalid)));
+          }
+          return false;
+        }
+      }
     }
 
     int? currentRoutineId = _routineId;
@@ -531,6 +569,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       final List<SetTemplate> currentTemplates = [];
       for (var set in re.setTemplates) {
         final rirText = _rirControllers[set.id!]?.text ?? '';
+        final targetRpe = double.tryParse(rirText.replaceAll(',', '.'));
+        final oldRpe =
+            set.targetRpe ??
+            (set.targetRir == null ? null : (10 - set.targetRir!).toDouble());
+        final rpeChanged = !re.exercise.isCardio && targetRpe != oldRpe;
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
@@ -555,8 +598,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                           : UnitDimension.weight,
                     );
                   })(),
-            targetRir: int.tryParse(rirText),
-            clearTargetRir: rirText.isEmpty,
+            targetRir: re.exercise.isCardio ? int.tryParse(rirText) : null,
+            clearTargetRir: re.exercise.isCardio ? rirText.isEmpty : rpeChanged,
+            targetRpe: rpeChanged ? targetRpe : null,
+            clearTargetRpe: rpeChanged && targetRpe == null,
           ),
         );
       }
@@ -1342,12 +1387,14 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                             listIndex,
                                                           ),
                                                       onReorderSet:
-                                                          (oldIndex, newIndex) =>
-                                                              _reorderSet(
-                                                                routineExercise,
-                                                                oldIndex,
-                                                                newIndex,
-                                                              ),
+                                                          (
+                                                            oldIndex,
+                                                            newIndex,
+                                                          ) => _reorderSet(
+                                                            routineExercise,
+                                                            oldIndex,
+                                                            newIndex,
+                                                          ),
                                                     ),
                                                   ),
                                                 ),
