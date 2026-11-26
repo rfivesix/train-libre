@@ -170,7 +170,17 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
           // morph route as the source copy to fly with.
           late final Widget content;
           content = SummaryCard(
+            margin: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
+            padding: EdgeInsets.zero,
             child: ListTile(
+              contentPadding: const EdgeInsetsDirectional.only(
+                start: DesignConstants.cardPaddingInternal,
+                end: DesignConstants.spacingS,
+              ),
+              minTileHeight: 64,
+              minVerticalPadding: DesignConstants.spacingS,
               leading: SizedBox(
                 height: double.infinity,
                 child: Icon(
@@ -178,17 +188,29 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
                   color: s.isTracked ? Colors.green : Colors.grey,
                 ),
               ),
-              title: Text(title),
-              subtitle: (s.dailyGoal != null || s.dailyLimit != null)
-                  ? Text(
+              title: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title),
+                  if (s.dailyGoal != null || s.dailyLimit != null)
+                    Text(
                       [
                         if (s.dailyGoal != null)
                           '${l10n.dailyGoalLabel}: ${s.dailyGoal} ${s.unit}',
                         if (s.dailyLimit != null)
                           '${l10n.dailyLimitLabel}: ${s.dailyLimit} ${s.unit}',
                       ].join('  •  '),
-                    )
-                  : null,
+                      style:
+                          ListTileTheme.of(context).subtitleTextStyle ??
+                          Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                    ),
+                ],
+              ),
               trailing: isBuiltin
                   ? null
                   : const Icon(LucideIcons.chevron_right),

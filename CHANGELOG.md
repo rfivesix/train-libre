@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.7.1-beta.4] - 2026-11-24
 
+### Changed
+- Made supplement tracker entries more compact.
+- Displayed meal calories and macronutrients in the same colored tiles as food details.
+- Reduced spacing in meal ingredient cards so more ingredients fit on screen.
+- Made exercise catalog and food selection results more compact, with consistent add buttons and room to scroll past the create button.
+
 ### Fixed
 - Enlarged the inline timer's play and stop icons without changing the control size.
 - Separated the duration and timer action in live workout set fields for clearer alignment.

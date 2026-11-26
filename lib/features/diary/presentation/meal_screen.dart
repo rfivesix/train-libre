@@ -37,6 +37,8 @@ import '../../sharing/share_service.dart';
 import '../../sharing/share_import_sheet.dart';
 import '../../sharing/share_link_repository.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
+import 'widgets/nutrition_metric_grid.dart';
+import '../../../theme/app_colors.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -383,36 +385,49 @@ class _MealScreenState extends State<MealScreen> {
                           ? l10n.mealTotalNutrientsLabel
                           : l10n.nutritionSectionLabel,
                     ),
-                    AppCardContainer(
-                      child: Skeletonizer(
-                        enabled: _editMode && _items.isEmpty,
-                        child: MacroBadgeRow(
-                          kcal: (_editMode && _items.isEmpty)
-                              ? 0
-                              : (_items.isEmpty
-                                    ? null
-                                    : (_totalKcal * displayScale).round()),
-                          protein: (_editMode && _items.isEmpty)
+                    Skeletonizer(
+                      enabled: _editMode && _items.isEmpty,
+                      child: Builder(
+                        builder: (context) {
+                          final colors = theme.extension<MacroColors>();
+                          final hasValues = _items.isNotEmpty || _editMode;
+                          final scale = _editMode && _items.isEmpty
                               ? 0.0
-                              : (_items.isEmpty
-                                    ? null
-                                    : _totalP * displayScale),
-                          carbs: (_editMode && _items.isEmpty)
-                              ? 0.0
-                              : (_items.isEmpty
-                                    ? null
-                                    : _totalC * displayScale),
-                          fat: (_editMode && _items.isEmpty)
-                              ? 0.0
-                              : (_items.isEmpty
-                                    ? null
-                                    : _totalF * displayScale),
-                          useBadges: Provider.of<ThemeService>(context)
-                              .useColorfulMacroBadges,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                              : displayScale;
+                          return NutritionMetricGrid(
+                            metrics: [
+                              NutritionMetric(
+                                l10n.calories,
+                                hasValues ? _totalKcal * scale : null,
+                                null,
+                                'kcal',
+                                colors?.calories ?? Colors.orange,
+                                decimals: 0,
+                              ),
+                              NutritionMetric(
+                                l10n.protein,
+                                hasValues ? _totalP * scale : null,
+                                null,
+                                'g',
+                                colors?.protein ?? Colors.red,
+                              ),
+                              NutritionMetric(
+                                l10n.carbs,
+                                hasValues ? _totalC * scale : null,
+                                null,
+                                'g',
+                                colors?.carbs ?? Colors.green,
+                              ),
+                              NutritionMetric(
+                                l10n.fat,
+                                hasValues ? _totalF * scale : null,
+                                null,
+                                'g',
+                                colors?.fat ?? Colors.purple,
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
 
@@ -1186,12 +1201,18 @@ class _IngredientCard extends StatelessWidget {
       );
 
       return AppCardContainer(
+        padding: EdgeInsets.zero,
+        margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
         child: ListTile(
-          contentPadding: EdgeInsets.zero,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.cardPaddingInternal,
+          ),
+          minTileHeight: 64,
+          minVerticalPadding: DesignConstants.spacingS,
           title: titleWidget,
           subtitle: (fi != null)
               ? Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
+                  padding: EdgeInsets.zero,
                   child: themeService.useColorfulMacroBadges
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1203,7 +1224,6 @@ class _IngredientCard extends StatelessWidget {
                                   color: theme.textTheme.bodySmall?.color,
                                 ),
                               ),
-                            if (!editMode) const SizedBox(height: 4),
                             MacroBadgeRow(
                               kcal: editMode ? kcal : null,
                               protein: p,

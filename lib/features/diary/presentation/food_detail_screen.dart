@@ -34,7 +34,7 @@ import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../widgets/common/app_button.dart';
-import '../../../widgets/common/value_summary_card.dart';
+import 'widgets/nutrition_metric_grid.dart';
 import '../../../theme/app_colors.dart';
 
 import 'dart:async';
@@ -962,37 +962,39 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     }
 
     return [
-      _buildNutritionMetricGrid([
-        _NutritionMetric(
-          l10n.calories,
-          calories.value,
-          calories.marker,
-          'kcal',
-          macroColors?.calories ?? Colors.orange,
-          decimals: 0,
-        ),
-        _NutritionMetric(
-          l10n.protein,
-          protein.value,
-          protein.marker,
-          'g',
-          macroColors?.protein ?? Colors.red,
-        ),
-        _NutritionMetric(
-          l10n.carbs,
-          carbs.value,
-          carbs.marker,
-          'g',
-          macroColors?.carbs ?? Colors.green,
-        ),
-        _NutritionMetric(
-          l10n.fat,
-          fat.value,
-          fat.marker,
-          'g',
-          macroColors?.fat ?? Colors.purple,
-        ),
-      ]),
+      NutritionMetricGrid(
+        metrics: [
+          NutritionMetric(
+            l10n.calories,
+            calories.value,
+            calories.marker,
+            'kcal',
+            macroColors?.calories ?? Colors.orange,
+            decimals: 0,
+          ),
+          NutritionMetric(
+            l10n.protein,
+            protein.value,
+            protein.marker,
+            'g',
+            macroColors?.protein ?? Colors.red,
+          ),
+          NutritionMetric(
+            l10n.carbs,
+            carbs.value,
+            carbs.marker,
+            'g',
+            macroColors?.carbs ?? Colors.green,
+          ),
+          NutritionMetric(
+            l10n.fat,
+            fat.value,
+            fat.marker,
+            'g',
+            macroColors?.fat ?? Colors.purple,
+          ),
+        ],
+      ),
       if (sugarFact != null ||
           _displayItem.sugar != null ||
           fiberFact != null ||
@@ -1000,56 +1002,58 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           saltFact != null ||
           _displayItem.salt != null) ...[
         const SizedBox(height: DesignConstants.spacingS),
-        _buildNutritionMetricGrid([
-          if (sugarFact != null)
-            _NutritionMetric(
-              l10n.sugar,
-              _getDisplayValue(sugarFact.value),
-              sugarFact.valueText,
-              sugarFact.unit,
-              macroColors?.sugar ?? Colors.pink,
-            )
-          else if (sugar != null)
-            _NutritionMetric(
-              l10n.sugar,
-              sugar,
-              null,
-              'g',
-              macroColors?.sugar ?? Colors.pink,
-            ),
-          if (fiberFact != null)
-            _NutritionMetric(
-              l10n.fiber,
-              _getDisplayValue(fiberFact.value),
-              fiberFact.valueText,
-              fiberFact.unit,
-              macroColors?.fiber ?? Colors.brown,
-            )
-          else if (fiber != null)
-            _NutritionMetric(
-              l10n.fiber,
-              fiber,
-              null,
-              'g',
-              macroColors?.fiber ?? Colors.brown,
-            ),
-          if (saltFact != null)
-            _NutritionMetric(
-              l10n.salt,
-              _getDisplayValue(saltFact.value),
-              saltFact.valueText,
-              saltFact.unit,
-              macroColors?.salt ?? Colors.blueGrey,
-            )
-          else if (salt != null)
-            _NutritionMetric(
-              l10n.salt,
-              salt,
-              null,
-              'g',
-              macroColors?.salt ?? Colors.blueGrey,
-            ),
-        ]),
+        NutritionMetricGrid(
+          metrics: [
+            if (sugarFact != null)
+              NutritionMetric(
+                l10n.sugar,
+                _getDisplayValue(sugarFact.value),
+                sugarFact.valueText,
+                sugarFact.unit,
+                macroColors?.sugar ?? Colors.pink,
+              )
+            else if (sugar != null)
+              NutritionMetric(
+                l10n.sugar,
+                sugar,
+                null,
+                'g',
+                macroColors?.sugar ?? Colors.pink,
+              ),
+            if (fiberFact != null)
+              NutritionMetric(
+                l10n.fiber,
+                _getDisplayValue(fiberFact.value),
+                fiberFact.valueText,
+                fiberFact.unit,
+                macroColors?.fiber ?? Colors.brown,
+              )
+            else if (fiber != null)
+              NutritionMetric(
+                l10n.fiber,
+                fiber,
+                null,
+                'g',
+                macroColors?.fiber ?? Colors.brown,
+              ),
+            if (saltFact != null)
+              NutritionMetric(
+                l10n.salt,
+                _getDisplayValue(saltFact.value),
+                saltFact.valueText,
+                saltFact.unit,
+                macroColors?.salt ?? Colors.blueGrey,
+              )
+            else if (salt != null)
+              NutritionMetric(
+                l10n.salt,
+                salt,
+                null,
+                'g',
+                macroColors?.salt ?? Colors.blueGrey,
+              ),
+          ],
+        ),
       ],
       if (additionalRows.isNotEmpty) ...[
         _buildNutritionSectionHeader(l10n.foodDetailOtherNutrientsGroup),
@@ -1076,70 +1080,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
   String _normalizeBlsNutrientName(String name) =>
       name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9äöüß]'), '');
-
-  Widget _buildNutritionMetricGrid(List<_NutritionMetric> metrics) {
-    if (metrics.isEmpty) return const SizedBox.shrink();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final valueTextColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
-    final labelTextColor = isDark
-        ? Colors.white.withValues(alpha: 0.9)
-        : const Color(0xFF1C1C1E).withValues(alpha: 0.85);
-    final diaryBarShadows = isDark
-        ? const [
-            Shadow(
-              color: Color.fromRGBO(0, 0, 0, 0.35),
-              offset: Offset(0, 1),
-              blurRadius: 2,
-            ),
-          ]
-        : null;
-    final diaryBarGradient = isDark
-        ? LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [Colors.black.withValues(alpha: 0.15), Colors.transparent],
-            stops: const [0.0, 1.0],
-          )
-        : null;
-    final cards = metrics.map((metric) {
-      final displayValue = metric.value == null
-          ? metric.missingValue ?? '-'
-          : '${metric.decimals == 0 ? metric.value!.round() : metric.value!.toStringAsFixed(metric.decimals)} ${metric.unit}'
-                .trim();
-      return ValueSummaryCard(
-        label: metric.label,
-        value: displayValue,
-        valueColor: valueTextColor,
-        labelColor: labelTextColor,
-        backgroundColor: metric.color,
-        backgroundOverlayGradient: diaryBarGradient,
-        textShadows: diaryBarShadows,
-        showShadow: true,
-      );
-    }).toList();
-
-    final rows = <Widget>[];
-    for (var i = 0; i < cards.length; i += 2) {
-      rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: cards[i]),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(
-                child: i + 1 < cards.length ? cards[i + 1] : const SizedBox(),
-              ),
-            ],
-          ),
-        ),
-      );
-      if (i + 2 < cards.length) {
-        rows.add(const SizedBox(height: DesignConstants.spacingS));
-      }
-    }
-    return Column(children: rows);
-  }
 
   Widget _buildNutritionSectionHeader(
     String title, {
@@ -1261,22 +1201,4 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       ),
     ),
   );
-}
-
-class _NutritionMetric {
-  final String label;
-  final double? value;
-  final String? missingValue;
-  final String unit;
-  final Color color;
-  final int decimals;
-
-  const _NutritionMetric(
-    this.label,
-    this.value,
-    this.missingValue,
-    this.unit,
-    this.color, {
-    this.decimals = 1,
-  });
 }
