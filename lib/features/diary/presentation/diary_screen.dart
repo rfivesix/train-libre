@@ -1177,6 +1177,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                               children: [
                               AppSectionHeader(
                                 title: l10n.today_overview_text,
+                                actionAlignment: CrossAxisAlignment.end,
                                 padding: incomplete == true
                                     ? DesignConstants.sectionHeaderPadding.copyWith(
                                         bottom: 0,
@@ -1190,9 +1191,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                           message: l10n.diaryNutritionDayOptions,
                                           child: const SizedBox.square(
                                             dimension: 44,
-                                            child: Icon(
-                                              LucideIcons.ellipsis,
-                                              size: 20,
+                                            child: Align(
+                                              alignment: Alignment.bottomCenter,
+                                              child: Icon(
+                                                LucideIcons.ellipsis,
+                                                size: 20,
+                                              ),
                                             ),
                                           ),
                                         ),

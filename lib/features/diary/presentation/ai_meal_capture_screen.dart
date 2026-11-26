@@ -59,15 +59,40 @@ import '../../ai_assistant/presentation/widgets/cloud_overlay/header_glass_butto
 import 'widgets/ai_neural_cloud_orb_widget.dart';
 import 'widgets/animated_transcript_text.dart';
 
+/// Explicit camera injection for deterministic integration and production demos.
+/// Normal app navigation does not supply this override and uses the native camera.
+/// The preview and capture callback must describe the same camera frame.
+class AiMealCaptureCameraOverride {
+  const AiMealCaptureCameraOverride({
+    required this.preview,
+    required this.capture,
+  });
+
+  final Widget preview;
+  final Future<File?> Function() capture;
+}
+
 /// Screen for capturing meal input via live camera, photo(s), barcode or text (Screens A1–A6).
 class AiMealCaptureScreen extends StatefulWidget {
   final DateTime? initialDate;
   final String? initialMealType;
+  final AiMealCaptureCameraOverride? cameraOverride;
+
+  /// Optional deterministic provider for isolated demo/test runs. When absent,
+  /// the configured provider performs the request. Validation and review stay
+  /// on the normal application path.
+  final AiCandidateLoader? analysisOverride;
+
+  /// Optional explicit review time for deterministic isolated demos.
+  final DateTime? reviewTimestampOverride;
 
   const AiMealCaptureScreen({
     super.key,
     this.initialDate,
     this.initialMealType,
+    this.cameraOverride,
+    this.analysisOverride,
+    this.reviewTimestampOverride,
   });
 
   @override
@@ -229,6 +254,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _loadSelectedProvider() async {
+    if (widget.analysisOverride != null) return;
     try {
       final provider = await AiService.instance.getSelectedProvider();
       final isApple = provider == AiProvider.appleFoundation;
@@ -246,7 +272,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _prewarmSelectedProvider() async {
-    if (!mounted) return;
+    if (!mounted || widget.analysisOverride != null) return;
     try {
       final matchingContext =
           await AiMatchingLanguageService.resolveMatchingContext(
@@ -343,6 +369,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _refreshPermissionAndResumeCamera() async {
+    if (widget.cameraOverride != null) return;
     final status = await Permission.camera.status;
     if (!mounted) return;
     if (!status.isGranted) {
@@ -425,6 +452,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// Permission first, session second — the native session cannot configure an
   /// input without camera access.
   Future<void> _prepareCamera() async {
+    if (widget.cameraOverride != null) {
+      if (mounted) setState(() => _cameraPermission = PermissionStatus.granted);
+      return;
+    }
     await _detectIosSimulator();
     await _checkPermission();
     if (!mounted || !_cameraPermission.isGranted) return;
@@ -689,6 +720,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     _clearDistanceHint();
     HapticFeedbackService.instance.selectionFeedback();
 
+    final cameraOverride = widget.cameraOverride;
+    if (cameraOverride != null) {
+      final file = await cameraOverride.capture();
+      if (file != null && mounted) {
+        setState(() => _images.add(file));
+        _preProcessor.processImages([file]);
+      }
+      return;
+    }
+
     // The running session takes the photo — including on devices without
     // LiDAR, where it simply returns no depth map. Opening the system camera
     // on top of a live preview would be the wrong thing everywhere.
@@ -947,6 +988,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
+      activeModelName: widget.analysisOverride != null ? 'Demo · synthetisch' : null,
       sourceContext: _keyAnalyze.currentContext,
       sourceRect: sourceRect,
       previewImage: _images.isNotEmpty ? _images.first : null,
@@ -992,18 +1034,20 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (mounted) unawaited(Navigator.of(context).push(_analysisRoute!));
 
     try {
-      final selectedProvider = await AiService.instance.getSelectedProvider();
+      final selectedProvider = widget.analysisOverride != null
+          ? AiProvider.openai
+          : await AiService.instance.getSelectedProvider();
       final isAppleProvider = selectedProvider == AiProvider.appleFoundation;
       if (isAppleProvider) {
         hasLidar = false;
       }
-      provider = selectedProvider.name;
+      provider = widget.analysisOverride != null ? 'demo' : selectedProvider.name;
       unawaited(scanLog.setProvider(requestId, provider));
       unawaited(() async {
         try {
-          final model = await AiService.instance.getSelectedModel(
-            selectedProvider,
-          );
+          final model = widget.analysisOverride != null
+              ? 'synthetic-fixture'
+              : await AiService.instance.getSelectedModel(selectedProvider);
           await scanLog.setModel(requestId, model);
         } catch (_) {
           // Diagnostic metadata must not affect the scan.
@@ -1146,6 +1190,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             mealContext: mealContext,
             originalImages: _images,
             initialDate: widget.initialDate,
+            timestampOverride: widget.reviewTimestampOverride,
             initialMealType: resolvedMealType,
             depthResult: isAppleProvider ? null : _lastDepthCapture,
             depthResultsByPath: isAppleProvider ? const {} : _depthCaptures,
@@ -1209,8 +1254,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       }
 
       final runResult = await AiMealScanRunner(validationEngine: engine).run(
-        fastMode: fastMode && cloudProvider,
-        automaticRepair: !useDirectNutrition,
+        fastMode: fastMode && cloudProvider && widget.analysisOverride == null,
+        automaticRepair: !useDirectNutrition && widget.analysisOverride == null,
         isCancelled: () => cancelled() || !mounted,
         onCandidateReady: (candidate) {
           unawaited(
@@ -1270,7 +1315,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 ),
               );
             },
-        analyze: () => useDirectNutrition
+        analyze: widget.analysisOverride ?? () => useDirectNutrition
             ? (_images.isNotEmpty
                   ? AiService.instance.analyzeDirectNutritionImages(
                       _images,
@@ -1690,7 +1735,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
-                                if (!_cameraPermission.isGranted)
+                                if (widget.cameraOverride != null)
+                                  widget.cameraOverride!.preview
+                                else if (!_cameraPermission.isGranted)
                                   const AiCameraFallbackView()
                                 else if (_isIosSimulator && !_useNativeSession)
                                   const AiSimulatorCameraDemo()
@@ -2356,7 +2403,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   Widget _buildScannerCameraActions(AppLocalizations l10n) {
     final hasPlatformPreview =
-        _cameraPermission.isGranted && (!_isIosSimulator || _useNativeSession);
+        _cameraPermission.isGranted &&
+        widget.cameraOverride == null &&
+        (!_isIosSimulator || _useNativeSession);
     return Positioned.fill(
       child: Stack(
         clipBehavior: Clip.none,

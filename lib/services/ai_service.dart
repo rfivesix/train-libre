@@ -770,6 +770,12 @@ class AiService {
     return _parseMealCandidateFromContent(raw);
   }
 
+  /// Decode a recorded direct-nutrition provider response using the same parser
+  /// and nutrition preparation as the live provider path. This supports
+  /// deterministic offline demos without making a network request.
+  Future<AiMealCandidate> parseDirectNutritionProviderResponse(String content) async =>
+      _attachDirectEstimateFoods(await _parseMealCandidateFromContent(content));
+
   /// Analyzes a text-only meal description and returns an AI suggested meal candidate.
   Future<AiMealCandidate> analyzeText(
     String description, {

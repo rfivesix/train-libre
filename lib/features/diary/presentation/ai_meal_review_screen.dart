@@ -70,6 +70,7 @@ class AiMealReviewScreen extends StatefulWidget {
   final AiMealContext? mealContext;
   final List<File> originalImages;
   final DateTime? initialDate;
+  final DateTime? timestampOverride;
   final String? initialMealType;
   final DepthCaptureResult? depthResult;
   final Map<String, DepthCaptureResult>? depthResultsByPath;
@@ -96,6 +97,7 @@ class AiMealReviewScreen extends StatefulWidget {
     this.mealContext,
     required this.originalImages,
     this.initialDate,
+    this.timestampOverride,
     this.initialMealType,
     this.depthResult,
     this.depthResultsByPath,
@@ -353,7 +355,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
     _selectedMealType = widget.initialMealType ??
         MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
-    _selectedTimestamp = (widget.initialDate ?? DateTime.now()).withCurrentTime;
+    _selectedTimestamp = widget.timestampOverride ??
+        (widget.initialDate ?? DateTime.now()).withCurrentTime;
     final initialValidation = widget.initialValidation;
     if (initialValidation != null) {
       _applyValidationResult(initialValidation);
