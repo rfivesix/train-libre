@@ -6,12 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.7.1] - 2026-11-27
 
-### Changed
-- Made supplement tracker entries more compact.
-- Displayed meal calories and macronutrients in the same colored tiles as food details.
-- Reduced spacing in meal ingredient cards so more ingredients fit on screen.
-- Made exercise catalog and food selection results more compact, with consistent add buttons and room to scroll past the create button.
-
 ### Fixed
 - Saved a running set timer when finishing a workout, preserving its elapsed time without completing the set.
 - Preserved unfinished sets with manually entered RPE and other input when finishing a workout, including sets with unconfirmed suggestions.
@@ -129,6 +123,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Optimized AI Meal Scan direct nutrition estimation for Apple Intelligence (`AppleFoundationPlugin.swift`, `AppleFoundationService`, `AiService`): uses native Swift `@Generable`/`@Guide` guided generation with deterministic greedy decoding (`GenerationOptions(samplingMode: .greedy)`), a concise Apple-specific direct prompt retaining `protein`, `carbs`, `fat`, `sugar`, `fiber`, `salt` (with derived `sodium`), `caffeine`, `isFluid`, and `confidence`, macro-sum plausibility normalization (`<= 100 g` per 100 g), fault-tolerant optional micronutrients, and matching session prewarming.
 - Disabled LiDAR depth capture/scale hints and hid both the LiDAR switches and the nutrition estimation method picker when Apple Intelligence is selected (`AiSettingsScreen`, `AiMealCaptureScreen`), always using direct AI estimation for Apple Intelligence.
 - Updated graphical Statistics hub empty states (`BodyMetricsSectionCard`, `MacroSectionCard`, `StatisticsStepsCard`, `SleepSectionCard`, and `WaterSectionCard`) to display a blurred skeleton preview of their charts/visuals underneath each card's existing empty-state message while keeping card headers crisp and cards tappable, and added skeleton chart previews with `ActiveGapOverlay` when no data exists in the currently selected timeframe window on `BodyNutritionCorrelationScreen`, `MacroStatisticsScreen`, and `WaterStatisticsScreen`.
+- Made supplement tracker entries more compact.
+- Displayed meal calories and macronutrients in the same colored tiles as food details.
+- Reduced spacing in meal ingredient cards so more ingredients fit on screen.
+- Made exercise catalog and food selection results more compact, with consistent add buttons and room to scroll past the create button.
 
 ## [1.7.0] - 2026-11-03
 
