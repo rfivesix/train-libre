@@ -1,9 +1,9 @@
-Sommeil et récupération en un coup d’œil: La nouvelle vue du sommeil affiche les phases, la durée et la fréquence cardiaque. Avec Apple Health, consultez aussi la variabilité de la fréquence cardiaque (VFC).
+Statistiques et analyse des progrès: Retrouve en un coup d’œil tes indicateurs clés et tes jours d’entraînement. Les vues repensées facilitent le suivi détaillé de ton alimentation, de tes progrès et de tes records personnels.
 
-Une meilleure vue pendant l’entraînement: Consultez les séries terminées et prévues par groupe musculaire, le temps écoulé, la progression et le volume.
+Entraînement en direct et gestion des séries: Vois les séries terminées et celles qui restent à faire pour chaque groupe musculaire. Réorganise les séries en les faisant glisser, affiche si tu le souhaites ta charge maximale estimée sur une répétition et célèbre tes nouveaux records avec une animation et un retour haptique.
 
-Célébrez vos records personnels: Une animation et un retour haptique mettent en valeur vos nouveaux records.
+Analyse du sommeil et fréquence cardiaque: Le nouvel aperçu du sommeil affiche la durée, les phases et la fréquence cardiaque. Ta fréquence cardiaque au repos issue d’Apple Santé ou de Health Connect apparaît dans le journal et les statistiques. Apple Santé te permet aussi de consulter la variabilité de ta fréquence cardiaque.
 
-Le verre à votre goût: Ajustez l’apparence du verre avec un curseur et voyez les changements immédiatement dans l’aperçu.
+Apparence Liquid Glass personnalisable: Ajuste l’effet de verre à l’aide d’un curseur et vois le résultat dans l’aperçu. Les transitions retravaillées fluidifient le passage d’un écran à l’autre.
 
-Santé et minuteurs améliorés: Les données de fréquence cardiaque d’Apple Health peuvent à nouveau être lues et synchronisées manuellement. Le comptage des pas, les minuteurs de repos et d’autres fonctions ont été corrigés.
+Performances et fiabilité améliorées: Le défilement de l’aperçu des statistiques est plus fluide, les jours d’entraînement s’affichent correctement lors des changements d’heure, et le comptage des pas ainsi que le minuteur de repos ont été améliorés.

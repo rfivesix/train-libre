@@ -1,9 +1,9 @@
-Slaap en herstel in één oogopslag: Het vernieuwde slaapoverzicht toont slaapfasen, slaapduur en hartslag. Met Apple Health zie je ook je hartslagvariabiliteit (HRV).
+Statistieken en voortgangsanalyse: Bekijk je belangrijkste cijfers en trainingsdagen in één oogopslag. Vernieuwde schermen helpen je om je voeding, voortgang en persoonlijke records in detail te volgen.
 
-Meer inzicht tijdens je training: Bekijk voltooide en geplande sets per spiergroep, de verstreken tijd, je voortgang en trainingsvolume.
+Liveworkouts en setbeheer: Bekijk per spiergroep welke sets klaar zijn en welke nog op het programma staan. Versleep sets om ze te ordenen, toon desgewenst je geschatte maximumgewicht voor één herhaling en vier nieuwe records met animaties en haptische feedback.
 
-Vier persoonlijke records: Nieuwe persoonlijke records worden uitgelicht met een animatie en haptische feedback.
+Slaapanalyse en hartslag: Het nieuwe slaapoverzicht toont je slaapduur, slaapfasen en hartslag. Je rusthartslag uit Apple Gezondheid of Health Connect staat in je dagboek en statistieken. Met Apple Gezondheid zie je ook je hartslagvariabiliteit.
 
-Glas naar jouw smaak: Pas de glasweergave aan met een schuifregelaar en bekijk de wijzigingen direct in het voorbeeld.
+Aanpasbare Liquid Glass-weergave: Pas het glaseffect aan met de schuifregelaar en bekijk het resultaat direct in het voorbeeld. Vernieuwde overgangen maken wisselen tussen schermen vloeiender.
 
-Gezondheid en timers verbeterd: Hartslaggegevens uit Apple Health kunnen weer worden gelezen en handmatig gesynchroniseerd. Ook de stappentelling, rusttimers en andere functies zijn verbeterd.
+Betere prestaties en betrouwbaarheid: Het statistiekenoverzicht scrolt vloeiender, trainingsdagen worden ook rond de overgang tussen zomer- en wintertijd correct weergegeven, en de stappentelling en rusttimer zijn verbeterd.

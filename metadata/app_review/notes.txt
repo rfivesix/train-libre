@@ -1,6 +1,6 @@
 Dear App Review Team,
 
-Train Libre 1.7.1 is a private, open-source workout and nutrition tracker. Core logging works without an account, subscription, or purchase. The app is available in English, German, French, Italian, Japanese, Spanish, and Dutch. The store listing also includes Spanish and Dutch localizations.
+Train Libre 1.7.1 is a private, open-source workout and nutrition tracker. Core logging works without an account, subscription, or purchase. The app is available in English, German, French, Italian, Japanese, Spanish, and Dutch.
 
 REVIEW PATHS
 

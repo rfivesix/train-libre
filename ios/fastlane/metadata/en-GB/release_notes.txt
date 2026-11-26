@@ -1,9 +1,9 @@
-Sleep and recovery at a glance: The redesigned sleep overview shows sleep stages, duration, and heart rate. With Apple Health, you can also see heart rate variability (HRV).
+Statistics and progress analysis: The overview shows your key metrics and training days at a glance. Redesigned views help you track nutrition, progress and personal records in detail.
 
-More insight during workouts: See completed and planned sets by muscle group, along with elapsed time, progress, and training volume.
+Live workouts and set management: See which sets are complete and which are still planned for each muscle group. Drag to reorder sets, display your estimated one-rep max if you like, and celebrate new records with animation and haptic feedback.
 
-Celebrate personal records: New personal records are highlighted with an animation and haptic feedback.
+Sleep analysis and heart rate: The new sleep overview shows sleep duration, sleep stages and heart rate. Your resting heart rate from Apple Health or Health Connect appears in the Diary and Statistics. Apple Health also provides heart rate variability.
 
-Glass your way: Adjust the glass appearance with a slider and see changes immediately in the preview.
+Customisable Liquid Glass appearance: Use the slider to adjust the glass appearance and see the result in the preview. Refined transitions make switching between views smoother.
 
-Health and timers improved: Apple Health heart-rate data can be read again and synced manually. Step counts, rest timers, and other everyday flows have been fixed.
+Improved performance and reliability: The Statistics overview scrolls more smoothly, workout days display correctly around daylight saving time changes, and step counting and rest timers have been improved.

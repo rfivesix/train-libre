@@ -1,9 +1,9 @@
-Schlaf und Erholung im Blick: Die neue Schlafübersicht zeigt Schlafphasen, Schlafdauer und Herzfrequenz. Mit Apple Health siehst du auch deine Herzfrequenzvariabilität (HRV).
+Statistiken und Fortschrittsanalyse: Die Übersicht zeigt deine wichtigsten Kennzahlen und Trainingstage auf einen Blick. Überarbeitete Ansichten helfen dir, Ernährung, Fortschritt und persönliche Bestleistungen im Detail zu verfolgen.
 
-Mehr Überblick im Workout: Sieh abgeschlossene und geplante Sätze nach Muskelgruppe und behalte Zeit, Fortschritt und Trainingsvolumen im Blick.
+Live-Workout und Satzverwaltung: Sieh, welche Sätze pro Muskelgruppe erledigt sind und welche noch anstehen. Sortiere Sätze per Ziehen, blende auf Wunsch dein geschätztes Maximalgewicht für eine Wiederholung ein und feiere neue Rekorde mit Animation und haptischem Feedback.
 
-Bestleistungen feiern: Neue persönliche Rekorde werden mit einer Animation und haptischem Feedback hervorgehoben.
+Schlafanalyse und Herzfrequenz: Die neue Schlafübersicht zeigt Schlafdauer, Schlafphasen und Herzfrequenz. Dein Ruhepuls aus Apple Health oder Health Connect erscheint im Tagebuch und in der Statistik. Mit Apple Health siehst du zusätzlich deine Herzfrequenzvariabilität.
 
-Glas nach deinem Geschmack: Passe die Glasdarstellung mit einem Regler an und sieh die Änderungen direkt in der Vorschau.
+Anpassbare Liquid-Glass-Darstellung: Passe die Glasdarstellung mit einem Regler an und sieh das Ergebnis direkt in der Vorschau. Überarbeitete Übergänge machen den Wechsel zwischen Ansichten flüssiger.
 
-Gesundheit und Timer verbessert: Apple-Health-Pulsdaten lassen sich wieder lesen und manuell synchronisieren. Schrittzahlen, Pausentimer und weitere Abläufe wurden korrigiert.
+Verbesserte Leistung und Zuverlässigkeit: Die Statistikübersicht scrollt flüssiger, Trainingstage erscheinen auch rund um die Zeitumstellung korrekt, und Schrittzählung sowie Pausentimer wurden verbessert.

@@ -2100,6 +2100,10 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
   Future<void> finishWorkout({String? title, String? notes}) async {
     if (_workoutLog != null) {
+      // Finishing does not mark an open set complete, but its running timer is
+      // still user input and must be saved before empty rows are discarded.
+      final runningTimerId = _activeSetTimerId;
+      if (runningTimerId != null) await stopSetTimer(runningTimerId);
       final pending = _pendingProgressionUpdate;
       if (pending != null) await pending;
 
@@ -2122,18 +2126,17 @@ class LiveWorkoutViewModel extends ChangeNotifier
       // disappearing when the user saves the workout.
       final discardSetIds = <int>[];
       for (final set in setsToPersist) {
+        final isUnconfirmedSuggestion =
+            set.valuesAutoFilled && !set.prescriptionOverridden;
         final hasManualInput =
-            set.weightKg != null ||
-            set.reps != null ||
+            (!isUnconfirmedSuggestion &&
+                (set.weightKg != null || set.reps != null)) ||
             set.distanceKm != null ||
             set.durationSeconds != null ||
             set.rir != null ||
+            set.rpe != null ||
             (set.notes?.trim().isNotEmpty ?? false);
-        final isUnconfirmedSuggestion =
-            set.valuesAutoFilled && !set.prescriptionOverridden;
-        if (set.isCompleted != true &&
-            (!hasManualInput || isUnconfirmedSuggestion) &&
-            set.id != null) {
+        if (set.isCompleted != true && !hasManualInput && set.id != null) {
           discardSetIds.add(set.id!);
         }
       }

@@ -352,6 +352,25 @@ void main() {
     },
   );
 
+  test('finishing keeps open RPE entries, even on suggested sets', () async {
+    final bench = exercise();
+    await seedPreviousFirstSet(exercise: bench, weight: 60, reps: 10);
+    final workout = await dataSource.startWorkout(routineName: 'RPE');
+    await viewModel.loadInitialData(workout, [
+      routine(id: 1, exercise: bench, templates: rangedTemplates()),
+    ]);
+
+    expect(viewModel.isSetSuggested(101), isTrue);
+    await viewModel.updateSet(101, rpe: 8.5);
+    await viewModel.updateSet(102, rpe: 7.5);
+    await viewModel.finishWorkout();
+
+    final saved = await repository.getSetLogsForWorkout(workout.id!);
+    expect(saved, hasLength(2));
+    expect(saved.map((set) => set.rpe), containsAll([8.5, 7.5]));
+    expect(saved.every((set) => set.isCompleted != true), isTrue);
+  });
+
   test(
     'atomic finalization rolls back rather than partially saving a workout',
     () async {

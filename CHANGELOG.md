@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.7.1-beta.4] - 2026-11-24
+## [1.7.1] - 2026-11-27
 
 ### Changed
 - Made supplement tracker entries more compact.
@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Made exercise catalog and food selection results more compact, with consistent add buttons and room to scroll past the create button.
 
 ### Fixed
+- Saved a running set timer when finishing a workout, preserving its elapsed time without completing the set.
+- Preserved unfinished sets with manually entered RPE and other input when finishing a workout, including sets with unconfirmed suggestions.
 - Enlarged the inline timer's play and stop icons without changing the control size.
 - Separated the duration and timer action in live workout set fields for clearer alignment.
 - Matched cardio set number tiles to the width of other live workout sets and refined the timer icons.
@@ -67,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ### Added
+- Added an RPE picker with guidance for recording set effort.
 - Added a floating stopwatch bar for timed sets in live workouts, with 15-second adjustments and a stop action alongside the rest timer.
 - Added an Appearance setting to show estimated one-rep maximum values in workout set rows and the live session comparison. The display is off by default and does not affect personal records.
 - Added vertical drag-and-drop reordering (`ReorderableSetList`) for sets within exercises across `LiveWorkoutScreen`, `EditRoutineScreen`, and `WorkoutLogDetailScreen` (in edit mode), persisting updated set order via `LiveWorkoutViewModel.reorderSet`, `replaceSetTemplatesForExercise`, and `updateSetLogs`.

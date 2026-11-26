@@ -196,6 +196,38 @@ void main() {
       },
     );
 
+    test('finishing a workout saves an active timer as an open set', () async {
+      final log = await workoutDb.startWorkout(routineName: 'Timed finish');
+      const timedExercise = model.Exercise(
+        id: 22,
+        texts: {'en': model.ExerciseText(name: 'Plank', description: '')},
+        categoryName: 'Strength',
+        trackingType: 'time',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 220,
+          exercise: timedExercise,
+          setTemplates: [SetTemplate(id: 2201, setType: 'normal')],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.containsKey(2201));
+      manager.startSetTimer(2201);
+      manager.adjustSetTimer(15);
+      expect(manager.activeSetTimerId, 2201);
+      expect(manager.setTimerElapsedSeconds(2201), greaterThanOrEqualTo(15));
+
+      await manager.finishWorkout();
+
+      final saved = await workoutDb.getSetLogsForWorkout(log.id!);
+      expect(saved, hasLength(1));
+      expect(saved.single.durationSeconds, greaterThanOrEqualTo(15));
+      expect(saved.single.isCompleted, isFalse);
+      expect(manager.activeSetTimerId, isNull);
+    });
+
     test(
       'manual duration edits replace the paused timer before resuming',
       () async {
