@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../data/sleep_day_repository.dart';
-import '../sleep_navigation.dart';
 
 class SleepMetricTileGrid extends StatelessWidget {
   const SleepMetricTileGrid({super.key, required this.overview});
@@ -18,8 +17,6 @@ class SleepMetricTileGrid extends StatelessWidget {
       value: overview.interruptionsCount == null
           ? l10n.sleepMetricUnavailable
           : '${overview.interruptionsCount}',
-      onTap: () =>
-          SleepNavigation.openInterruptionsDetail(context, overview: overview),
     );
   }
 }
