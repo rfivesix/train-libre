@@ -417,6 +417,67 @@ void main() {
       },
     );
 
+    test('a shrinking deadline does not increase the deficit without a recent weigh-in', () async {
+      final today = DateTime.now();
+      final checkIn = DateTime(today.year, today.month, today.day);
+      final start = DateTime(today.year, today.month, today.day - 56);
+      final deadline = DateTime(today.year, today.month, today.day + 14, 12);
+      final birthday = DateTime(start.year - 31, start.month, start.day);
+      await dbHelper.saveUserProfile(
+        name: 'Jordan',
+        birthday: birthday,
+        height: 178,
+        gender: 'male',
+      );
+      await database.delete(database.measurements).go();
+      await service.savePriorActivityLevel(PriorActivityLevel.low);
+      await GoalRepositoryImpl(database: database).createGoal(
+        baselineValueKg: 81.5,
+        baselineDate: start,
+        preset: GoalPreset.loseWeight,
+        title: 'Lose weight',
+        startDate: start,
+        trackingMode: GoalTrackingMode.targetWeight,
+        targetDate: deadline,
+        targetMetric: 'weight',
+        targetValue: 76.5,
+        targetUnit: 'kg',
+        desiredWeeklyRateKg: -0.5,
+      );
+      final onboarding = await service.generateOnboardingRecommendation(
+        goal: BodyweightGoal.loseWeight,
+        targetRateKgPerWeek: -0.5,
+        weightKg: 81.5,
+        heightCm: 178,
+        birthday: birthday,
+        gender: 'male',
+        now: start,
+        persistGenerated: true,
+      );
+      expect(onboarding.estimatedMaintenanceCalories, 2400);
+
+      final reopened = await service.loadState(now: checkIn);
+      final recommendation = reopened.latestGeneratedRecommendation!;
+      expect(recommendation.inputSummary.weightLogCount, 0);
+      expect(recommendation.inputSummary.intakeLoggedDays, 0);
+      expect(recommendation.recommendedCalories, 1850);
+      expect(reopened.targetRateKgPerWeek, -0.5);
+      expect(recommendation.targetRateKgPerWeek, -0.5);
+
+      await dbHelper.insertMeasurementSession(
+        MeasurementSession(
+          timestamp: DateTime(today.year, today.month, today.day - 1, 12),
+          measurements: [
+            Measurement(sessionId: 0, type: 'weight', value: 78, unit: 'kg'),
+          ],
+        ),
+      );
+      final withRecentWeight = await service.recalculateRecommendationNow(
+        now: checkIn,
+      );
+      expect(withRecentWeight!.targetRateKgPerWeek, -0.75);
+    });
+
     test(
       'refresh does not overwrite active goals until explicit apply',
       () async {

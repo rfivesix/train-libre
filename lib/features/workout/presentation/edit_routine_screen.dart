@@ -4,11 +4,9 @@ import 'package:provider/provider.dart';
 // lib/screens/edit_routine_screen.dart
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'dart:async';
-
-import 'package:flutter/rendering.dart';
 
 import '../data/sources/workout_local_data_source.dart';
 import '../data/manual_training_plan_repository.dart';
@@ -396,7 +394,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
-            text: st.targetRir?.toString() ?? '',
+            text: isCardio
+                ? (st.targetRir?.toString() ?? '')
+                : ((st.targetRpe ??
+                              (st.targetRir == null
+                                  ? null
+                                  : (10 - st.targetRir!).toDouble()))
+                          ?.toString()
+                          .replaceFirst(RegExp(r'\.0$'), '') ??
+                      ''),
           );
         }
       }
@@ -468,7 +474,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
-            text: st.targetRir?.toString() ?? '',
+            text: isCardio
+                ? (st.targetRir?.toString() ?? '')
+                : ((st.targetRpe ??
+                              (st.targetRir == null
+                                  ? null
+                                  : (10 - st.targetRir!).toDouble()))
+                          ?.toString()
+                          .replaceFirst(RegExp(r'\.0$'), '') ??
+                      ''),
           );
         }
         setState(() {
@@ -493,6 +507,29 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         );
       }
       return false;
+    }
+
+    for (final exercise in _routineExercises) {
+      if (exercise.exercise.isCardio) continue;
+      for (final set in exercise.setTemplates) {
+        final raw = _rirControllers[set.id]?.text.trim() ?? '';
+        if (raw.isEmpty) continue;
+        final value = double.tryParse(raw.replaceAll(',', '.'));
+        final oldValue =
+            set.targetRpe ??
+            (set.targetRir == null ? null : (10 - set.targetRir!).toDouble());
+        if (value != oldValue &&
+            (value == null ||
+                value < 6 ||
+                value > 10 ||
+                (value * 2).roundToDouble() != value * 2)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(l10n.rpeInvalid)));
+          }
+          return false;
+        }
+      }
     }
 
     int? currentRoutineId = _routineId;
@@ -532,6 +569,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       final List<SetTemplate> currentTemplates = [];
       for (var set in re.setTemplates) {
         final rirText = _rirControllers[set.id!]?.text ?? '';
+        final targetRpe = double.tryParse(rirText.replaceAll(',', '.'));
+        final oldRpe =
+            set.targetRpe ??
+            (set.targetRir == null ? null : (10 - set.targetRir!).toDouble());
+        final rpeChanged = !re.exercise.isCardio && targetRpe != oldRpe;
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
@@ -556,8 +598,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                           : UnitDimension.weight,
                     );
                   })(),
-            targetRir: int.tryParse(rirText),
-            clearTargetRir: rirText.isEmpty,
+            targetRir: re.exercise.isCardio ? int.tryParse(rirText) : null,
+            clearTargetRir: re.exercise.isCardio ? rirText.isEmpty : rpeChanged,
+            targetRpe: rpeChanged ? targetRpe : null,
+            clearTargetRpe: rpeChanged && targetRpe == null,
           ),
         );
       }
@@ -641,8 +685,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   void _addSet(RoutineExercise routineExercise) {
     setState(() {
       final isCardio = _isCardio(routineExercise);
+      var syntheticId = DateTime.now().millisecondsSinceEpoch;
+      while (_repsControllers.containsKey(syntheticId)) {
+        syntheticId++;
+      }
       final newSet = SetTemplate(
-        id: DateTime.now().millisecondsSinceEpoch,
+        id: syntheticId,
         setType: 'normal',
         targetReps: isCardio ? '' : '8-12', // FIX
       );
@@ -748,6 +796,35 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
       _routineExercises[reIndex] = routineExercise.copyWith(
         setTemplates: updatedTemplates,
+      );
+    });
+  }
+
+  void _reorderSet(
+    RoutineExercise routineExercise,
+    int oldIndex,
+    int newIndex,
+  ) {
+    setState(() {
+      final exerciseIndex = routineExercise.id != null
+          ? _routineExercises.indexWhere((e) => e.id == routineExercise.id)
+          : _routineExercises.indexOf(routineExercise);
+      if (exerciseIndex == -1) return;
+
+      final currentExercise = _routineExercises[exerciseIndex];
+      final templates = List<SetTemplate>.of(currentExercise.setTemplates);
+      if (oldIndex < 0 ||
+          oldIndex >= templates.length ||
+          newIndex < 0 ||
+          newIndex >= templates.length ||
+          oldIndex == newIndex) {
+        return;
+      }
+
+      final moved = templates.removeAt(oldIndex);
+      templates.insert(newIndex, moved);
+      _routineExercises[exerciseIndex] = currentExercise.copyWith(
+        setTemplates: templates,
       );
     });
   }
@@ -957,7 +1034,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         child: Scaffold(
           extendBodyBehindAppBar: true,
           extendBody: true,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: colorScheme.surface,
           appBar: GlobalAppBar(
             automaticallyImplyLeading: false,
             leading: Navigator.of(context).canPop()
@@ -1125,8 +1202,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                               onDeleteExercise: () {},
                                               onAddSet: () {},
                                               onShowSetTypePicker: (_) {},
-                                              onSetTypeChanged: (_, __) {},
-                                              onRemoveSet: (_, __) {},
+                                              onSetTypeChanged: (_, _) {},
+                                              onRemoveSet: (_, _) {},
                                             );
                                         return buildReorderDragProxy(
                                           context,
@@ -1308,6 +1385,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                             routineExercise,
                                                             template.id!,
                                                             listIndex,
+                                                          ),
+                                                      onReorderSet:
+                                                          (
+                                                            oldIndex,
+                                                            newIndex,
+                                                          ) => _reorderSet(
+                                                            routineExercise,
+                                                            oldIndex,
+                                                            newIndex,
                                                           ),
                                                     ),
                                                   ),

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -37,8 +37,8 @@ class WorkoutHeatmapPublisher {
   final HomeWidgetChannel _channel;
 
   const WorkoutHeatmapPublisher({
-    HomeWidgetChannel channel = const HomeWidgetChannel(),
-  }) : _channel = channel;
+    this._channel = const HomeWidgetChannel(),
+  });
 
   /// Logical size of the render. Two silhouettes side by side are roughly
   /// square, and so is the medium widget's right-hand pane.

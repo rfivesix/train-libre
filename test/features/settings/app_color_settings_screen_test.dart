@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/settings/presentation/app_color_settings_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/theme/app_color_choice.dart';
 
@@ -19,7 +20,7 @@ Future<ThemeService> _pumpColorSettings(
       value: service,
       child: MaterialApp(
         locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),

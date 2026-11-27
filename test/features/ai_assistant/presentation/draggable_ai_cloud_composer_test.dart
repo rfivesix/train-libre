@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
@@ -19,7 +20,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('de'),
           home: MediaQuery(
@@ -142,7 +143,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('de'),
           home: MediaQuery(

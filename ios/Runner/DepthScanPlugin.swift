@@ -46,6 +46,10 @@ public class DepthScanPlugin: NSObject {
       DepthScanPreviewFactory(),
       withId: previewViewType
     )
+    registrar.register(
+      CameraGlassSurfaceFactory(),
+      withId: "com.trainlibre.app/camera_glass"
+    )
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -223,6 +227,47 @@ final class LiveDistanceStreamHandler: NSObject, FlutterStreamHandler {
 }
 
 // MARK: - Preview platform view
+
+/// Material only. Flutter draws the button contents and handles interaction.
+final class CameraGlassSurfaceFactory: NSObject, FlutterPlatformViewFactory {
+  func create(
+    withFrame frame: CGRect,
+    viewIdentifier viewId: Int64,
+    arguments args: Any?
+  ) -> FlutterPlatformView {
+    CameraGlassSurfacePlatformView(frame: frame)
+  }
+}
+
+final class CameraGlassSurfacePlatformView: NSObject, FlutterPlatformView {
+  private let glassView: UIVisualEffectView
+
+  init(frame: CGRect) {
+    if #available(iOS 26.0, *) {
+      let glass = UIGlassEffect(style: .clear)
+      glass.tintColor = UIColor.black.withAlphaComponent(0.16)
+      glassView = UIVisualEffectView(effect: glass)
+      glassView.cornerConfiguration = .capsule()
+    } else {
+      let blur = UIBlurEffect(style: .systemUltraThinMaterialDark)
+      glassView = CircularBlurView(effect: blur)
+      glassView.clipsToBounds = true
+    }
+    glassView.frame = frame
+    glassView.isUserInteractionEnabled = false
+    glassView.accessibilityElementsHidden = true
+    super.init()
+  }
+
+  func view() -> UIView { glassView }
+}
+
+private final class CircularBlurView: UIVisualEffectView {
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.cornerRadius = min(bounds.width, bounds.height) / 2
+  }
+}
 
 final class DepthScanPreviewFactory: NSObject, FlutterPlatformViewFactory {
   func create(

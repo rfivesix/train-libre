@@ -54,6 +54,44 @@ void main() {
     expect(result.items.single.grams, 725);
     expect(result.items.single.servedGrams, 725);
   });
+
+  test(
+    'direct estimate keeps salt, fiber, sugar, caffeine, confidence and derives sodium',
+    () {
+      final parsed = AiService.instance.parseMealCandidateForTesting('''
+        {"items":[{"name":"Cappuccino","estimatedGrams":250,"isFluid":true,"confidence":0.82,
+        "nutritionPer100g":{"protein":3.0,"carbs":4.8,"fat":3.2,"sugar":4.5,"fiber":0.5,"salt":0.25,"caffeine":40.0}}]}
+      ''');
+      final result =
+          AiService.instance.attachDirectEstimateFoodsForTesting(parsed);
+      final item = result.items.single;
+      final food = item.selectedFood!;
+      expect(item.confidence, 0.82);
+      expect(food.salt, 0.25);
+      expect(food.sodium, closeTo(0.1, 0.001));
+      expect(food.fiber, 0.5);
+      expect(food.sugar, 4.5);
+      expect(food.caffeineMgPer100ml, 40.0);
+    },
+  );
+
+  test(
+    'direct estimate normalizes macro sum > 100g, clamps sugar to carbs, and ignores bad optional extras',
+    () {
+      final parsed = AiService.instance.parseMealCandidateForTesting('''
+        {"items":[{"name":"Protein Bar","estimatedGrams":60,"confidence":0.75,
+        "nutritionPer100g":{"protein":50,"carbs":50,"fat":25,"sugar":80,"fiber":999,"salt":1.0}}]}
+      ''');
+      final result =
+          AiService.instance.attachDirectEstimateFoodsForTesting(parsed);
+      final food = result.items.single.selectedFood!;
+      expect(food.protein + food.carbs + food.fat, closeTo(100.0, 0.2));
+      expect(food.sugar, lessThanOrEqualTo(food.carbs));
+      expect(food.fiber, isNull);
+      expect(food.salt, 1.0);
+      expect(food.sodium, closeTo(0.4, 0.001));
+    },
+  );
   test('large duplicate servings retain both total weights', () async {
     final candidate = AiService.instance.parseMealCandidateForTesting('''
       {"items":[
@@ -308,7 +346,7 @@ void main() {
           items: [AiMealCandidateItem(name: 'Rice', grams: 100)],
         ),
         mode: AiValidationMode.capture,
-        repairer: (_, __, ___) async {
+        repairer: (_, _, _) async {
           repairs += 1;
           return const AiMealCandidate(items: []);
         },
@@ -330,7 +368,7 @@ void main() {
           items: [AiMealCandidateItem(name: 'Unknown', grams: 100)],
         ),
         mode: AiValidationMode.capture,
-        repairer: (_, __, ___) async {
+        repairer: (_, _, _) async {
           return const AiMealCandidate(
             items: [AiMealCandidateItem(name: 'Rice', grams: 100)],
           );
@@ -355,7 +393,7 @@ void main() {
             items: [AiMealCandidateItem(name: 'Unknown', grams: 100)],
           ),
           mode: AiValidationMode.capture,
-          repairer: (_, __, ___) async {
+          repairer: (_, _, _) async {
             attempts += 1;
             return AiMealCandidate(
               items: [
@@ -398,7 +436,7 @@ void main() {
             ],
           ),
           mode: AiValidationMode.capture,
-          repairer: (_, __, ___) async => const AiMealCandidate(
+          repairer: (_, _, _) async => const AiMealCandidate(
             items: [
               AiMealCandidateItem(
                 name: 'Rice, dry',

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// The photo of a meal — one image, a swipeable carousel when a capture
@@ -193,7 +193,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
           Image.network(
             widget.photoUrl!,
             fit: effectiveFit,
-            errorBuilder: (_, __, ___) => _buildPlaceholderBackground(context),
+            errorBuilder: (_, _, _) => _buildPlaceholderBackground(context),
           )
         else
           _buildPlaceholderBackground(context),

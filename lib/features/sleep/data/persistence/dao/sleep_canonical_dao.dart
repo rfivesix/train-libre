@@ -78,6 +78,15 @@ class SleepCanonicalSessionsDao {
     return result.map(_mapSession).toList(growable: false);
   }
 
+  Future<List<SleepCanonicalSessionRecord>> findAll() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM sleep_canonical_sessions ORDER BY ended_at ASC',
+        )
+        .get();
+    return rows.map(_mapSession).toList(growable: false);
+  }
+
   Future<SleepCanonicalSessionRecord?> findById(String sessionId) async {
     final row = await _db
         .customSelect(
@@ -237,6 +246,15 @@ class SleepCanonicalStageSegmentsDao {
         ],
       );
     }
+  }
+
+  Future<List<SleepCanonicalStageSegmentRecord>> findAll() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM sleep_canonical_stage_segments ORDER BY started_at ASC',
+        )
+        .get();
+    return rows.map(_mapRow).toList(growable: false);
   }
 
   Future<List<SleepCanonicalStageSegmentRecord>> findBySessionId(

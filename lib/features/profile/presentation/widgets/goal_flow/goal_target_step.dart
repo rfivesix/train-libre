@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
@@ -479,7 +479,7 @@ class GoalTargetStep extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            LucideIcons.circle_alert,
+            LucideIcons.circle_exclamation_point,
             color: theme.colorScheme.onErrorContainer,
             size: 18,
           ),

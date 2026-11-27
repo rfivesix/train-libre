@@ -1,6 +1,6 @@
 // lib/features/settings/presentation/developer_lab/nutrition_sandbox_widget.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 
@@ -8,6 +8,7 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/app_segmented_control.dart';
 import '../../../../widgets/common/app_section_header.dart';
+import '../../../../widgets/common/platform_adaptive_slider.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../profile/presentation/weekly_goal_review_screen.dart';
 import '../../../profile/presentation/widgets/adaptive_review_card.dart';
@@ -573,8 +574,12 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
               ),
             ],
           ),
-          Slider(
+          PlatformAdaptiveSlider(
             value: value.clamp(min, max),
+            semanticLabel: label,
+            semanticValue: '$displayVal $unit',
+            semanticFormatter: (value) =>
+                '${value.toStringAsFixed(decimals)} $unit',
             min: min,
             max: max,
             divisions: divisions,

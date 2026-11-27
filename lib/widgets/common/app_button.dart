@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../services/haptic_feedback_service.dart';
@@ -114,38 +116,44 @@ class _AppButtonState extends State<AppButton>
     switch (widget.variant) {
       case AppButtonVariant.primary:
         foregroundColor = theme.colorScheme.onPrimary;
-        glassSettings = LiquidGlassSettings(
-          thickness: 18, // Thinner glass = reduced gray refraction
-          blur: 1.5, // Subtle blur for sharper colors
-          glassColor: primaryColor.withValues(
-            alpha: 0.35,
-          ), // Transparent glass base
-          lightIntensity: isDark
-              ? 0.85
-              : 0.95, // High light intensity for clarity
-          saturation: 1.60, // Enhanced saturation for vibrant tint
-          ambientRim: 0.15,
+        glassSettings = GlassPreferences.of(context).apply(
+          LiquidGlassSettings(
+            thickness: 18, // Thinner glass = reduced gray refraction
+            blur: 1.5, // Subtle blur for sharper colors
+            glassColor: primaryColor.withValues(
+              alpha: 0.35,
+            ), // Transparent glass base
+            lightIntensity: isDark
+                ? 0.85
+                : 0.95, // High light intensity for clarity
+            saturation: 1.60, // Enhanced saturation for vibrant tint
+            ambientRim: 0.15,
+          ),
         );
         glowColor = Colors.white.withValues(alpha: isDark ? 0.15 : 0.10);
         break;
       case AppButtonVariant.danger:
         foregroundColor = Colors.white;
-        glassSettings = LiquidGlassSettings(
-          thickness: 18,
-          blur: 1.5,
-          glassColor: DesignConstants.brandRedColor.withValues(
-            alpha: 0.40,
-          ), // Sattes Rot strahlt durch
-          lightIntensity: isDark ? 0.80 : 0.90,
-          saturation: 1.50,
-          ambientRim: 0.10,
+        glassSettings = GlassPreferences.of(context).apply(
+          LiquidGlassSettings(
+            thickness: 18,
+            blur: 1.5,
+            glassColor: DesignConstants.brandRedColor.withValues(
+              alpha: 0.40,
+            ), // Sattes Rot strahlt durch
+            lightIntensity: isDark ? 0.80 : 0.90,
+            saturation: 1.50,
+            ambientRim: 0.10,
+          ),
         );
         glowColor = Colors.white.withValues(alpha: isDark ? 0.15 : 0.10);
         break;
       case AppButtonVariant.secondary:
         foregroundColor = theme.colorScheme.primary;
-        glassSettings = DesignConstants.liquidGlassSettings(isDark)
-            .copyWith(thickness: 15, blur: 1.5);
+        glassSettings = GlassPreferences.of(context).apply(
+          DesignConstants.liquidGlassSettings(isDark)
+              .copyWith(thickness: 15, blur: 1.5),
+        );
         glowColor = Colors.white.withValues(alpha: isDark ? 0.10 : 0.05);
         break;
     }

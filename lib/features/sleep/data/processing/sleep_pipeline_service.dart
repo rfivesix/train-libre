@@ -10,8 +10,8 @@ import 'package:flutter/foundation.dart';
 import '../../../../data/drift_database.dart';
 import '../../../../util/cancellation_token.dart';
 import '../../domain/metrics/nightly_metrics_calculator.dart';
-import '../../domain/metrics/sleep_regularity_index.dart';
 import '../../domain/sleep_domain.dart';
+import '../../domain/main_sleep_sessions.dart';
 import '../../domain/scoring/sleep_scoring_engine.dart';
 import '../../platform/ingestion/sleep_ingestion_models.dart';
 import '../mapping/health_connect_mapper.dart';
@@ -40,6 +40,7 @@ class SleepPipelineBackgroundTaskParams {
   final List<SleepCanonicalSessionRecord> lookbackSessions;
   final List<SleepCanonicalStageSegmentRecord> lookbackSegments;
   final List<SleepNightlyAnalysisRecord> lookbackAnalyses;
+  final bool canonicalRecompute;
 
   SleepPipelineBackgroundTaskParams({
     required this.batch,
@@ -49,6 +50,7 @@ class SleepPipelineBackgroundTaskParams {
     required this.lookbackSessions,
     required this.lookbackSegments,
     required this.lookbackAnalyses,
+    this.canonicalRecompute = false,
   });
 }
 
@@ -69,11 +71,7 @@ class SleepPipelineBackgroundTaskResult {
 }
 
 class SleepPipelineService {
-  SleepPipelineService({
-    required AppDatabase database,
-    bool ownsDatabase = false,
-  }) : _database = database,
-       _ownsDatabase = ownsDatabase {
+  SleepPipelineService({required this._database, this._ownsDatabase = false}) {
     _rawDao = SleepRawImportsDao(_database);
     _sessionsDao = SleepCanonicalSessionsDao(_database);
     _segmentsDao = SleepCanonicalStageSegmentsDao(_database);
@@ -89,10 +87,98 @@ class SleepPipelineService {
   late final SleepCanonicalHeartRateSamplesDao _hrDao;
   late final SleepNightlyAnalysesDao _analysesDao;
 
+  /// Re-scores the entire locally retained canonical history without Health
+  /// access or modifying raw and canonical data. All analysis writes roll back
+  /// together on failure or cancellation. Repeated calls are no-ops once every
+  /// stored analysis has the current version unless [force] is requested.
+  Future<int> recomputeStoredHistory({
+    bool force = false,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
+  }) async {
+    return _database.transaction(() async {
+      token?.throwIfCancelled();
+      final sessions = await _sessionsDao.findAll();
+      if (sessions.isEmpty) return 0;
+      final analyses = await _analysesDao.findAll();
+      final segments = await _segmentsDao.findAll();
+      final stagedSessionIds = segments
+          .where(
+            (s) =>
+                s.stage == CanonicalSleepStage.awake.name ||
+                s.stage == CanonicalSleepStage.outOfBed.name ||
+                s.stage == CanonicalSleepStage.light.name ||
+                s.stage == CanonicalSleepStage.deep.name ||
+                s.stage == CanonicalSleepStage.rem.name,
+          )
+          .map((s) => s.sessionId)
+          .toSet();
+      final hasUnmigratedZeroWakeNight = analyses.any(
+        (row) =>
+            row.score != null &&
+            row.interruptionsWakeMinutes == null &&
+            stagedSessionIds.contains(row.sessionId),
+      );
+      if (!force &&
+          !hasUnmigratedZeroWakeNight &&
+          analyses.isNotEmpty &&
+          analyses.every(
+            (row) => row.analysisVersion == 'sleep-health-score-v4',
+          ) &&
+          sessions.every(
+            (session) => analyses.any((a) => a.sessionId == session.id),
+          )) {
+        return 0;
+      }
+      token?.throwIfCancelled();
+      final batch = SleepRawIngestionBatch(
+        sessions: sessions
+            .map(
+              (s) => SleepIngestionSession(
+                recordId: s.id,
+                startAtUtc: s.startedAt,
+                endAtUtc: s.endedAt,
+                platformSessionType: s.sessionType,
+                sourcePlatform: s.sourcePlatform,
+                sourceAppId: s.sourceAppId,
+                sourceRecordHash: s.sourceRecordHash,
+                sourceConfidence: s.sourceConfidence,
+              ),
+            )
+            .toList(growable: false),
+        stageSegments: const [],
+        heartRateSamples: const [],
+      );
+      onProgress?.call(0, sessions.length);
+      final result = await compute(
+        _runSleepPipelineBackground,
+        SleepPipelineBackgroundTaskParams(
+          batch: batch,
+          normalizationVersion: 'sleep-import-v1',
+          analysisVersion: 'sleep-health-score-v4',
+          importedAt: DateTime.now().toUtc(),
+          lookbackSessions: sessions,
+          lookbackSegments: segments,
+          lookbackAnalyses: analyses,
+          canonicalRecompute: true,
+        ),
+      );
+      token?.throwIfCancelled();
+      for (var i = 0; i < result.analysisRows.length; i++) {
+        token?.throwIfCancelled();
+        await _analysesDao.upsert(result.analysisRows[i]);
+        onProgress?.call(i + 1, result.analysisRows.length);
+      }
+      token?.throwIfCancelled();
+      _database.notifyUpdates({const TableUpdate('sleep_nightly_analyses')});
+      return result.analysisRows.length;
+    });
+  }
+
   Future<SleepPipelineRunResult> runImport({
     required SleepRawIngestionBatch batch,
     String normalizationVersion = 'sleep-import-v1',
-    String analysisVersion = 'sleep-health-score-v3',
+    String analysisVersion = 'sleep-health-score-v4',
     bool forceRecompute = false,
     DateTime? recomputeFromInclusive,
     DateTime? recomputeToExclusive,
@@ -345,8 +431,18 @@ class SleepPipelineService {
     final analysisVersion = params.analysisVersion;
     final importedAt = params.importedAt;
 
-    final rawMapped = _mapBatch(batch);
-    final mapped = _mergeOverlappingSleepData(rawMapped);
+    final rawMapped = params.canonicalRecompute
+        ? _MappedBatch(
+            sessions: params.lookbackSessions.map(_toDomainSession).toList(),
+            stageSegments: params.lookbackSegments
+                .map(_toDomainStageSegment)
+                .toList(),
+            heartRateSamples: const [],
+          )
+        : _mapBatch(batch);
+    final mapped = params.canonicalRecompute
+        ? rawMapped
+        : _mergeOverlappingSleepData(rawMapped);
     final segmentsBySession = <String, List<SleepStageSegment>>{};
     for (final segment in mapped.stageSegments) {
       segmentsBySession
@@ -547,16 +643,11 @@ class SleepPipelineService {
         .where((dbSession) => activeLookbackSessionIds.contains(dbSession.id))
         .toList();
 
-    final regularityByNight = _buildRegularityByNight(
+    final rollingRegularityByNight = _buildRollingMidSleepSdByNight(
       targetSessions: mapped.sessions,
       lookbackSessions: activeLookbackSessionsRecords,
       lookbackSegments: params.lookbackSegments,
       currentBatchSegments: mapped.stageSegments,
-    );
-
-    final rollingMidSleepSdByNight = _buildRollingMidSleepSdByNight(
-      targetSessions: mapped.sessions,
-      lookbackSessions: activeLookbackSessionsRecords,
     );
 
     final targetNights = mapped.sessions
@@ -586,6 +677,7 @@ class SleepPipelineService {
 
       final coreSession = nightSessions.first;
       final napSessions = nightSessions.skip(1).toList();
+      final mainSessions = selectMainSleepFragments(nightSessions);
 
       final sessionMetrics = <String, NightlySleepMetrics>{};
       final sessionAvgHr = <String, double?>{};
@@ -597,8 +689,11 @@ class SleepPipelineService {
         if (mapped.sessions.any((incoming) => incoming.id == s.id)) {
           segments = segmentsBySession[s.id] ?? const [];
           final hr = hrBySession[s.id] ?? const [];
+          final previous = params.lookbackAnalyses.where(
+            (a) => a.sessionId == s.id,
+          );
           avgHr = hr.isEmpty
-              ? null
+              ? (previous.isEmpty ? null : previous.first.restingHeartRateBpm)
               : hr.fold<double>(0, (sum, item) => sum + item.bpm) / hr.length;
         } else {
           segments = lookbackSegmentsBySession[s.id] ?? const [];
@@ -618,102 +713,91 @@ class SleepPipelineService {
         sessionAvgHr[s.id] = avgHr;
       }
 
-      var combinedTotalSleepMinutes = 0;
-      var combinedTimeInBedSeconds = 0;
-      var combinedTotalSleepTimeSeconds = 0;
-      var combinedWasoMinutes = 0;
-      var combinedInterruptionsCount = 0;
-
-      var combinedLightSeconds = 0;
-      var combinedDeepSeconds = 0;
-      var combinedRemSeconds = 0;
-      var combinedAsleepUnspecifiedSeconds = 0;
-
-      bool hasLight = false;
-      bool hasDeep = false;
-      bool hasRem = false;
-      bool hasUnspecified = false;
-
-      // BOLT OPTIMIZATION: Merged two loops into one and replaced redundant
-      // containsKey() checks with single direct map lookups to eliminate
-      // redundant O(N) iterations and hash lookups.
-      for (final s in nightSessions) {
-        final m = sessionMetrics[s.id]!;
-        combinedTotalSleepMinutes += m.totalSleepTime.inMinutes;
-        combinedTimeInBedSeconds += m.timeInBed.inSeconds;
-        combinedTotalSleepTimeSeconds += m.totalSleepTime.inSeconds;
-        combinedWasoMinutes += m.wakeAfterSleepOnset.inMinutes;
-        combinedInterruptionsCount += m.interruptionsCount;
-
-        final lightDur = m.stageDurations[CanonicalSleepStage.light];
-        if (lightDur != null) {
-          hasLight = true;
-          combinedLightSeconds += lightDur.inSeconds;
-        }
-
-        final deepDur = m.stageDurations[CanonicalSleepStage.deep];
-        if (deepDur != null) {
-          hasDeep = true;
-          combinedDeepSeconds += deepDur.inSeconds;
-        }
-
-        final remDur = m.stageDurations[CanonicalSleepStage.rem];
-        if (remDur != null) {
-          hasRem = true;
-          combinedRemSeconds += remDur.inSeconds;
-        }
-
-        final unspecDur =
-            m.stageDurations[CanonicalSleepStage.asleepUnspecified];
-        if (unspecDur != null) {
-          hasUnspecified = true;
-          combinedAsleepUnspecifiedSeconds += unspecDur.inSeconds;
-        }
-      }
-
-      final combinedSleepEfficiencyPct = combinedTimeInBedSeconds == 0
-          ? 0.0
-          : (combinedTotalSleepTimeSeconds / combinedTimeInBedSeconds) * 100.0;
-
-      final combinedLightPct = !hasLight || combinedTotalSleepTimeSeconds == 0
-          ? null
-          : (combinedLightSeconds / combinedTotalSleepTimeSeconds) * 100.0;
-      final combinedDeepPct = !hasDeep || combinedTotalSleepTimeSeconds == 0
-          ? null
-          : (combinedDeepSeconds / combinedTotalSleepTimeSeconds) * 100.0;
-      final combinedRemPct = !hasRem || combinedTotalSleepTimeSeconds == 0
-          ? null
-          : (combinedRemSeconds / combinedTotalSleepTimeSeconds) * 100.0;
+      // Repair a single merged timeline so overlapping fragments never count
+      // the same interval twice. Gaps remain unobserved, not invented sleep.
+      final mainStart = mainSessions
+          .map((s) => s.startAtUtc)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      final mainEnd = mainSessions
+          .map((s) => s.endAtUtc)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      final combinedSession = SleepSession(
+        id: coreSession.id,
+        startAtUtc: mainStart,
+        endAtUtc: mainEnd,
+        sessionType: SleepSessionType.mainSleep,
+        sourcePlatform: coreSession.sourcePlatform,
+      );
+      final combinedSegments = repairSleepTimeline(
+        session: combinedSession,
+        segments: mainSessions
+            .expand(
+              (s) =>
+                  sessionRepairedSegments[s.id] ?? const <SleepStageSegment>[],
+            )
+            .toList(),
+      );
+      final combined = calculateNightlySleepMetrics(
+        session: combinedSession,
+        repairedSegments: combinedSegments,
+      );
+      final combinedTotalSleepMinutes = combined.totalSleepTime.inMinutes;
+      final combinedWasoMinutes = combined.wakeAfterSleepOnset.inMinutes;
+      final combinedInterruptionsCount = combined.interruptionsCount;
+      final combinedSleepEfficiencyPct = combined.sleepEfficiencyPct;
+      final combinedLightPct =
+          combined.stagePercentages[CanonicalSleepStage.light];
+      final combinedDeepPct =
+          combined.stagePercentages[CanonicalSleepStage.deep];
+      final combinedRemPct = combined.stagePercentages[CanonicalSleepStage.rem];
       final combinedAsleepUnspecifiedPct =
-          !hasUnspecified || combinedTotalSleepTimeSeconds == 0
-          ? null
-          : (combinedAsleepUnspecifiedSeconds / combinedTotalSleepTimeSeconds) *
-                100.0;
+          combined.stagePercentages[CanonicalSleepStage.asleepUnspecified];
 
       final coreLocalStart = coreSession.startAtUtc.toLocal();
       final coreSleepOnsetHourLocal =
           coreLocalStart.hour + (coreLocalStart.minute / 60.0);
 
-      final regularityResult = regularityByNight[night];
+      final regularityResult = rollingRegularityByNight[night];
 
+      final sourceSegments = mainSessions.expand(
+        (session) =>
+            segmentsBySession[session.id] ??
+            lookbackSegmentsBySession[session.id] ??
+            const <SleepStageSegment>[],
+      );
+      final hasInBedObservation = sourceSegments.any(
+        (s) => s.stage == CanonicalSleepStage.inBedOnly,
+      );
+      final hasWakeObservation = sourceSegments.any(
+        (s) =>
+            s.stage == CanonicalSleepStage.awake ||
+            s.stage == CanonicalSleepStage.outOfBed,
+      );
       final coreScoreInput = SleepScoringInput(
-        durationMinutes: combinedTotalSleepMinutes,
-        sleepEfficiencyPct: combinedSleepEfficiencyPct,
-        wasoMinutes: combinedWasoMinutes,
-        regularitySri: regularityResult?.sri,
+        durationMinutes: combinedTotalSleepMinutes > 0
+            ? combinedTotalSleepMinutes
+            : null,
+        sleepEfficiencyPct: combinedTotalSleepMinutes > 0 && hasInBedObservation
+            ? combinedSleepEfficiencyPct
+            : null,
+        wasoMinutes: combinedTotalSleepMinutes > 0 && hasWakeObservation
+            ? combinedWasoMinutes
+            : null,
         regularityValidDays: regularityResult?.validDays ?? 0,
-        regularityValidComparisonPairs: regularityResult?.validComparisonPairs,
         lightSleepPct: combinedLightPct,
         deepSleepPct: combinedDeepPct,
         remSleepPct: combinedRemPct,
         asleepUnspecifiedPct: combinedAsleepUnspecifiedPct,
+        hasIncompleteStageCoverage: combinedSegments.any(
+          (s) => s.stage == CanonicalSleepStage.unknown,
+        ),
         stageDataConfidence: _timelineConfidence(
           sessionRepairedSegments[coreSession.id] ?? const [],
         ),
         sourcePlatform: coreSession.sourcePlatform,
         sourceAppId: coreSession.sourceAppId,
         sleepOnsetHourLocal: coreSleepOnsetHourLocal,
-        rollingMidSleepSd: rollingMidSleepSdByNight[night],
+        rollingMidSleepSd: regularityResult?.sd,
       );
 
       final coreScore = calculateSleepScore(
@@ -735,13 +819,24 @@ class SleepPipelineService {
           analysisVersion: analysisVersion,
           nightDate: night,
           score: coreScore.score,
-          totalSleepMinutes: combinedTotalSleepMinutes,
-          sleepEfficiencyPct: combinedSleepEfficiencyPct,
+          totalSleepMinutes: combinedTotalSleepMinutes > 0
+              ? combinedTotalSleepMinutes
+              : null,
+          sleepEfficiencyPct:
+              combinedTotalSleepMinutes > 0 && hasInBedObservation
+              ? combinedSleepEfficiencyPct
+              : null,
           restingHeartRateBpm: sessionAvgHr[coreSession.id],
-          interruptionsCount: combinedInterruptionsCount,
-          interruptionsWakeMinutes: combinedWasoMinutes,
+          interruptionsCount: hasWakeObservation
+              ? combinedInterruptionsCount
+              : null,
+          interruptionsWakeMinutes: hasWakeObservation
+              ? combinedWasoMinutes
+              : null,
           scoreCompleteness: coreScore.completeness,
-          regularitySri: coreScore.regularityScore,
+          // The mid-sleep variability subscore is not the SRI. Keep the
+          // legacy SRI column empty; the actual subscore is in breakdown JSON.
+          regularitySri: null,
           regularityValidDays: coreScore.regularityValidDays,
           regularityIsStable: coreScore.regularityStable,
           scoreBreakdownJson: jsonEncode(coreScore.toJson()),
@@ -948,90 +1043,21 @@ class SleepPipelineService {
   static String _hashRecord(String value) =>
       sha1.convert(utf8.encode(value)).toString();
 
-  static Map<String, SleepRegularityIndexResult> _buildRegularityByNight({
+  static Map<String, ({double sd, int validDays})>
+  _buildRollingMidSleepSdByNight({
     required List<SleepSession> targetSessions,
     required List<SleepCanonicalSessionRecord> lookbackSessions,
     required List<SleepCanonicalStageSegmentRecord> lookbackSegments,
     required List<SleepStageSegment> currentBatchSegments,
   }) {
     if (targetSessions.isEmpty) return const {};
-    final targetNights =
-        targetSessions
-            .map((session) => _normalizeDay(session.endAtUtc))
-            .toSet()
-            .toList(growable: false)
-          ..sort();
-
-    final dayBuilders = <String, _RegularityDayBuilder>{};
-
-    // Merge sessions: current batch takes precedence over lookback from DB
-    final allSessions = <String, SleepSession>{};
-    for (final row in lookbackSessions) {
-      allSessions[row.id] = _toDomainSession(row);
-    }
-    for (final session in targetSessions) {
-      allSessions[session.id] = session;
-    }
-
-    // Merge segments: current batch takes precedence
-    final allSegmentsBySessionId = <String, List<SleepStageSegment>>{};
+    final validIds = <String>{};
     for (final row in lookbackSegments) {
-      allSegmentsBySessionId
-          .putIfAbsent(row.sessionId, () => <SleepStageSegment>[])
-          .add(_toDomainStageSegment(row));
+      if (_isSleepStage(_parseStage(row.stage))) validIds.add(row.sessionId);
     }
-
-    // Overwrite with current batch segments (grouped efficiently)
-    final currentBatchSegmentsMap = <String, List<SleepStageSegment>>{};
     for (final segment in currentBatchSegments) {
-      currentBatchSegmentsMap
-          .putIfAbsent(segment.sessionId, () => <SleepStageSegment>[])
-          .add(segment);
+      if (_isSleepStage(segment.stage)) validIds.add(segment.sessionId);
     }
-    for (final entry in currentBatchSegmentsMap.entries) {
-      allSegmentsBySessionId[entry.key] = entry.value;
-    }
-
-    for (final session in allSessions.values) {
-      final segments = allSegmentsBySessionId[session.id] ?? const [];
-      if (segments.isEmpty) continue;
-      final repaired = repairSleepTimeline(
-        session: session,
-        segments: segments,
-      );
-      for (final segment in repaired) {
-        if (!_isSleepStage(segment.stage)) continue;
-        _markSleepSegmentAcrossDays(segment, dayBuilders);
-      }
-    }
-
-    final dailyStates =
-        dayBuilders.values.map((builder) => builder.toState()).toList()
-          ..sort((a, b) => a.day.compareTo(b.day));
-    final byNight = <String, SleepRegularityIndexResult>{};
-    var endIdx = 0;
-    for (final night in targetNights) {
-      // Advance endIdx to include all dailyStates up to and including 'night'.
-      // Since both targetNights and dailyStates are sorted chronologically,
-      // endIdx only moves forward, reducing complexity from O(N*M) to O(N+M).
-      while (endIdx < dailyStates.length &&
-          !dailyStates[endIdx].day.isAfter(night)) {
-        endIdx++;
-      }
-
-      // Use .take(endIdx) which is a lightweight Iterable view rather than a full List allocation
-      final history = dailyStates.take(endIdx);
-      final sri = calculateSleepRegularityIndex(dailyStates: history);
-      byNight[_nightKey(night)] = sri;
-    }
-    return byNight;
-  }
-
-  static Map<String, double> _buildRollingMidSleepSdByNight({
-    required List<SleepSession> targetSessions,
-    required List<SleepCanonicalSessionRecord> lookbackSessions,
-  }) {
-    if (targetSessions.isEmpty) return const {};
 
     final targetNights =
         targetSessions
@@ -1063,20 +1089,21 @@ class SleepPipelineService {
     final coreSessionsList = sessionsByNight.values.toList()
       ..sort((a, b) => a.endAtUtc.compareTo(b.endAtUtc));
 
-    final byNight = <String, double>{};
+    final byNight = <String, ({double sd, int validDays})>{};
 
     // BOLT OPTIMIZATION: Replaced chained .where().toList(), .map().toList(), and
     // .map().reduce() with a single-pass loop to eliminate intermediate array allocations
     // and redundant iterations.
     for (final night in targetNights) {
-      final windowStart = night.subtract(const Duration(days: 14));
+      final windowStart = DateTime(night.year, night.month, night.day - 14);
 
       final midSleeps = <double>[];
-      double sum = 0.0;
 
       for (final s in coreSessionsList) {
         final d = _normalizeDay(s.endAtUtc.toLocal());
-        if (!d.isBefore(windowStart) && !d.isAfter(night)) {
+        if (validIds.contains(s.id) &&
+            !d.isBefore(windowStart) &&
+            !d.isAfter(night)) {
           final localStart = s.startAtUtc.toLocal();
           double onset = localStart.hour + (localStart.minute / 60.0);
           if (onset > 12.0) {
@@ -1091,22 +1118,32 @@ class SleepPipelineService {
             ms -= 24.0;
           }
           midSleeps.add(ms);
-          sum += ms;
         }
       }
 
       if (midSleeps.length < 2) {
-        byNight[_nightKey(night)] = 0.0;
+        byNight[_nightKey(night)] = (sd: 0.0, validDays: midSleeps.length);
         continue;
       }
 
-      final mean = sum / midSleeps.length;
+      var sumSin = 0.0;
+      var sumCos = 0.0;
+      for (final ms in midSleeps) {
+        final angle = ms * math.pi / 12;
+        sumSin += math.sin(angle);
+        sumCos += math.cos(angle);
+      }
+      final mean = math.atan2(sumSin, sumCos) * 12 / math.pi;
       double varianceSum = 0.0;
       for (final ms in midSleeps) {
-        varianceSum += math.pow(ms - mean, 2);
+        final difference = ((ms - mean + 36) % 24) - 12;
+        varianceSum += difference * difference;
       }
       final variance = varianceSum / (midSleeps.length - 1);
-      byNight[_nightKey(night)] = math.sqrt(variance);
+      byNight[_nightKey(night)] = (
+        sd: math.sqrt(variance),
+        validDays: midSleeps.length,
+      );
     }
 
     return byNight;
@@ -1222,43 +1259,6 @@ class SleepPipelineService {
   static DateTime _normalizeDay(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 
-  static String _dayKey(DateTime value) => _nightKey(_normalizeDay(value));
-
-  static void _markSleepSegmentAcrossDays(
-    SleepStageSegment segment,
-    Map<String, _RegularityDayBuilder> dayBuilders,
-  ) {
-    var day = _normalizeDay(segment.startAtUtc);
-    final lastDay = _normalizeDay(segment.endAtUtc);
-    while (!day.isAfter(lastDay)) {
-      final dayStart = day;
-      final dayEnd = dayStart.add(const Duration(days: 1));
-      final overlapStart = segment.startAtUtc.isAfter(dayStart)
-          ? segment.startAtUtc
-          : dayStart;
-      final overlapEnd = segment.endAtUtc.isBefore(dayEnd)
-          ? segment.endAtUtc
-          : dayEnd;
-      if (overlapEnd.isAfter(overlapStart)) {
-        final builder = dayBuilders.putIfAbsent(
-          _dayKey(dayStart),
-          () => _RegularityDayBuilder(dayStart),
-        );
-        final startMinute = overlapStart.difference(dayStart).inMinutes;
-        final endSeconds = overlapEnd.difference(dayStart).inSeconds;
-        final endMinute = ((endSeconds + 59) ~/ 60).clamp(
-          0,
-          sleepRegularityMinutesPerDay,
-        );
-        builder.markSleep(
-          startMinute: startMinute,
-          endMinuteExclusive: endMinute,
-        );
-      }
-      day = day.add(const Duration(days: 1));
-    }
-  }
-
   Future<void> dispose() async {
     if (_ownsDatabase) {
       await _database.close();
@@ -1276,31 +1276,4 @@ class _MappedBatch {
   final List<SleepSession> sessions;
   final List<SleepStageSegment> stageSegments;
   final List<HeartRateSample> heartRateSamples;
-}
-
-class _RegularityDayBuilder {
-  _RegularityDayBuilder(this.day);
-
-  final DateTime day;
-  // Binary 1-minute day state for SRI: default wake (0), sleep minutes marked as 1.
-  final Uint8List _sleepByMinute = Uint8List(sleepRegularityMinutesPerDay);
-  bool _hasSleepData = false;
-
-  void markSleep({required int startMinute, required int endMinuteExclusive}) {
-    final start = startMinute.clamp(0, sleepRegularityMinutesPerDay - 1);
-    final end = endMinuteExclusive.clamp(0, sleepRegularityMinutesPerDay);
-    if (end <= start) return;
-    for (var minute = start; minute < end; minute++) {
-      _sleepByMinute[minute] = 1;
-    }
-    _hasSleepData = true;
-  }
-
-  DailySleepWakeState toState() {
-    return DailySleepWakeState(
-      day: day,
-      sleepByMinute: _sleepByMinute,
-      hasSleepData: _hasSleepData,
-    );
-  }
 }

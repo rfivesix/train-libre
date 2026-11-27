@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/permissions/sleep_permission_models.dart';
@@ -17,10 +17,9 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 class SleepSettingsScreen extends StatefulWidget {
   const SleepSettingsScreen({
     super.key,
-    SleepSettingsService? sleepSyncService,
-    SleepPermissionController? sleepPermissionController,
-  }) : _sleepSyncService = sleepSyncService,
-       _sleepPermissionController = sleepPermissionController;
+    this._sleepSyncService,
+    this._sleepPermissionController,
+  });
 
   final SleepSettingsService? _sleepSyncService;
   final SleepPermissionController? _sleepPermissionController;
@@ -90,10 +89,10 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
       SleepPermissionState.ready => LucideIcons.circle_check,
       SleepPermissionState.loading => LucideIcons.hourglass,
       SleepPermissionState.denied => LucideIcons.ban,
-      SleepPermissionState.partial => LucideIcons.triangle_alert,
+      SleepPermissionState.partial => LucideIcons.triangle_exclamation_point,
       SleepPermissionState.unavailable => LucideIcons.signal_zero,
       SleepPermissionState.notInstalled => LucideIcons.download,
-      SleepPermissionState.technicalError => LucideIcons.triangle_alert,
+      SleepPermissionState.technicalError => LucideIcons.triangle_exclamation_point,
     };
   }
 

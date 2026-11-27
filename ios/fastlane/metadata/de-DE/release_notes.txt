@@ -1,9 +1,9 @@
-Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
+Statistiken und Fortschrittsanalyse: Die Übersicht zeigt deine wichtigsten Kennzahlen und Trainingstage auf einen Blick. Überarbeitete Ansichten helfen dir, Ernährung, Fortschritt und persönliche Bestleistungen im Detail zu verfolgen.
 
-Hallo, Spanien! Hallo, Niederlande!: Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.
+Live-Workout und Satzverwaltung: Sieh, welche Sätze pro Muskelgruppe erledigt sind und welche noch anstehen. Sortiere Sätze per Ziehen, blende auf Wunsch dein geschätztes Maximalgewicht für eine Wiederholung ein und feiere neue Rekorde mit Animation und haptischem Feedback.
 
-Verbesserte Mahlzeitenerkennung: Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.
+Schlafanalyse und Herzfrequenz: Die neue Schlafübersicht zeigt Schlafdauer, Schlafphasen und Herzfrequenz. Dein Ruhepuls aus Apple Health oder Health Connect erscheint im Tagebuch und in der Statistik. Mit Apple Health siehst du zusätzlich deine Herzfrequenzvariabilität.
 
-Ernährung mit Health synchronisieren: Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.
+Anpassbare Liquid-Glass-Darstellung: Passe die Glasdarstellung mit einem Regler an und sieh das Ergebnis direkt in der Vorschau. Überarbeitete Übergänge machen den Wechsel zwischen Ansichten flüssiger.
 
-Mehr Personalisierung: Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.
+Verbesserte Leistung und Zuverlässigkeit: Die Statistikübersicht scrollt flüssiger, Trainingstage erscheinen auch rund um die Zeitumstellung korrekt, und Schrittzählung sowie Pausentimer wurden verbessert.

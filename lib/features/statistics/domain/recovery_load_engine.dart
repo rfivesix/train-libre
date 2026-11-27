@@ -19,6 +19,7 @@ class RecoverySetLoadInput {
   final int reps;
   final int durationSeconds;
   final int? rir;
+  final double? rpe;
   final String setType;
   final String? movementPattern;
 
@@ -31,6 +32,7 @@ class RecoverySetLoadInput {
     this.reps = 0,
     this.durationSeconds = 0,
     this.rir,
+    this.rpe,
     this.setType = 'normal',
     this.movementPattern,
   });
@@ -90,7 +92,9 @@ class RecoveryMuscleLoadResult {
     'lastSessionIndirectLoad': lastSessionIndirectLoad,
     'residualLoad': residualLoad,
     'avgRir': averageLastSessionRir,
-    'avgRpe': null,
+    'avgRpe': averageLastSessionRir == null
+        ? null
+        : 10 - averageLastSessionRir!,
     'highSessionFatigue': highLastSessionFatigue,
     'eligibleSetCount': eligibleSetCount,
     'setsWithRir': setsWithRir,
@@ -326,8 +330,8 @@ class RecoveryLoadEngine {
 
   double _effortWeight(RecoverySetLoadInput input) {
     if (input.setType.trim().toLowerCase() == 'failure') return 1.0;
-    final rir = input.rir;
-    if (rir == null || rir < 0 || rir > 5) return _neutralMissingRirWeight;
+    final rir = _effectiveRir(input);
+    if (rir == null) return _neutralMissingRirWeight;
     return (1.0 - rir * 0.1).clamp(0.5, 1.0).toDouble();
   }
 
@@ -362,6 +366,17 @@ class RecoveryLoadEngine {
   }
 }
 
+// An RPE value takes precedence over the legacy RIR when both are present.
+// Recovery historically uses only RIR 0–5; keep that validity range to avoid
+// changing historical readiness when older low-intensity values are migrated.
+double? _effectiveRir(RecoverySetLoadInput input) {
+  final rpe = input.rpe;
+  if (rpe != null && rpe.isFinite && rpe >= 5 && rpe <= 10) return 10 - rpe;
+  if (rpe != null) return null;
+  final rir = input.rir;
+  return rir != null && rir >= 0 && rir <= 5 ? rir.toDouble() : null;
+}
+
 class _SessionLoad {
   final DateTime completedAt;
   double totalLoad = 0.0;
@@ -385,8 +400,8 @@ class _SessionLoad {
       indirectLoad += exposure;
     }
     eligibleSets++;
-    final rir = input.rir;
-    if (rir != null && rir >= 0 && rir <= 5) {
+    final rir = _effectiveRir(input);
+    if (rir != null) {
       setsWithRir++;
       _rirSum += rir;
     }

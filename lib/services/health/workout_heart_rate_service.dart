@@ -137,7 +137,12 @@ class WorkoutHeartRateService {
       fromUtc: startUtc,
       toUtc: endUtc,
     );
-    if (direct.isNotEmpty || fallbackQueryPadding <= Duration.zero) {
+    if (_sanitizeAndSort(
+          rawSamples: direct,
+          startUtc: startUtc,
+          endUtc: endUtc,
+        ).isNotEmpty ||
+        fallbackQueryPadding <= Duration.zero) {
       return direct;
     }
 

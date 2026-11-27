@@ -68,7 +68,7 @@ import 'app_localizations_nl.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -91,11 +91,11 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
@@ -105,8 +105,26 @@ abstract class AppLocalizations {
     Locale('fr'),
     Locale('it'),
     Locale('ja'),
-    Locale('nl')
+    Locale('nl'),
   ];
+
+  /// No description provided for @settingsWorkoutDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout display'**
+  String get settingsWorkoutDisplay;
+
+  /// No description provided for @settingsShowWorkoutE1rm.
+  ///
+  /// In en, this message translates to:
+  /// **'Show estimated one-rep max'**
+  String get settingsShowWorkoutE1rm;
+
+  /// No description provided for @settingsShowWorkoutE1rmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show estimated one-rep max for sets and session comparisons.'**
+  String get settingsShowWorkoutE1rmSubtitle;
 
   /// No description provided for @selectDateTitle.
   ///
@@ -5091,7 +5109,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingFeatureWorkoutBody.
   ///
   /// In en, this message translates to:
-  /// **'Log sets (RIR/RPE) and follow your muscle recovery.'**
+  /// **'Log sets (RPE) and follow your muscle recovery.'**
   String get onboardingFeatureWorkoutBody;
 
   /// No description provided for @onboardingFeatureTdeeTitle.
@@ -5969,21 +5987,29 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delta: {kcalDelta} kcal · {proteinDelta}g Protein · {carbsDelta}g Carbs · {fatDelta}g Fat'**
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta);
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  );
 
   /// No description provided for @aiValidationPartialSaveItemsMessage.
   ///
   /// In en, this message translates to:
   /// **'{unmatchedCount, plural, =1{1 item does not have a local database match and will not be saved.} other{{unmatchedCount} items do not have a local database match and will not be saved.}} Save the {matchedCount} matched item(s) only?'**
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount);
+    int unmatchedCount,
+    int matchedCount,
+  );
 
   /// No description provided for @aiValidationPartialSaveIngredientsMessage.
   ///
   /// In en, this message translates to:
   /// **'{unmatchedCount, plural, =1{1 ingredient does not have a local database match and will not be saved.} other{{unmatchedCount} ingredients do not have a local database match and will not be saved.}} Save the {matchedCount} matched ingredient(s) only?'**
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount);
+    int unmatchedCount,
+    int matchedCount,
+  );
 
   /// No description provided for @aiValidationEmptyItemName.
   ///
@@ -6510,7 +6536,7 @@ abstract class AppLocalizations {
   /// No description provided for @recoveryDetailRirData.
   ///
   /// In en, this message translates to:
-  /// **'RIR data'**
+  /// **'RPE data'**
   String get recoveryDetailRirData;
 
   /// No description provided for @recoveryCompactHours.
@@ -6534,7 +6560,7 @@ abstract class AppLocalizations {
   /// No description provided for @recoveryRirCoverage.
   ///
   /// In en, this message translates to:
-  /// **'RIR recorded for {covered} of {total} sets'**
+  /// **'RPE recorded for {covered} of {total} sets'**
   String recoveryRirCoverage(int covered, int total);
 
   /// No description provided for @recoveryLastLoadedHours.
@@ -6944,6 +6970,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New Records'**
   String get workoutSummaryNewRecordsTitle;
+
+  /// No description provided for @workoutRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get workoutRecordsTitle;
 
   /// No description provided for @allTimeRecordsLabel.
   ///
@@ -9230,7 +9262,10 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data basis: {windowDays} days, {weightLogs} weight logs, {intakeDays} intake days'**
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays);
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  );
 
   /// No description provided for @adaptiveRecommendationActiveCaloriesLine.
   ///
@@ -9538,6 +9573,18 @@ abstract class AppLocalizations {
   /// **'Step data is unavailable'**
   String get healthSettingsStepUnavailable;
 
+  /// No description provided for @healthSettingsSyncPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync pulse now'**
+  String get healthSettingsSyncPulse;
+
+  /// No description provided for @healthSettingsPulseSyncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Read {count} pulse samples from the last year'**
+  String healthSettingsPulseSyncResult(int count);
+
   /// No description provided for @healthSettingsSyncSteps.
   ///
   /// In en, this message translates to:
@@ -9688,6 +9735,18 @@ abstract class AppLocalizations {
   /// **'Resting'**
   String get pulseRestingLabel;
 
+  /// No description provided for @pulseEstimatedRestingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated resting pulse'**
+  String get pulseEstimatedRestingLabel;
+
+  /// No description provided for @pulseEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated'**
+  String get pulseEstimateLabel;
+
   /// No description provided for @pulseInsufficientData.
   ///
   /// In en, this message translates to:
@@ -9697,7 +9756,7 @@ abstract class AppLocalizations {
   /// No description provided for @pulseMethodNote.
   ///
   /// In en, this message translates to:
-  /// **'Average pulse is time-weighted. Resting pulse is a conservative estimate from the lowest 20% of samples in the selected period.'**
+  /// **'Train Libre uses resting pulse from Apple Health or Health Connect when available. Otherwise it estimates resting pulse from heart rate samples.'**
   String get pulseMethodNote;
 
   /// No description provided for @pulseSampleCount.
@@ -9781,13 +9840,13 @@ abstract class AppLocalizations {
   /// No description provided for @pulseSettingsPermissionSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Opens Apple Health or Health Connect so Train Libre can read pulse samples.'**
+  /// **'Allow access to heart rate and resting heart rate in Health Connect.'**
   String get pulseSettingsPermissionSubtitle;
 
   /// No description provided for @pulseSettingsAnalysisSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Shows range, time-weighted average, and a conservative resting-pulse estimate. Not a medical diagnosis.'**
+  /// **'Shows pulse range, average, and resting pulse.'**
   String get pulseSettingsAnalysisSubtitle;
 
   /// No description provided for @pulseSettingsPermissionGranted.
@@ -10885,31 +10944,31 @@ abstract class AppLocalizations {
   /// No description provided for @infoSleepTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sleep Quality (SHS v3.5)'**
+  /// **'Sleep score'**
   String get infoSleepTitle;
 
   /// No description provided for @infoSleepExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Calculates a comprehensive sleep index from quantity, continuity, depth, timing, and daily regularity.'**
+  /// **'An estimate based on the available data.'**
   String get infoSleepExplanation;
 
   /// No description provided for @infoSleepKeyPoints.
   ///
   /// In en, this message translates to:
-  /// **'• Aggregates five clinical dimensions using a weighted sum.\n• Automatically scales requirements if your wearable does not provide specific stages or efficiency data.\n• Protects you via soft-cap multipliers that limit the total score if a critical domain (like REM or Deep sleep) is compromised.'**
+  /// **'Duration, continuity, deep sleep, REM and regularity contribute.\nMissing components are excluded.\nStage estimates are imperfect.'**
   String get infoSleepKeyPoints;
 
   /// No description provided for @infoSleepTechnicalTitle.
   ///
   /// In en, this message translates to:
-  /// **'Weighted Baseline & Continuous Soft-Caps'**
+  /// **'How it is calculated'**
   String get infoSleepTechnicalTitle;
 
   /// No description provided for @infoSleepTechnicalExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing.'**
+  /// **'Duration 45%, continuity 25%, deep 10%, REM 10%, regularity 10%. Short duration can cap the final score. This is not a clinical measurement.'**
   String get infoSleepTechnicalExplanation;
 
   /// No description provided for @tdeeRecalculationNotificationTitle.
@@ -10923,7 +10982,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New daily targets: {calories} kcal | {protein}g Protein | {carbs}g Carbs | {fat}g Fat'**
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat);
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  );
 
   /// No description provided for @recommendationBannerText.
   ///
@@ -13226,7 +13289,7 @@ abstract class AppLocalizations {
   /// No description provided for @experienceLevelProDescription.
   ///
   /// In en, this message translates to:
-  /// **'Recommended only for experienced lifters with reliable gauge of failure: adds intensity logging via RIR (Reps in Reserve) and cardio intensity zones.'**
+  /// **'Recommended only for experienced lifters who can gauge effort reliably: adds RPE intensity logging and cardio intensity zones.'**
   String get experienceLevelProDescription;
 
   /// No description provided for @diaryWeightLabel.
@@ -14428,7 +14491,10 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{current} → {recommended} kcal/day ({change})'**
   String weeklyReviewCaloriesComparison(
-      String current, String recommended, String change);
+    String current,
+    String recommended,
+    String change,
+  );
 
   /// No description provided for @weeklyReviewWeightProgressTitle.
   ///
@@ -15281,7 +15347,9 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{goalTitle}: your updated recommendation is {calories} kcal per day. Open the review for the full reasoning.'**
   String weeklyGoalReviewNotificationDetailedBody(
-      String goalTitle, int calories);
+    String goalTitle,
+    int calories,
+  );
 
   /// No description provided for @goalTargetDateReminderTitle.
   ///
@@ -16524,6 +16592,780 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open the new AI chat preview again at any time.'**
   String get aiAssistantIntroAboutRowSubtitle;
+
+  /// No description provided for @aiFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis failed'**
+  String get aiFailureTitle;
+
+  /// No description provided for @aiFailureEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No foods recognized'**
+  String get aiFailureEmptyTitle;
+
+  /// No description provided for @aiFailureTimeoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The request took too long'**
+  String get aiFailureTimeoutTitle;
+
+  /// No description provided for @aiFailureUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI unavailable'**
+  String get aiFailureUnavailableTitle;
+
+  /// No description provided for @aiFailureNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get aiFailureNetworkTitle;
+
+  /// No description provided for @aiFailureSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI setup required'**
+  String get aiFailureSetupTitle;
+
+  /// No description provided for @aiFailureRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request limit reached'**
+  String get aiFailureRateTitle;
+
+  /// No description provided for @aiFailureGenericBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI response could not be processed. Please try again or choose another model.'**
+  String get aiFailureGenericBody;
+
+  /// No description provided for @aiFailureEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No foods were returned. The image or description may not show food clearly, or the model may have made a mistake.'**
+  String get aiFailureEmptyBody;
+
+  /// No description provided for @aiFailureTimeoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The configured waiting time was reached. Increase it in AI settings or try another model.'**
+  String get aiFailureTimeoutBody;
+
+  /// No description provided for @aiFailureNetworkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI provider could not be reached. Check your connection or server.'**
+  String get aiFailureNetworkBody;
+
+  /// No description provided for @aiFailureSetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your AI provider and credentials in AI settings.'**
+  String get aiFailureSetupBody;
+
+  /// No description provided for @aiFailureRateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait a moment and try again.'**
+  String get aiFailureRateBody;
+
+  /// No description provided for @aiFailureUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check whether Apple Intelligence is enabled and available, or select another provider.'**
+  String get aiFailureUnavailableBody;
+
+  /// No description provided for @aiFailureAppleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Intelligence may not recognize meals or their details reliably. Another AI model may give a better result.'**
+  String get aiFailureAppleHint;
+
+  /// No description provided for @aiFailureEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit input'**
+  String get aiFailureEdit;
+
+  /// No description provided for @aiFailureSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open AI settings'**
+  String get aiFailureSettings;
+
+  /// No description provided for @aiFailureSlowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This can take a little longer depending on the device and model.'**
+  String get aiFailureSlowHint;
+
+  /// No description provided for @aiFailureUnsupportedImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Intelligence cannot use photos on this device or iOS version. Describe the meal in text or choose another provider.'**
+  String get aiFailureUnsupportedImage;
+
+  /// No description provided for @aiFailureAppleTimeoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The configured waiting time was reached. Increase it in AI settings or choose another provider.'**
+  String get aiFailureAppleTimeoutBody;
+
+  /// No description provided for @glassCustomizationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass appearance'**
+  String get glassCustomizationTitle;
+
+  /// No description provided for @glassTint.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass tint'**
+  String get glassTint;
+
+  /// No description provided for @glassTintClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get glassTintClear;
+
+  /// No description provided for @glassTintTinted.
+  ///
+  /// In en, this message translates to:
+  /// **'Tinted'**
+  String get glassTintTinted;
+
+  /// No description provided for @glassBlur.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur'**
+  String get glassBlur;
+
+  /// No description provided for @glassBlurOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get glassBlurOff;
+
+  /// No description provided for @glassOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opacity'**
+  String get glassOpacity;
+
+  /// No description provided for @glassOpacityClear.
+  ///
+  /// In en, this message translates to:
+  /// **'0% (Clear)'**
+  String get glassOpacityClear;
+
+  /// No description provided for @glassReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get glassReset;
+
+  /// No description provided for @glassCustomizationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the glass appearance from clear to tinted.'**
+  String get glassCustomizationDescription;
+
+  /// No description provided for @sessionMusclesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this session hits'**
+  String get sessionMusclesTitle;
+
+  /// No description provided for @sessionMusclesWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already worked'**
+  String get sessionMusclesWorked;
+
+  /// No description provided for @sessionMusclesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Still to come'**
+  String get sessionMusclesRemaining;
+
+  /// No description provided for @discardWorkoutAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard workout'**
+  String get discardWorkoutAction;
+
+  /// No description provided for @sleepDashboardScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep score'**
+  String get sleepDashboardScore;
+
+  /// No description provided for @sleepDashboardGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep goal'**
+  String get sleepDashboardGoal;
+
+  /// No description provided for @sleepDashboardGoalEight.
+  ///
+  /// In en, this message translates to:
+  /// **'8 h goal'**
+  String get sleepDashboardGoalEight;
+
+  /// No description provided for @sleepDashboardSevenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String sleepDashboardSevenDays(int count);
+
+  /// No description provided for @sleepDashboardRecordedNights.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded nights'**
+  String get sleepDashboardRecordedNights;
+
+  /// No description provided for @sleepDashboardStageEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep stages are estimates.'**
+  String get sleepDashboardStageEstimate;
+
+  /// No description provided for @sleepDashboardStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the chart to inspect a stage.'**
+  String get sleepDashboardStageHint;
+
+  /// No description provided for @sleepDashboardEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency'**
+  String get sleepDashboardEfficiency;
+
+  /// No description provided for @sleepDashboardStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get sleepDashboardStart;
+
+  /// No description provided for @sleepDashboardEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get sleepDashboardEnd;
+
+  /// No description provided for @sleepDashboardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sleep data for this day.'**
+  String get sleepDashboardEmpty;
+
+  /// No description provided for @sleepDashboardNightHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate during sleep'**
+  String get sleepDashboardNightHeartRate;
+
+  /// No description provided for @sleepDashboardNightHrv.
+  ///
+  /// In en, this message translates to:
+  /// **'HRV during sleep'**
+  String get sleepDashboardNightHrv;
+
+  /// No description provided for @sleepDashboardSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Available measurements'**
+  String get sleepDashboardSamples;
+
+  /// No description provided for @sleepDashboardContributors.
+  ///
+  /// In en, this message translates to:
+  /// **'Score contributors'**
+  String get sleepDashboardContributors;
+
+  /// No description provided for @sleepDashboardInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data'**
+  String get sleepDashboardInsufficient;
+
+  /// No description provided for @sleepDashboardAsleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Time asleep'**
+  String get sleepDashboardAsleep;
+
+  /// No description provided for @hrvTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate variability'**
+  String get hrvTitle;
+
+  /// No description provided for @hrvUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No HRV data available'**
+  String get hrvUnavailable;
+
+  /// No description provided for @hrvMethodNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean of available Apple Health SDNN samples in milliseconds.'**
+  String get hrvMethodNote;
+
+  /// No description provided for @hrvNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No HRV data available'**
+  String get hrvNoData;
+
+  /// No description provided for @sleepDashboardDebtNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed nights only; not a physiological measure of sleep debt.'**
+  String get sleepDashboardDebtNote;
+
+  /// No description provided for @sleepDashboardEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate · limited data'**
+  String get sleepDashboardEstimate;
+
+  /// No description provided for @sleepDashboardDurationCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration limits the score'**
+  String get sleepDashboardDurationCap;
+
+  /// No description provided for @sleepDashboardHrvError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load HRV measurements.'**
+  String get sleepDashboardHrvError;
+
+  /// No description provided for @pulseSettingsEnableSubtitleIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads heart rate, resting heart rate, and HRV from Apple Health when pulse analysis is enabled.'**
+  String get pulseSettingsEnableSubtitleIos;
+
+  /// No description provided for @pulseSettingsPermissionSubtitleIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access to heart rate, resting heart rate, and HRV in Apple Health.'**
+  String get pulseSettingsPermissionSubtitleIos;
+
+  /// No description provided for @pulseHealthStatusIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health does not reveal read permissions. If values are missing, check access in Health.'**
+  String get pulseHealthStatusIos;
+
+  /// No description provided for @sleepDashboardTonightDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight vs. goal'**
+  String get sleepDashboardTonightDelta;
+
+  /// No description provided for @sleepDashboardMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum'**
+  String get sleepDashboardMinimum;
+
+  /// No description provided for @sleepDashboardAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get sleepDashboardAverage;
+
+  /// No description provided for @sleepDashboardPersonalBaseline.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal baseline (previous 30 days)'**
+  String get sleepDashboardPersonalBaseline;
+
+  /// No description provided for @sleepDashboardBaselineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough comparable nights for a baseline'**
+  String get sleepDashboardBaselineUnavailable;
+
+  /// No description provided for @hrvQueryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load HRV. Try again.'**
+  String get hrvQueryFailed;
+
+  /// No description provided for @statisticsOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get statisticsOverviewTitle;
+
+  /// No description provided for @statisticsOverviewWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts'**
+  String get statisticsOverviewWorkouts;
+
+  /// No description provided for @statisticsOverviewAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get statisticsOverviewAllTime;
+
+  /// No description provided for @statisticsOverview30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get statisticsOverview30Days;
+
+  /// No description provided for @statisticsOverviewWeightChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight change'**
+  String get statisticsOverviewWeightChange;
+
+  /// No description provided for @statisticsOverviewVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get statisticsOverviewVolume;
+
+  /// No description provided for @statisticsOverviewSets.
+  ///
+  /// In en, this message translates to:
+  /// **'sets'**
+  String get statisticsOverviewSets;
+
+  /// No description provided for @statisticsOverviewCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories / day'**
+  String get statisticsOverviewCalories;
+
+  /// No description provided for @statisticsOverviewProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein / day'**
+  String get statisticsOverviewProtein;
+
+  /// No description provided for @statisticsOverviewTrackedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days · tracked days'**
+  String get statisticsOverviewTrackedDays;
+
+  /// No description provided for @statisticsOverviewSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String statisticsOverviewSince(String date);
+
+  /// No description provided for @statisticsEmptySteps.
+  ///
+  /// In en, this message translates to:
+  /// **'No steps recorded in the last 7 days.'**
+  String get statisticsEmptySteps;
+
+  /// No description provided for @statisticsEmptySleep.
+  ///
+  /// In en, this message translates to:
+  /// **'No sleep recorded in the last 7 days.'**
+  String get statisticsEmptySleep;
+
+  /// No description provided for @statisticsEmptyPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'No pulse data recorded in the last 7 days.'**
+  String get statisticsEmptyPulse;
+
+  /// No description provided for @statisticsEmptyTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a workout to see your training rhythm.'**
+  String get statisticsEmptyTraining;
+
+  /// No description provided for @statisticsEmptyRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No new personal bests in the last 30 days.'**
+  String get statisticsEmptyRecords;
+
+  /// No description provided for @statisticsEmptyMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete strength sets to see your muscle groups.'**
+  String get statisticsEmptyMuscles;
+
+  /// No description provided for @statisticsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log weight or nutrition to see your trends.'**
+  String get statisticsEmptyBody;
+
+  /// No description provided for @statisticsEmptyNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'No nutrition logged in the last 7 days.'**
+  String get statisticsEmptyNutrition;
+
+  /// No description provided for @analyticsDailyBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily breakdown'**
+  String get analyticsDailyBreakdown;
+
+  /// No description provided for @analyticsCarbsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get analyticsCarbsShort;
+
+  /// No description provided for @analyticsCalorieTargetLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie target'**
+  String get analyticsCalorieTargetLine;
+
+  /// No description provided for @analyticsWeightSlopePerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight rate'**
+  String get analyticsWeightSlopePerWeek;
+
+  /// No description provided for @analyticsSlopePerWeekUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit}/wk'**
+  String analyticsSlopePerWeekUnit(String value, String unit);
+
+  /// No description provided for @analyticsThisWeekSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'This week: {count}'**
+  String analyticsThisWeekSummary(int count);
+
+  /// No description provided for @analyticsTrainingDaysCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Active days: {days}/wk'**
+  String analyticsTrainingDaysCompact(String days);
+
+  /// No description provided for @analyticsAtLeast2PerWeekCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 2 workouts / wk'**
+  String get analyticsAtLeast2PerWeekCompact;
+
+  /// No description provided for @analyticsConsecutiveWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Consecutive weeks'**
+  String get analyticsConsecutiveWeeks;
+
+  /// No description provided for @analyticsSelectWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Select workout'**
+  String get analyticsSelectWorkout;
+
+  /// No description provided for @analyticsNoWorkoutsOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No workouts on this day'**
+  String get analyticsNoWorkoutsOnDay;
+
+  /// No description provided for @analyticsPrImprovementsWindowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Improvements vs. previous personal best'**
+  String get analyticsPrImprovementsWindowHint;
+
+  /// No description provided for @analyticsAllTimeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time'**
+  String get analyticsAllTimeBadge;
+
+  /// No description provided for @stepsModuleGoalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal progress'**
+  String get stepsModuleGoalProgress;
+
+  /// No description provided for @analyticsWaterTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily target'**
+  String get analyticsWaterTargetLabel;
+
+  /// No description provided for @analyticsWaterLoggedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged days'**
+  String get analyticsWaterLoggedDays;
+
+  /// No description provided for @statisticsOverviewTotalWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Total workouts'**
+  String get statisticsOverviewTotalWorkouts;
+
+  /// No description provided for @statisticsOverviewWorkouts30d.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts (30d)'**
+  String get statisticsOverviewWorkouts30d;
+
+  /// No description provided for @sleepHubNightsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 night logged} other{{count} nights logged}}'**
+  String sleepHubNightsLogged(int count);
+
+  /// No description provided for @statisticsMicronutrientsHubSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} logged days · {count} nutrients'**
+  String statisticsMicronutrientsHubSummary(int days, int count);
+
+  /// No description provided for @statisticsResetDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get statisticsResetDefaults;
+
+  /// No description provided for @statisticsBestPerformancesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No new PRs} =1{1 new PR} other{{count} new PRs}}'**
+  String statisticsBestPerformancesCount(int count);
+
+  /// No description provided for @diaryNutritionDayOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition day options'**
+  String get diaryNutritionDayOptions;
+
+  /// No description provided for @diaryMarkNutritionDayIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as incomplete'**
+  String get diaryMarkNutritionDayIncomplete;
+
+  /// No description provided for @diaryIncludeNutritionDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Include in statistics again'**
+  String get diaryIncludeNutritionDay;
+
+  /// No description provided for @diaryIncompleteDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete day'**
+  String get diaryIncompleteDayTitle;
+
+  /// No description provided for @diaryIncompleteDayDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from nutrition statistics'**
+  String get diaryIncompleteDayDetail;
+
+  /// No description provided for @diaryNutritionDayIncompleteStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete · Excluded from nutrition statistics'**
+  String get diaryNutritionDayIncompleteStatus;
+
+  /// Number of days used for the nutrition average and number marked incomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{included, plural, one{1 day analyzed} other{{included} days analyzed}} · {incomplete} incomplete'**
+  String nutritionStatisticsDayCoverage(int included, int incomplete);
+
+  /// No description provided for @rpeEffortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Perceived effort'**
+  String get rpeEffortTitle;
+
+  /// No description provided for @rpeQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How hard was this set?'**
+  String get rpeQuestion;
+
+  /// No description provided for @rpeNoReps.
+  ///
+  /// In en, this message translates to:
+  /// **'No repetitions left'**
+  String get rpeNoReps;
+
+  /// No description provided for @rpeRepsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'About {count} repetitions left'**
+  String rpeRepsLeft(Object count);
+
+  /// No description provided for @rpeFourPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'4 or more repetitions left'**
+  String get rpeFourPlus;
+
+  /// No description provided for @rpeClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get rpeClear;
+
+  /// No description provided for @rpeSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get rpeSave;
+
+  /// No description provided for @rpeHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is RPE?'**
+  String get rpeHelpTitle;
+
+  /// No description provided for @rpeHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'RPE describes how hard a set felt. Estimate how many repetitions you could still have completed.'**
+  String get rpeHelpBody;
+
+  /// No description provided for @rpeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an RPE from 6 to 10 in steps of 0.5.'**
+  String get rpeInvalid;
+
+  /// No description provided for @rpeMaximumEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum effort'**
+  String get rpeMaximumEffort;
+
+  /// No description provided for @rpeHardEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get rpeHardEffort;
+
+  /// No description provided for @rpeModerateEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get rpeModerateEffort;
 }
 
 class _AppLocalizationsDelegate
@@ -16537,14 +17379,14 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => <String>[
-        'de',
-        'en',
-        'es',
-        'fr',
-        'it',
-        'ja',
-        'nl'
-      ].contains(locale.languageCode);
+    'de',
+    'en',
+    'es',
+    'fr',
+    'it',
+    'ja',
+    'nl',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -16570,8 +17412,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_color_choice.dart';
@@ -10,13 +10,35 @@ import 'base_food_language_service.dart';
 /// Persists the user's preference for light/dark mode and visual presets.
 class ThemeService extends ChangeNotifier {
   static const _themeKey = 'theme_mode';
+  static const _glassBlurKey = 'glass_blur';
+  static const _glassOpacityKey = 'glass_opacity';
+  static const _glassAppearanceKey = 'glass_appearance';
   static const _styleKey = 'visual_style';
   static const _aiEnabledKey = 'ai_enabled';
   static const _materialColorsEnabledKey = 'material_colors_enabled';
   static const _appColorChoiceKey = 'app_color_choice';
   static const _customAppColorKey = 'custom_app_color';
   static const _hapticsEnabledKey = 'haptics_enabled';
+  static const _showWorkoutE1rmKey = 'show_workout_e1rm';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
+
+  static const double defaultGlassAppearance = 0.3;
+
+  double _glassAppearance = defaultGlassAppearance;
+  bool _glassAppearanceDirty = false;
+
+  /// 0 is clear, 1 is tinted; only the strongest settings add extra blur.
+  double get glassAppearance => _glassAppearance;
+  // The lightly blurred copy stays crisp through most of the range. Toward
+  // the tinted end it softens gradually, in addition to the diffusion layer.
+  static const defaultGlassBlur = 0.08;
+  static const defaultGlassOpacity = 0.66;
+  double get glassBlur {
+    final upperRange = ((_glassAppearance - 0.7) / 0.3).clamp(0.0, 1.0);
+    return defaultGlassBlur + 1.42 * upperRange * upperRange;
+  }
+
+  double get glassOpacity => 0.3 + 1.2 * _glassAppearance;
 
   ThemeMode _themeMode = ThemeMode.dark;
   int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
@@ -24,6 +46,8 @@ class ThemeService extends ChangeNotifier {
   AppColorChoice _appColorChoice = AppColorChoice.trainLibre;
   Color _customAppColor = const Color(0xFF6750A4);
   bool _hapticsEnabled = true;
+  bool _showWorkoutE1rm = false;
+  bool _showWorkoutE1rmChanged = false;
   bool _useColorfulMacroBadges = true;
   BaseFoodLanguage _baseFoodLanguage = BaseFoodLanguage.auto;
 
@@ -49,6 +73,24 @@ class ThemeService extends ChangeNotifier {
   /// Whether haptic feedback is enabled globally.
   bool get hapticsEnabled => _hapticsEnabled;
 
+  bool get showWorkoutE1rm => _showWorkoutE1rm;
+
+  Future<void> setShowWorkoutE1rm(bool value) async {
+    _showWorkoutE1rmChanged = true;
+    _showWorkoutE1rm = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showWorkoutE1rmKey, value);
+  }
+
+  Future<void> _loadShowWorkoutE1rm() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!_showWorkoutE1rmChanged) {
+      _showWorkoutE1rm = prefs.getBool(_showWorkoutE1rmKey) ?? false;
+      notifyListeners();
+    }
+  }
+
   /// Whether to use colorful macro badges in the diary.
   /// Hardcoded to always return true per requirements.
   bool get useColorfulMacroBadges => true;
@@ -58,13 +100,43 @@ class ThemeService extends ChangeNotifier {
 
   /// Creates a [ThemeService] and loads saved preferences.
   ThemeService() {
+    _loadGlassPreferences();
     _loadThemeMode();
     _loadVisualStyle();
     _loadAiEnabled();
     _loadAppColorSelection();
     _loadHapticsEnabled();
+    _loadShowWorkoutE1rm();
     _loadUseColorfulMacroBadges();
     _loadBaseFoodLanguage();
+  }
+
+  Future<void> _loadGlassPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!_glassAppearanceDirty) {
+      final saved = prefs.getDouble(_glassAppearanceKey);
+      if (saved != null) {
+        _glassAppearance = saved.clamp(0.0, 1.0);
+      } else if (prefs.containsKey(_glassBlurKey) ||
+          prefs.containsKey(_glassOpacityKey)) {
+        // Approximate the previous independent settings with one slider. Keep
+        // their original values in storage so migration is non-destructive.
+        final oldBlur = prefs.getDouble(_glassBlurKey) ?? 1.0;
+        final oldOpacity = prefs.getDouble(_glassOpacityKey) ?? 1.0;
+        _glassAppearance = ((oldBlur + oldOpacity) / 2 - 0.5).clamp(0.0, 1.0);
+      } else {
+        _glassAppearance = defaultGlassAppearance;
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<void> setGlassAppearance(double value) async {
+    _glassAppearance = value.clamp(0.0, 1.0);
+    _glassAppearanceDirty = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_glassAppearanceKey, _glassAppearance);
   }
 
   Future<void> _loadThemeMode() async {

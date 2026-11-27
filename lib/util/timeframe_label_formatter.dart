@@ -53,4 +53,22 @@ class TimeframeLabelFormatter {
         return "";
     }
   }
+
+  static String formatRelativeRolling(
+    TimeframeBlock block,
+    AppLocalizations l10n,
+  ) {
+    switch (block) {
+      case TimeframeBlock.week:
+        return l10n.statisticsLast7Days;
+      case TimeframeBlock.month:
+        return l10n.statisticsLast30Days;
+      case TimeframeBlock.threeMonths:
+        return l10n.statisticsLast3Months;
+      case TimeframeBlock.sixMonths:
+        return l10n.statisticsLast6Months;
+      default:
+        return formatRolling(block, l10n);
+    }
+  }
 }

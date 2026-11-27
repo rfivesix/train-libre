@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../util/design_constants.dart';
 
@@ -6,6 +6,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../pulse/domain/pulse_models.dart';
+import '../../../pulse/data/hrv_repository.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
 
@@ -41,7 +42,7 @@ class PulseSectionCard extends StatelessWidget {
 
     final summary = state.data;
     final chipLabel = fallbackRangeLabel;
-    final hasMetrics = summary?.hasCoreMetrics ?? false;
+    final hasMetrics = summary?.hasPulseRange ?? false;
     final rangeValue = !hasMetrics
         ? '--'
         : '${summary!.minBpm!.round()}-${summary.maxBpm!.round()}';
@@ -53,8 +54,8 @@ class PulseSectionCard extends StatelessWidget {
         : '${summary!.restingBpm!.round()}';
     final stateText = summary == null
         ? l10n.load_dots
-        : summary.hasData
-        ? '${l10n.pulseSampleCount(summary.sampleCount)} - ${_pulseQualityLabel(l10n, summary.quality)}'
+        : (summary.sampleCount > 0 || summary.hasData)
+        ? null
         : _pulseNoDataMessage(l10n, summary.noDataReason);
 
     return AnalyticsCardBase.decorateSectionCard(
@@ -76,7 +77,7 @@ class PulseSectionCard extends StatelessWidget {
                 chipText: chipLabel,
               ),
               const SizedBox(height: DesignConstants.spacingL),
-              _buildTwoColumnGrid([
+              _buildKpiGrid([
                 ValueSummaryCard(
                   label: l10n.pulseRangeLabel,
                   value: summary?.minBpm == null
@@ -95,19 +96,34 @@ class PulseSectionCard extends StatelessWidget {
                 ),
                 ValueSummaryCard(
                   label: l10n.pulseRestingLabel,
+                  subtitle: summary?.restingBpmIsEstimated == true
+                      ? l10n.pulseEstimateLabel
+                      : null,
                   value: summary?.restingBpm == null
                       ? restingValue
                       : '$restingValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
                   useSecondarySurface: true,
                 ),
+                if (summary?.hrv != null &&
+                    summary!.hrv!.state != HrvState.unavailable)
+                  ValueSummaryCard(
+                    label: l10n.hrvTitle,
+                    value: summary.hrv!.averageMs == null
+                        ? '--'
+                        : '${summary.hrv!.averageMs!.round()} ms',
+                    disableShadow: true,
+                    useSecondarySurface: true,
+                  ),
               ]),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                stateText,
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
-              ),
+              if (stateText != null) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  stateText,
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+              ],
             ],
           ),
         ),
@@ -115,7 +131,21 @@ class PulseSectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTwoColumnGrid(List<Widget> items) {
+  Widget _buildKpiGrid(List<Widget> items) {
+    if (items.length == 3) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: items[0]),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(child: items[1]),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(child: items[2]),
+          ],
+        ),
+      );
+    }
     final rows = <Widget>[];
     for (var i = 0; i < items.length; i += 2) {
       final left = items[i];
@@ -137,15 +167,6 @@ class PulseSectionCard extends StatelessWidget {
       }
     }
     return Column(children: rows);
-  }
-
-  String _pulseQualityLabel(AppLocalizations l10n, PulseDataQuality quality) {
-    return switch (quality) {
-      PulseDataQuality.ready => l10n.pulseQualityReady,
-      PulseDataQuality.limited => l10n.pulseQualityLimited,
-      PulseDataQuality.insufficient => l10n.pulseQualityInsufficient,
-      PulseDataQuality.noData => l10n.pulseQualityNoData,
-    };
   }
 
   String _pulseNoDataMessage(AppLocalizations l10n, PulseNoDataReason reason) {

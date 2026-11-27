@@ -15,9 +15,9 @@ import 'package:uuid/uuid.dart';
 /// All payloads are decoded by the existing portable import codec first.
 class AssistantChangeExecutor {
   const AssistantChangeExecutor({
-    ShareLinkRepository sharing = const ShareLinkRepository(),
+    this._sharing = const ShareLinkRepository(),
     this.diaryRepository,
-  }) : _sharing = sharing;
+  });
 
   final ShareLinkRepository _sharing;
   final IDiaryRepository? diaryRepository;

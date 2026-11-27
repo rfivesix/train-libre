@@ -1,15 +1,17 @@
-Train Libre 1.7.0
+Train Libre 1.7.1
 
-Please prioritise these checks and report crashes, lost data, incorrect totals, or changes made without approval. Include your device, iOS version, steps, and screenshots where helpful.
+Please report crashes, lost data, incorrect totals, or unexpected changes. Include your device, iOS version, steps to reproduce, and screenshots where helpful. Health checks depend on permissions and available data.
 
-1. Update and data safety: Back up an existing 1.6.0 installation, then update to the beta. Confirm the app starts and your diary, workouts, plans, goals, settings, and photos are intact after restarting. Check the What's New and AI introduction. If possible, restore the backup on a test device and verify the same data.
+1. Update and data safety: Back up an existing 1.7.0 installation, update to this build, and restart. Confirm workouts, diary entries, plans, settings, and photos remain intact. Check the What’s New sheet. If possible, restore the backup on a test device.
 
-2. AI permissions and changes: Ask the assistant about your diary or training. Deny access first, then approve only the requested data and check the answer against the app. Create or revise a routine, plan, or recipe: discard one proposal and apply another, verifying nothing changes before approval and the applied result persists. Try follow-up questions, chat history after restarting, and hiding/reopening the assistant.
+2. Sleep, pulse, and steps: Grant Apple Health access and open the diary and sleep and pulse statistics. Check sleep stages, duration, charts, heart rate, and HRV where data is available. In Health settings, use the shield beside Pulse to grant resting heart rate access. Compare the same day in Apple Health, Diary, and Pulse. Check that a day without a reported resting heart rate shows an estimate when regular pulse samples exist. Try manual pulse sync. Compare step totals with Apple Health, including days with both iPhone and Apple Watch data and around midnight. Check empty states and denied permissions.
 
-3. Meals and macro totals: Scan or describe a mixed meal and a drink, review and edit ingredients, portions, liquid amount and caffeine, then save. Compare diary and daily calorie/macro totals; edit, move and delete entries. Also try manual macro entry and an AI chat meal proposal. Cancel a scan and confirm the camera and diary remain responsive. Test camera, photo attachment and voice on a physical iPhone if available.
+3. Workouts and timers: Start a workout and log completed and planned sets. Check that the active exercise is visible below the top bar when a workout opens or resumes. Check the redesigned workout and summary screens, muscle overview, and volume after editing or deleting sets. Reorder sets in live workouts, routines, and workout details; restart and verify the order persists. Record and edit RPE, including the help sheet. Try a timed set and its floating stopwatch controls. Enable and disable estimated one-rep maximum in Appearance and check set rows and the live comparison. Trigger a personal record if possible. Finish a session and confirm it persists after restarting; separately test discarding a session and cancelling its confirmation. Adjust a rest timer in the app and from the Live Activity, including in the background; check the deadline and completion sound.
 
-4. Apple Health nutrition: With permission, import daily nutrition, refresh twice, and check totals and duplicates. Edit or delete an imported entry and refresh again; local changes should remain. Export a manual macro entry and check the result in Health. Try denying permissions as well.
+4. Appearance and navigation: Change the glass appearance slider and check its preview, menus, icons, sheets, and date/time pickers in light and dark mode. Check scrolling and keyboard visibility in measurement forms. Open and dismiss AI Chat and navigate between diary cards and detail screens.
 
-5. Core flows and setup: Complete a workout and restart the app to verify sets are saved. Try a fresh install, onboarding, optional AI/analytics consent, and offline startup. Test Spanish or Dutch, catalog search, and custom colours in light and dark mode if available.
+5. Statistics: Scroll down and back up through the overview and check for jumps. Check the nutrition and personal-record screens, and verify training heatmap activity across daylight-saving changes. Open workout days and verify displayed periods and totals.
+
+6. Everyday flows: Add and edit foods or meals, check diary totals, and retry or cancel an AI meal analysis. Check the updated food and recipe cards, language selection, and offline startup.
 
 Thank you for testing Train Libre!

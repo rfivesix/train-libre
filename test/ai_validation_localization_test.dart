@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/services/ai_meal_validation.dart';
 import 'package:train_libre/util/ai_validation_localization.dart';
 
@@ -14,7 +15,7 @@ Future<String> _localizedIssueText(
   await tester.pumpWidget(
     MaterialApp(
       locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Builder(
         builder: (context) {

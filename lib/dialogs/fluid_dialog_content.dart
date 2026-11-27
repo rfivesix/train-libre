@@ -1,6 +1,6 @@
 // lib/dialogs/fluid_dialog_content.dart - replace the entire file
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

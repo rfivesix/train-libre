@@ -133,6 +133,14 @@ final class WorkoutLiveActivityBridge {
         result(false)
         return
       }
+      // An intent may already have updated ActivityKit while Flutter still
+      // holds the previous state. Wait for the command queue to be applied
+      // before accepting an app update that would undo that interaction.
+      if let pending = Self.defaults?.array(forKey: TrainLibreLiveActivity.pendingCommandsKey),
+         !pending.isEmpty {
+        result(true)
+        return
+      }
       let state = Self.fittingContentState(unboundedState)
 
       Task {

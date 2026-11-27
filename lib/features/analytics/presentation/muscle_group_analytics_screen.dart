@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:provider/provider.dart';
@@ -31,7 +31,14 @@ import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
-  const MuscleGroupAnalyticsScreen({super.key});
+  final TimeframeBlock initialBlock;
+  final bool initialIsRolling;
+
+  const MuscleGroupAnalyticsScreen({
+    super.key,
+    this.initialBlock = TimeframeBlock.week,
+    this.initialIsRolling = true,
+  });
 
   @override
   State<MuscleGroupAnalyticsScreen> createState() =>
@@ -71,6 +78,10 @@ class _MuscleGroupAnalyticsScreenState
   @override
   void initState() {
     super.initState();
+    _activeBlock = _validBlocks.contains(widget.initialBlock)
+        ? widget.initialBlock
+        : TimeframeBlock.week;
+    _isRolling = widget.initialIsRolling;
     unawaited(
       TelemetryService.instance.trackScreenView(
         screenName: ScreenName.muscleGroupAnalytics,
@@ -178,7 +189,8 @@ class _MuscleGroupAnalyticsScreenState
       onSelected: (index) {
         setState(() {
           _activeBlock = _validBlocks[index];
-          _isRolling = false;
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
         });
         _loadData();
       },
@@ -286,13 +298,12 @@ class _MuscleGroupAnalyticsScreenState
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
-            top: DesignConstants.screenPadding.top + topPadding,
+            top: topPadding + DesignConstants.spacingS,
             bottom: DesignConstants.bottomContentSpacer,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionLabel(l10n.analyticsPeriodLabel),
               bodyContent,
               _buildVolumeModeToggle(l10n),
             ],
@@ -632,7 +643,7 @@ class _MuscleGroupAnalyticsScreenState
                     color: Theme.of(context).colorScheme.onSurface
                         .withValues(alpha: 0.08),
                   ),
-                  getTooltipItem: (group, _, rod, __) {
+                  getTooltipItem: (group, _, rod, _) {
                     final index = group.x.toInt();
                     final label = labels[index];
                     final value = values[index];

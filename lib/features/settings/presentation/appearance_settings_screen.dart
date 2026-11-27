@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +10,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'app_color_settings_screen.dart';
+import 'liquid_glass_settings_section.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
@@ -98,6 +99,21 @@ class AppearanceSettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          AppSectionHeader(title: l10n.settingsWorkoutDisplay),
+          AppSettingsRow.switchTile(
+            title: l10n.settingsShowWorkoutE1rm,
+            subtitle: l10n.settingsShowWorkoutE1rmSubtitle,
+            leading: Icon(
+              LucideIcons.dumbbell,
+              size: 24,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            value: themeService.showWorkoutE1rm,
+            onChanged: themeService.setShowWorkoutE1rm,
+          ),
+          const SizedBox(height: 24),
+          const LiquidGlassSettingsSection(),
         ],
       ),
     );

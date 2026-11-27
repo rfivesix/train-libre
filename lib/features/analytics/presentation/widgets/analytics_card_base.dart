@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
@@ -108,7 +108,7 @@ class AnalyticsCardBase {
           top: 10,
           right: 10,
           child: Icon(
-            LucideIcons.triangle_alert,
+            LucideIcons.triangle_exclamation_point,
             size: 16,
             color: Theme.of(context).colorScheme.error,
           ),

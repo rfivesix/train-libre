@@ -120,6 +120,7 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
 
   bool cancelRestCalled = false;
   int? adjustedRestDelta;
+  DateTime? adjustedRestDeadline;
   final List<({int templateId, int? elapsedSeconds})> completedTimedSets = [];
   final List<({int templateId, DateTime? startedAt, int elapsedSeconds})>
   startedSetTimers = [];
@@ -134,6 +135,11 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
   @override
   void adjustRestTime(int deltaSeconds) {
     adjustedRestDelta = deltaSeconds;
+  }
+
+  @override
+  void setRestDeadline(DateTime deadline) {
+    adjustedRestDeadline = deadline;
   }
 
   @override
@@ -183,6 +189,7 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
     double? weight,
     int? reps,
     int? rir,
+    double? rpe,
     bool? isCompleted,
   }) async {
     updatedSets.add({
@@ -363,5 +370,25 @@ void main() {
       expect(host.stoppedSetTimers.first.templateId, equals(303));
       expect(host.stoppedSetTimers.first.elapsedSeconds, equals(60));
     });
+
+    test(
+      'uses the absolute deadline from a live activity adjustment',
+      () async {
+        final deadline = DateTime.now().add(const Duration(seconds: 40));
+        service.queuedCommands = [
+          {
+            'kind': 'adjustRest',
+            'deltaSeconds': 15,
+            'restEndsAtEpochMs': deadline.millisecondsSinceEpoch,
+          },
+        ];
+        await coordinator.applyPendingLiveActivityCommands();
+        expect(
+          host.adjustedRestDeadline?.millisecondsSinceEpoch,
+          deadline.millisecondsSinceEpoch,
+        );
+        expect(host.adjustedRestDelta, isNull);
+      },
+    );
   });
 }

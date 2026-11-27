@@ -63,7 +63,7 @@ DOCS_STRUCTURE = [
             },
             {
                 "id": "features-sleep",
-                "title": "Sleep Health Score (SHS v3)",
+                "title": "Sleep Health Score",
                 "slug": "sleep-scoring-engine",
                 "src_file": SRC_DOC_DIR / "features" / "sleep_scoring_engine.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "sleep-scoring-engine",

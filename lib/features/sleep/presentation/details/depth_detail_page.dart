@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
+// UNUSED SCREEN: No longer linked from the sleep UI. Retained temporarily;
+// review and remove once the replacement has been verified. The named route
+// remains registered for compatibility.
+
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../data/sleep_day_repository.dart';
 import '../../domain/sleep_enums.dart';
-import '../../domain/scoring/sleep_scoring_engine.dart';
 import 'sleep_detail_page_shell.dart';
 import 'sleep_metric_formatters.dart';
 
@@ -43,27 +46,18 @@ class DepthDetailPage extends StatelessWidget {
       );
     }
 
-    final deepDuration = overview.deepDuration ?? Duration.zero;
-    final lightDuration = overview.lightDuration ?? Duration.zero;
-    final remDuration = overview.remDuration ?? Duration.zero;
-    final total = deepDuration + lightDuration + remDuration;
-    final totalMinutes = total.inMinutes == 0 ? 1 : total.inMinutes;
-    final deepPct = (deepDuration.inMinutes / totalMinutes) * 100;
-    final lightPct = (lightDuration.inMinutes / totalMinutes) * 100;
-    final remPct = (remDuration.inMinutes / totalMinutes) * 100;
-    final architectureScore = scoreArchitectureV3(
-      durationMinutes: totalMinutes,
-      lightSleepPct: lightPct,
-      deepSleepPct: deepPct,
-      remSleepPct: remPct,
-    );
-    final rating = ((architectureScore ?? 0) * 100) >= 68
-        ? l10n.sleepDepthRatingRestorative
-        : l10n.sleepDepthRatingLightLeaning;
+    final deepDuration = overview.deepDuration;
+    final lightDuration = overview.lightDuration;
+    final remDuration = overview.remDuration;
+    final totalMinutes = overview.totalSleepMinutes;
+    double? percentage(Duration? value) =>
+        value == null || totalMinutes == null || totalMinutes <= 0
+        ? null
+        : value.inMinutes / totalMinutes * 100;
 
     return SleepDetailPageShell(
       title: l10n.sleepMetricDepthTitle,
-      value: rating,
+      value: l10n.sleepDashboardStageEstimate,
       statusLabel: l10n.sleepDepthStageConfidenceLabel(
         overview.stageDataConfidence.name,
       ),
@@ -74,15 +68,15 @@ class DepthDetailPage extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                flex: deepDuration.inMinutes.clamp(1, totalMinutes).toInt(),
+                flex: deepDuration?.inMinutes ?? 0,
                 child: Container(color: Colors.indigo),
               ),
               Expanded(
-                flex: lightDuration.inMinutes.clamp(1, totalMinutes).toInt(),
+                flex: lightDuration?.inMinutes ?? 0,
                 child: Container(color: Colors.blue),
               ),
               Expanded(
-                flex: remDuration.inMinutes.clamp(1, totalMinutes).toInt(),
+                flex: remDuration?.inMinutes ?? 0,
                 child: Container(color: Colors.purple),
               ),
             ],
@@ -92,17 +86,17 @@ class DepthDetailPage extends StatelessWidget {
         _DepthRow(
           label: l10n.sleepStageDeepLabel,
           duration: deepDuration,
-          percent: deepPct,
+          percent: percentage(deepDuration),
         ),
         _DepthRow(
           label: l10n.sleepStageLightLabel,
           duration: lightDuration,
-          percent: lightPct,
+          percent: percentage(lightDuration),
         ),
         _DepthRow(
           label: l10n.sleepStageRemLabel,
           duration: remDuration,
-          percent: remPct,
+          percent: percentage(remDuration),
         ),
       ],
     );
@@ -117,8 +111,8 @@ class _DepthRow extends StatelessWidget {
   });
 
   final String label;
-  final Duration duration;
-  final double percent;
+  final Duration? duration;
+  final double? percent;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +122,11 @@ class _DepthRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Text('${formatDuration(duration)} • ${percent.toStringAsFixed(0)}%'),
+          Text(
+            duration == null
+                ? '–'
+                : '${formatDuration(duration!)}${percent == null ? '' : ' • ${percent!.toStringAsFixed(0)}%'}',
+          ),
         ],
       ),
     );

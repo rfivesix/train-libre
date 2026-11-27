@@ -10,7 +10,11 @@ import 'package:train_libre/services/health/steps_sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeHealthPlatformSteps extends HealthPlatformSteps {
-  _FakeHealthPlatformSteps(this._reads);
+  _FakeHealthPlatformSteps(this._reads, {this.mergedApple = false});
+
+  final bool mergedApple;
+  @override
+  bool get usesMergedAppleStatistics => mergedApple;
 
   final List<List<HealthStepSegmentDto>> _reads;
   int _readCalls = 0;
@@ -137,6 +141,83 @@ void main() {
       },
     );
 
+    test('Apple migration replaces raw history and later hourly updates',
+        () async {
+      final oldDay = DateTime(2026, 2, 1, 12);
+      final today = DateTime(2026, 3, 26, 12);
+      HealthStepSegmentDto merged(DateTime start, int count) =>
+          HealthStepSegmentDto(
+            startAtUtc: start.toUtc(),
+            endAtUtc: start.add(const Duration(hours: 1)).toUtc(),
+            stepCount: count,
+            sourceId: 'healthkit_merged',
+            nativeId: 'hour-${start.toUtc().toIso8601String()}',
+          );
+      await dbHelper.upsertHealthStepSegments([
+        HealthStepSegmentsCompanion.insert(
+            provider: 'apple_healthkit',
+            sourceId: const drift.Value('watch'),
+            startAt: oldDay.toUtc(),
+            endAt: oldDay.add(const Duration(minutes: 30)).toUtc(),
+            stepCount: 900,
+            externalKey: 'old-watch'),
+        HealthStepSegmentsCompanion.insert(
+            provider: 'apple_healthkit',
+            sourceId: const drift.Value('phone'),
+            startAt: today.toUtc(),
+            endAt: today.add(const Duration(minutes: 30)).toUtc(),
+            stepCount: 1500,
+            externalKey: 'old-phone'),
+      ]);
+      final service = StepsSyncService(
+          platform: _FakeHealthPlatformSteps([
+            [merged(oldDay, 500), merged(today, 700)],
+            [merged(today, 800)],
+          ], mergedApple: true),
+          stepsDb: StepsLocalDataSource(database));
+      await service.setTrackingEnabled(true);
+      await service.sync(now: today.add(const Duration(hours: 1)));
+      expect(await dbHelper.getDailyStepsTotal(dayLocal: oldDay), 500);
+      expect(await dbHelper.getDailyStepsTotal(dayLocal: today), 700);
+      await service.sync(now: today.add(const Duration(hours: 2)));
+      expect(await dbHelper.getDailyStepsTotal(dayLocal: oldDay), 500);
+      expect(await dbHelper.getDailyStepsTotal(dayLocal: today), 800);
+    });
+
+    test('empty Apple response preserves previously imported data', () async {
+      final day = DateTime(2026, 3, 26, 12);
+      await dbHelper.upsertHealthStepSegments([
+        HealthStepSegmentsCompanion.insert(
+            provider: 'apple_healthkit',
+            sourceId: const drift.Value('watch'),
+            startAt: day.toUtc(),
+            endAt: day.add(const Duration(minutes: 30)).toUtc(),
+            stepCount: 900,
+            externalKey: 'keep'),
+      ]);
+      final service = StepsSyncService(
+          platform: _FakeHealthPlatformSteps([[]], mergedApple: true),
+          stepsDb: StepsLocalDataSource(database));
+      await service.setTrackingEnabled(true);
+      final result = await service.sync(now: day.add(const Duration(hours: 1)));
+      expect(result.skipped, isTrue);
+      expect(await dbHelper.getDailyStepsTotal(dayLocal: day), 900);
+    });
+
+    test('hour ending at midnight is not counted on the next day', () async {
+      final midnight = DateTime(2026, 3, 27);
+      await dbHelper.upsertHealthStepSegments([
+        HealthStepSegmentsCompanion.insert(
+            provider: 'apple_healthkit',
+            sourceId: const drift.Value('healthkit_merged'),
+            startAt: midnight.subtract(const Duration(hours: 1)).toUtc(),
+            endAt: midnight.toUtc(),
+            stepCount: 500,
+            externalKey: 'midnight'),
+      ]);
+      expect(await dbHelper.getDailyStepsTotal(dayLocal: midnight), 0);
+    });
+
     test('aggregation auto policy uses dominant source per day', () async {
       await dbHelper.upsertHealthStepSegments(<HealthStepSegmentsCompanion>[
         HealthStepSegmentsCompanion.insert(
@@ -184,9 +265,10 @@ void main() {
       final hourly = await dbHelper.getHourlyStepsTotalsForDay(
         dayLocal: dayLocal,
       );
-      final hourlyTotals =
-          hourly.map((row) => row['totalSteps'] as int).toList(growable: false)
-            ..sort();
+      final hourlyTotals = hourly
+          .map((row) => row['totalSteps'] as int)
+          .toList(growable: false)
+        ..sort();
       expect(hourlyTotals, <int>[500, 1000]);
 
       final range = await dbHelper.getDailyStepsTotalsForRange(
@@ -248,9 +330,10 @@ void main() {
         dayLocal: dayLocal,
         sourcePolicy: 'max_per_hour',
       );
-      final hourlyTotals =
-          hourly.map((row) => row['totalSteps'] as int).toList(growable: false)
-            ..sort();
+      final hourlyTotals = hourly
+          .map((row) => row['totalSteps'] as int)
+          .toList(growable: false)
+        ..sort();
       expect(hourlyTotals, <int>[500, 1200]);
 
       final range = await dbHelper.getDailyStepsTotalsForRange(

@@ -20,15 +20,12 @@ class FeedbackReportBuilder {
   final NowProvider _nowProvider;
 
   FeedbackReportBuilder({
-    required FeedbackReportDiagnosticsProvider adaptiveDiagnosticsProvider,
-    required FeedbackReportDiagnosticsProvider backupRestoreDiagnosticsProvider,
-    FeedbackReportDiagnosticsProvider? performanceDiagnosticsProvider,
+    required this._adaptiveDiagnosticsProvider,
+    required this._backupRestoreDiagnosticsProvider,
+    this._performanceDiagnosticsProvider,
     PackageInfoLoader? packageInfoLoader,
     NowProvider? nowProvider,
-  }) : _adaptiveDiagnosticsProvider = adaptiveDiagnosticsProvider,
-       _backupRestoreDiagnosticsProvider = backupRestoreDiagnosticsProvider,
-       _performanceDiagnosticsProvider = performanceDiagnosticsProvider,
-       _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
+  }) : _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
        _nowProvider = nowProvider ?? DateTime.now;
 
   Future<FeedbackReportDocument> build({

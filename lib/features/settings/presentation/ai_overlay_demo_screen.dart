@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +10,7 @@ import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
+import '../../../widgets/common/platform_adaptive_slider.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
@@ -165,8 +166,11 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
               Text('${(settings.liveliness * 100).round()}%'),
             ],
           ),
-          Slider(
+          PlatformAdaptiveSlider(
             value: settings.liveliness,
+            semanticLabel: l10n.aiOverlayDemoLivelinessTitle,
+            semanticValue: '${(settings.liveliness * 100).round()}%',
+            semanticFormatter: (value) => '${(value * 100).round()}%',
             onChanged: (value) =>
                 unawaited(AiOverlayDemoSettings.update(liveliness: value)),
           ),

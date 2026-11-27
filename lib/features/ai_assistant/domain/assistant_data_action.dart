@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 
 import 'assistant_data_request.dart';
 
-enum AssistantActionStatus { success, denied, error }
+enum AssistantActionStatus { success, denied, unavailable, error }
 
 class AssistantActionResult {
   const AssistantActionResult({
@@ -13,6 +13,7 @@ class AssistantActionResult {
     this.records = const [],
     this.tables = const {},
     this.tableColumns = const {},
+    this.sourceStatus,
     this.error,
   });
   final AssistantDataCategory category;
@@ -23,6 +24,10 @@ class AssistantActionResult {
   /// rows; [records] remains the compact, user-facing interpretation.
   final Map<String, List<Map<String, dynamic>>> tables;
   final Map<String, Map<String, String>> tableColumns;
+
+  /// Optional structured availability metadata (e.g. tracking disabled,
+  /// permission missing, last sync timestamp) exposed via `data_source_status`.
+  final Map<String, dynamic>? sourceStatus;
   final String? error;
 
   Map<String, dynamic> get manifest => {
@@ -120,7 +125,9 @@ class AssistantDataGateway {
         continue;
       }
       try {
-        results.add(await matching.single.read(category, request.scope));
+        results.add(
+          await matching.single.read(category, request.scopeFor(category)),
+        );
       } catch (error) {
         results.add(
           AssistantActionResult(

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_presentation.dart';
@@ -85,7 +86,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
           home: Builder(
@@ -135,7 +136,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'),
         home: Scaffold(
@@ -243,7 +244,7 @@ void main() {
     AiGlobalCloudPresentation.onQuickChatTap = () => cloudTaps++;
     await tester.pumpWidget(
       MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Stack(

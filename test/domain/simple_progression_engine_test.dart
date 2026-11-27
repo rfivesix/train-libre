@@ -26,6 +26,13 @@ void main() {
     bodyweightKg: bodyweightKg,
   );
 
+  test('half-step reserve interpolates retention', () {
+    expect(
+      SimpleProgressionEngine.fatigueRetentionForRir(1.5),
+      closeTo(0.965, 0.00001),
+    );
+  });
+
   test('keeps straight-set load and lets repetitions absorb fatigue', () {
     final suggestion = next(previousLoad: 100, previousReps: 11);
 

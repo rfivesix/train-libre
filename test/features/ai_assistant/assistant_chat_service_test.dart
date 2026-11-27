@@ -24,7 +24,7 @@ String dataDecision(
 }) => jsonEncode({
   'kind': 'data',
   'categories': categories,
-  if (expression != null) 'dateExpression': expression,
+  'dateExpression': ?expression,
   if (start != null && end != null)
     'scope': {'start': start, 'end': end, 'label': 'model period'},
 });

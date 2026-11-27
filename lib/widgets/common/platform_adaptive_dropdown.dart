@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -65,14 +67,17 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final menuSettings = LiquidGlassSettings(
-      thickness: 30,
-      blur: 8.0,
-      glassColor: isDark
-          ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
-          : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
-      lightIntensity: isDark ? 0.55 : 0.80,
-      saturation: 1.20,
+    final menuSettings = GlassPreferences.of(context).apply(
+      LiquidGlassSettings(
+        thickness: 30,
+        blur: 8.0,
+        glassColor: isDark
+            ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
+            : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
+        lightIntensity: isDark ? 0.55 : 0.80,
+        saturation: 1.20,
+      ),
+      premium: true,
     );
 
     final menuItems = <Widget>[];
@@ -171,14 +176,17 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
       autovalidateMode: autovalidateMode,
       builder: (FormFieldState<T> state) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final menuSettings = LiquidGlassSettings(
-          thickness: 30,
-          blur: 8.0,
-          glassColor: isDark
-              ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
-              : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
-          lightIntensity: isDark ? 0.55 : 0.80,
-          saturation: 1.20,
+        final menuSettings = GlassPreferences.of(context).apply(
+          LiquidGlassSettings(
+            thickness: 30,
+            blur: 8.0,
+            glassColor: isDark
+                ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.88)
+                : Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
+            lightIntensity: isDark ? 0.55 : 0.80,
+            saturation: 1.20,
+          ),
+          premium: true,
         );
 
         // Find the currently selected item or fall back to the first item
@@ -372,14 +380,17 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final menuSettings = LiquidGlassSettings(
-      thickness: 30,
-      blur: 8.0,
-      glassColor: isDark
-          ? theme.colorScheme.surface.withValues(alpha: 0.88)
-          : theme.colorScheme.surface.withValues(alpha: 0.94),
-      lightIntensity: isDark ? 0.55 : 0.80,
-      saturation: 1.20,
+    final menuSettings = GlassPreferences.of(context).apply(
+      LiquidGlassSettings(
+        thickness: 30,
+        blur: 8.0,
+        glassColor: isDark
+            ? theme.colorScheme.surface.withValues(alpha: 0.88)
+            : theme.colorScheme.surface.withValues(alpha: 0.94),
+        lightIntensity: isDark ? 0.55 : 0.80,
+        saturation: 1.20,
+      ),
+      premium: true,
     );
 
     // What the collapsed field says. The selected labels rather than a count:
@@ -522,4 +533,74 @@ class _CloudAwareGlassMenuState extends State<_CloudAwareGlassMenu> {
   @override
   Widget build(BuildContext context) =>
       widget.builder(context, _onToggle, _onClose);
+}
+
+/// A compact chip-styled dropdown selector backed by [PlatformAdaptivePopupMenu].
+///
+/// Renders an unselected [ChoiceChip] trigger with the active label and a
+/// trailing chevron, matching [TimeRangeFilter] chip typography and appearance.
+class PlatformAdaptiveChipDropdown<T> extends StatelessWidget {
+  final T selectedValue;
+  final List<PlatformAdaptivePopupMenuItem<T>> items;
+  final ValueChanged<T> onSelected;
+  final String? selectedLabel;
+  final double menuWidth;
+  final bool enabled;
+  final bool autoAdjustToScreen;
+
+  const PlatformAdaptiveChipDropdown({
+    super.key,
+    required this.selectedValue,
+    required this.items,
+    required this.onSelected,
+    this.selectedLabel,
+    this.menuWidth = 220.0,
+    this.enabled = true,
+    this.autoAdjustToScreen = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final resolvedLabel =
+        selectedLabel ??
+        items
+            .cast<PlatformAdaptivePopupMenuItem<T>?>()
+            .firstWhere(
+              (item) => item?.value == selectedValue,
+              orElse: () => null,
+            )
+            ?.label ??
+        '';
+
+    return PlatformAdaptivePopupMenu<T>(
+      autoAdjustToScreen: autoAdjustToScreen,
+      menuWidth: menuWidth,
+      enabled: enabled,
+      selectedValue: selectedValue,
+      onSelected: onSelected,
+      items: items,
+      icon: IgnorePointer(
+        child: ChoiceChip(
+          selected: false,
+          onSelected: enabled ? (_) {} : null,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(resolvedLabel),
+              const SizedBox(width: 4),
+              Icon(
+                LucideIcons.chevron_down,
+                size: 16,
+                color: enabled
+                    ? theme.colorScheme.onSurface
+                    : theme.disabledColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

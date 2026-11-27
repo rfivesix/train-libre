@@ -1,10 +1,8 @@
-import '../../statistics/domain/statistics_data_quality_policy.dart';
 import '../../statistics/domain/timeframe_block.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
-import '../../statistics/domain/statistics_range_policy.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
@@ -26,16 +24,25 @@ import 'dart:async';
 
 import '../../../services/telemetry/telemetry_service.dart';
 
+typedef BodyNutritionAnalyticsLoader =
+    Future<BodyNutritionAnalyticsResult> Function({
+      required TimeframeBlock selectedBlockType,
+      required DateTime anchorDate,
+      bool isRolling,
+    });
+
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final TimeframeBlock initialBlock;
   final DateTime? initialAnchorDate;
   final bool initialIsRolling;
+  final BodyNutritionAnalyticsLoader? analyticsLoader;
 
   const BodyNutritionCorrelationScreen({
     super.key,
     this.initialBlock = TimeframeBlock.month,
     this.initialAnchorDate,
     this.initialIsRolling = true,
+    this.analyticsLoader,
   });
 
   @override
@@ -46,7 +53,6 @@ class BodyNutritionCorrelationScreen extends StatefulWidget {
 class _BodyNutritionCorrelationScreenState
     extends State<BodyNutritionCorrelationScreen> {
   bool _isRolling = true;
-  final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
 
   TimeframeBlock _activeBlock = TimeframeBlock.month;
@@ -84,7 +90,8 @@ class _BodyNutritionCorrelationScreenState
     final loadEpoch = ++_loadEpoch;
     setState(() => _isLoading = true);
     try {
-      final analytics = await BodyNutritionAnalyticsUtils.build(
+      final loader = widget.analyticsLoader ?? BodyNutritionAnalyticsUtils.build;
+      final analytics = await loader(
         selectedBlockType: _activeBlock,
         anchorDate: _anchorDate,
         isRolling: _isRolling,
@@ -117,14 +124,20 @@ class _BodyNutritionCorrelationScreenState
     final l10n = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
-    final hasNoData = _analytics == null;
-    final displayAnalytics =
-        _analytics ??
-        getMockCorrelationResult(
-          _isRolling
-              ? _activeBlock.getRollingBounds()
-              : _activeBlock.getBounds(_anchorDate, DateTime(2020)),
-        );
+    final isInitialLoading = _isLoading && _analytics == null;
+    final hasNoData =
+        !_isLoading && (_analytics == null || !_analytics!.hasAnyData);
+    final useMockData =
+        isInitialLoading || _analytics == null || !_analytics!.hasAnyData;
+    final mockRange = _activeBlock == TimeframeBlock.maxBlock
+        ? TimeframeBlock.month.getRollingBounds()
+        : (_analytics?.range ??
+              (_isRolling
+                  ? _activeBlock.getRollingBounds()
+                  : _activeBlock.getBounds(_anchorDate, DateTime(2020))));
+    final displayAnalytics = useMockData
+        ? BodyNutritionAnalyticsResult.mockPreview(mockRange)
+        : _analytics!;
 
     Widget bodyContent = _buildBodyContent(l10n, displayAnalytics);
 
@@ -136,6 +149,11 @@ class _BodyNutritionCorrelationScreenState
           child: IgnorePointer(child: bodyContent),
         ),
       );
+    } else if (useMockData) {
+      bodyContent = Skeletonizer(
+        enabled: true,
+        child: IgnorePointer(child: bodyContent),
+      );
     }
 
     final timeframeFilter = TimeRangeFilter(
@@ -144,7 +162,8 @@ class _BodyNutritionCorrelationScreenState
       onSelected: (index) {
         setState(() {
           _activeBlock = _validBlocks[index];
-          _isRolling = false;
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
         });
         _load();
       },
@@ -249,13 +268,12 @@ class _BodyNutritionCorrelationScreenState
         children: [
           SingleChildScrollView(
             padding: EdgeInsets.only(
-              top: DesignConstants.screenPadding.top + topPadding,
+              top: topPadding + DesignConstants.spacingS,
               bottom: DesignConstants.bottomContentSpacer,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: DesignConstants.spacingM),
                 bodyContent,
               ],
             ),
@@ -282,27 +300,32 @@ class _BodyNutritionCorrelationScreenState
     BodyNutritionAnalyticsResult data,
   ) {
     final unitService = Provider.of<UnitService>(context);
+    final locale = Localizations.localeOf(context).toString();
+    final weightUnit = unitService.suffixFor(UnitDimension.weight);
     final currentWeight = data.currentWeightKg == null
         ? '-'
-        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        : StatisticsPresentationFormatter.formatLocalizedWeight(
+            data.currentWeightKg!,
+            unitService,
+            locale: locale,
+          );
     final weightChange = data.weightChangeKg == null
         ? '-'
-        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        : StatisticsPresentationFormatter.formatLocalizedWeightChange(
+            data.weightChangeKg!,
+            unitService,
+            locale: locale,
+          );
+    final slopePerWeekKg = data.weightTrend.slopePerWeek;
+    final weightRateValue = slopePerWeekKg == null
+        ? '-'
+        : l10n.analyticsSlopePerWeekUnit(
+            '${slopePerWeekKg >= 0 ? '+' : '-'}${unitService.convertDisplayValue(slopePerWeekKg.abs(), UnitDimension.weight).toStringAsFixed(1)}',
+            weightUnit,
+          );
     final avgCalories = data.loggedCalorieDays <= 0
         ? '-'
         : '${data.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
-
-    final confidenceLabel =
-        StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-          l10n,
-          data.confidence,
-        );
-
-    final relationship =
-        StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-          l10n,
-          data.relationship,
-        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,13 +344,15 @@ class _BodyNutritionCorrelationScreenState
                 value: weightChange,
               ),
               ValueSummaryCard(
+                label: l10n.analyticsWeightSlopePerWeek,
+                value: weightRateValue,
+              ),
+              ValueSummaryCard(
                 label: l10n.metricsAvgCalories,
                 value: avgCalories,
               ),
               ValueSummaryCard(
-                label: l10n.analyticsWeightTrendLabel(
-                  context.read<UnitService>().suffixFor(UnitDimension.weight),
-                ),
+                label: l10n.analyticsWeightTrendLabel(weightUnit),
                 value:
                     StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
                       l10n,
@@ -380,13 +405,6 @@ class _BodyNutritionCorrelationScreenState
             );
           },
         ),
-        const SizedBox(height: DesignConstants.spacingM),
-        AppInfoRow(
-          padding: EdgeInsets.zero,
-          title: relationship,
-          subtitle:
-              '${l10n.analyticsEffectiveRangeLabel}: ${_effectiveRangeDisclosure()}\n$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(data.weightDays, data.loggedCalorieDays)}',
-        ),
       ],
     );
   }
@@ -398,14 +416,6 @@ class _BodyNutritionCorrelationScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.analyticsBodyNutritionNormalizedHint(
-            context.read<UnitService>().suffixFor(UnitDimension.weight),
-          ),
-          style: Theme.of(context).textTheme.bodySmall
-              ?.copyWith(color: Theme.of(context).colorScheme.outline),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
         Wrap(
           spacing: 12,
           runSpacing: 8,
@@ -431,9 +441,8 @@ class _BodyNutritionCorrelationScreenState
             child: BodyNutritionNormalizedTrendChart(
               range: data.range,
               weightSeries: data.weightDaily,
-              calorieSeries: data.caloriesDaily
-                  .where((point) => point.value > 0)
-                  .toList(growable: false),
+              calorieSeries: data.caloriesDaily,
+              incompleteNutritionDays: data.incompleteNutritionDays,
               edgeToEdge: true,
             ),
           ),
@@ -467,131 +476,6 @@ class _BodyNutritionCorrelationScreenState
     );
   }
 
-  Widget _buildInterpretationCard(
-    AppLocalizations l10n,
-    BodyNutritionAnalyticsResult data,
-  ) {
-    final relationship =
-        StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-          l10n,
-          data.relationship,
-        );
-    final confidence =
-        StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-          l10n,
-          data.confidence,
-        );
-    final hint = _confidenceHint(l10n, data.confidence);
-    final disclaimer = l10n.analyticsCorrelationDisclaimer;
-
-    return AppInfoRow(
-      padding: EdgeInsets.zero,
-      title: relationship,
-      subtitle: '$confidence\n$hint\n\n$disclaimer',
-    );
-  }
-
-  String _confidenceHint(
-    AppLocalizations l10n,
-    BodyNutritionConfidence confidence,
-  ) {
-    return switch (confidence) {
-      BodyNutritionConfidence.high =>
-        l10n.analyticsBodyNutritionConfidenceHighHint,
-      BodyNutritionConfidence.moderate =>
-        l10n.analyticsBodyNutritionConfidenceModerateHint,
-      BodyNutritionConfidence.low =>
-        l10n.analyticsBodyNutritionConfidenceLowHint,
-      BodyNutritionConfidence.insufficient =>
-        l10n.analyticsInsightNotEnoughData,
-    };
-  }
-
-  String _effectiveRangeDisclosure() {
-    final resolved = _rangePolicy.resolve(
-      metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedBlockType: _activeBlock,
-      now: _anchorDate,
-      earliestAvailableDay: _analytics?.range.start,
-    );
-    final days = resolved.effectiveDays;
-    final l10n = AppLocalizations.of(context)!;
-    if (days == null || days <= 0) {
-      return _isRolling
-          ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
-          : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
-    }
-    if (_activeBlock == TimeframeBlock.maxBlock) {
-      return '$days ${l10n.analyticsDayUnitLabel}';
-    }
-    return _isRolling
-        ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
-        : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
-  }
-
-  BodyNutritionAnalyticsResult getMockCorrelationResult(DateTimeRange range) {
-    final start = range.start;
-    final end = range.end;
-    final duration = end.difference(start).inDays.clamp(7, 180);
-
-    final mockDailyWeight = List.generate(duration, (i) {
-      final date = start.add(Duration(days: i));
-      return DailyValuePoint(day: date, value: 80.0 - (i * 0.05));
-    });
-
-    final mockDailyCalories = List.generate(duration, (i) {
-      final date = start.add(Duration(days: i));
-      return DailyValuePoint(day: date, value: 2500.0 + (i * 10.0));
-    });
-
-    return BodyNutritionAnalyticsResult(
-      range: range,
-      totalDays: duration,
-      currentWeightKg: 78.5,
-      weightChangeKg: -1.5,
-      avgDailyCalories: 2600.0,
-      weightDays: duration,
-      loggedCalorieDays: duration,
-      weightDaily: mockDailyWeight,
-      smoothedWeight: mockDailyWeight,
-      caloriesDaily: mockDailyCalories,
-      smoothedCalories: mockDailyCalories,
-      normalizedWeightTrend: mockDailyWeight,
-      normalizedCaloriesTrend: mockDailyCalories,
-      normalizedTrendRange: range,
-      weightTrend: const BodyNutritionTrendSnapshot(
-        direction: BodyNutritionTrendDirection.falling,
-        slopePerWeek: -0.35,
-        netChange: -1.5,
-        signalToNoise: 2.5,
-      ),
-      calorieTrend: const BodyNutritionTrendSnapshot(
-        direction: BodyNutritionTrendDirection.rising,
-        slopePerWeek: 70.0,
-        netChange: 300.0,
-        signalToNoise: 1.8,
-      ),
-      relationship: BodyNutritionRelationshipType.alignedCutLike,
-      confidence: BodyNutritionConfidence.high,
-      qualitySummary: BodyNutritionDataQualitySummary(
-        spanDays: duration,
-        weightDays: duration,
-        calorieDays: duration,
-        overlapDays: duration,
-        weightCoverage: 1.0,
-        calorieCoverage: 1.0,
-        overlapCoverage: 1.0,
-        weightLargestGapDays: 0,
-        calorieLargestGapDays: 0,
-      ),
-      insightType: BodyNutritionInsightType.weightDownCaloriesDown,
-      insightDataQuality: const StatisticsDataQualityAssessment(
-        hasSufficientData: true,
-        reasonHook: '',
-      ),
-    );
-  }
-
   Widget _buildBodyContent(
     AppLocalizations l10n,
     BodyNutritionAnalyticsResult analytics,
@@ -607,9 +491,6 @@ class _BodyNutritionCorrelationScreenState
           const SizedBox(height: DesignConstants.spacingM),
           AppSectionHeader(title: l10n.analyticsBodyNutritionTrendContext),
           _buildTrendComparisonCard(l10n, analytics),
-          const SizedBox(height: DesignConstants.spacingM),
-          AppSectionHeader(title: l10n.analyticsInterpretationTitle),
-          _buildInterpretationCard(l10n, analytics),
         ],
       ),
     );

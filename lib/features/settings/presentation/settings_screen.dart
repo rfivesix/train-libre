@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/app_data_sources.dart';
@@ -44,12 +44,10 @@ import '../../workout/domain/models/prescription_enums.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
-    SleepSettingsService? sleepSyncService,
-    SleepPermissionController? sleepPermissionController,
-    TrainingAutonomyService? trainingAutonomyService,
-  }) : _sleepSyncService = sleepSyncService,
-       _sleepPermissionController = sleepPermissionController,
-       _trainingAutonomyService = trainingAutonomyService;
+    this._sleepSyncService,
+    this._sleepPermissionController,
+    this._trainingAutonomyService,
+  });
 
   final SleepSettingsService? _sleepSyncService;
   final SleepPermissionController? _sleepPermissionController;

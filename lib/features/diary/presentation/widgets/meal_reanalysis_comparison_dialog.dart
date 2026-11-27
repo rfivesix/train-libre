@@ -1,6 +1,6 @@
 // lib/features/diary/presentation/widgets/meal_reanalysis_comparison_dialog.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_button.dart';

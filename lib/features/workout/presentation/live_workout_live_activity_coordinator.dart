@@ -32,6 +32,7 @@ abstract class LiveWorkoutLiveActivityHost {
 
   void cancelRest();
   void adjustRestTime(int deltaSeconds);
+  void setRestDeadline(DateTime deadline);
   Future<void> completeTimedSet(int timerTemplateId, {int? elapsedSeconds});
   void startSetTimer(
     int templateId, {
@@ -46,6 +47,7 @@ abstract class LiveWorkoutLiveActivityHost {
     double? weight,
     int? reps,
     int? rir,
+    double? rpe,
     bool? isCompleted,
   });
 }
@@ -65,10 +67,9 @@ class LiveWorkoutLiveActivityCoordinator {
   int _restScheduleGeneration = 0;
 
   LiveWorkoutLiveActivityCoordinator({
-    required LiveWorkoutLiveActivityHost host,
+    required this._host,
     WorkoutLiveActivityService? liveActivityService,
-  }) : _host = host,
-       _liveActivityService =
+  }) : _liveActivityService =
            liveActivityService ?? WorkoutLiveActivityService.instance;
 
   bool get isRunning => _running;
@@ -219,7 +220,14 @@ class LiveWorkoutLiveActivityCoordinator {
           _host.cancelRest();
         case 'adjustRest':
           final delta = command['deltaSeconds'];
-          if (delta is int) _host.adjustRestTime(delta);
+          final deadlineMs = command['restEndsAtEpochMs'];
+          if (deadlineMs is int) {
+            _host.setRestDeadline(
+              DateTime.fromMillisecondsSinceEpoch(deadlineMs),
+            );
+          } else if (delta is int) {
+            _host.adjustRestTime(delta);
+          }
         case 'completeSet':
           final timerTemplateId = command['timerTemplateId'];
           final elapsedSeconds = command['elapsedSeconds'];
@@ -302,7 +310,11 @@ class LiveWorkoutLiveActivityCoordinator {
           templateId,
           weight: log.weightKg,
           reps: log.reps,
-          rir: log.rir ?? template.targetRir,
+          rpe:
+              log.rpe ??
+              (log.rir == null ? null : 10.0 - log.rir!) ??
+              template.targetRpe ??
+              (template.targetRir == null ? null : 10.0 - template.targetRir!),
           isCompleted: true,
         );
         return;

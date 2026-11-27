@@ -1,6 +1,6 @@
 // lib/features/diary/presentation/widgets/animated_transcript_text.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Reveals a transcript one word at a time as it arrives.
 ///

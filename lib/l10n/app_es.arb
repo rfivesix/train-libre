@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Visualización de entrenamiento",
+  "settingsShowWorkoutE1rm": "Mostrar el máximo estimado de una repetición",
+  "settingsShowWorkoutE1rmSubtitle": "Muestra el máximo estimado por serie y la comparación entre sesiones.",
   "@@locale": "es",
   "selectDateTitle": "Seleccionar fecha",
   "selectTimeTitle": "Seleccionar hora",
@@ -1145,7 +1148,7 @@
   "onboardingMissionTitle": "Nuestra misión",
   "onboardingMissionBody": "Train Libre es para culturistas naturales comprometidos que buscan progresar con datos y basándose en la ciencia.",
   "onboardingFeatureWorkoutTitle": "Registro de entrenamiento",
-  "onboardingFeatureWorkoutBody": "Registra series (RIR/RPE) y sigue la recuperación de tus músculos.",
+  "onboardingFeatureWorkoutBody": "Registra series (RPE) y sigue la recuperación de tus músculos.",
   "onboardingFeatureTdeeTitle": "Gasto energético adaptativo",
   "onboardingFeatureTdeeBody": "Un filtro de Kalman integrado calcula tu gasto calórico real.",
   "onboardingFeatureNutritionTitle": "Nutrición y agua",
@@ -1528,7 +1531,7 @@
   "recoveryDetailAverageRpe": "RPE medio",
   "recoveryMovementPatterns": "Patrones de movimiento",
   "recoveryDetailForecast": "Previsión",
-  "recoveryDetailRirData": "Datos de RIR",
+  "recoveryDetailRirData": "Datos de RPE",
   "recoveryCompactHours": "≈ {hours} h",
   "@recoveryCompactHours": {
     "placeholders": {
@@ -1559,7 +1562,7 @@
       }
     }
   },
-  "recoveryRirCoverage": "RIR registrado en {covered} de {total} series",
+  "recoveryRirCoverage": "RPE registrado en {covered} de {total} series",
   "@recoveryRirCoverage": {
     "placeholders": {
       "covered": {
@@ -1713,6 +1716,7 @@
   "newPersonalRecordLabel": "Nuevo récord personal",
   "prBadgeTooltip": "¡Nuevo récord personal!",
   "workoutSummaryNewRecordsTitle": "Nuevos récords",
+  "workoutRecordsTitle": "Récords",
   "allTimeRecordsLabel": "Récords históricos",
   "recentActivityLabel": "Actividad reciente",
   "prsByRepRangeLabel": "Mejor serie por rango de repeticiones",
@@ -2529,6 +2533,9 @@
   "healthSettingsStepActive": "El seguimiento de pasos está activado",
   "healthSettingsStepAvailable": "Hay datos de pasos disponibles",
   "healthSettingsStepUnavailable": "No hay datos de pasos disponibles",
+  "healthSettingsSyncPulse": "Sincronizar pulso ahora",
+  "healthSettingsPulseSyncResult": "Se han leído {count} mediciones de pulso del último año",
+  "@healthSettingsPulseSyncResult": {"placeholders": {"count": {"type": "int"}}},
   "healthSettingsSyncSteps": "Sincronizar pasos ahora",
   "healthSettingsSyncExport": "Exportar ahora",
   "healthSettingsStepsSyncResult": "Se han actualizado {count} segmentos de pasos",
@@ -2568,8 +2575,10 @@
   "pulseRangeLabel": "Intervalo",
   "pulseAverageLabel": "Media",
   "pulseRestingLabel": "En reposo",
+  "pulseEstimatedRestingLabel": "Pulso en reposo estimado",
+  "pulseEstimateLabel": "Estimado",
   "pulseInsufficientData": "Hay muy pocas muestras de pulso para mostrar un gráfico fiable.",
-  "pulseMethodNote": "El pulso medio se pondera por tiempo. El pulso en reposo se estima de forma conservadora a partir del 20 % de las muestras más bajas del periodo seleccionado.",
+  "pulseMethodNote": "Train Libre usa el pulso en reposo de Apple Salud o Health Connect cuando está disponible. Si falta, lo estima a partir de las mediciones de pulso.",
   "pulseSampleCount": "{count, plural, =0{Sin muestras} one{1 muestra} other{{count} muestras}}",
   "@pulseSampleCount": {
     "placeholders": {
@@ -2590,8 +2599,8 @@
   "pulseSettingsEnableTitle": "Activar el análisis del pulso",
   "pulseSettingsEnableSubtitle": "Solo leeremos los datos de frecuencia cardíaca para mostrar el pulso si activas esta opción.",
   "pulseSettingsPermissionTitle": "Permitir el acceso a la frecuencia cardíaca",
-  "pulseSettingsPermissionSubtitle": "Abre Apple Health o Health Connect para que Train Libre pueda leer las muestras de pulso.",
-  "pulseSettingsAnalysisSubtitle": "Muestra el intervalo, la media ponderada por tiempo y una estimación conservadora del pulso en reposo. No es un diagnóstico médico.",
+  "pulseSettingsPermissionSubtitle": "Permite el acceso a la frecuencia cardíaca y al pulso en reposo en Health Connect.",
+  "pulseSettingsAnalysisSubtitle": "Muestra el intervalo, la media y el pulso en reposo.",
   "pulseSettingsPermissionGranted": "El acceso a la frecuencia cardíaca está listo.",
   "pulseSettingsPermissionFailed": "No se concedió el acceso a la frecuencia cardíaca.",
   "pulseOptInChip": "Opcional",
@@ -2830,11 +2839,11 @@
   "infoAiMealKeyPoints": "En el modo de catálogo, las sugerencias de IA se comparan con alimentos locales. El modo de estimación directa puede usar valores nutricionales estimados por IA. Revisa los resultados antes de guardarlos.",
   "infoAiMealTechnicalTitle": "IA híbrida con BYOK y comparación Jaro-Winkler",
   "infoAiMealTechnicalExplanation": "En el modo de catálogo, las sugerencias de IA se comparan con alimentos locales. El modo de estimación directa puede usar valores nutricionales estimados por IA. Revisa los resultados antes de guardarlos.",
-  "infoSleepTitle": "Calidad del sueño (SHS v3.5)",
-  "infoSleepExplanation": "Calcula un índice global de sueño a partir de la cantidad, continuidad, profundidad, horario y regularidad diaria.",
-  "infoSleepKeyPoints": "• Combina cinco dimensiones clínicas mediante una suma ponderada.\n• Ajusta automáticamente los requisitos si tu dispositivo no proporciona datos de determinadas fases o de la eficiencia del sueño.\n• Te protege con multiplicadores de límite flexible que restringen la puntuación total si una dimensión crítica, como el sueño REM o profundo, está comprometida.",
-  "infoSleepTechnicalTitle": "Referencia ponderada y límites flexibles continuos",
-  "infoSleepTechnicalExplanation": "Combina cinco dimensiones principales mediante una suma lineal ponderada: duración (30 %), continuidad (20 %), estructura (25 %), horario (15 %) y regularidad (10 %). Para evitar promedios engañosos cuando una dimensión clínica está comprometida, la puntuación final se reduce si se detectan problemas importantes en las fases del sueño o en el ritmo circadiano.",
+  "infoSleepTitle": "Puntuación del sueño",
+  "infoSleepExplanation": "Una estimación basada en los datos disponibles.",
+  "infoSleepKeyPoints": "Contribuyen la duración, continuidad, sueño profundo, REM y regularidad.\nSe omiten los componentes ausentes.\nLas fases son estimaciones.",
+  "infoSleepTechnicalTitle": "Cómo se calcula",
+  "infoSleepTechnicalExplanation": "Duración 45 %, continuidad 25 %, profundo 10 %, REM 10 %, regularidad 10 %. Una duración corta puede limitar la puntuación. No es una medición clínica.",
   "tdeeRecalculationNotificationTitle": "TDEE recalculado",
   "tdeeRecalculationNotificationBody": "Nuevos objetivos diarios: {calories} kcal | {protein} g de proteínas | {carbs} g de carbohidratos | {fat} g de grasas",
   "@tdeeRecalculationNotificationBody": {
@@ -3556,7 +3565,7 @@
   "experienceLevelPro": "Profesional",
   "experienceLevelBeginnerDescription": "Ideal para empezar: se centra en lo esencial, el peso y las repeticiones. Usa términos musculares sencillos, como «hombros».",
   "experienceLevelAdvancedDescription": "Para quienes entrenan con regularidad: muestra detalles anatómicos de los músculos en el catálogo y los entrenamientos (p. ej., deltoides anterior, lateral y posterior).",
-  "experienceLevelProDescription": "Solo recomendado para levantadores con experiencia y una buena percepción del fallo: añade el registro de intensidad mediante RIR (repeticiones en reserva) y zonas de intensidad cardiovascular.",
+  "experienceLevelProDescription": "Para deportistas con experiencia que saben valorar el esfuerzo: añade RPE y zonas de intensidad cardiovascular.",
   "diaryWeightLabel": "Peso",
   "diaryWeightPitch": "Tu objetivo de calorías será más preciso si registras tu peso con regularidad.",
   "diaryWeightStaleNudge": "Hace tiempo que no lo registras: las entradas regulares mantienen preciso tu objetivo de calorías.",
@@ -4322,5 +4331,174 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Muestra u oculta la burbuja del chat. También puedes abrirlo desde el menú Añadir."
 ,
   "aiAssistantIntroAboutRow": "Probar el chat de IA",
-  "aiAssistantIntroAboutRowSubtitle": "Vuelve a abrir la presentación del nuevo chat de IA cuando quieras."
+  "aiAssistantIntroAboutRowSubtitle": "Vuelve a abrir la presentación del nuevo chat de IA cuando quieras.",
+  "aiFailureTitle": "Error de análisis",
+  "aiFailureEmptyTitle": "No se reconocieron alimentos",
+  "aiFailureTimeoutTitle": "La solicitud tarda demasiado",
+  "aiFailureUnavailableTitle": "IA no disponible",
+  "aiFailureNetworkTitle": "Error de conexión",
+  "aiFailureSetupTitle": "Configura la IA",
+  "aiFailureRateTitle": "Límite de solicitudes alcanzado",
+  "aiFailureGenericBody": "No se pudo procesar la respuesta de la IA. Inténtalo de nuevo o elige otro modelo.",
+  "aiFailureEmptyBody": "No se devolvieron alimentos. Es posible que la imagen o descripción no sea clara o que el modelo se haya equivocado.",
+  "aiFailureTimeoutBody": "Se alcanzó el tiempo de espera. Auméntalo en los ajustes de IA o prueba otro modelo.",
+  "aiFailureNetworkBody": "No se pudo conectar con el proveedor de IA. Comprueba la conexión o el servidor.",
+  "aiFailureSetupBody": "Comprueba el proveedor y las credenciales en los ajustes de IA.",
+  "aiFailureRateBody": "Espera un momento y vuelve a intentarlo.",
+  "aiFailureUnavailableBody": "Comprueba que Apple Intelligence esté activado y disponible o elige otro proveedor.",
+  "aiFailureAppleHint": "Apple Intelligence puede no reconocer las comidas de forma fiable. Otro modelo podría dar un mejor resultado.",
+  "aiFailureEdit": "Editar entrada",
+  "aiFailureSettings": "Abrir ajustes de IA",
+  "aiFailureSlowHint": "Esto puede tardar un poco más según el dispositivo y el modelo.",
+  "aiFailureUnsupportedImage": "Apple Intelligence no puede usar fotos en este dispositivo o versión de iOS. Describe la comida o elige otro proveedor.",
+  "aiFailureAppleTimeoutBody": "Se alcanzó el tiempo de espera. Auméntalo en los ajustes de IA o elige otro proveedor.",
+  "glassCustomizationTitle": "Aspecto del cristal",
+  "glassTint": "Tono del cristal",
+  "glassTintClear": "Transparente",
+  "glassTintTinted": "Tintado",
+  "glassBlur": "Desenfoque",
+  "glassBlurOff": "Desactivado",
+  "glassOpacity": "Opacidad",
+  "glassOpacityClear": "0 % (Transparente)",
+  "glassReset": "Restablecer",
+  "glassCustomizationDescription": "Ajusta el cristal de transparente a tintado.",
+  "sessionMusclesTitle": "Músculos de esta sesión",
+  "sessionMusclesWorked": "Ya trabajados",
+  "sessionMusclesRemaining": "Aún pendientes",
+  "discardWorkoutAction": "Descartar entrenamiento",
+  "sleepDashboardScore": "Puntuación del sueño",
+  "sleepDashboardGoal": "Objetivo de sueño",
+  "sleepDashboardGoalEight": "Objetivo de 8 h",
+  "sleepDashboardSevenDays": "Últimos {count} días",
+  "@sleepDashboardSevenDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDashboardRecordedNights": "Noches registradas",
+  "sleepDashboardStageEstimate": "Las fases del sueño son estimaciones.",
+  "sleepDashboardStageHint": "Toca el gráfico para ver una fase.",
+  "sleepDashboardEfficiency": "Eficiencia",
+  "sleepDashboardStart": "Inicio",
+  "sleepDashboardEnd": "Fin",
+  "sleepDashboardEmpty": "No hay datos de sueño para este día.",
+  "sleepDashboardNightHeartRate": "Pulso durante el sueño",
+  "sleepDashboardNightHrv": "VFC durante el sueño",
+  "sleepDashboardSamples": "Mediciones disponibles",
+  "sleepDashboardContributors": "Factores de la puntuación",
+  "sleepDashboardInsufficient": "Datos insuficientes",
+  "sleepDashboardAsleep": "Tiempo dormido",
+  "hrvTitle": "Variabilidad de la frecuencia cardíaca",
+  "hrvUnavailable": "No hay datos de VFC",
+  "hrvMethodNote": "Media de las mediciones SDNN disponibles de Apple Health en milisegundos.",
+  "hrvNoData": "No hay datos de VFC",
+  "sleepDashboardDebtNote": "Solo noches registradas; no es una medida fisiológica de la deuda de sueño.",
+  "sleepDashboardEstimate": "Estimación · datos limitados",
+  "sleepDashboardDurationCap": "La duración limita la puntuación",
+  "sleepDashboardHrvError": "No se pudieron cargar las mediciones de VFC.",
+  "pulseSettingsEnableSubtitleIos": "Lee el pulso, el pulso en reposo y la VFC de Apple Salud al activar el análisis de pulso.",
+  "pulseSettingsPermissionSubtitleIos": "Permite el acceso a la frecuencia cardíaca, el pulso en reposo y la VFC en Apple Salud.",
+  "pulseHealthStatusIos": "Apple Health no revela los permisos de lectura. Si faltan valores, comprueba el acceso en Salud.",
+  "sleepDashboardTonightDelta": "Esta noche frente al objetivo",
+  "sleepDashboardMinimum": "Mínimo",
+  "sleepDashboardAverage": "Media",
+  "sleepDashboardPersonalBaseline": "Referencia personal (30 días anteriores)",
+  "sleepDashboardBaselineUnavailable": "No hay suficientes noches comparables",
+  "hrvQueryFailed": "No se pudo cargar la VFC. Inténtalo de nuevo.",
+  "statisticsOverviewTitle": "Resumen",
+  "statisticsOverviewWorkouts": "Entrenamientos",
+  "statisticsOverviewAllTime": "Histórico",
+  "statisticsOverview30Days": "Últimos 30 días",
+  "statisticsOverviewWeightChange": "Cambio de peso",
+  "statisticsOverviewVolume": "Volumen",
+  "statisticsOverviewSets": "series",
+  "statisticsOverviewCalories": "Calorías / día",
+  "statisticsOverviewProtein": "Proteína / día",
+  "statisticsOverviewTrackedDays": "30 días · días registrados",
+  "statisticsOverviewSince": "Desde {date}",
+  "@statisticsOverviewSince": {"placeholders": {"date": {"type": "String"}}},
+  "statisticsEmptySteps": "No hay pasos registrados en los últimos 7 días.",
+  "statisticsEmptySleep": "No hay sueño registrado en los últimos 7 días.",
+  "statisticsEmptyPulse": "No hay datos de pulso en los últimos 7 días.",
+  "statisticsEmptyTraining": "Completa un entrenamiento para ver tu ritmo.",
+  "statisticsEmptyRecords": "No hay récords nuevos en los últimos 30 días.",
+  "statisticsEmptyMuscles": "Completa series de fuerza para ver tus grupos musculares.",
+  "statisticsEmptyBody": "Registra tu peso o alimentación para ver tus tendencias.",
+  "statisticsEmptyNutrition": "No hay alimentación registrada en los últimos 7 días.",
+  "analyticsDailyBreakdown": "Desglose diario",
+  "analyticsCarbsShort": "HC",
+  "analyticsCalorieTargetLine": "Objetivo calórico",
+  "analyticsWeightSlopePerWeek": "Ritmo de peso",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/sem",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "Esta semana: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Días activos: {days}/sem",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 entrenos / sem",
+  "analyticsConsecutiveWeeks": "Semanas seguidas",
+  "analyticsSelectWorkout": "Elegir entrenamiento",
+  "analyticsNoWorkoutsOnDay": "Sin entrenamientos este día",
+  "analyticsPrImprovementsWindowHint": "Mejoras vs. mejor marca previa",
+  "analyticsAllTimeBadge": "Histórico",
+  "stepsModuleGoalProgress": "Progreso de objetivo",
+  "analyticsWaterTargetLabel": "Objetivo diario",
+  "analyticsWaterLoggedDays": "Días registrados",
+  "statisticsOverviewTotalWorkouts": "Entrenos totales",
+  "statisticsOverviewWorkouts30d": "Entrenos (30d)",
+  "sleepHubNightsLogged": "{count, plural, =1{1 noche registrada} other{{count} noches registradas}}",
+  "@sleepHubNightsLogged": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsMicronutrientsHubSummary": "{days} días · {count} nutrientes",
+  "@statisticsMicronutrientsHubSummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsResetDefaults": "Restablecer predeterminados",
+  "statisticsBestPerformancesCount": "{count, plural, =0{Sin récords nuevos} =1{1 récord nuevo} other{{count} récords nuevos}}",
+  "@statisticsBestPerformancesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "diaryNutritionDayOptions": "Opciones del día de nutrición",
+  "diaryMarkNutritionDayIncomplete": "Marcar como incompleto",
+  "diaryIncludeNutritionDay": "Volver a incluir en las estadísticas",
+  "diaryIncompleteDayTitle": "Día incompleto",
+  "diaryIncompleteDayDetail": "Excluido de las estadísticas de nutrición",
+  "diaryNutritionDayIncompleteStatus": "Incompleto · Excluido de las estadísticas de nutrición",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 día analizado} other{{included} días analizados}} · {incomplete} incompletos",
+  "rpeEffortTitle": "Esfuerzo percibido",
+  "rpeQuestion": "¿Qué tan difícil fue esta serie?",
+  "rpeNoReps": "No quedaban repeticiones",
+  "rpeRepsLeft": "Quedaban unas {count} repeticiones",
+  "rpeFourPlus": "Quedaban 4 o más repeticiones",
+  "rpeClear": "Borrar",
+  "rpeSave": "Guardar",
+  "rpeHelpTitle": "¿Qué es RPE?",
+  "rpeHelpBody": "RPE describe el esfuerzo de una serie. Estima cuántas repeticiones más podrías haber hecho.",
+  "rpeInvalid": "Introduce un RPE de 6 a 10 en pasos de 0,5.",
+  "rpeMaximumEffort": "Esfuerzo máximo",
+  "rpeHardEffort": "Difícil",
+  "rpeModerateEffort": "Moderado"
 }

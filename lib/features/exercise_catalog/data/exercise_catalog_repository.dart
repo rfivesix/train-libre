@@ -9,8 +9,8 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
   final ExerciseCatalogLocalDataSource _localDataSource;
 
   ExerciseCatalogRepository({
-    required ExerciseCatalogLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+    required this._localDataSource,
+  });
 
   @override
   Future<List<Exercise>> searchExercises({

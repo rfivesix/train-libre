@@ -1,61 +1,46 @@
-import 'package:flutter/material.dart';
+import 'dart:math' as math;
+
+import 'package:material_ui/material_ui.dart';
 
 class HorizontalGuidePainter extends CustomPainter {
   HorizontalGuidePainter({
     required this.lineColor,
     required this.goalColor,
-    required this.goalRatio,
-    required this.leftInset,
-    required this.topInset,
-    required this.bottomInset,
+    this.goalRatio,
   });
 
   final Color lineColor;
   final Color goalColor;
-  final double goalRatio;
-  final double leftInset;
-  final double topInset;
-  final double bottomInset;
+  final double? goalRatio;
 
   @override
   void paint(Canvas canvas, Size size) {
     final guidePaint = Paint()
       ..color = lineColor
       ..strokeWidth = 1;
-    final goalPaint = Paint()
-      ..color = goalColor.withValues(alpha: 0.5)
-      ..strokeWidth = 1.2;
-
-    final chartTop = topInset;
-    final chartBottom = size.height - bottomInset;
-    final chartHeight = chartBottom - chartTop;
-    final chartStart = leftInset;
-    final chartEnd = size.width;
-
     for (final ratio in const [0.0, 0.5, 1.0]) {
-      final y = chartBottom - chartHeight * ratio;
-      canvas.drawLine(Offset(chartStart, y), Offset(chartEnd, y), guidePaint);
+      final y = size.height * ratio;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), guidePaint);
     }
 
-    final yGoal = chartBottom - chartHeight * goalRatio.clamp(0.0, 1.0);
-    var startX = chartStart;
-    while (startX < chartEnd) {
+    final goal = goalRatio;
+    if (goal == null) return;
+    final goalPaint = Paint()
+      ..color = goalColor.withValues(alpha: 0.65)
+      ..strokeWidth = 1.2;
+    final y = size.height * (1 - goal);
+    for (double x = 0; x < size.width; x += 9) {
       canvas.drawLine(
-        Offset(startX, yGoal),
-        Offset(startX + 6, yGoal),
+        Offset(x, y),
+        Offset(math.min(x + 5, size.width), y),
         goalPaint,
       );
-      startX += 10;
     }
   }
 
   @override
-  bool shouldRepaint(covariant HorizontalGuidePainter oldDelegate) {
-    return oldDelegate.lineColor != lineColor ||
-        oldDelegate.goalColor != goalColor ||
-        oldDelegate.goalRatio != goalRatio ||
-        oldDelegate.leftInset != leftInset ||
-        oldDelegate.topInset != topInset ||
-        oldDelegate.bottomInset != bottomInset;
-  }
+  bool shouldRepaint(covariant HorizontalGuidePainter oldDelegate) =>
+      oldDelegate.lineColor != lineColor ||
+      oldDelegate.goalColor != goalColor ||
+      oldDelegate.goalRatio != goalRatio;
 }

@@ -59,7 +59,10 @@ class SoundService {
   Future<void> playTimerDoneSound() async {
     try {
       await _ensureInitialized();
-      await _player.stop();
+      if (_player.state == PlayerState.playing ||
+          _player.state == PlayerState.paused) {
+        await _player.stop();
+      }
       await _player.play(AssetSource('sounds/timer_done.mp3'));
     } catch (e) {
       debugPrint('SoundService playTimerDoneSound error: $e');

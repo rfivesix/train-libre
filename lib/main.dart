@@ -6,10 +6,11 @@ import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 
 import 'util/design_constants.dart';
+import 'theme/app_glass_theme.dart';
 
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import 'features/sleep/presentation/sleep_navigation.dart';
@@ -17,6 +18,7 @@ import 'features/ai_assistant/data/ai_overlay_demo_settings.dart';
 import 'features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'generated/app_localizations.dart';
+import 'l10n/app_localization_delegates.dart';
 import 'navigation/app_route_observer.dart';
 import 'core/performance/device_label.dart';
 import 'core/performance/jank_recorder.dart';
@@ -264,6 +266,7 @@ void main() async {
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(
     LiquidGlassWidgets.wrap(
+      theme: const GlassThemeData.ios27(),
       adaptiveQuality: true,
       adaptiveConfig: GlassAdaptiveScopeConfig(
         initialQuality:
@@ -577,7 +580,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     const cardLight = Colors.white;
 
     return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+      builder: (lightDynamic, darkDynamic) {
         final themeService = context.watch<ThemeService>();
         final isAndroid =
             !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -1087,7 +1090,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           debugShowCheckedModeBanner: false,
           scrollBehavior: NoGlowScrollBehavior(),
           onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           title: "Train Libre",
           theme: baseLightTheme,
@@ -1172,42 +1175,45 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             );
           },
           builder: (context, child) {
-            return Overlay(
-              initialEntries: [
-                OverlayEntry(
-                  builder: (overlayContext) => GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      final focusedNode = FocusManager.instance.primaryFocus;
-                      if (focusedNode?.debugLabel == 'ai-overlay-composer') {
-                        return;
-                      }
-                      focusedNode?.unfocus();
-                    },
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (child != null) child,
-                        ValueListenableBuilder<AiOverlayDemoConfiguration>(
-                          valueListenable: AiOverlayDemoSettings.configuration,
-                          builder: (context, settings, _) =>
-                              ValueListenableBuilder<int>(
-                                valueListenable:
-                                    AiGlobalCloudVisibility.suppressionCount,
-                                builder: (context, suppressionCount, _) =>
-                                    _GlobalAiCloudHost(
-                                      settings: settings,
-                                      aiEnabled: themeService.isAiEnabled,
-                                      suppressionCount: suppressionCount,
-                                      navigatorKey: _navigatorKey,
-                                    ),
-                              ),
-                        ),
-                      ],
+            return AppGlassTheme(
+              child: Overlay(
+                initialEntries: [
+                  OverlayEntry(
+                    builder: (overlayContext) => GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () {
+                        final focusedNode = FocusManager.instance.primaryFocus;
+                        if (focusedNode?.debugLabel == 'ai-overlay-composer') {
+                          return;
+                        }
+                        focusedNode?.unfocus();
+                      },
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ?child,
+                          ValueListenableBuilder<AiOverlayDemoConfiguration>(
+                            valueListenable:
+                                AiOverlayDemoSettings.configuration,
+                            builder: (context, settings, _) =>
+                                ValueListenableBuilder<int>(
+                                  valueListenable:
+                                      AiGlobalCloudVisibility.suppressionCount,
+                                  builder: (context, suppressionCount, _) =>
+                                      _GlobalAiCloudHost(
+                                        settings: settings,
+                                        aiEnabled: themeService.isAiEnabled,
+                                        suppressionCount: suppressionCount,
+                                        navigatorKey: _navigatorKey,
+                                      ),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
           home: widget.home,

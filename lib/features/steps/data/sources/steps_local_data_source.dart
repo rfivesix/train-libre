@@ -34,16 +34,37 @@ class StepsLocalDataSource {
     });
   }
 
+  /// Atomically replaces only Apple data in a fully re-read time window.
+  Future<void> replaceAppleStepSegments({
+    required DateTime start,
+    required DateTime end,
+    required List<db.HealthStepSegmentsCompanion> segments,
+  }) async {
+    final database = await this.database;
+    await database.transaction(() async {
+      await (database.delete(database.healthStepSegments)
+            ..where(
+              (row) =>
+                  row.provider.equals('apple_healthkit') &
+                  row.startAt.isBiggerOrEqualValue(start) &
+                  row.startAt.isSmallerThanValue(end),
+            ))
+          .go();
+      await upsertHealthStepSegments(segments);
+    });
+  }
+
   Future<void> deleteHealthStepSegmentsInRange({
     required DateTime start,
     required DateTime end,
   }) async {
     final dbInstance = await database;
-    await (dbInstance.delete(dbInstance.healthStepSegments)..where(
-          (tbl) =>
-              tbl.startAt.isBiggerOrEqualValue(start) &
-              tbl.endAt.isSmallerOrEqualValue(end),
-        ))
+    await (dbInstance.delete(dbInstance.healthStepSegments)
+          ..where(
+            (tbl) =>
+                tbl.startAt.isBiggerOrEqualValue(start) &
+                tbl.endAt.isSmallerOrEqualValue(end),
+          ))
         .go();
   }
 
@@ -54,7 +75,8 @@ class StepsLocalDataSource {
   }) async {
     final dbInstance = await database;
     final dayStartLocal = DateTime(dayLocal.year, dayLocal.month, dayLocal.day);
-    final dayEndLocal = dayStartLocal.add(const Duration(days: 1));
+    final dayEndLocal = DateTime(
+        dayStartLocal.year, dayStartLocal.month, dayStartLocal.day + 1);
     final dayStartUtcMs =
         dayStartLocal.toUtc().millisecondsSinceEpoch ~/ _msPerSecond;
     final dayEndUtcMs =
@@ -67,7 +89,7 @@ class StepsLocalDataSource {
           COALESCE(source_id, '') AS source_key,
           SUM(step_count) AS source_steps
         FROM health_step_segments
-        WHERE start_at < ? AND end_at >= ?
+        WHERE start_at < ? AND end_at > ?
     '''
         : '''
       WITH source_totals AS (
@@ -75,7 +97,7 @@ class StepsLocalDataSource {
           COALESCE(source_id, '') AS source_key,
           SUM(step_count) AS source_total
         FROM health_step_segments
-        WHERE start_at < ? AND end_at >= ?
+        WHERE start_at < ? AND end_at > ?
     ''';
     final vars = <int>[dayEndUtcMs, dayStartUtcMs];
     if (providerFilter == 'apple') {
@@ -106,7 +128,7 @@ class StepsLocalDataSource {
       )
       SELECT COALESCE(SUM(step_count), 0) AS total_steps
       FROM health_step_segments
-      WHERE start_at < ? AND end_at >= ?
+      WHERE start_at < ? AND end_at > ?
         AND COALESCE(source_id, '') = (SELECT source_key FROM dominant_source)
     ''';
 
@@ -114,14 +136,12 @@ class StepsLocalDataSource {
         ? vars
         : <int>[...vars, dayEndUtcMs, dayStartUtcMs];
 
-    final rows = await dbInstance
-        .customSelect(
-          sql,
-          variables: [
-            for (final variable in allVars) drift.Variable.withInt(variable),
-          ],
-        )
-        .get();
+    final rows = await dbInstance.customSelect(
+      sql,
+      variables: [
+        for (final variable in allVars) drift.Variable.withInt(variable),
+      ],
+    ).get();
     if (rows.isEmpty) return null;
     return rows.first.read<int?>('total_steps');
   }
@@ -134,7 +154,8 @@ class StepsLocalDataSource {
     final stopwatch = Stopwatch()..start();
     final dbInstance = await database;
     final startLocal = DateTime(dayLocal.year, dayLocal.month, dayLocal.day);
-    final endLocal = startLocal.add(const Duration(days: 1));
+    final endLocal =
+        DateTime(startLocal.year, startLocal.month, startLocal.day + 1);
     final startUtc = startLocal.toUtc().millisecondsSinceEpoch ~/ _msPerSecond;
     final endUtc = endLocal.toUtc().millisecondsSinceEpoch ~/ _msPerSecond;
 
@@ -146,7 +167,7 @@ class StepsLocalDataSource {
           COALESCE(source_id, '') AS source_key,
           SUM(step_count) AS source_steps
         FROM health_step_segments
-        WHERE start_at < ? AND end_at >= ?
+        WHERE start_at < ? AND end_at > ?
     '''
         : '''
       WITH source_totals AS (
@@ -154,7 +175,7 @@ class StepsLocalDataSource {
           COALESCE(source_id, '') AS source_key,
           SUM(step_count) AS source_total
         FROM health_step_segments
-        WHERE start_at < ? AND end_at >= ?
+        WHERE start_at < ? AND end_at > ?
     ''';
     final vars = <int>[endUtc, startUtc];
     if (providerFilter == 'apple') {
@@ -184,7 +205,7 @@ class StepsLocalDataSource {
         CAST(strftime('%H', datetime(start_at, 'unixepoch', 'localtime')) AS INTEGER) AS hour_local,
         SUM(step_count) AS total_steps
       FROM health_step_segments
-      WHERE start_at < ? AND end_at >= ?
+      WHERE start_at < ? AND end_at > ?
         AND COALESCE(source_id, '') = (SELECT source_key FROM dominant_source)
       GROUP BY hour_local
       ORDER BY hour_local ASC
@@ -194,14 +215,12 @@ class StepsLocalDataSource {
         ? vars
         : <int>[...vars, endUtc, startUtc];
 
-    final rows = await dbInstance
-        .customSelect(
-          sql,
-          variables: [
-            for (final variable in allVars) drift.Variable.withInt(variable),
-          ],
-        )
-        .get();
+    final rows = await dbInstance.customSelect(
+      sql,
+      variables: [
+        for (final variable in allVars) drift.Variable.withInt(variable),
+      ],
+    ).get();
     final result = rows
         .map(
           (row) => <String, dynamic>{
@@ -256,7 +275,7 @@ class StepsLocalDataSource {
           COALESCE(source_id, '') AS source_key,
           SUM(step_count) AS source_steps
         FROM health_step_segments
-        WHERE start_at < ? AND end_at >= ?
+        WHERE start_at < ? AND end_at > ?
     '''
         : '''
       WITH source_day AS (
@@ -265,14 +284,13 @@ class StepsLocalDataSource {
           COALESCE(source_id, '') AS source_key,
           SUM(step_count) AS source_steps
         FROM health_step_segments
-        WHERE start_at < ? AND end_at >= ?
+        WHERE start_at < ? AND end_at > ?
     ''';
     final endExclusiveUtc =
-        normalizedEnd
-            .add(const Duration(days: 1))
-            .toUtc()
-            .millisecondsSinceEpoch ~/
-        _msPerSecond;
+        DateTime(normalizedEnd.year, normalizedEnd.month, normalizedEnd.day + 1)
+                .toUtc()
+                .millisecondsSinceEpoch ~/
+            _msPerSecond;
     final startUtc =
         normalizedStart.toUtc().millisecondsSinceEpoch ~/ _msPerSecond;
     final vars = <int>[endExclusiveUtc, startUtc];
@@ -324,14 +342,12 @@ class StepsLocalDataSource {
       ORDER BY s.day_local ASC
     ''';
 
-    final rows = await dbInstance
-        .customSelect(
-          sql,
-          variables: [
-            for (final variable in vars) drift.Variable.withInt(variable),
-          ],
-        )
-        .get();
+    final rows = await dbInstance.customSelect(
+      sql,
+      variables: [
+        for (final variable in vars) drift.Variable.withInt(variable),
+      ],
+    ).get();
 
     final result = rows
         .map(
@@ -360,7 +376,8 @@ class StepsLocalDataSource {
   }) async {
     final dbInstance = await database;
     final dayStartLocal = DateTime(dayLocal.year, dayLocal.month, dayLocal.day);
-    final dayEndLocal = dayStartLocal.add(const Duration(days: 1));
+    final dayEndLocal = DateTime(
+        dayStartLocal.year, dayStartLocal.month, dayStartLocal.day + 1);
     final dayStartUtc =
         dayStartLocal.toUtc().millisecondsSinceEpoch ~/ _msPerSecond;
     final dayEndUtc =
@@ -371,7 +388,7 @@ class StepsLocalDataSource {
         COALESCE(source_id, '') AS source_key,
         SUM(step_count) AS total_steps
       FROM health_step_segments
-      WHERE start_at < ? AND end_at >= ?
+      WHERE start_at < ? AND end_at > ?
     ''';
     final vars = <int>[dayEndUtc, dayStartUtc];
     if (providerFilter == 'apple') {
@@ -384,14 +401,12 @@ class StepsLocalDataSource {
       ORDER BY total_steps DESC, source_key ASC
     ''';
 
-    final rows = await dbInstance
-        .customSelect(
-          sql,
-          variables: [
-            for (final variable in vars) drift.Variable.withInt(variable),
-          ],
-        )
-        .get();
+    final rows = await dbInstance.customSelect(
+      sql,
+      variables: [
+        for (final variable in vars) drift.Variable.withInt(variable),
+      ],
+    ).get();
 
     return rows
         .map(
@@ -439,22 +454,20 @@ class StepsLocalDataSource {
     if (idempotencyKeys.isEmpty) return const <String>[];
     final dbInstance = await database;
     final placeholders = List.filled(idempotencyKeys.length, '?').join(',');
-    final rows = await dbInstance
-        .customSelect(
-          '''
+    final rows = await dbInstance.customSelect(
+      '''
       SELECT idempotency_key
       FROM health_export_records
       WHERE platform = ?
         AND domain = ?
         AND idempotency_key IN ($placeholders)
       ''',
-          variables: [
-            drift.Variable.withString(platform),
-            drift.Variable.withString(domain),
-            for (final key in idempotencyKeys) drift.Variable.withString(key),
-          ],
-        )
-        .get();
+      variables: [
+        drift.Variable.withString(platform),
+        drift.Variable.withString(domain),
+        for (final key in idempotencyKeys) drift.Variable.withString(key),
+      ],
+    ).get();
     return rows
         .map((row) => row.read<String>('idempotency_key'))
         .toList(growable: false);

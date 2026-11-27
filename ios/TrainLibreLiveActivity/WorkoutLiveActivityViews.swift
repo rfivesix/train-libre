@@ -203,6 +203,37 @@ import WidgetKit
     }
   }
 
+  /// Compact timer: keep the system progress track from tinting the black
+  /// background, while still letting ActivityKit animate the overdue fill.
+  @available(iOS 16.2, *)
+  struct LACompactOverdueBackground: View {
+    let deadline: Date
+
+    var body: some View {
+      ZStack {
+        Color.black
+        LATheme.overdue.mask {
+          ProgressView(
+            timerInterval: deadline...deadline.addingTimeInterval(0.25),
+            countsDown: false
+          ) {
+            EmptyView()
+          } currentValueLabel: {
+            EmptyView()
+          }
+          .progressViewStyle(.linear)
+          .tint(.white)
+          .backgroundStyle(Color.black)
+          .saturation(0)
+          .contrast(20)
+          .luminanceToAlpha()
+          .scaleEffect(x: 1, y: 24, anchor: .center)
+        }
+      }
+      .clipShape(Capsule())
+    }
+  }
+
   /// −15s · countdown · +15s · Skip.
   @available(iOS 17.0, *)
   struct LARestControls: View {

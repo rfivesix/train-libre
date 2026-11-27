@@ -352,6 +352,25 @@ void main() {
     },
   );
 
+  test('finishing keeps open RPE entries, even on suggested sets', () async {
+    final bench = exercise();
+    await seedPreviousFirstSet(exercise: bench, weight: 60, reps: 10);
+    final workout = await dataSource.startWorkout(routineName: 'RPE');
+    await viewModel.loadInitialData(workout, [
+      routine(id: 1, exercise: bench, templates: rangedTemplates()),
+    ]);
+
+    expect(viewModel.isSetSuggested(101), isTrue);
+    await viewModel.updateSet(101, rpe: 8.5);
+    await viewModel.updateSet(102, rpe: 7.5);
+    await viewModel.finishWorkout();
+
+    final saved = await repository.getSetLogsForWorkout(workout.id!);
+    expect(saved, hasLength(2));
+    expect(saved.map((set) => set.rpe), containsAll([8.5, 7.5]));
+    expect(saved.every((set) => set.isCompleted != true), isTrue);
+  });
+
   test(
     'atomic finalization rolls back rather than partially saving a workout',
     () async {
@@ -415,6 +434,29 @@ void main() {
     expect(viewModel.setLogs[101]!.rir, 0);
     expect(viewModel.rirControllers[101]!.text, '0');
   });
+
+  test(
+    'clearing failure effort removes both representations from storage',
+    () async {
+      final workout = await dataSource.startWorkout(routineName: 'Failure');
+      await viewModel.loadInitialData(workout, [
+        routine(id: 1, exercise: exercise(), templates: rangedTemplates()),
+      ]);
+      await viewModel.updateSet(101, setType: 'failure');
+      await viewModel.updateSet(101, clearRpe: true, clearRir: true);
+      await viewModel.updateSet(101, reps: 5);
+
+      expect(viewModel.setLogs[101]!.rpe, isNull);
+      expect(viewModel.setLogs[101]!.rir, isNull);
+      final rows = await repository.getSetLogsForWorkout(workout.id!);
+      final persisted = rows.firstWhere(
+        (row) => row.id == viewModel.setLogs[101]!.id,
+      );
+      expect(persisted.rpe, isNull);
+      expect(persisted.rir, isNull);
+      expect(persisted.setType, 'failure');
+    },
+  );
 
   test(
     'finishing removes untouched empty set rows from workout history',

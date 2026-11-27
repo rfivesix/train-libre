@@ -443,6 +443,7 @@ class BackupManager {
     payload['pulse_aggregate_metadata'] = await _fetchTable(
       'pulse_aggregate_metadata',
     );
+    payload['pulse_hrv_samples'] = await _fetchTable('pulse_hrv_samples');
     token?.throwIfCancelled();
 
     // Raw rows rather than a typed model: this table still moves with the AI
@@ -452,6 +453,9 @@ class BackupManager {
     // JSON document, and base64 images would multiply its size.
     onProgress?.call('meal_entries', 0.97);
     payload['meal_entries'] = await _fetchTable('meal_entries');
+    payload['incomplete_nutrition_days'] = await _fetchTable(
+      'incomplete_nutrition_days',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('cardio_data', 0.98);
@@ -907,6 +911,7 @@ class BackupManager {
           await dbInst.customStatement('DELETE FROM sleep_raw_imports');
           await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
           await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
+          await dbInst.customStatement('DELETE FROM pulse_hrv_samples');
           await dbInst.customStatement('DELETE FROM user_food_overrides');
           await dbInst.customStatement(
             'DELETE FROM user_food_override_translations',
@@ -929,6 +934,7 @@ class BackupManager {
           await dbInst.delete(dbInst.fluidLogs).go();
           await dbInst.delete(dbInst.macroEntries).go();
           await dbInst.delete(dbInst.nutritionLogs).go();
+          await dbInst.delete(dbInst.incompleteNutritionDays).go();
           // After the logs, which reference it.
           await dbInst.delete(dbInst.mealEntries).go();
           await dbInst.customStatement('DELETE FROM off_products_archive');
@@ -1005,6 +1011,10 @@ class BackupManager {
           // restoring the logs first would leave the grouping dangling.
           onProgress?.call('meal_entries', 0.33);
           await _importTable('meal_entries', payload['meal_entries']);
+          await _importTable(
+            'incomplete_nutrition_days',
+            payload['incomplete_nutrition_days'],
+          );
           token?.throwIfCancelled();
 
           onProgress?.call('user_data', 0.35);
@@ -1365,6 +1375,7 @@ class BackupManager {
             'pulse_aggregate_metadata',
             payload['pulse_aggregate_metadata'],
           );
+          await _importTable('pulse_hrv_samples', payload['pulse_hrv_samples']);
           token?.throwIfCancelled();
 
           onProgress?.call('cardio_data', 0.999);

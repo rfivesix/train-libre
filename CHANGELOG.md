@@ -4,6 +4,131 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.7.1] - 2026-11-27
+
+### Fixed
+- Retried release builds after transient Gradle daemon connection failures.
+- Saved a running set timer when finishing a workout, preserving its elapsed time without completing the set.
+- Preserved unfinished sets with manually entered RPE and other input when finishing a workout, including sets with unconfirmed suggestions.
+- Enlarged the inline timer's play and stop icons without changing the control size.
+- Separated the duration and timer action in live workout set fields for clearer alignment.
+- Matched cardio set number tiles to the width of other live workout sets and refined the timer icons.
+- Balanced the spacing around the time and timer control in live workout set rows.
+- Restored the outline around editable duration fields in live workout set rows.
+- Improved scrolling and idle performance in Diary, Workout, Statistics, and Nutrition by pausing animations in inactive tabs, stopping the hidden AI cloud animation, reducing redundant Nutrition and Statistics loads, and limiting workout timer rebuilds.
+- Fixed the Statistics overview jumping when scrolling back to the top, missing training heatmap activity across daylight-saving transitions, and live workouts positioning exercises behind the app bar.
+- Fixed tapping exercise titles in `WorkoutExerciseLogCard` (Workout Detail Screen) doing nothing for exercises without a catalog entry (e.g. `Rowing Machine`, `Klimmzüge`) by opening `ExerciseDetailScreen` with a fallback `Exercise` model.
+- Fixed `WorkoutLogDetailScreen` displaying strength columns (`kg`, `Wdh`, `RIR`) instead of cardio columns (`km`, `Dauer`) when an exercise's catalog entry is unavailable by inferring `isCardio` and `ExerciseLogMask.distanceAndDuration` from the logged set data.
+- Unified the 30-day weight change across the Statistics hub (`StatisticsOverviewCard`, `BodyMetricsSectionCard`, and the Measurements shortcut card) to use the 7-day smoothed weight trend from `BodyNutritionAnalyticsEngine` with consistent locale-aware decimal formatting.
+- Fixed double card padding in `StatisticsStepsCard` so its header, timeframe chip, and content align with all other Statistics hub cards.
+- Fixed the Calories KPI card in `MacroStatisticsScreen` changing height by a few pixels while scrubbing across days, and added `HapticFeedbackService` light-impact feedback when selecting or scrubbing across bars in `MacroHistoryStackedBarChart`.
+- Prevented calorie recommendations from increasing the planned deficit as a target date approaches when no recent weight has been logged.
+- Fixed onboarding weight-loss recommendations using the wrong rate direction or a zero default pace, and prevented profile creation from adding an unintended 70 kg weight measurement.
+- Propagated the app theme's `primaryColor` through `AppGlassTheme`'s `CupertinoTheme` wrapper so Cupertino accents and controls match the active theme color.
+- Synchronized Statistics hub card taps with their destination screen's initial timeframe, rolling mode, and scope (`ConsistencyTrackerScreen`, `MuscleGroupAnalyticsScreen`, `StepsModuleScreen`, and `WaterSectionCard`).
+- Fixed `MuscleVolumeSectionCard` dividing weekly sets by muscle count and displaying unlocalized raw muscle keys.
+- Fixed `WaterSectionCard` on the Statistics hub loading only a single day instead of the 7-day trend, and added consistent header chips and localized step formatting (`StatisticsStepsCard`).
+- Fixed localized date and number formatting in Measurement and Body & Nutrition trend charts (`May 31, 2026`, English thousand commas, hardcoded nutrition labels, and lowercase axis captions).
+- Fixed `TimeRangeFilter` rolling defaults, forward navigation (`nextEnabled`) in rolling mode, and excessive vertical top padding across statistics detail screens.
+- Removed the orphaned `"ZEITRAUM"` header in Muscle Group Analytics and duplicated interpretation summary text in Body & Nutrition Trends.
+- Fixed Statistics muscle-group averages and the six-week workout count to use their stated periods, and improved hub scrolling.
+- Fixed rolling date ranges including one extra calendar day.
+- Restored theme-appropriate icon colors for menus and other app content affected by the Cupertino glass theme.
+- Fixed iOS Live Activity rest adjustments being overwritten by stale app state, and synchronize their updated deadlines when returning to the app.
+- Restored the foreground rest-completion sound, including when shortening a running timer to zero, while scheduling notifications for the background separately.
+- Fixed live workout volume becoming negative or including unfinished sets after editing, deleting, or restoring a workout; the total now reflects completed sets.
+- Hid the heart-rate section in workout details when no samples are available.
+- Restored the original appearance of glass bottom sheets and date and time pickers, independent of the glass appearance setting.
+- Fixed diary sleep and pulse data not loading on initial screen entry and prevented empty health cards from briefly shifting the diary layout.
+- Fixed iOS step totals double-counting overlapping iPhone and Apple Watch records by importing HealthKit's source-merged hourly statistics and replacing previously imported Apple step records during migration.
+- Fixed step totals at midnight and made daily step boundaries follow local daylight-saving changes.
+- Improved AI meal analysis errors with actionable glass menus, Apple Intelligence cancellation and timeouts, and preserved inputs when retrying.
+- Smoothed card morph transitions with an opaque, color-changing surface, a gentler handover to the original card, and more accurate iPhone corner rounding.
+- Aligned the diary sleep and pulse cards with the training card's spacing and added morph transitions to their day views.
+- Made the diary weight card open weight history even when no weight has been logged for the selected day or no previous entry exists.
+- Fixed glass bottom sheet sizing and scrolling, including measurement fields overlapping date and time controls and content being obscured by the keyboard.
+- Fixed AI Chat swipe-to-dismiss gestures, including dragging down from the top of the conversation or an empty chat.
+- Fixed Apple Health heart-rate reads being blocked by an incorrect write-authorization check.
+- Fixed resting pulse in the diary, Statistics, and pulse charts to use readings from Apple Health or Health Connect when available. Week and month views average the latest reading from each day, and locally calculated values are marked as estimates. Existing users can grant resting heart-rate access in Health settings.
+- Corrected pulse labels in spreadsheet exports, shared sleep summaries, and AI assistant sleep summaries so they describe the measurements shown.
+- Fixed Android predictive back gestures for card and workout morph transitions so they follow the swipe and return to the open screen when cancelled.
+- Fixed AI Chat handling Android back gestures on the underlying screen or exiting the app from the home screen. The chat now follows the gesture and closes independently, including with the system back button.
+- Kept the What's New sheet below the status bar with a 16-point gap, even when the presenting screen has already consumed the top safe area.
+- Prevented time labels near the end of sleep and pulse charts from overlapping.
+- Fixed the Nutrition statistics bar chart rendering blank on year (`1Y`) and `MAX` timeframes by adaptively bucketing long periods into readable bars, trimming leading untracked `MAX` history, and formatting multi-year axis labels.
+- Restored the classic white shutter with a glass ring in AI Chat and AI Meal Scan. Camera controls over the iOS preview use native Liquid Glass where supported. On Android, the meal and barcode scanners use rounded blur without the extra button outlines.
+- Fixed `MeasurementsScreen` displaying an un-skeletonized mock measurement chart (with placeholder weight values) above the empty-period overlay when no measurements exist for the selected period; the mock chart and list are now wrapped together in a single `Skeletonizer` + `ActiveGapOverlay` while keeping the metric selector interactive.
+- Connected recorded calorie values across missing or incomplete days in the Statistics overview and Body & Nutrition detail chart. Both views display single measurements and independently available series, and detail tooltips show values for the selected date.
+- Excluded invalid weight readings and required measurements on at least two days to show a weight change.
+- Fixed the Body & Nutrition overview legend overflowing on narrow screens with large text sizes.
+
+
+### Added
+- Added an RPE picker with guidance for recording set effort.
+- Added a floating stopwatch bar for timed sets in live workouts, with 15-second adjustments and a stop action alongside the rest timer.
+- Added an Appearance setting to show estimated one-rep maximum values in workout set rows and the live session comparison. The display is off by default and does not affect personal records.
+- Added vertical drag-and-drop reordering (`ReorderableSetList`) for sets within exercises across `LiveWorkoutScreen`, `EditRoutineScreen`, and `WorkoutLogDetailScreen` (in edit mode), persisting updated set order via `LiveWorkoutViewModel.reorderSet`, `replaceSetTemplatesForExercise`, and `updateSetLogs`.
+- Added `StatisticsSampleDataSeeder` and Developer Settings actions (`Statistik-Beispieldaten laden` / `Statistik-Beispieldaten entfernen`) to populate and clear 45 days of realistic statistics sample data (macros, BLS micronutrients, calorie goal history, measurements, water, workouts/sets, steps, pulse, and sleep) for emulator/simulator testing without overwriting existing user data.
+- Added a Statistics summary grid with lifetime workout and volume totals, the first workout date, and recent workout, weight and nutrition metrics.
+- Added Apple Health heart rate variability (SDNN) to pulse statistics and sleep analysis when pulse tracking is enabled, with local persistence and backup support.
+- Added a brief personal-record celebration with animated badge and banner particles and a rising haptic pattern, respecting reduced-motion and haptic settings; multiple records from one set trigger the celebration once.
+- Added a live workout muscle overview showing completed and planned sets by muscle group, excluding cardio exercises.
+- Added a clear-to-tinted glass appearance slider with a live preview of the app's navigation bar and a food illustration.
+- Added manual pulse sync in Health settings to refresh the last 365 days of heart-rate samples.
+- Expanded AI Chat app-data access with two new categories — **Pulse & HRV** (`pulse`: `pulse_daily_summary`, `pulse_hourly_aggregates`, `pulse_hrv_samples`, `workout_heart_rate_summary`) and **Statistics & PRs** (`analytics`: `training_overview_stats`, `personal_records`, `weekly_training_consistency`, `muscle_group_volume_summary`, `body_nutrition_trend`) — wired via `AssistantPulseActions` and `AssistantAnalyticsActions`.
+- Added canonical app-summary tables for AI Chat across all major domains: `sleep_nightly_summary` (deduplicated primary nights with deep/REM/light/awake minutes, bedtime/waketime, nocturnal HR min/avg/max, score subscores, and naps), `steps_daily_summary` & `steps_hourly_summary`, `adaptive_nutrition_state` (live Bayesian TDEE, confidence, macro recommendations, diet phase, and next check-in), `bls_micronutrient_daily_summary`, `incomplete_nutrition_days`, `user_preferences_summary`, `favorite_foods`, `custom_foods`, `active_plan_schedule` (supporting both weekly and rolling sequence plans), `recovery_overview` & `muscle_recovery_status` (including historical `asOf` support), and `data_source_status`.
+- Added timeout-protected on-demand Health delta syncs before reading `sleep`, `pulse`, and `steps` in AI Chat, with graceful fallback to local SQLite caches and structured status reporting when tracking is disabled or permissions are missing.
+- Added partial-availability handling, per-category date scopes (`categoryScopes`), scope widening on follow-up `request_data` calls, safe scalar JSON SQL functions (`json_extract`, `json_type`, `json_array_length`), and CTE multi-reference comparisons (up to 3 scans per table) in `AssistantSqlSandbox` and `AssistantChatService`.
+- Expanded `AssistantDocumentationReader` keyword routing to include Sleep, Pulse/HRV, Health Sync, Muscle Recovery, Bayesian TDEE, Adaptive Nutrition Goals, Training & Body Statistics, Supplements, and Measurements documentation.
+
+### Changed
+- Refreshed set rows in live workouts, routines, and workout details with consistent backgrounds, outlined editable fields, and set-type tiles. Live workouts now show completion status in a checkmark tile and align set controls with the exercise content.
+- Replaced the add-set action with a full-width button and moved superset connection and removal into the exercise menu across workout screens.
+- Updated `LiveWorkoutScreen` and `LiveWorkoutSummaryBar`: swapped the progress bar + volume row above the duration/sets/muscle-badge row and integrated `LiveWorkoutSummaryBar` into `GlobalAppBar.bottom` with `extendBodyBehindAppBar: true` so exercises scroll smoothly underneath the frosted progressive-blur header.
+- Redesigned `WorkoutSummaryScreen` to match `WorkoutLogDetailScreen` (`extendBodyBehindAppBar` on `GlobalAppBar` with long-press workout title tooltip, scrollable 3-column `ValueSummaryCard` grid for duration/volume/sets, `WorkoutPhotoCard` above date/time in both `WorkoutSummaryScreen` and `WorkoutLogDetailScreen`, `WorkoutDateTimeChips` summary cards for date and right-aligned start–end time, `Muskel-Split` and `Rekorde` headers, removal of the exercise overview list, hiding the heart-rate card when no samples exist, and a clean green-outlined `SummaryCard` for routine sync); updated `syncRoutineWithWorkout` so syncing never fills or overwrites target reps or weights from logged workout sets.
+- Redesigned the `WorkoutLogDetailScreen` header: enabled `extendBodyBehindAppBar` on `GlobalAppBar`, moved the workout title into the AppBar with a long-press `Tooltip` for full-title accessibility, consolidated the three top-bar actions (edit, save as routine, share) into a `PlatformAdaptivePopupMenu`, replaced the sticky `WorkoutSummaryBar` and divider with a scrollable 3-column `ValueSummaryCard` grid (duration, volume, sets) above the interactive `WorkoutDateTimeChips` (tappable in edit mode to pick start date/time and duration) and plain borderless workout notes (showing `workoutNoteAddHint` in edit mode when empty), and simplified section titles (`Muskel-Split`, `Rekorde`, `Workout`).
+- Redesigned the personal-record cards in `WorkoutSummaryScreen` and `WorkoutLogDetailScreen` (`ExerciseRecordCard`, `ExerciseRecordData`): removed the leading trophy icon in favor of an amber card outline and rendered each record type on its own right-aligned row with tabular values and absolute `+diff` deltas.
+- Redesigned `PRDashboardScreen` and updated the Statistics hub `PerformanceSectionCard` (`StatisticsHubDataAdapter`, `WorkoutLocalDataSource.getPeriodPersonalRecords`, `PlatformAdaptiveChipDropdown`): replaced the prior-period e1RM comparison with true chronological all-time personal records achieved within the selected timeframe, added a reusable chip-styled record-type dropdown defaulting to Max Weight (`maxWeight`) and covering all six PR types (`maxWeight`, `est1rm`, `volume`, `distance`, `duration`, `pace`), styled each exercise entry as an individual `SummaryCard` matching `ValueSummaryCard` typography with absolute record deltas and percentage-based sorting, updated the Statistics hub New Personal Bests card to track `maxWeight` breakthroughs and display the absolute top set (e.g. `Top: Bench press · 100 kg × 12`), removed the subtitle hint under the header, and removed the redundant bottom Record Overview section.
+- Rolled out `PlatformAdaptiveChipDropdown` across analytics and chart screens (`ConsistencyTrackerScreen`, `ExerciseDetailScreen`, and `MeasurementsScreen`) to replace full-width form dropdowns with compact chip selectors aligned with section headers where applicable.
+- Replaced the `TableCalendar` widget in `ConsistencyTrackerScreen` and the mini bar chart in the Statistics hub `ConsistencySectionCard` (`StatisticsHubDataAdapter`, `StatisticsHubPayload`, `ConsistencySectionData`) with an uncontained, adaptive GitHub-style `TrainingHeatmap` grid that scales across the full width for all timeframes (`1M`, `3M`, `6M`, `1Y`) and the 6-week hub preview, anchors non-overlapping month labels to each month's first Monday week, adapts weekday labels (`Mo..So` on `1M`/`3M`, `Mo/Mi/Fr/So` on `6M`, `Mo/Mi/Fr` on `1Y`), uses the app's primary color intensity levels, removes redundant explainer/prompt copy, and supports tapping any day to inspect or open that day's workouts.
+- Removed the pattern/effective-range/confidence summary text block, the normalized chart description hint, and the entire Interpretation section from `BodyNutritionCorrelationScreen` (Body & Nutrition Trends).
+- Changed the default timeframe of `ConsistencyTrackerScreen` to 3 months (`TimeframeBlock.threeMonths`).
+- Changed the default Liquid Glass appearance setting (`ThemeService.defaultGlassAppearance`) and its Reset action to 30% (`0.3`).
+- Removed the relationship and confidence footer text (`$relationship · $confidenceLabel`) from `BodyMetricsSectionCard` on the Statistics hub.
+- Refined Statistics hub card designs and labels: removed the sample count/coverage footer from `PulseSectionCard`, narrowed `BodyMetricsSectionCard` to weight change and average daily calories, updated `MuscleVolumeSectionCard` to display average weekly sets per muscle group without top-3 bars, simplified `MicronutrientSectionCard` to a header-only preview without a timeframe chip, and unified rolling hub timeframe chips to consistent relative labels (`Last 7 days` / `Letzte 7 Tage`) via `TimeframeLabelFormatter.formatRelativeRolling`.
+- Allowed `ValueSummaryCard` subtitles to wrap up to two lines (`maxLines: 2`), formatted large metric `StatisticsOverviewCard` volumes in tons (`t`), highlighted top PR momentum in `PerformanceSectionCard`, and showed logged night counts on `SleepSectionCard` instead of repeating the mean score.
+- Redesigned and thematically reordered Statistics hub preview cards: compact 3-metric Body & Nutrition summary, macro gram badges on `MacroSectionCard`, 6-week mini bar chart on `ConsistencySectionCard`, top-3 muscle bars on `MuscleVolumeSectionCard`, latest weight preview on Measurements, 3-column Pulse fallback when HRV is unavailable, nutrient highlights on Micronutrients, clearer overview workout labels with skeleton loading, and a reset-to-defaults action in `StatisticsHubEditScreen`.
+- Redesigned the Nutrition (`MacroStatisticsScreen`) header into four compact, color-outlined KPI cards, added a dashed historical calorie-target line to the macro bar chart, and added a MAX period date range label.
+- Added a sixth KPI card (weekly weight rate) to Body & Nutrition Trends and completed 2x2 KPI grids in Steps (`Day`/`Week`) and Water statistics, while showing `StatisticsStepsCard` across all step scopes.
+- Simplified Consistency Tracker KPIs to four non-redundant cards, added subtle zero-week bar caps, and made calendar days open the day's workout detail view (or a workout picker when multiple sessions exist).
+- Moved `TimeRangeFilter` into `GlobalAppBar` on the PR Dashboard, clarified timeframe e1RM gains vs. all-time records, made PR entries open Exercise Details, and unified `WaterStatisticsScreen` with `extendBodyBehindAppBar` and `SummaryCard` styling.
+- Replaced obscured Statistics hub placeholders with clear, tappable empty cards explaining what data is missing.
+- Gave Statistics hub cards fixed, metric-specific timeframes; date selection remains available in their detail screens.
+- Refreshed the five localized 1.7.1-beta.1 release highlights and updated the website's project timeline.
+- Redesigned the sleep overview and statistics card with a contributor score ring, sleep-stage timeline, eight-hour goal comparison, and heart-rate and HRV charts. The overview now keeps only the interruptions detail card; the other detail screens remain in the project for later review.
+- Replaced the sleep score with a transparent, duration-focused heuristic and recalculate locally retained nights without deleting source data. Nights with recorded sleep stages and no detected awakenings receive a full wake-time continuity score.
+- Keep the live workout rest bar visible after the timer ends, with controls to adjust the rest or dismiss it; enlarged the timer and refined the compact Dynamic Island appearance while retaining the expanded layout.
+- Redesigned the live workout summary with elapsed time, completed and planned sets, a muscle overview shortcut, and volume beside the progress bar; the workout detail summary remains unchanged.
+- Added a discard action to the finish workout menu with a separate confirmation before deleting the session.
+- Updated `liquid_glass_widgets` to 1.17.3 and use its iOS 27 light and dark presets for the default glass appearance. The appearance slider adjusts frost and blur around the preset, with a transparency fallback on renderers without premium frost.
+- Replaced sliders in Appearance, AI settings, and developer tools with platform-adaptive controls using Liquid Glass on iOS and Material styling elsewhere, including continuous and stepped values.
+- Updated Flutter and Dart requirements, refreshed app and development dependencies, and updated the screenshot editor and iOS release tooling.
+- Replaced the diary step progress bar with a health summary card that shows the daily count and goal, or an empty state when no data is available, and opens the selected day's steps with a morph transition.
+- Reduced Apple Health and Health Connect export telemetry to at most one event per platform and device per day, only after a successful export writes data.
+- Sleep and Pulse charts show average values when no point is selected and display the selected value during touch. Pulse charts take up less vertical space, and the HRV line connects individual readings in the day view and daily averages in the week and month views.
+- Made food and recipe cards in Add Food more compact with the Statistics Hub's 16-point side insets and plain Lucide plus icons. Centered the food title and subtitle as a block and placed the recipe menu beside the add button.
+- Replaced the global app bar's static uniform blur with a top-to-bottom `ProgressiveBlur` and soft fade vignette that strengthens blur toward the status bar and dissolves seamlessly into page content without a bottom edge line.
+- Moved the `ExerciseDetailScreen` tab bar into `GlobalAppBar.bottom` so scrolled tab content dissolves smoothly behind the progressive blur bar without clipping, and changed populated personal record values to black in light mode and white in dark mode instead of the primary accent color.
+- Removed bulky `sleep_raw_imports` payloads and bounded high-frequency nocturnal HR/stage and BLS raw tables on long date ranges so multi-week AI Chat queries stay within sandbox limits.
+- Populated real sugar, fiber, salt, and caffeine targets, supplement caffeine, and `is_incomplete_day` flags in `AssistantDiaryActions` and `nutrition_daily_summary`, and included `training_autonomy_level`, `nutrition_autonomy_level`, and `pinned_exercise_notes` in `profile` and `exerciseCatalog` snapshots.
+- Optimized AI Meal Scan direct nutrition estimation for Apple Intelligence (`AppleFoundationPlugin.swift`, `AppleFoundationService`, `AiService`): uses native Swift `@Generable`/`@Guide` guided generation with deterministic greedy decoding (`GenerationOptions(samplingMode: .greedy)`), a concise Apple-specific direct prompt retaining `protein`, `carbs`, `fat`, `sugar`, `fiber`, `salt` (with derived `sodium`), `caffeine`, `isFluid`, and `confidence`, macro-sum plausibility normalization (`<= 100 g` per 100 g), fault-tolerant optional micronutrients, and matching session prewarming.
+- Disabled LiDAR depth capture/scale hints and hid both the LiDAR switches and the nutrition estimation method picker when Apple Intelligence is selected (`AiSettingsScreen`, `AiMealCaptureScreen`), always using direct AI estimation for Apple Intelligence.
+- Updated graphical Statistics hub empty states (`BodyMetricsSectionCard`, `MacroSectionCard`, `StatisticsStepsCard`, `SleepSectionCard`, and `WaterSectionCard`) to display a blurred skeleton preview of their charts/visuals underneath each card's existing empty-state message while keeping card headers crisp and cards tappable, and added skeleton chart previews with `ActiveGapOverlay` when no data exists in the currently selected timeframe window on `BodyNutritionCorrelationScreen`, `MacroStatisticsScreen`, and `WaterStatisticsScreen`.
+- Made supplement tracker entries more compact.
+- Displayed meal calories and macronutrients in the same colored tiles as food details.
+- Reduced spacing in meal ingredient cards so more ingredients fit on screen.
+- Made exercise catalog and food selection results more compact, with consistent add buttons and room to scroll past the create button.
+
 ## [1.7.0] - 2026-11-03
 
 ### Fixed

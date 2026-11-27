@@ -1,10 +1,11 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../util/design_constants.dart';
+import 'predictive_back_route_gesture.dart';
 
 /// A reusable, high-performance container transform route that morphs an
 /// originating UI element (card, tile, FAB) into a destination screen and
@@ -40,14 +41,11 @@ class CardMorphRoute<T> extends PageRoute<T> {
     this.morphOnPop = true,
     this.onSourceVisibilityChanged,
     super.settings,
-    Duration expandDuration = const Duration(milliseconds: 420),
-    Duration collapseDuration = const Duration(milliseconds: 360),
-    bool maintainState = true,
-    bool fullscreenDialog = false,
-  }) : _expandDuration = expandDuration,
-       _collapseDuration = collapseDuration,
-       _maintainState = maintainState,
-       _fullscreenDialog = fullscreenDialog;
+    this._expandDuration = const Duration(milliseconds: 420),
+    this._collapseDuration = const Duration(milliseconds: 360),
+    this._maintainState = true,
+    this._fullscreenDialog = false,
+  });
 
   final WidgetBuilder builder;
 
@@ -81,6 +79,32 @@ class CardMorphRoute<T> extends PageRoute<T> {
   bool get maintainState => _maintainState;
 
   final bool _fullscreenDialog;
+  bool _predictiveBackActive = false;
+
+  @override
+  void handleStartBackGesture({double progress = 0.0}) {
+    super.handleStartBackGesture(progress: progress);
+    _predictiveBackActive = true;
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    super.handleCancelBackGesture();
+    final routeAnimation = animation;
+    if (routeAnimation == null || routeAnimation.isCompleted) {
+      _predictiveBackActive = false;
+      return;
+    }
+    late AnimationStatusListener listener;
+    listener = (status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        _predictiveBackActive = false;
+        routeAnimation.removeStatusListener(listener);
+      }
+    };
+    routeAnimation.addStatusListener(listener);
+  }
 
   @override
   bool get fullscreenDialog => _fullscreenDialog;
@@ -154,17 +178,23 @@ class CardMorphRoute<T> extends PageRoute<T> {
 
     // Fallback if no source bounds could be resolved: soft fade
     if (measured == null) {
-      return FadeTransition(opacity: animation, child: child);
+      return PredictiveBackRouteGesture(
+        route: this,
+        child: FadeTransition(opacity: animation, child: child),
+      );
     }
 
-    return _CardMorphTransition(
+    return PredictiveBackRouteGesture(
       route: this,
-      animation: animation,
-      sourceRect: measured,
-      sourceBorderRadius: sourceBorderRadius,
-      sourceBuilder: sourceBuilder,
-      morphOnPop: morphOnPop,
-      child: child,
+      child: _CardMorphTransition(
+        route: this,
+        animation: animation,
+        sourceRect: measured,
+        sourceBorderRadius: sourceBorderRadius,
+        sourceBuilder: sourceBuilder,
+        morphOnPop: morphOnPop,
+        child: child,
+      ),
     );
   }
 
@@ -252,8 +282,12 @@ class CardMorphRoute<T> extends PageRoute<T> {
 
 const Curve _kExpandCurve = Curves.fastOutSlowIn;
 const Curve _kCollapseCurve = FlippedCurve(_kExpandCurve);
-const double _kRadiusLead = 1.35;
 const double _kScrimOpacity = 0.45;
+
+// The source copy can contain transparent margins or rounded corners. Remove
+// the backing surface only in the final sliver of the flight so those areas
+// match the original source when the route disappears.
+const double _kSurfaceHandoverBand = 0.02;
 
 /// How far the container has to have grown for the page to be fully opaque —
 /// which is also when it has finished covering the source copy underneath, so
@@ -375,7 +409,7 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (widget.animation.isCompleted && widget.route.isCurrent) {
+    if (widget.route.popGestureEnabled) {
       _backGestureRecognizer.addPointer(event);
     }
   }
@@ -405,13 +439,21 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
 
             final Size screen = MediaQuery.sizeOf(context);
             final Rect fullRect = Offset.zero & screen;
-            final double screenRadius =
-                MediaQuery.viewPaddingOf(context).bottom > 0 ? 44.0 : 0.0;
+            final EdgeInsets viewPadding = MediaQuery.viewPaddingOf(context);
+            // Flutter does not expose the hardware corner radius. On iPhones
+            // with a home indicator the top safe area gives a closer estimate
+            // than one fixed value across older and newer displays.
+            final double screenRadius = viewPadding.bottom <= 0
+                ? 0.0
+                : theme.platform == TargetPlatform.iOS && viewPadding.top > 0
+                    ? (viewPadding.top * 0.95).clamp(40.0, 64.0)
+                    : 44.0;
 
             // If morphOnPop is false and we are popping (e.g. LiveWorkoutScreen minimizing to bottom bar),
             // slide down off screen smoothly towards the bottom progress bar:
             if (!widget.morphOnPop &&
-                widget.animation.status == AnimationStatus.reverse) {
+                (widget.animation.status == AnimationStatus.reverse ||
+                    widget.route.navigator?.userGestureInProgress == true)) {
               final double popProgress = (1.0 - raw);
               final double slideY =
                   Curves.easeInCubic.transform(popProgress) * screen.height;
@@ -426,26 +468,35 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
             }
 
             final Curve curve =
-                widget.animation.status == AnimationStatus.reverse
-                ? _kCollapseCurve
-                : _kExpandCurve;
+                widget.animation.status == AnimationStatus.reverse &&
+                        !widget.route._predictiveBackActive
+                    ? _kCollapseCurve
+                    : _kExpandCurve;
             final double t = curve.transform(raw);
 
             final Rect rect = Rect.lerp(widget.sourceRect, fullRect, t)!;
             final double radius = lerpDouble(
               widget.sourceBorderRadius,
               screenRadius,
-              (t * _kRadiusLead).clamp(0.0, 1.0),
+              t,
             )!;
 
             final double scale = rect.width / screen.width;
             final double sourceScale = rect.width / widget.sourceRect.width;
 
-            // Content fade: the destination page and its background dissolve
-            // across the hand-over band. On the way back that is what reveals
-            // the source copy underneath — gradually, instead of switching it on
-            // at full density once the container has shrunk far enough.
+            // Fade the page over its source copy, but keep an opaque surface
+            // beneath both so the screen behind never shows through the morph.
             final double pageOpacity = (t / _kHandoverBand).clamp(0.0, 1.0);
+            final Color surfaceColor = Color.lerp(
+              theme.cardColor,
+              theme.scaffoldBackgroundColor,
+              pageOpacity,
+            )!
+                .withValues(
+              alpha: source == null
+                  ? 1.0
+                  : (t / _kSurfaceHandoverBand).clamp(0.0, 1.0),
+            );
 
             return Stack(
               fit: StackFit.expand,
@@ -460,16 +511,15 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Full scaffold background fading in sync with the page
-                      if (pageOpacity > 0.0)
-                        Positioned.fromRect(
-                          rect: rect,
-                          child: ColoredBox(
-                            color: theme.scaffoldBackgroundColor.withValues(
-                              alpha: pageOpacity,
-                            ),
-                          ),
+                      // A solid, color-changing surface fills the whole shape,
+                      // including corners not covered by the scaled copy.
+                      Positioned.fromRect(
+                        rect: rect,
+                        child: ColoredBox(
+                          key: const ValueKey('cardMorphSurface'),
+                          color: surfaceColor,
                         ),
+                      ),
 
                       // Source element (e.g. GlassFab or card copy), pinned to
                       // the same corner of the container and scaled by the same

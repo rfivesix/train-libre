@@ -1,5 +1,5 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +12,7 @@ import 'package:train_libre/features/onboarding/presentation/onboarding_screen.d
 import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
 import 'package:train_libre/features/profile/domain/repositories/goal_repository.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/services/unit_service.dart';
 
 Widget _buildOnboardingTestApp({
@@ -23,7 +24,7 @@ Widget _buildOnboardingTestApp({
 }) {
   return MaterialApp(
     locale: locale,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: ChangeNotifierProvider<UnitService>(
       create: (_) => UnitService(),
@@ -256,6 +257,7 @@ void main() {
           goalRepository: goalRepository,
           databaseHelper: dbHelper,
           recommendationService: recommendationService,
+          onFinish: () {},
         ),
       );
       await tester.pumpAndSettle();
@@ -317,6 +319,43 @@ void main() {
 
       // Only 1 LinearProgressIndicator exists (no nested progress bars)
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+      });
+      await tester.pumpAndSettle();
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+      if (find
+          .byKey(const Key('onboarding_workout_import_page'))
+          .evaluate()
+          .isNotEmpty) {
+        await tester.tap(nextButton);
+        await tester.pumpAndSettle();
+      }
+      expect(
+        find.byKey(const Key('onboarding_ai_health_page')),
+        findsOneWidget,
+      );
+      await tester.tap(nextButton);
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+      });
+      await tester.pumpAndSettle();
+
+      final goal = (await goalRepository.getActiveNutritionGoal())!;
+      final recommendation = (await recommendationService
+          .getLatestGeneratedRecommendation())!;
+      final weights = await (database.select(
+        database.measurements,
+      )..where((row) => row.type.equals('weight'))).get();
+      expect(weights.map((row) => row.value).toSet(), {85.0});
+      expect(recommendation.targetRateKgPerWeek, lessThan(0));
+      expect(recommendation.targetRateKgPerWeek, goal.desiredWeeklyRateKg);
+      expect(
+        recommendation.recommendedCalories,
+        lessThan(recommendation.estimatedMaintenanceCalories),
+      );
     },
   );
 

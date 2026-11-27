@@ -76,6 +76,15 @@ class SleepNightlyAnalysesDao {
     }
   }
 
+  Future<List<SleepNightlyAnalysisRecord>> findAll() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM sleep_nightly_analyses ORDER BY night_date ASC',
+        )
+        .get();
+    return rows.map(_mapRow).toList(growable: false);
+  }
+
   Future<List<SleepNightlyAnalysisRecord>> findByNightRange({
     required String fromNightDateInclusive,
     required String toNightDateInclusive,

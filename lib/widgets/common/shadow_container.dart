@@ -1,6 +1,6 @@
 // lib/widgets/shadow_container.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A container utility that adds a soft shadow and corner clipping to its [child].
 class ShadowContainer extends StatelessWidget {

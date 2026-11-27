@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
@@ -107,7 +109,8 @@ class _GlassPillButtonState extends State<GlassPillButton>
         ),
         RepaintBoundary(
           child: AdaptiveGlass(
-            settings: DesignConstants.liquidGlassSettings(isDark),
+            settings: GlassPreferences.of(context)
+                .apply(DesignConstants.liquidGlassSettings(isDark)),
             shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
             child: GlassGlow(
               glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
@@ -115,7 +118,7 @@ class _GlassPillButtonState extends State<GlassPillButton>
               child: Container(
                 padding: widget.padding,
                 decoration: BoxDecoration(
-                  color: neutralTint,
+                  color: GlassPreferences.of(context).tint(neutralTint),
                   borderRadius: BorderRadius.circular(effectiveRadius),
                 ),
                 foregroundDecoration: BoxDecoration(

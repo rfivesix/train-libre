@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../../../features/diary/domain/models/fluid_entry.dart';
@@ -33,6 +33,48 @@ class WaterPeriodSummary {
 
   int get totalMilliliters =>
       dailyIntakes.fold(0, (sum, day) => sum + day.milliliters);
+
+  factory WaterPeriodSummary.mockPreview(
+    DateTimeRange range, {
+    int targetMilliliters = 3000,
+  }) {
+    final startDay = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final endDay = DateTime(range.end.year, range.end.month, range.end.day);
+    final rawDays =
+        DateTime.utc(endDay.year, endDay.month, endDay.day)
+            .difference(DateTime.utc(startDay.year, startDay.month, startDay.day))
+            .inDays +
+        1;
+    final totalDays = rawDays < 7 ? 7 : rawDays;
+    final effectiveRange = rawDays < 7
+        ? DateTimeRange(
+            start: startDay,
+            end: DateTime(startDay.year, startDay.month, startDay.day + 6),
+          )
+        : range;
+    const pattern = <int>[2200, 2650, 2400, 2900, 2350, 2750, 2500];
+    int sum = 0;
+    final intakes = List<WaterDayIntake>.generate(totalDays, (i) {
+      final ml = pattern[i % pattern.length];
+      sum += ml;
+      return WaterDayIntake(
+        date: DateTime(startDay.year, startDay.month, startDay.day + i),
+        milliliters: ml,
+        isTracked: true,
+      );
+    }, growable: false);
+    return WaterPeriodSummary(
+      range: effectiveRange,
+      dailyIntakes: intakes,
+      trackedDays: totalDays,
+      averageMilliliters: (sum / totalDays).round(),
+      targetMilliliters: targetMilliliters > 0 ? targetMilliliters : 3000,
+    );
+  }
 }
 
 class WaterAnalyticsDataAdapter {

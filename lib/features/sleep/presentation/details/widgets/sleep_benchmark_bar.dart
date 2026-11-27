@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class BenchmarkSegment {
   /// The upper bound of this segment (in the same units as min/max)

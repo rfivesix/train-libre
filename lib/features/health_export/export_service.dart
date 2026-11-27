@@ -234,6 +234,7 @@ class HealthExportService {
     );
 
     final domainOutcomes = <HealthExportDomain, _DomainExportOutcome>{};
+    var wroteRecords = false;
 
     domainOutcomes[HealthExportDomain.measurements] = await _exportDomain(
       platform: platform,
@@ -257,6 +258,7 @@ class HealthExportService {
         // Android Health Connect currently does not support BMI in this writer path.
         for (final batch in _chunkRecords(writeable)) {
           await adapter.writeMeasurementsBatch(batch);
+          wroteRecords = true;
           await _commitRecords(
             platform: platform,
             domain: HealthExportDomain.measurements,
@@ -309,6 +311,7 @@ class HealthExportService {
         for (final batch in _chunkRecords(pendingNutrition)) {
           try {
             await adapter.writeNutritionBatch(batch);
+            wroteRecords = true;
             await _commitRecords(
               platform: platform,
               domain: HealthExportDomain.nutritionHydration,
@@ -327,6 +330,7 @@ class HealthExportService {
             for (final record in batch) {
               try {
                 await adapter.writeNutrition(record);
+                wroteRecords = true;
                 await _commitRecords(
                   platform: platform,
                   domain: HealthExportDomain.nutritionHydration,
@@ -358,6 +362,7 @@ class HealthExportService {
         for (final batch in _chunkRecords(pendingHydration)) {
           try {
             await adapter.writeHydrationBatch(batch);
+            wroteRecords = true;
             await _commitRecords(
               platform: platform,
               domain: HealthExportDomain.nutritionHydration,
@@ -376,6 +381,7 @@ class HealthExportService {
             for (final record in batch) {
               try {
                 await adapter.writeHydration(record);
+                wroteRecords = true;
                 await _commitRecords(
                   platform: platform,
                   domain: HealthExportDomain.nutritionHydration,
@@ -435,6 +441,7 @@ class HealthExportService {
         );
         for (final batch in _chunkRecords(pending)) {
           await adapter.writeWorkoutsBatch(batch);
+          wroteRecords = true;
           await _commitRecords(
             platform: platform,
             domain: HealthExportDomain.workouts,
@@ -469,7 +476,7 @@ class HealthExportService {
                     '${entry.key.name} failed${entry.value.error == null ? '' : ': ${entry.value.error}'}',
               )
               .join(' | ');
-    if (success) {
+    if (success && wroteRecords) {
       unawaited(
         TelemetryService.instance.trackFeatureUsed(
           featureKey: platform == HealthExportPlatform.appleHealth

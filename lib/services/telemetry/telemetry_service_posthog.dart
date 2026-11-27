@@ -20,6 +20,7 @@ class PostHogTelemetryService implements TelemetryService {
   static const String _prefDeviceIdKey = 'telemetry_persistent_device_id';
   static const String _prefFoodLogCountKey = 'telemetry_daily_food_count';
   static const String _prefFoodLogSourcesKey = 'telemetry_daily_food_sources';
+  static const String _healthExportDatePrefix = 'telemetry_health_export_date_';
 
   static const String _defaultApiKey = String.fromEnvironment(
     'POSTHOG_API_KEY',
@@ -237,6 +238,14 @@ class PostHogTelemetryService implements TelemetryService {
       await prefs.remove(_prefDeviceIdKey);
       await prefs.remove(_prefFoodLogCountKey);
       await prefs.remove(_prefFoodLogSourcesKey);
+      await _serializeHealthExport(() async {
+        for (final feature in [
+          FeatureKey.appleHealthExported,
+          FeatureKey.healthConnectExported,
+        ]) {
+          await prefs.remove('$_healthExportDatePrefix$feature');
+        }
+      });
 
       // Re-generate fresh persistent device ID and reset PostHog SDK identity
       _persistentDeviceId = const Uuid().v4();
@@ -395,7 +404,7 @@ class PostHogTelemetryService implements TelemetryService {
           // used to be filled in with guesses derived from `platform`, which put
           // fabricated hardware data ("Apple"/"arm64"/"iPhone" for every iOS
           // device, "Android"/"Mobile" for every Android one) into analytics.
-          if (appBuild != null) r'$app_build': appBuild,
+          r'$app_build': ?appBuild,
           r'$app_name': 'Train Libre',
           r'$app_version': appVersion,
           r'$app_namespace': 'com.rfivesix.trainlibre',
@@ -414,7 +423,7 @@ class PostHogTelemetryService implements TelemetryService {
           'platform': platform,
           'locale': locale,
           'country': country,
-          if (installSource != null) 'install_source': installSource,
+          'install_source': ?installSource,
         },
       });
 
@@ -502,13 +511,41 @@ class PostHogTelemetryService implements TelemetryService {
     required String featureKey,
     Map<String, dynamic>? extraProps,
   }) async {
-    await track(
+    Future<void> capture() => track(
       'feature_used',
       properties: {
         'feature_key': _sanitizeEnumValue(featureKey),
-        if (extraProps != null) ...extraProps,
+        ...?extraProps,
       },
     );
+    if (featureKey != FeatureKey.appleHealthExported &&
+        featureKey != FeatureKey.healthConnectExported) {
+      await capture();
+      return;
+    }
+    if (!_optedIn) return;
+    await _serializeHealthExport(() async {
+      if (!_optedIn) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (!_optedIn) return;
+      final now = DateTime.now();
+      final date = '${now.year}-${now.month}-${now.day}';
+      final key = '$_healthExportDatePrefix$featureKey';
+      if (prefs.getString(key) == date) return;
+      // Store before capture to prevent duplicate events if capture fails.
+      await prefs.setString(key, date);
+      if (_optedIn) await capture();
+    });
+  }
+
+  Future<void> _healthExportQueue = Future<void>.value();
+
+  Future<void> _serializeHealthExport(Future<void> Function() action) {
+    final result = _healthExportQueue.then((_) => action());
+    _healthExportQueue = result.catchError((Object error) {
+      debugPrint('health export telemetry error: $error');
+    });
+    return result;
   }
 
   /// Serializes the read-modify-write cycles on the food-log counter.
@@ -660,11 +697,11 @@ class PostHogTelemetryService implements TelemetryService {
       properties: {
         'request_id': requestId,
         'provider': provider,
-        if (inputMode != null) 'input_mode': inputMode,
-        if (photoCount != null) 'photo_count': photoCount,
-        if (hasLidar != null) 'has_lidar': hasLidar,
-        if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
-        if (hasTextInput != null) 'has_text_input': hasTextInput,
+        'input_mode': ?inputMode,
+        'photo_count': ?photoCount,
+        'has_lidar': ?hasLidar,
+        'has_voice_input': ?hasVoiceInput,
+        'has_text_input': ?hasTextInput,
       },
     );
   }
@@ -705,40 +742,30 @@ class PostHogTelemetryService implements TelemetryService {
         'request_id': requestId,
         'provider': provider,
         'duration_seconds': durationSeconds,
-        if (reviewVisibleSeconds != null)
-          'review_visible_seconds': reviewVisibleSeconds,
-        if (preliminaryNutritionSeconds != null)
-          'preliminary_nutrition_seconds': preliminaryNutritionSeconds,
+        'review_visible_seconds': ?reviewVisibleSeconds,
+        'preliminary_nutrition_seconds': ?preliminaryNutritionSeconds,
         'success': success,
-        if (errorCode != null) 'error_code': errorCode,
-        if (inputMode != null) 'input_mode': inputMode,
-        if (photoCount != null) 'photo_count': photoCount,
-        if (hasLidar != null) 'has_lidar': hasLidar,
-        if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
-        if (hasTextInput != null) 'has_text_input': hasTextInput,
-        if (validationPassed != null) 'validation_passed': validationPassed,
-        if (repairAttemptsCount != null)
-          'repair_rounds_count': repairAttemptsCount,
-        if (suggestedItemsCountBucket != null)
-          'suggested_items_count_bucket': suggestedItemsCountBucket,
-        if (preparationSeconds != null)
-          'preparation_seconds': preparationSeconds,
-        if (providerSeconds != null) 'provider_seconds': providerSeconds,
-        if (validationSeconds != null) 'validation_seconds': validationSeconds,
-        if (repairSeconds != null) 'repair_seconds': repairSeconds,
-        if (revealSeconds != null) 'reveal_seconds': revealSeconds,
-        if (primaryFirstPassAccepted != null)
-          'primary_first_pass_accepted': primaryFirstPassAccepted,
-        if (selectedValidationRoundsCount != null)
-          'selected_validation_rounds_count': selectedValidationRoundsCount,
-        if (validationRunsTotalCount != null)
-          'validation_runs_total_count': validationRunsTotalCount,
-        if (repairLimitReached != null)
-          'repair_limit_reached': repairLimitReached,
-        if (firstPassIssueCategories != null)
-          'first_pass_issue_categories': firstPassIssueCategories,
-        if (fastMode != null) 'fast_mode': fastMode,
-        if (hedgeStarted != null) 'hedge_started': hedgeStarted,
+        'error_code': ?errorCode,
+        'input_mode': ?inputMode,
+        'photo_count': ?photoCount,
+        'has_lidar': ?hasLidar,
+        'has_voice_input': ?hasVoiceInput,
+        'has_text_input': ?hasTextInput,
+        'validation_passed': ?validationPassed,
+        'repair_rounds_count': ?repairAttemptsCount,
+        'suggested_items_count_bucket': ?suggestedItemsCountBucket,
+        'preparation_seconds': ?preparationSeconds,
+        'provider_seconds': ?providerSeconds,
+        'validation_seconds': ?validationSeconds,
+        'repair_seconds': ?repairSeconds,
+        'reveal_seconds': ?revealSeconds,
+        'primary_first_pass_accepted': ?primaryFirstPassAccepted,
+        'selected_validation_rounds_count': ?selectedValidationRoundsCount,
+        'validation_runs_total_count': ?validationRunsTotalCount,
+        'repair_limit_reached': ?repairLimitReached,
+        'first_pass_issue_categories': ?firstPassIssueCategories,
+        'fast_mode': ?fastMode,
+        'hedge_started': ?hedgeStarted,
       },
     );
   }
@@ -758,7 +785,7 @@ class PostHogTelemetryService implements TelemetryService {
         'ai_tidy_up_enabled': aiTidyUpEnabled,
         'surface': surface,
         'success': success,
-        if (errorCode != null) 'error_code': errorCode,
+        'error_code': ?errorCode,
       },
     );
   }
@@ -781,13 +808,12 @@ class PostHogTelemetryService implements TelemetryService {
         'has_images': hasImages,
         'duration_seconds': durationSeconds,
         'success': success,
-        if (repairAttemptsCount != null)
-          'repair_attempts_count': repairAttemptsCount,
-        if (errorCode != null) 'error_code': errorCode,
-        if (inputTokens != null) 'input_tokens': inputTokens,
-        if (outputTokens != null) 'output_tokens': outputTokens,
-        if (totalTokens != null) 'total_tokens': totalTokens,
-        if (usageComplete != null) 'usage_complete': usageComplete,
+        'repair_attempts_count': ?repairAttemptsCount,
+        'error_code': ?errorCode,
+        'input_tokens': ?inputTokens,
+        'output_tokens': ?outputTokens,
+        'total_tokens': ?totalTokens,
+        'usage_complete': ?usageComplete,
       },
     );
   }
@@ -857,7 +883,7 @@ class PostHogTelemetryService implements TelemetryService {
         'has_user_note': hasUserNote,
         'user_note_length': userNoteLength,
         'submission_method': submissionMethod,
-        if (diagnosticsSummary != null) ...diagnosticsSummary,
+        ...?diagnosticsSummary,
       },
     );
   }

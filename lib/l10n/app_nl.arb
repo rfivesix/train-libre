@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Workoutweergave",
+  "settingsShowWorkoutE1rm": "Geschat maximum voor één herhaling tonen",
+  "settingsShowWorkoutE1rmSubtitle": "Toont het geschatte maximum per set en de vergelijking tussen sessies.",
   "@@locale": "nl",
   "selectDateTitle": "Datum selecteren",
   "selectTimeTitle": "Tijd selecteren",
@@ -1145,7 +1148,7 @@
   "onboardingMissionTitle": "Onze missie",
   "onboardingMissionBody": "Train Libre is er voor toegewijde natural bodybuilders die vooruitgang willen boeken op basis van wetenschap en gegevens.",
   "onboardingFeatureWorkoutTitle": "Training bijhouden",
-  "onboardingFeatureWorkoutBody": "Registreer sets (RIR/RPE) en houd het herstel van je spieren bij.",
+  "onboardingFeatureWorkoutBody": "Registreer sets (RPE) en houd het herstel van je spieren bij.",
   "onboardingFeatureTdeeTitle": "Adaptief energieverbruik",
   "onboardingFeatureTdeeBody": "Een geïntegreerd Kalman-filter berekent je werkelijke calorieverbruik.",
   "onboardingFeatureNutritionTitle": "Voeding en water",
@@ -1528,7 +1531,7 @@
   "recoveryDetailAverageRpe": "gemiddelde RPE",
   "recoveryMovementPatterns": "Bewegingspatronen",
   "recoveryDetailForecast": "Verwachting",
-  "recoveryDetailRirData": "RIR-gegevens",
+  "recoveryDetailRirData": "RPE-gegevens",
   "recoveryCompactHours": "≈ {hours} h",
   "@recoveryCompactHours": {
     "placeholders": {
@@ -1559,7 +1562,7 @@
       }
     }
   },
-  "recoveryRirCoverage": "RIR geregistreerd voor {covered} van {total} sets",
+  "recoveryRirCoverage": "RPE geregistreerd voor {covered} van {total} sets",
   "@recoveryRirCoverage": {
     "placeholders": {
       "covered": {
@@ -1713,6 +1716,7 @@
   "newPersonalRecordLabel": "Nieuw persoonlijk record",
   "prBadgeTooltip": "Nieuw persoonlijk record!",
   "workoutSummaryNewRecordsTitle": "Nieuwe records",
+  "workoutRecordsTitle": "Records",
   "allTimeRecordsLabel": "Records aller tijden",
   "recentActivityLabel": "Recente activiteit",
   "prsByRepRangeLabel": "Beste set per herhalingsbereik",
@@ -2529,6 +2533,9 @@
   "healthSettingsStepActive": "Stappentracking staat aan",
   "healthSettingsStepAvailable": "Stappengegevens zijn beschikbaar",
   "healthSettingsStepUnavailable": "Stappengegevens zijn niet beschikbaar",
+  "healthSettingsSyncPulse": "Hartslag nu synchroniseren",
+  "healthSettingsPulseSyncResult": "{count} hartslagmetingen van het afgelopen jaar opgehaald",
+  "@healthSettingsPulseSyncResult": {"placeholders": {"count": {"type": "int"}}},
   "healthSettingsSyncSteps": "Stappen nu synchroniseren",
   "healthSettingsSyncExport": "Nu exporteren",
   "healthSettingsStepsSyncResult": "{count} stapsegmenten bijgewerkt",
@@ -2568,8 +2575,10 @@
   "pulseRangeLabel": "Bereik",
   "pulseAverageLabel": "Gemiddelde",
   "pulseRestingLabel": "In rust",
+  "pulseEstimatedRestingLabel": "Geschatte rusthartslag",
+  "pulseEstimateLabel": "Geschat",
   "pulseInsufficientData": "Er zijn te weinig hartslagmetingen voor een betrouwbare grafiek.",
-  "pulseMethodNote": "De gemiddelde hartslag is tijdgewogen. De rusthartslag is een voorzichtige schatting op basis van de laagste 20% van de metingen in de geselecteerde periode.",
+  "pulseMethodNote": "Train Libre gebruikt de rusthartslag uit Apple Gezondheid of Health Connect als die beschikbaar is. Anders wordt de rusthartslag geschat op basis van hartslagmetingen.",
   "pulseSampleCount": "{count, plural, =0{Geen metingen} one{1 meting} other{{count} metingen}}",
   "@pulseSampleCount": {
     "placeholders": {
@@ -2590,8 +2599,8 @@
   "pulseSettingsEnableTitle": "Hartslaganalyse inschakelen",
   "pulseSettingsEnableSubtitle": "Hartslaggegevens worden alleen gelezen voor het hartslagoverzicht als je dit inschakelt.",
   "pulseSettingsPermissionTitle": "Toegang tot hartslaggegevens toestaan",
-  "pulseSettingsPermissionSubtitle": "Opent Apple Health of Health Connect zodat Train Libre hartslagmetingen kan lezen.",
-  "pulseSettingsAnalysisSubtitle": "Toont het bereik, het tijdgewogen gemiddelde en een voorzichtige schatting van je rusthartslag. Dit is geen medische diagnose.",
+  "pulseSettingsPermissionSubtitle": "Geef in Health Connect toegang tot hartslag en rusthartslag.",
+  "pulseSettingsAnalysisSubtitle": "Toont het bereik, het gemiddelde en de rusthartslag.",
   "pulseSettingsPermissionGranted": "Toegang tot hartslaggegevens is ingesteld.",
   "pulseSettingsPermissionFailed": "Toegang tot hartslaggegevens is niet verleend.",
   "pulseOptInChip": "Optioneel",
@@ -2830,11 +2839,11 @@
   "infoAiMealKeyPoints": "In catalogusmodus worden AI-suggesties vergeleken met lokale voedingsgegevens. De directe schattingsmodus kan voedingswaarden door AI laten schatten. Controleer de resultaten voordat je ze opslaat.",
   "infoAiMealTechnicalTitle": "Hybride BYOK-AI en Jaro-Winkler-overeenkomst",
   "infoAiMealTechnicalExplanation": "In catalogusmodus worden AI-suggesties vergeleken met lokale voedingsgegevens. De directe schattingsmodus kan voedingswaarden door AI laten schatten. Controleer de resultaten voordat je ze opslaat.",
-  "infoSleepTitle": "Slaapkwaliteit (SHS v3.5)",
-  "infoSleepExplanation": "Berekent een uitgebreide slaapindex op basis van hoeveelheid, continuïteit, diepte, timing en dagelijkse regelmaat.",
-  "infoSleepKeyPoints": "• Combineert vijf klinische dimensies met een gewogen som.\n• Past de vereisten automatisch aan als je wearable geen slaapfasen of efficiëntiegegevens aanlevert.\n• Beschermt je met zachte begrenzingsfactoren die de totaalscore beperken wanneer een belangrijk domein, zoals REM- of diepe slaap, tekortschiet.",
-  "infoSleepTechnicalTitle": "Gewogen basiswaarde en doorlopende zachte begrenzingen",
-  "infoSleepTechnicalExplanation": "Combineert vijf hoofddomeinen met een gewogen lineaire som: duur (30%), continuïteit (20%), slaapstructuur (25%), timing (15%) en regelmaat (10%). Om misleidende gemiddelden te voorkomen wanneer een klinisch domein tekortschiet, wordt de eindscore verlaagd als er ernstige knelpunten in slaapfasen of circadiaanse timing worden vastgesteld.",
+  "infoSleepTitle": "Slaapscore",
+  "infoSleepExplanation": "Een schatting op basis van beschikbare gegevens.",
+  "infoSleepKeyPoints": "Duur, continuïteit, diepe slaap, REM en regelmaat tellen mee.\nOntbrekende onderdelen worden weggelaten.\nSlaapfasen zijn schattingen.",
+  "infoSleepTechnicalTitle": "Berekening",
+  "infoSleepTechnicalExplanation": "Duur 45%, continuïteit 25%, diep 10%, REM 10%, regelmaat 10%. Een korte duur kan de score begrenzen. Geen klinische meting.",
   "tdeeRecalculationNotificationTitle": "TDEE opnieuw berekend",
   "tdeeRecalculationNotificationBody": "Nieuwe dagdoelen: {calories} kcal | {protein} g eiwit | {carbs} g koolhydraten | {fat} g vet",
   "@tdeeRecalculationNotificationBody": {
@@ -3556,7 +3565,7 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "Geschikt als je net begint: gericht op de basis, met gewicht en herhalingen. Gebruikt eenvoudige dagelijkse spiernamen zoals “schouders”.",
   "experienceLevelAdvancedDescription": "Voor regelmatige sportschoolgangers: gedetailleerde anatomische spierindeling in de catalogus en trainingen (bijv. voorste, middelste en achterste deltaspier).",
-  "experienceLevelProDescription": "Alleen aanbevolen voor ervaren krachtsporters die goed kunnen inschatten wanneer ze niet meer kunnen: voegt intensiteitsregistratie met RIR (herhalingen in reserve) en cardio-intensiteitszones toe.",
+  "experienceLevelProDescription": "Voor ervaren sporters die hun inspanning goed kunnen inschatten: voegt RPE en cardio-intensiteitszones toe.",
   "diaryWeightLabel": "Gewicht",
   "diaryWeightPitch": "Met een geschiedenis van gewichtsmetingen wordt je caloriedoel nauwkeuriger.",
   "diaryWeightStaleNudge": "Het is alweer even geleden. Regelmatige registraties houden je caloriedoel nauwkeurig.",
@@ -4322,5 +4331,174 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Toon of verberg de chatballon. Je kunt de chat ook openen via het menu Toevoegen."
 ,
   "aiAssistantIntroAboutRow": "AI-chat bekijken",
-  "aiAssistantIntroAboutRowSubtitle": "Bekijk de introductie van de nieuwe AI-chat wanneer je wilt opnieuw."
+  "aiAssistantIntroAboutRowSubtitle": "Bekijk de introductie van de nieuwe AI-chat wanneer je wilt opnieuw.",
+  "aiFailureTitle": "Analyse mislukt",
+  "aiFailureEmptyTitle": "Geen voedsel herkend",
+  "aiFailureTimeoutTitle": "Het verzoek duurt te lang",
+  "aiFailureUnavailableTitle": "AI niet beschikbaar",
+  "aiFailureNetworkTitle": "Verbinding mislukt",
+  "aiFailureSetupTitle": "AI instellen",
+  "aiFailureRateTitle": "Aanvraaglimiet bereikt",
+  "aiFailureGenericBody": "Het AI-antwoord kon niet worden verwerkt. Probeer opnieuw of kies een ander model.",
+  "aiFailureEmptyBody": "Er zijn geen voedingsmiddelen gevonden. De afbeelding of beschrijving is mogelijk niet duidelijk, of het model heeft een fout gemaakt.",
+  "aiFailureTimeoutBody": "De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of probeer een ander model.",
+  "aiFailureNetworkBody": "De AI-aanbieder is niet bereikbaar. Controleer je verbinding of server.",
+  "aiFailureSetupBody": "Controleer de AI-aanbieder en je gegevens in de AI-instellingen.",
+  "aiFailureRateBody": "Wacht even en probeer opnieuw.",
+  "aiFailureUnavailableBody": "Controleer of Apple Intelligence is ingeschakeld en beschikbaar is, of kies een andere aanbieder.",
+  "aiFailureAppleHint": "Apple Intelligence herkent maaltijden mogelijk niet betrouwbaar. Een ander model kan een beter resultaat geven.",
+  "aiFailureEdit": "Invoer wijzigen",
+  "aiFailureSettings": "AI-instellingen openen",
+  "aiFailureSlowHint": "Afhankelijk van het apparaat en model kan dit wat langer duren.",
+  "aiFailureUnsupportedImage": "Apple Intelligence kan op dit apparaat of deze iOS-versie geen foto’s gebruiken. Beschrijf de maaltijd of kies een andere aanbieder.",
+  "aiFailureAppleTimeoutBody": "De ingestelde wachttijd is verstreken. Verhoog deze in de AI-instellingen of kies een andere aanbieder.",
+  "glassCustomizationTitle": "Glasweergave",
+  "glassTint": "Glastint",
+  "glassTintClear": "Helder",
+  "glassTintTinted": "Getint",
+  "glassBlur": "Vervaging",
+  "glassBlurOff": "Uit",
+  "glassOpacity": "Dekking",
+  "glassOpacityClear": "0% (Helder)",
+  "glassReset": "Herstellen",
+  "glassCustomizationDescription": "Pas de glasweergave aan van helder tot getint.",
+  "sessionMusclesTitle": "Spieren in deze sessie",
+  "sessionMusclesWorked": "Al getraind",
+  "sessionMusclesRemaining": "Nog te trainen",
+  "discardWorkoutAction": "Training verwerpen",
+  "sleepDashboardScore": "Slaapscore",
+  "sleepDashboardGoal": "Slaapdoel",
+  "sleepDashboardGoalEight": "Doel van 8 uur",
+  "sleepDashboardSevenDays": "Afgelopen {count} dagen",
+  "@sleepDashboardSevenDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDashboardRecordedNights": "Geregistreerde nachten",
+  "sleepDashboardStageEstimate": "Slaapfasen zijn schattingen.",
+  "sleepDashboardStageHint": "Tik op de grafiek om een fase te bekijken.",
+  "sleepDashboardEfficiency": "Efficiëntie",
+  "sleepDashboardStart": "Begin",
+  "sleepDashboardEnd": "Einde",
+  "sleepDashboardEmpty": "Geen slaapgegevens voor deze dag.",
+  "sleepDashboardNightHeartRate": "Hartslag tijdens slaap",
+  "sleepDashboardNightHrv": "HRV tijdens slaap",
+  "sleepDashboardSamples": "Beschikbare metingen",
+  "sleepDashboardContributors": "Scorefactoren",
+  "sleepDashboardInsufficient": "Onvoldoende gegevens",
+  "sleepDashboardAsleep": "Slaapduur",
+  "hrvTitle": "Hartslagvariabiliteit",
+  "hrvUnavailable": "Geen HRV-gegevens beschikbaar",
+  "hrvMethodNote": "Gemiddelde van beschikbare Apple Gezondheid SDNN-metingen in milliseconden.",
+  "hrvNoData": "Geen HRV-gegevens beschikbaar",
+  "sleepDashboardDebtNote": "Alleen geregistreerde nachten; geen fysiologische maat voor slaapschuld.",
+  "sleepDashboardEstimate": "Schatting · beperkte gegevens",
+  "sleepDashboardDurationCap": "Slaapduur begrenst de score",
+  "sleepDashboardHrvError": "HRV-metingen konden niet worden geladen.",
+  "pulseSettingsEnableSubtitleIos": "Leest hartslag, rusthartslag en HRV uit Apple Gezondheid als je hartslaganalyse inschakelt.",
+  "pulseSettingsPermissionSubtitleIos": "Geef in Apple Gezondheid toegang tot hartslag, rusthartslag en HRV.",
+  "pulseHealthStatusIos": "Apple Gezondheid geeft leesrechten niet vrij. Controleer bij ontbrekende waarden de toegang in Gezondheid.",
+  "sleepDashboardTonightDelta": "Deze nacht tegenover het doel",
+  "sleepDashboardMinimum": "Minimum",
+  "sleepDashboardAverage": "Gemiddelde",
+  "sleepDashboardPersonalBaseline": "Persoonlijke basislijn (vorige 30 dagen)",
+  "sleepDashboardBaselineUnavailable": "Onvoldoende vergelijkbare nachten",
+  "hrvQueryFailed": "HRV kon niet worden geladen. Probeer het opnieuw.",
+  "statisticsOverviewTitle": "Overzicht",
+  "statisticsOverviewWorkouts": "Trainingen",
+  "statisticsOverviewAllTime": "Totaal",
+  "statisticsOverview30Days": "Laatste 30 dagen",
+  "statisticsOverviewWeightChange": "Gewichtsverandering",
+  "statisticsOverviewVolume": "Volume",
+  "statisticsOverviewSets": "sets",
+  "statisticsOverviewCalories": "Calorieën / dag",
+  "statisticsOverviewProtein": "Eiwit / dag",
+  "statisticsOverviewTrackedDays": "30 dagen · geregistreerde dagen",
+  "statisticsOverviewSince": "Sinds {date}",
+  "@statisticsOverviewSince": {"placeholders": {"date": {"type": "String"}}},
+  "statisticsEmptySteps": "Geen stappen geregistreerd in de afgelopen 7 dagen.",
+  "statisticsEmptySleep": "Geen slaap geregistreerd in de afgelopen 7 dagen.",
+  "statisticsEmptyPulse": "Geen hartslaggegevens in de afgelopen 7 dagen.",
+  "statisticsEmptyTraining": "Voltooi een training om je trainingsritme te zien.",
+  "statisticsEmptyRecords": "Geen nieuwe records in de afgelopen 30 dagen.",
+  "statisticsEmptyMuscles": "Voltooi krachtsets om je spiergroepen te zien.",
+  "statisticsEmptyBody": "Registreer gewicht of voeding om je trends te zien.",
+  "statisticsEmptyNutrition": "Geen voeding geregistreerd in de afgelopen 7 dagen.",
+  "analyticsDailyBreakdown": "Dagelijks overzicht",
+  "analyticsCarbsShort": "KH",
+  "analyticsCalorieTargetLine": "Caloriedoel",
+  "analyticsWeightSlopePerWeek": "Gewichtstempo",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/wk",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "Deze week: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Actieve dagen: {days}/wk",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 trainingen / wk",
+  "analyticsConsecutiveWeeks": "Opeenvolgende weken",
+  "analyticsSelectWorkout": "Training kiezen",
+  "analyticsNoWorkoutsOnDay": "Geen trainingen op deze dag",
+  "analyticsPrImprovementsWindowHint": "Verbetering t.o.v. vorig persoonlijk record",
+  "analyticsAllTimeBadge": "Altijd",
+  "stepsModuleGoalProgress": "Doelbereik",
+  "analyticsWaterTargetLabel": "Dagdoel",
+  "analyticsWaterLoggedDays": "Gelogde dagen",
+  "statisticsOverviewTotalWorkouts": "Workouts totaal",
+  "statisticsOverviewWorkouts30d": "Workouts (30d)",
+  "sleepHubNightsLogged": "{count, plural, =1{1 nacht gelogd} other{{count} nachten gelogd}}",
+  "@sleepHubNightsLogged": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsMicronutrientsHubSummary": "{days} gelogde dagen · {count} voedingsstoffen",
+  "@statisticsMicronutrientsHubSummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsResetDefaults": "Standaard herstellen",
+  "statisticsBestPerformancesCount": "{count, plural, =0{Geen nieuwe records} =1{1 nieuw record} other{{count} nieuwe records}}",
+  "@statisticsBestPerformancesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "diaryNutritionDayOptions": "Opties voor deze voedingsdag",
+  "diaryMarkNutritionDayIncomplete": "Markeren als onvolledig",
+  "diaryIncludeNutritionDay": "Weer opnemen in de statistieken",
+  "diaryIncompleteDayTitle": "Onvolledige dag",
+  "diaryIncompleteDayDetail": "Niet meegenomen in voedingsstatistieken",
+  "diaryNutritionDayIncompleteStatus": "Onvolledig · Uitgesloten van voedingsstatistieken",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 dag geanalyseerd} other{{included} dagen geanalyseerd}} · {incomplete} onvolledig",
+  "rpeEffortTitle": "Ervaren inspanning",
+  "rpeQuestion": "Hoe zwaar was deze set?",
+  "rpeNoReps": "Geen herhalingen meer mogelijk",
+  "rpeRepsLeft": "Nog ongeveer {count} herhalingen mogelijk",
+  "rpeFourPlus": "Nog 4 of meer herhalingen mogelijk",
+  "rpeClear": "Wissen",
+  "rpeSave": "Opslaan",
+  "rpeHelpTitle": "Wat is RPE?",
+  "rpeHelpBody": "RPE beschrijft hoe zwaar een set voelde. Schat hoeveel herhalingen je nog had kunnen doen.",
+  "rpeInvalid": "Voer een RPE van 6 tot 10 in, in stappen van 0,5.",
+  "rpeMaximumEffort": "Maximale inspanning",
+  "rpeHardEffort": "Zwaar",
+  "rpeModerateEffort": "Matig"
 }

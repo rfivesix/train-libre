@@ -1,8 +1,7 @@
 // lib/features/exercise_catalog/presentation/exercise_catalog_screen.dart
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -275,7 +274,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                         scrollCacheExtent: const ScrollCacheExtent.pixels(
                           1500.0,
                         ),
-                        padding: DesignConstants.cardPadding,
+                        padding: EdgeInsets.fromLTRB(
+                          DesignConstants.cardPaddingInternal,
+                          DesignConstants.cardPaddingInternal,
+                          DesignConstants.cardPaddingInternal,
+                          widget.isSelectionMode
+                              ? DesignConstants.cardPaddingInternal
+                              : 100,
+                        ),
                         itemCount: _foundExercises.length,
                         itemBuilder: (context, index) {
                           final exercise = _foundExercises[index];
@@ -287,48 +293,79 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                 // screen instead of the screen simply growing.
                                 late final Widget card;
                                 card = SummaryCard(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: DesignConstants.spacingXS,
+                                  ),
+                                  padding: EdgeInsets.zero,
                                   child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    title: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            exercise.getLocalizedName(context),
-                                            style: textTheme.titleMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
+                                    contentPadding:
+                                        const EdgeInsetsDirectional.only(
+                                          start: DesignConstants
+                                              .cardPaddingInternal,
+                                          end: DesignConstants.spacingS,
                                         ),
-                                        if (exercise.source == 'user') ...[
-                                          const SizedBox(
-                                            width: DesignConstants.spacingS,
-                                          ),
-                                          _buildSourceBadge(
+                                    minTileHeight: 64,
+                                    minVerticalPadding:
+                                        DesignConstants.spacingS,
+                                    title: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                exercise.getLocalizedName(
+                                                  context,
+                                                ),
+                                                style: textTheme.titleMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ),
+                                            if (exercise.source == 'user') ...[
+                                              const SizedBox(
+                                                width: DesignConstants.spacingS,
+                                              ),
+                                              _buildSourceBadge(
+                                                context,
+                                                exercise.source,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        Text(
+                                          _buildSubtitleText(
                                             context,
-                                            exercise.source,
+                                            exercise,
+                                            l10n,
                                           ),
-                                        ],
+                                          style: textTheme.bodyMedium,
+                                        ),
                                       ],
-                                    ),
-                                    subtitle: Text(
-                                      _buildSubtitleText(
-                                        context,
-                                        exercise,
-                                        l10n,
-                                      ),
-                                      style: textTheme.bodyMedium,
                                     ),
                                     trailing: widget.isSelectionMode
                                         ? IconButton(
                                             tooltip: l10n.add_button,
                                             icon: Icon(
-                                              LucideIcons.circle_plus,
+                                              LucideIcons.plus,
                                               color: colorScheme.primary,
+                                              size: 28,
                                             ),
-                                            onPressed: () =>
+                                            onPressed: () {
+                                              if (widget.onExerciseSelected !=
+                                                  null) {
+                                                widget.onExerciseSelected!(
+                                                  exercise,
+                                                );
+                                              } else {
                                                 Navigator.of(context)
-                                                    .pop(exercise),
+                                                    .pop(exercise);
+                                              }
+                                            },
                                           )
                                         : const Icon(LucideIcons.chevron_right),
                                     onTap: () {

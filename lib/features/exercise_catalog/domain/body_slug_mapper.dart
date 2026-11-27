@@ -1,6 +1,6 @@
 import '../../../../generated/app_localizations.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 // lib/features/exercise_catalog/domain/body_slug_mapper.dart
 
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';

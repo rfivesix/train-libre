@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
+import '../../../services/experience_level_service.dart';
 import '../../../services/profile_service.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/analytics_state.dart';
@@ -128,6 +129,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       ..minimumFractionDigits = 1
       ..maximumFractionDigits = 1;
     final date = DateFormat.yMMMd(localeName).add_Hm();
+    final showsIntensity = context
+        .read<ExperienceLevelService>()
+        .showsIntensity;
     final muscles = _recovery.muscles
         .where((muscle) => !_shouldHideMuscle(muscle.muscleGroup))
         .toList(growable: false);
@@ -142,12 +146,12 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           '  ${l10n.recoveryDetailLastSession}: ${date.format(muscle.lastSignificantLoadAt!.toLocal())}; ${number.format(muscle.lastSessionLoad ?? muscle.lastEquivalentSets)} ${l10n.recoveryDetailEquivalentSets}; ${number.format(muscle.hoursSinceLastSignificantLoad)} h',
         if (muscle.lastSignificantLoadAt == null)
           '  ${l10n.recoveryDetailLastSession}: ${l10n.recoveryNoRecentLoad}',
-        '  ${l10n.recoveryDetailRirData}: ${l10n.recoveryRirCoverage(muscle.setsWithRir, muscle.eligibleSetCount)}; ${l10n.recoveryDataConfidence}: ${muscle.dataConfidence}',
+        if (showsIntensity)
+          '  ${l10n.recoveryDetailRirData}: ${l10n.recoveryRirCoverage(muscle.setsWithRir, muscle.eligibleSetCount)}',
+        '  ${l10n.recoveryDataConfidence}: ${muscle.dataConfidence}',
         '  ${l10n.recoveryDetailEligibleSets}: ${muscle.eligibleSetCount}; ${l10n.recoveryDetailResidualLoad}: ${number.format(muscle.residualLoad ?? 0)}; ${l10n.recoveryDetailDirectLoad}: ${number.format(muscle.lastSessionDirectLoad ?? 0)}; ${l10n.recoveryDetailIndirectLoad}: ${number.format(muscle.lastSessionIndirectLoad ?? 0)}',
         '  ${l10n.recoveryDetailForecast}: ${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}; ${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))} (Schwellen: ${muscle.recoveringUpperHours} h / ${muscle.readyUpperHours} h)',
-        if (muscle.avgRir != null)
-          '  ${l10n.recoveryDetailAverageRir}: ${number.format(muscle.avgRir!)}',
-        if (muscle.avgRpe != null)
+        if (showsIntensity && muscle.avgRpe != null)
           '  ${l10n.recoveryDetailAverageRpe}: ${number.format(muscle.avgRpe!)}',
         '  ${muscle.highSessionFatigue ? l10n.recoveryFatigueContextHigh : l10n.recoveryFatigueContextBaseline}',
         if (muscle.movementPatterns.isNotEmpty)
@@ -395,6 +399,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     final key = _muscleKeys.putIfAbsent(rawName, () => GlobalKey());
     final isExpanded = _expandedMuscles.contains(rawName);
     final hasDetails = muscle.lastSignificantLoadAt != null;
+    final showsIntensity = context
+        .watch<ExperienceLevelService>()
+        .showsIntensity;
     final lastSessionLoad = muscle.lastSessionLoad ?? muscle.lastEquivalentSets;
     final lastSessionHours = muscle.hoursSinceLastSignificantLoad.round();
     final remainingHours = switch (state) {
@@ -493,68 +500,46 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                       padding: const EdgeInsets.only(
                         top: DesignConstants.spacingM,
                       ),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(DesignConstants.spacingM),
-                        decoration: BoxDecoration(
-                          color: stateColor.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildRecoveryDetailRow(
+                            context,
+                            title: l10n.recoveryDetailLastSession,
+                            value: l10n.recoverySessionLoadAndAge(
+                              _formatEquivalentSets(context, lastSessionLoad),
+                              lastSessionHours,
+                            ),
                           ),
-                          border: Border.all(
-                            color: stateColor.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
+                          if (state != RecoveryDomainService.stateFresh) ...[
+                            const SizedBox(height: DesignConstants.spacingM),
                             _buildRecoveryDetailRow(
                               context,
-                              title: l10n.recoveryDetailLastSession,
-                              value: l10n.recoverySessionLoadAndAge(
-                                _formatEquivalentSets(context, lastSessionLoad),
-                                lastSessionHours,
+                              title: l10n.recoveryDetailForecast,
+                              value:
+                                  state == RecoveryDomainService.stateRecovering
+                                  ? '${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}\n${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))}'
+                                  : l10n.recoveryFreshInHours(
+                                      _hoursUntil(
+                                        muscle,
+                                        muscle.readyUpperHours,
+                                      ),
+                                    ),
+                            ),
+                          ],
+                          if (showsIntensity &&
+                              muscle.eligibleSetCount > 0) ...[
+                            const SizedBox(height: DesignConstants.spacingM),
+                            _buildRecoveryDetailRow(
+                              context,
+                              title: l10n.recoveryDetailRirData,
+                              value: l10n.recoveryRirCoverage(
+                                muscle.setsWithRir,
+                                muscle.eligibleSetCount,
                               ),
                             ),
-                            if (state != RecoveryDomainService.stateFresh) ...[
-                              const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: DesignConstants.spacingS,
-                                ),
-                                child: Divider(height: 1),
-                              ),
-                              _buildRecoveryDetailRow(
-                                context,
-                                title: l10n.recoveryDetailForecast,
-                                value:
-                                    state ==
-                                        RecoveryDomainService.stateRecovering
-                                    ? '${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}\n${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))}'
-                                    : l10n.recoveryFreshInHours(
-                                        _hoursUntil(
-                                          muscle,
-                                          muscle.readyUpperHours,
-                                        ),
-                                      ),
-                              ),
-                            ],
-                            if (muscle.eligibleSetCount > 0) ...[
-                              const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: DesignConstants.spacingS,
-                                ),
-                                child: Divider(height: 1),
-                              ),
-                              _buildRecoveryDetailRow(
-                                context,
-                                title: l10n.recoveryDetailRirData,
-                                value: l10n.recoveryRirCoverage(
-                                  muscle.setsWithRir,
-                                  muscle.eligibleSetCount,
-                                ),
-                              ),
-                            ],
                           ],
-                        ),
+                        ],
                       ),
                     )
                   : const SizedBox(width: double.infinity),
@@ -758,24 +743,19 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                               );
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                              horizontal: DesignConstants.spacingS,
+                              vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: color.withValues(alpha: 0.2),
-                                width: 0.5,
-                              ),
+                              color: color.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               label,
-                              style: Theme.of(context).textTheme.labelSmall
+                              style: Theme.of(context).textTheme.labelMedium
                                   ?.copyWith(
                                     color: color,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w800,
                                   ),
                             ),
                           );

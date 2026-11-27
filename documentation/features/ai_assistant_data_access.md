@@ -15,12 +15,27 @@ approves that request; **Deny** sends no app records. Pending approvals expire
 after 30 minutes. Follow-up questions require new approval. Follow-ups may use a previous data-grounded answer as context after fresh approval of overlapping data for the same provider.
 
 After approval, selected records are copied into a separate, in-memory SQLite
-database in a disposable isolate. The model receives the schema and column
-meanings first, then may request read-only SQL queries. The app validates and
-runs each query locally and sends only bounded results to the model. Writes,
-recursive CTEs, cross joins, table-valued functions, and references outside
-the approved snapshot are rejected. Large snapshots and slow queries are
-bounded, and a failed read does not send partial records.
+database in a disposable isolate. For health-backed categories (**sleep**,
+**pulse & HRV**, and **steps**), the app runs a short, timeout-protected delta
+sync before building the snapshot and falls back to locally cached data if the
+platform sync is unavailable or slow. Disabled or unauthorized health sources
+are reported in `data_source_status` rather than failing the whole query.
+
+The snapshot pairs canonical app-calculated summary tables (such as
+`nutrition_daily_summary` with extra nutrients and `incomplete_nutrition_days`,
+`sleep_nightly_summary`, `steps_daily_summary`, `pulse_daily_summary`,
+`workout_heart_rate_summary`, `adaptive_nutrition_state` for Bayesian TDEE and
+recommendations, `training_overview_stats`, `personal_records`,
+`body_nutrition_trend`, `active_plan_schedule` for weekly and sequence plans,
+and `recovery_overview`/`muscle_recovery_status`) with bounded detail tables.
+The model receives the schema and column meanings first, then may request
+read-only SQL queries (including safe scalar JSON extraction and CTE
+comparisons) or request additional categories / wider date ranges subject to
+fresh user approval. The app validates and runs each query locally and sends
+only bounded results to the model. Writes, recursive CTEs, cross joins,
+table-valued functions, and references outside the approved snapshot are
+rejected. Large snapshots and slow queries are bounded, and a failed read does
+not send partial records.
 
 The local **Data access** audit records request and decision times,
 provider/model, status, queried tables, result fields and row counts,

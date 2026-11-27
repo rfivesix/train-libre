@@ -1,4 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+
+import '../../../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -63,7 +67,9 @@ class RunningWorkoutOverlay extends StatelessWidget {
               borderRadius: DesignConstants.workoutOverlayRadius,
             ),
             quality: DesignConstants.defaultGlassQuality,
-            settings: DesignConstants.liquidGlassSettings(isDark),
+            settings: GlassPreferences.of(
+              context,
+            ).apply(DesignConstants.liquidGlassSettings(isDark), premium: true),
             child: _RunningWorkoutRow(
               elapsedDuration: elapsedDuration,
               restDuration: restDuration,
@@ -246,12 +252,27 @@ class _CircleAffordance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: DesignConstants.floatingBarPillSize,
       height: DesignConstants.floatingBarPillSize,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: backgroundColor),
-      child: Icon(icon, size: DesignConstants.iconSizeL, color: iconColor),
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(
+            sigmaX: DesignConstants.floatingBarPillBlur,
+            sigmaY: DesignConstants.floatingBarPillBlur,
+          ),
+          child: ColoredBox(
+            color: backgroundColor,
+            child: Center(
+              child: Icon(
+                icon,
+                size: DesignConstants.iconSizeL,
+                color: iconColor,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

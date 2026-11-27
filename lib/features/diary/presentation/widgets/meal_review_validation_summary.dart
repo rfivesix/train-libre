@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/ai_meal_validation.dart';
@@ -68,7 +68,7 @@ class _MealReviewValidationSummaryState
                   Icon(
                     validation.passed
                         ? LucideIcons.badge_check
-                        : LucideIcons.triangle_alert,
+                        : LucideIcons.triangle_exclamation_point,
                     color: color,
                     size: 20,
                   ),

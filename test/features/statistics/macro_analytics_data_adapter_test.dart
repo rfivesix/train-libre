@@ -1,9 +1,11 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/diary/domain/models/fluid_entry.dart';
+import 'package:train_libre/features/diary/domain/models/macro_entry.dart'
+    as diary;
 import 'package:train_libre/features/statistics/data/macro_analytics_data_adapter.dart';
 
 void main() {
@@ -82,6 +84,90 @@ void main() {
       expect(summary.avgFat, 65.0);
       expect(summary.trackedDays, 2);
     });
+
+    test('trimmedToFirstTracked removes leading empty days', () {
+      final range = DateTimeRange(
+        start: DateTime(2020, 1, 1),
+        end: DateTime(2026, 6, 2),
+      );
+      final summary = MacroPeriodSummary(
+        range: range,
+        dailyIntakes: [
+          DailyMacroIntake(
+            date: DateTime(2020, 1, 1),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+          DailyMacroIntake(
+            date: DateTime(2026, 5, 31),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+          DailyMacroIntake(
+            date: DateTime(2026, 6, 1),
+            calories: 2500,
+            proteinGrams: 160,
+            carbsGrams: 260,
+            fatGrams: 80,
+          ),
+          DailyMacroIntake(
+            date: DateTime(2026, 6, 2),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+        ],
+        avgCalories: 2500,
+        avgProtein: 160,
+        avgCarbs: 260,
+        avgFat: 80,
+        totalDays: 4,
+        trackedDays: 1,
+      );
+
+      final trimmed = summary.trimmedToFirstTracked();
+      expect(trimmed.dailyIntakes.length, 2);
+      expect(trimmed.dailyIntakes.first.date, DateTime(2026, 6, 1));
+      expect(trimmed.range.start, DateTime(2026, 6, 1));
+      expect(trimmed.range.end, DateTime(2026, 6, 2));
+      expect(trimmed.totalDays, 2);
+      expect(trimmed.trackedDays, 1);
+      expect(trimmed.avgCalories, 2500);
+    });
+
+    test('trimmedToFirstTracked returns empty when no tracked days exist', () {
+      final range = DateTimeRange(
+        start: DateTime(2020, 1, 1),
+        end: DateTime(2026, 6, 2),
+      );
+      final summary = MacroPeriodSummary(
+        range: range,
+        dailyIntakes: [
+          DailyMacroIntake(
+            date: DateTime(2020, 1, 1),
+            calories: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+          ),
+        ],
+        avgCalories: 0,
+        avgProtein: 0,
+        avgCarbs: 0,
+        avgFat: 0,
+        totalDays: 1,
+        trackedDays: 0,
+      );
+
+      final trimmed = summary.trimmedToFirstTracked();
+      expect(trimmed.dailyIntakes, isEmpty);
+      expect(trimmed.totalDays, 0);
+    });
   });
 
   group('MacroAnalyticsDataAdapter', () {
@@ -102,6 +188,60 @@ void main() {
       const adapter = MacroAnalyticsDataAdapter();
       expect(adapter, isNotNull);
     });
+
+    test(
+      'an incomplete day keeps its date slot and can be counted again',
+      () async {
+        final db = AppDatabase(NativeDatabase.memory());
+        addTearDown(db.close);
+        final helper = DatabaseHelper.forTesting(db);
+        final adapter = MacroAnalyticsDataAdapter(databaseHelper: helper);
+        final partialDay = DateTime(2026, 9, 12);
+        final completeDay = DateTime(2026, 9, 13);
+        final range = DateTimeRange(start: partialDay, end: completeDay);
+        for (final (date, calories, protein) in [
+          (partialDay, 420.0, 24.0),
+          (completeDay, 2020.0, 130.0),
+        ]) {
+          await helper.insertMacroEntry(
+            diary.MacroEntry(
+              id: 'meal-${date.day}',
+              timestamp: DateTime(date.year, date.month, date.day, 12),
+              mealType: 'mealtypeBreakfast',
+              calories: calories,
+              protein: protein,
+              carbs: 0,
+              fat: 0,
+              calculatedNutrient: 'calories',
+            ),
+          );
+        }
+
+        await helper.setIncompleteNutritionDay(partialDay, true);
+        final filtered = await adapter.fetchSummary(range: range);
+        expect(filtered.avgCalories, 2020);
+        expect(filtered.avgProtein, 130);
+        expect(filtered.trackedDays, 1);
+        expect(filtered.incompleteDays, 1);
+        expect(filtered.dailyIntakes.first.date, partialDay);
+        expect(filtered.dailyIntakes.first.isIncomplete, isTrue);
+        expect(filtered.dailyIntakes.first.hasData, isFalse);
+        expect(filtered.trimmedToFirstTracked().range.start, partialDay);
+        expect(
+          (await helper.diaryLocalDataSource.getMacroEntriesForDate(partialDay))
+              .single
+              .calories,
+          420,
+        );
+
+        await helper.setIncompleteNutritionDay(partialDay, false);
+        final restored = await adapter.fetchSummary(range: range);
+        expect(restored.trackedDays, 2);
+        expect(restored.incompleteDays, 0);
+        expect(restored.avgCalories, 1220);
+        expect(restored.avgProtein, 77);
+      },
+    );
 
     test('fetchSummary treats FluidEntry.kcal as total calories without duplicate scaling', () async {
       final db = AppDatabase(NativeDatabase.memory());

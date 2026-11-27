@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -10,10 +10,11 @@ import '../../domain/models/set_template.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
-import 'superset_connector_button.dart';
+import 'add_set_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
+import 'reorderable_set_list.dart';
 import 'routine_set_row_widget.dart';
 
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -37,8 +38,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final Function(SetTemplate) onShowSetTypePicker;
   final Function(SetTemplate, String)? onSetTypeChanged;
   final Function(SetTemplate, int listIndex) onRemoveSet;
+  final void Function(int oldIndex, int newIndex)? onReorderSet;
   final bool isDragging;
-  final bool isDraggedItem;
   final bool isEditMode;
   final bool canDrag;
   final bool showPauseAction;
@@ -73,8 +74,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required this.onShowSetTypePicker,
     this.onSetTypeChanged,
     required this.onRemoveSet,
+    this.onReorderSet,
     this.isDragging = false,
-    this.isDraggedItem = false,
     this.isEditMode = true,
     this.canDrag = true,
     this.showPauseAction = true,
@@ -97,19 +98,20 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required ColorScheme colorScheme,
     VoidCallback? onTap,
   }) {
+    final textColor = textTheme.titleLarge?.color ?? colorScheme.onSurface;
     final content = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.timer, size: 20, color: colorScheme.primary),
+          Icon(LucideIcons.timer, size: 20, color: textColor),
           const SizedBox(width: 8),
           Text(
             pauseSeconds != null && pauseSeconds > 0
                 ? _formatPauseTime(pauseSeconds)
                 : l10n.timerOffLabel.toUpperCase(),
             style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.primary,
+              color: textColor,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -172,9 +174,13 @@ class EditRoutineExerciseCard extends StatelessWidget {
                 ),
                 if (isEditMode && !isDragging)
                   PlatformAdaptivePopupMenu<String>(
-                    icon: const Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Icon(LucideIcons.ellipsis_vertical),
+                    key: ValueKey('routine_exercise_menu_$index'),
+                    icon: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        LucideIcons.ellipsis_vertical,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                     items: [
                       PlatformAdaptivePopupMenuItem(
@@ -187,6 +193,16 @@ class EditRoutineExerciseCard extends StatelessWidget {
                         label: l10n.editPauseTime,
                         icon: LucideIcons.timer,
                       ),
+                      if (onToggleSupersetBelow != null)
+                        PlatformAdaptivePopupMenuItem(
+                          value: 'superset',
+                          label: isConnectedBelow
+                              ? l10n.disconnectSuperset
+                              : l10n.connectSuperset,
+                          icon: isConnectedBelow
+                              ? LucideIcons.unlink
+                              : LucideIcons.link,
+                        ),
                       PlatformAdaptivePopupMenuItem(
                         value: 'remove',
                         label: l10n.removeExercise,
@@ -201,6 +217,9 @@ class EditRoutineExerciseCard extends StatelessWidget {
                           break;
                         case 'timer':
                           onEditPauseTime();
+                          break;
+                        case 'superset':
+                          onToggleSupersetBelow?.call();
                           break;
                         case 'remove':
                           onDeleteExercise();
@@ -298,52 +317,57 @@ class EditRoutineExerciseCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildHeaderRow(context, routineExercise, l10n),
-                              ...routineExercise.setTemplates
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                    final setIndex = entry.key;
-                                    final setTemplate = entry.value;
+                              ReorderableSetList(
+                                itemCount: routineExercise.setTemplates.length,
+                                enabled: isEditMode && onReorderSet != null,
+                                onReorderSet: onReorderSet,
+                                itemBuilder: (context, setIndex) {
+                                  final setTemplate =
+                                      routineExercise.setTemplates[setIndex];
 
-                                    int workingSetIndex = 0;
-                                    for (int i = 0; i <= setIndex; i++) {
-                                      if (routineExercise
-                                              .setTemplates[i]
-                                              .setType !=
-                                          'warmup') {
-                                        workingSetIndex++;
-                                      }
+                                  int workingSetIndex = 0;
+                                  for (int i = 0; i <= setIndex; i++) {
+                                    if (routineExercise
+                                            .setTemplates[i]
+                                            .setType !=
+                                        'warmup') {
+                                      workingSetIndex++;
                                     }
+                                  }
 
-                                    return RoutineSetRowWidget(
-                                      key: ValueKey(setTemplate.id),
-                                      setIndex: workingSetIndex,
-                                      rowIndex: setIndex,
-                                      routineExercise: routineExercise,
-                                      template: setTemplate,
-                                      listIndex: setIndex,
-                                      mask: ExerciseLogMask.forExercise(
-                                        routineExercise.exercise,
-                                      ),
-                                      repsController:
-                                          repsControllers[setTemplate.id!]!,
-                                      weightController:
-                                          weightControllers[setTemplate.id!]!,
-                                      rirController:
-                                          rirControllers[setTemplate.id!]!,
-                                      onShowSetTypePicker: () =>
-                                          onShowSetTypePicker(setTemplate),
-                                      onSetTypeChanged: onSetTypeChanged != null
-                                          ? (newType) => onSetTypeChanged!(
-                                              setTemplate,
-                                              newType,
-                                            )
-                                          : null,
-                                      onRemoveSet: () =>
-                                          onRemoveSet(setTemplate, setIndex),
-                                      isEditMode: isEditMode,
-                                    );
-                                  }),
+                                  return RoutineSetRowWidget(
+                                    key: setTemplate.id != null
+                                        ? ValueKey(
+                                            'routine_set_${setTemplate.id}',
+                                          )
+                                        : ObjectKey(setTemplate),
+                                    setIndex: workingSetIndex,
+                                    routineExercise: routineExercise,
+                                    template: setTemplate,
+                                    listIndex: setIndex,
+                                    mask: ExerciseLogMask.forExercise(
+                                      routineExercise.exercise,
+                                    ),
+                                    repsController:
+                                        repsControllers[setTemplate.id!]!,
+                                    weightController:
+                                        weightControllers[setTemplate.id!]!,
+                                    rirController:
+                                        rirControllers[setTemplate.id!]!,
+                                    onShowSetTypePicker: () =>
+                                        onShowSetTypePicker(setTemplate),
+                                    onSetTypeChanged: onSetTypeChanged != null
+                                        ? (newType) => onSetTypeChanged!(
+                                            setTemplate,
+                                            newType,
+                                          )
+                                        : null,
+                                    onRemoveSet: () =>
+                                        onRemoveSet(setTemplate, setIndex),
+                                    isEditMode: isEditMode,
+                                  );
+                                },
+                              ),
                               if (isEditMode) ...[
                                 const SizedBox(
                                   height: DesignConstants.spacingS,
@@ -352,27 +376,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16.0,
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton.icon(
-                                        onPressed: onAddSet,
-                                        icon: const Icon(LucideIcons.plus),
-                                        label: Text(l10n.addSetButton),
-                                      ),
-                                      if (onToggleSupersetBelow != null)
-                                        Flexible(
-                                          child: SupersetConnectorButton(
-                                            key: ValueKey(
-                                              'superset_connector_$index',
-                                            ),
-                                            isConnected: isConnectedBelow,
-                                            onPressed: onToggleSupersetBelow!,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                  child: AddSetButton(onPressed: onAddSet),
                                 ),
                               ],
                             ],
@@ -417,7 +421,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
         if (context.watch<ExperienceLevelService>().showsIntensity) ...[
           const SizedBox(width: 8),
           _buildHeader(
-            mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+            mask.logsDistance ? l10n.cardioIntensityLabel : 'RPE',
             flex: 2,
           ),
         ],
@@ -451,10 +455,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
         routineExercise.exercise.getLocalizedName(context),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: isDraggedItem ? colorScheme.primary : null,
-        ),
+        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
 

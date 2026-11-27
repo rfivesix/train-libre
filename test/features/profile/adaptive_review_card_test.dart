@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/profile/domain/models/goal_model.dart';
 import 'package:train_libre/features/profile/presentation/widgets/adaptive_review_card.dart';
@@ -55,7 +56,7 @@ GoalReviewRecord _review({
 Widget _testApp({required Locale locale, required Widget child}) {
   return MaterialApp(
     locale: locale,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
       body: ListView(padding: EdgeInsets.zero, children: [child]),

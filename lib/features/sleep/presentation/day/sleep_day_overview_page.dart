@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import '../../../../widgets/common/common.dart';
-
 import '../../../../data/database_helper.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../widgets/common/common.dart';
 
 import '../../../../util/design_constants.dart';
 import '../../data/repository/sleep_query_repository.dart';
@@ -17,13 +16,12 @@ import '../../domain/sleep_domain.dart';
 import '../month/sleep_month_overview_page.dart';
 import '../week/sleep_week_overview_page.dart';
 import '../widgets/sleep_period_scope_layout.dart';
+import '../widgets/sleep_dashboard_details.dart';
 import '../widgets/sleep_metric_tile_grid.dart';
 import '../widgets/sleep_score_breakdown_card.dart';
 import '../widgets/sleep_score_card.dart';
 import '../widgets/sleep_timeline_card.dart';
 import 'sleep_day_view_model.dart' hide SleepPeriodScope;
-
-import 'package:flutter_lucide/flutter_lucide.dart';
 
 import 'dart:async';
 
@@ -32,18 +30,13 @@ import '../../../../services/telemetry/telemetry_service.dart';
 class SleepDayOverviewPage extends StatefulWidget {
   const SleepDayOverviewPage({
     super.key,
-    SleepDayDataRepository? repository,
-    SleepDayViewModel? viewModel,
-    SleepQueryRepository? queryRepository,
-    SleepPeriodScope? initialScope,
-    DateTime? selectedDay,
-    SleepImportService? syncService,
-  }) : _repository = repository,
-       _viewModel = viewModel,
-       _queryRepository = queryRepository,
-       _initialScope = initialScope,
-       _selectedDay = selectedDay,
-       _syncService = syncService;
+    this._repository,
+    this._viewModel,
+    this._queryRepository,
+    this._initialScope,
+    this._selectedDay,
+    this._syncService,
+  });
 
   final SleepDayDataRepository? _repository;
   final SleepDayViewModel? _viewModel;
@@ -100,6 +93,7 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
     if (!_hasInitialized) {
       _queryRepository ??= _readQueryRepositoryFromProvider();
       _loadScopeData();
+      if (_queryRepository == null) unawaited(_ensureQueryRepository());
       _hasInitialized = true;
     }
   }
@@ -139,7 +133,7 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
     final l10n = AppLocalizations.of(context)!;
     switch (_scope) {
       case SleepPeriodScope.day:
-        return const _SleepDayOverviewContent();
+        return _SleepDayOverviewContent(repository: _queryRepository);
       case SleepPeriodScope.week:
         if (_isLoadingWeek) {
           return const Center(child: CircularProgressIndicator());
@@ -356,7 +350,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
 }
 
 class _SleepDayOverviewContent extends StatelessWidget {
-  const _SleepDayOverviewContent();
+  const _SleepDayOverviewContent({required this.repository});
+  final SleepQueryRepository? repository;
 
   @override
   Widget build(BuildContext context) {
@@ -366,19 +361,11 @@ class _SleepDayOverviewContent extends StatelessWidget {
     if (model.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-
     final isMock = overview == null;
     final displayOverview = overview ?? getMockDayOverview(model.selectedDay);
-
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SleepTimelineCard(overview: displayOverview),
-        if (displayOverview.allSessions.length > 1) ...[
-          const SizedBox(height: _sleepOverviewSectionSpacing),
-          _SleepIntervalsCard(overview: displayOverview),
-        ],
-        const SizedBox(height: _sleepOverviewSectionSpacing),
         SleepScoreCard(overview: displayOverview),
         const SizedBox(height: _sleepOverviewSectionSpacing),
         if (displayOverview.scoringResult != null) ...[
@@ -390,8 +377,24 @@ class _SleepDayOverviewContent extends StatelessWidget {
               scoringResult: displayOverview.scoringResult!,
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingS),
+          const SizedBox(height: _sleepOverviewSectionSpacing),
         ],
+        SleepTimelineCard(
+          key: ValueKey('timeline-${displayOverview.session.id}'),
+          overview: displayOverview,
+        ),
+        const SizedBox(height: _sleepOverviewSectionSpacing),
+        SleepGoalCard(
+          overview: displayOverview,
+          repository: isMock ? null : repository,
+        ),
+        const SizedBox(height: _sleepOverviewSectionSpacing),
+        SleepNightHeartCharts(
+          key: ValueKey('heart-${displayOverview.session.id}'),
+          overview: displayOverview,
+          repository: isMock ? null : repository,
+        ),
+        const SizedBox(height: _sleepOverviewSectionSpacing),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.spacingL,
@@ -415,217 +418,6 @@ class _SleepDayOverviewContent extends StatelessWidget {
   }
 }
 
-class _SleepIntervalsCard extends StatefulWidget {
-  const _SleepIntervalsCard({required this.overview});
-
-  final SleepDayOverviewData overview;
-
-  @override
-  State<_SleepIntervalsCard> createState() => _SleepIntervalsCardState();
-}
-
-class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final sessions = widget.overview.allSessions;
-
-    if (sessions.length <= 1) return const SizedBox.shrink();
-
-    final isDark = theme.brightness == Brightness.dark;
-    final countBadgeBg = isDark
-        ? const Color(0xFF065F46).withValues(alpha: 0.3)
-        : const Color(0xFFD1FAE5);
-    final countBadgeText = isDark
-        ? const Color(0xFF34D399)
-        : const Color(0xFF065F46);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-            child: Padding(
-              padding: const EdgeInsets.all(DesignConstants.spacingL),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.sleepIntervalsDrawerTitle,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingS,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: countBadgeBg,
-                      borderRadius: BorderRadius.circular(
-                        DesignConstants.borderRadiusM,
-                      ),
-                    ),
-                    child: Text(
-                      '${sessions.length}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: countBadgeText,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  AnimatedRotation(
-                    turns: _isExpanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(LucideIcons.chevron_down),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Column(
-              children: [
-                const Divider(height: 1),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(
-                    left: DesignConstants.spacingL,
-                    right: DesignConstants.spacingL,
-                    top: DesignConstants.spacingM,
-                    bottom: DesignConstants.spacingL,
-                  ),
-                  itemCount: sessions.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: DesignConstants.spacingM),
-                  itemBuilder: (context, index) {
-                    final session = sessions[index];
-                    final startLocal = session.startAtUtc.toLocal();
-                    final endLocal = session.endAtUtc.toLocal();
-                    final duration = session.endAtUtc.difference(
-                      session.startAtUtc,
-                    );
-
-                    final isCore =
-                        session.sessionType == SleepSessionType.mainSleep;
-                    final typeText = isCore
-                        ? l10n.sleepSessionTypeCore
-                        : l10n.sleepSessionTypeNap;
-                    final badgeColor = isCore ? cs.primary : cs.secondary;
-
-                    return Row(
-                      children: [
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: Center(
-                            child: Icon(
-                              isCore
-                                  ? LucideIcons.moon
-                                  : LucideIcons.alarm_clock,
-                              size: 20,
-                              color: isCore ? cs.primary : cs.secondary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: DesignConstants.spacingXS,
-                          ),
-                          decoration: BoxDecoration(
-                            color: badgeColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(
-                              DesignConstants.borderRadiusS,
-                            ),
-                            border: Border.all(
-                              color: badgeColor.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            typeText,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: badgeColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Text(
-                                '${_formatTime(startLocal)} - ${_formatTime(endLocal)}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              if (startLocal.day != endLocal.day) ...[
-                                const SizedBox(
-                                  width: DesignConstants.spacingXS,
-                                ),
-                                Text(
-                                  '(+1)',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Text(
-                          _formatDuration(duration),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: cs.onSurface,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-            crossFadeState: _isExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  String _formatDuration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes % 60;
-    if (h > 0) {
-      return '${h}h ${m}m';
-    }
-    return '${m}m';
-  }
-}
-
 SleepDayOverviewData getMockDayOverview(DateTime day) {
   final start = DateTime(day.year, day.month, day.day, 22, 30);
   final end = DateTime(day.year, day.month, day.day + 1, 6, 30);
@@ -637,7 +429,7 @@ SleepDayOverviewData getMockDayOverview(DateTime day) {
       analysisVersion: '1',
       normalizationVersion: '1',
       analyzedAtUtc: DateTime.now(),
-      score: 78.0,
+      score: 86.0,
       totalSleepMinutes: 480,
       sleepEfficiencyPct: 90.0,
       restingHeartRateBpm: 60.0,
@@ -645,9 +437,17 @@ SleepDayOverviewData getMockDayOverview(DateTime day) {
       interruptionsWakeMinutes: 10,
       sleepQuality: SleepQualityBucket.good,
       scoreBreakdownJson: const {
-        'duration': {'score': 85.0, 'value': 480.0},
-        'depth': {'score': 75.0, 'value': 90.0},
-        'regularity': {'score': 80.0, 'value': 85.0},
+        'score': 86.0,
+        'state': 'good',
+        'completeness': 1.0,
+        'durationScore': 88.0,
+        'continuityScore': 100.0,
+        'deepScore': 90.0,
+        'remScore': 78.0,
+        'regularityScore': 82.0,
+        'regularityValidDays': 7,
+        'regularityUsed': true,
+        'regularityStable': true,
       },
     ),
     session: SleepSession(

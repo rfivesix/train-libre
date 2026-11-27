@@ -292,16 +292,16 @@ class AiMealScanRunner {
         }
         return categories.toList(growable: false);
       }),
-      validationRunsTotalCount: Future.wait([primary, if (hedge != null) hedge])
+      validationRunsTotalCount: Future.wait([primary, ?hedge])
           .then(
             (checks) =>
                 checks.where((check) => check.validation != null).length +
                 outcome.validationRunsCount -
                 1,
           ),
-      providerSeconds: Future.wait([primary, if (hedge != null) hedge])
+      providerSeconds: Future.wait([primary, ?hedge])
           .then((_) => (providerMilliseconds / 1000).round()),
-      validationSeconds: Future.wait([primary, if (hedge != null) hedge])
+      validationSeconds: Future.wait([primary, ?hedge])
           .then((_) => (validationMilliseconds / 1000).round()),
       repairSeconds: (repairWatch.elapsedMilliseconds / 1000).round(),
     );

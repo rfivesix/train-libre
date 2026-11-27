@@ -6,6 +6,18 @@
   Genereer opnieuw met: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1
+
+{chart_line} Statistieken en voortgangsanalyse: Bekijk je belangrijkste cijfers en trainingsdagen in één oogopslag. Vernieuwde schermen helpen je om je voeding, voortgang en persoonlijke records in detail te volgen.
+
+{dumbbell} Liveworkouts en setbeheer: Bekijk per spiergroep welke sets klaar zijn en welke nog op het programma staan. Versleep sets om ze te ordenen, toon desgewenst je geschatte maximumgewicht voor één herhaling en vier nieuwe records met animaties en haptische feedback.
+
+{moon} Slaapanalyse en hartslag: Het nieuwe slaapoverzicht toont je slaapduur, slaapfasen en hartslag. Je rusthartslag uit Apple Gezondheid of Health Connect staat in je dagboek en statistieken. Met Apple Gezondheid zie je ook je hartslagvariabiliteit.
+
+{sparkles} Aanpasbare Liquid Glass-weergave: Pas het glaseffect aan met de schuifregelaar en bekijk het resultaat direct in het voorbeeld. Vernieuwde overgangen maken wisselen tussen schermen vloeiender.
+
+{shield} Betere prestaties en betrouwbaarheid: Het statistiekenoverzicht scrolt vloeiender, trainingsdagen worden ook rond de overgang tussen zomer- en wintertijd correct weergegeven, en de stappentelling en rusttimer zijn verbeterd.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Maak kennis met de nieuwe AI-chat: stel vragen over voeding en training. De chat kan concepten maken voor trainingsschema’s, routines en recepten. Persoonlijke gegevens worden alleen met jouw toestemming gedeeld; voorstellen bekijk je voordat je ze toepast.

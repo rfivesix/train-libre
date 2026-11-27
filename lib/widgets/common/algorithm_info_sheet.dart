@@ -1,5 +1,8 @@
 // lib/widgets/common/algorithm_info_sheet.dart
-import 'package:flutter/material.dart';
+// The Markdown package still uses Flutter's original Material theme.
+// ignore: deprecated_member_use
+import 'package:flutter/material.dart' as legacy;
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -381,59 +384,70 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                                         child: CircularProgressIndicator(),
                                       ),
                                     )
-                                  : MarkdownBody(
-                                      data:
-                                          _loadedMarkdown ??
-                                          widget.technicalExplanation,
-                                      selectable: true,
-                                      styleSheet:
-                                          MarkdownStyleSheet.fromTheme(
-                                            theme,
-                                          ).copyWith(
-                                            p: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                                  fontSize: 13,
-                                                  height: 1.5,
-                                                  color: cs.onSurface
-                                                      .withValues(alpha: 0.85),
-                                                ),
-                                            code: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                                  fontSize: 12,
-                                                  fontFamily: 'monospace',
-                                                  backgroundColor: isDark
-                                                      ? const Color(0xFF1E1E1E)
-                                                      : cs.surfaceContainerHighest
-                                                            .withValues(
-                                                              alpha: 0.3,
-                                                            ),
-                                                  color: cs.primary,
-                                                ),
-                                          ),
-                                      builders: {
-                                        'latex': LatexElementBuilder(
-                                          textStyle: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                                fontSize: 13,
-                                                color: cs.primary,
+                                  // ignore: deprecated_member_use
+                                  : MaterialUiCompatibilityBridge(
+                                      child: Builder(
+                                        builder: (legacyContext) => MarkdownBody(
+                                          data:
+                                              _loadedMarkdown ??
+                                              widget.technicalExplanation,
+                                          selectable: true,
+                                          styleSheet:
+                                              MarkdownStyleSheet.fromTheme(
+                                                legacy.Theme.of(legacyContext),
+                                              ).copyWith(
+                                                p: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      fontSize: 13,
+                                                      height: 1.5,
+                                                      color: cs.onSurface
+                                                          .withValues(
+                                                            alpha: 0.85,
+                                                          ),
+                                                    ),
+                                                code: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      fontSize: 12,
+                                                      fontFamily: 'monospace',
+                                                      backgroundColor: isDark
+                                                          ? const Color(
+                                                              0xFF1E1E1E,
+                                                            )
+                                                          : cs.surfaceContainerHighest
+                                                                .withValues(
+                                                                  alpha: 0.3,
+                                                                ),
+                                                      color: cs.primary,
+                                                    ),
                                               ),
+                                          builders: {
+                                            'latex': LatexElementBuilder(
+                                              textStyle: theme
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    fontSize: 13,
+                                                    color: cs.primary,
+                                                  ),
+                                            ),
+                                          },
+                                          extensionSet: md.ExtensionSet(
+                                            [
+                                              ...md
+                                                  .ExtensionSet
+                                                  .gitHubFlavored
+                                                  .blockSyntaxes,
+                                              LatexBlockSyntax(),
+                                            ],
+                                            [
+                                              ...md
+                                                  .ExtensionSet
+                                                  .gitHubFlavored
+                                                  .inlineSyntaxes,
+                                              LatexInlineSyntax(),
+                                            ],
+                                          ),
                                         ),
-                                      },
-                                      extensionSet: md.ExtensionSet(
-                                        [
-                                          ...md
-                                              .ExtensionSet
-                                              .gitHubFlavored
-                                              .blockSyntaxes,
-                                          LatexBlockSyntax(),
-                                        ],
-                                        [
-                                          ...md
-                                              .ExtensionSet
-                                              .gitHubFlavored
-                                              .inlineSyntaxes,
-                                          LatexInlineSyntax(),
-                                        ],
                                       ),
                                     ),
                             ),

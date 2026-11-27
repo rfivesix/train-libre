@@ -1,6 +1,6 @@
 // lib/util/permission_dialogs.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'design_constants.dart';
 

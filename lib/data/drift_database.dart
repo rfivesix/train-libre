@@ -426,6 +426,7 @@ class RoutineSetTemplates extends Table with HybridId, MetaColumns {
       text().nullable()(); // String because values like "8-12" are possible
   RealColumn get targetWeight => real().nullable()();
   IntColumn get targetRir => integer().nullable()();
+  RealColumn get targetRpe => real().nullable()();
   IntColumn get targetRepMin => integer().nullable()();
   IntColumn get targetRepMax => integer().nullable()();
 }
@@ -471,7 +472,7 @@ class SetLogs extends Table with HybridId, MetaColumns {
 
   RealColumn get weight => real().nullable()();
   IntColumn get reps => integer().nullable()();
-  IntColumn get rpe => integer().nullable()();
+  RealColumn get rpe => real().nullable()();
   IntColumn get rir => integer().nullable()();
   // From old code: fields that were essential.
   TextColumn get setType => text().withDefault(const Constant('normal'))();
@@ -508,6 +509,7 @@ class SetLogs extends Table with HybridId, MetaColumns {
 
   /// Prescribed Reps in Reserve.
   IntColumn get prescribedRir => integer().nullable()();
+  RealColumn get prescribedRpe => real().nullable()();
 
   /// Whether the prescription was overridden by the user.
   BoolColumn get prescriptionOverridden =>
@@ -642,6 +644,13 @@ class MealEntries extends Table with HybridId, MetaColumns {
   TextColumn get voiceTranscript => text().nullable()();
   TextColumn get captureMeta => text()
       .nullable()(); // JSON: DepthScaleFacts, provider/model, extra photos
+}
+
+class IncompleteNutritionDays extends Table {
+  TextColumn get day => text()();
+
+  @override
+  Set<Column> get primaryKey => {day};
 }
 
 @TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})
@@ -1061,6 +1070,7 @@ class TrainingPlanOccurrences extends Table with HybridId, MetaColumns {
     CardioActivities,
     CardioSamples,
     Products,
+    IncompleteNutritionDays,
     NutritionLogs,
     MacroEntries,
     Supplements,
@@ -1106,7 +1116,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 47;
+  int get schemaVersion => 50;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1270,6 +1280,7 @@ class AppDatabase extends _$AppDatabase {
           )
         ''');
       await _createPulsePersistenceSchema(this);
+      await _createHrvPersistenceSchema(this);
       await customStatement(
         'CREATE INDEX IF NOT EXISTS exercises_usage_count_idx ON exercises (usage_count);',
       );
@@ -2264,6 +2275,52 @@ class AppDatabase extends _$AppDatabase {
             () => m.addColumn(foodCategories, foodCategories.nameNl),
           );
         }
+        if (from < 48) {
+          await _createHrvPersistenceSchema(this);
+        }
+        if (from < 49 &&
+            (await _columnsOf(
+              this,
+              incompleteNutritionDays.actualTableName,
+            )).isEmpty) {
+          await m.createTable(incompleteNutritionDays);
+        }
+        if (from < 50) {
+          // SQLite INTEGER affinity also stores fractional REAL values. Keeping
+          // the existing column avoids rebuilding a heavily referenced table.
+          // Keep RIR intact for lossless export and old-client compatibility.
+          final templateColumns = await _columnsOf(
+            this,
+            routineSetTemplates.actualTableName,
+          );
+          if (templateColumns.isNotEmpty &&
+              !templateColumns.contains('target_rpe')) {
+            await m.addColumn(
+              routineSetTemplates,
+              routineSetTemplates.targetRpe,
+            );
+          }
+          if (templateColumns.contains('target_rir')) {
+            await customStatement(
+              'UPDATE routine_set_templates SET target_rpe = 10.0 - target_rir WHERE target_rpe IS NULL AND target_rir BETWEEN 0 AND 10',
+            );
+          }
+          final columns = await _columnsOf(this, setLogs.actualTableName);
+          if (columns.isNotEmpty && !columns.contains('prescribed_rpe')) {
+            await m.addColumn(setLogs, setLogs.prescribedRpe);
+          }
+          if (columns.contains('prescribed_rir')) {
+            await customStatement(
+              'UPDATE set_logs SET prescribed_rpe = 10.0 - prescribed_rir WHERE prescribed_rpe IS NULL AND prescribed_rir BETWEEN 0 AND 10',
+            );
+          }
+          if (columns.contains('rpe') && columns.contains('rir')) {
+            await customStatement('''
+              UPDATE set_logs SET rpe = 10.0 - rir
+              WHERE rpe IS NULL AND rir BETWEEN 0 AND 10
+            ''');
+          }
+        }
         unawaited(
           TelemetryService.instance.trackDbMigrationStatus(
             fromVersion: from,
@@ -2297,6 +2354,21 @@ class AppDatabase extends _$AppDatabase {
       )
     ''');
   }
+}
+
+Future<void> _createHrvPersistenceSchema(GeneratedDatabase db) async {
+  await db.customStatement('''
+    CREATE TABLE IF NOT EXISTS pulse_hrv_samples (
+      native_id TEXT PRIMARY KEY NOT NULL,
+      source_id TEXT NOT NULL,
+      start_ms INTEGER NOT NULL,
+      end_ms INTEGER NOT NULL,
+      sdnn_ms REAL NOT NULL
+    )
+  ''');
+  await db.customStatement(
+    'CREATE INDEX IF NOT EXISTS idx_pulse_hrv_start ON pulse_hrv_samples(start_ms)',
+  );
 }
 
 Future<void> _createPulsePersistenceSchema(GeneratedDatabase db) async {

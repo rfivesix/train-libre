@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -292,7 +292,7 @@ class _PerformanceDiagnosticsScreenState
                     if (i > 0) const Divider(height: 1),
                     ListTile(
                       leading: Icon(
-                        LucideIcons.octagon_alert,
+                        LucideIcons.octagon_exclamation_point,
                         color: theme.colorScheme.error,
                       ),
                       title: Text('${snapshot.stalls[i].durationMs} ms'),

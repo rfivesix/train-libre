@@ -1,8 +1,10 @@
 // lib/features/statistics/data/macro_analytics_data_adapter.dart
 
-import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
+import '../../../data/drift_database.dart' as drift_db;
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_entry.dart';
@@ -16,6 +18,8 @@ class DailyMacroIntake {
   final double proteinGrams;
   final double carbsGrams;
   final double fatGrams;
+  final int? targetCalories;
+  final bool isIncomplete;
 
   const DailyMacroIntake({
     required this.date,
@@ -23,6 +27,8 @@ class DailyMacroIntake {
     required this.proteinGrams,
     required this.carbsGrams,
     required this.fatGrams,
+    this.targetCalories,
+    this.isIncomplete = false,
   });
 
   bool get hasData =>
@@ -39,6 +45,7 @@ class MacroPeriodSummary {
   final double avgFat;
   final int totalDays;
   final int trackedDays;
+  final int incompleteDays;
 
   const MacroPeriodSummary({
     required this.range,
@@ -49,6 +56,7 @@ class MacroPeriodSummary {
     required this.avgFat,
     required this.totalDays,
     required this.trackedDays,
+    this.incompleteDays = 0,
   });
 
   static MacroPeriodSummary empty(DateTimeRange range) {
@@ -61,6 +69,95 @@ class MacroPeriodSummary {
       avgFat: 0.0,
       totalDays: 0,
       trackedDays: 0,
+    );
+  }
+
+  factory MacroPeriodSummary.mockPreview(DateTimeRange range) {
+    final startDay = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final endDay = DateTime(range.end.year, range.end.month, range.end.day);
+    final rawDays =
+        DateTime.utc(endDay.year, endDay.month, endDay.day)
+            .difference(DateTime.utc(startDay.year, startDay.month, startDay.day))
+            .inDays +
+        1;
+    final totalDays = rawDays < 7 ? 7 : rawDays;
+    final effectiveRange = rawDays < 7
+        ? DateTimeRange(
+            start: startDay,
+            end: DateTime(startDay.year, startDay.month, startDay.day + 6),
+          )
+        : range;
+
+    const pattern = <({int kcal, double p, double c, double f})>[
+      (kcal: 2180, p: 155, c: 235, f: 68),
+      (kcal: 2420, p: 170, c: 268, f: 74),
+      (kcal: 1980, p: 145, c: 205, f: 64),
+      (kcal: 2540, p: 175, c: 280, f: 80),
+      (kcal: 2290, p: 160, c: 248, f: 72),
+      (kcal: 2060, p: 150, c: 215, f: 66),
+      (kcal: 2380, p: 165, c: 260, f: 75),
+    ];
+
+    int sumCalories = 0;
+    double sumProtein = 0;
+    double sumCarbs = 0;
+    double sumFat = 0;
+
+    final intakes = List<DailyMacroIntake>.generate(totalDays, (i) {
+      final sample = pattern[i % pattern.length];
+      final date = DateTime(startDay.year, startDay.month, startDay.day + i);
+      sumCalories += sample.kcal;
+      sumProtein += sample.p;
+      sumCarbs += sample.c;
+      sumFat += sample.f;
+      return DailyMacroIntake(
+        date: date,
+        calories: sample.kcal,
+        proteinGrams: sample.p,
+        carbsGrams: sample.c,
+        fatGrams: sample.f,
+        targetCalories: 2300,
+      );
+    }, growable: false);
+
+    return MacroPeriodSummary(
+      range: effectiveRange,
+      dailyIntakes: intakes,
+      avgCalories: (sumCalories / totalDays).round(),
+      avgProtein: sumProtein / totalDays,
+      avgCarbs: sumCarbs / totalDays,
+      avgFat: sumFat / totalDays,
+      totalDays: totalDays,
+      trackedDays: totalDays,
+    );
+  }
+
+  /// Starts the range at the first tracked or explicitly incomplete day.
+  MacroPeriodSummary trimmedToFirstTracked() {
+    final firstTrackedIndex = dailyIntakes.indexWhere(
+      (day) => day.hasData || day.isIncomplete,
+    );
+    if (firstTrackedIndex < 0) {
+      return MacroPeriodSummary.empty(range);
+    }
+    if (firstTrackedIndex == 0) {
+      return this;
+    }
+    final trimmed = dailyIntakes.sublist(firstTrackedIndex);
+    return MacroPeriodSummary(
+      range: DateTimeRange(start: trimmed.first.date, end: range.end),
+      dailyIntakes: trimmed,
+      avgCalories: avgCalories,
+      avgProtein: avgProtein,
+      avgCarbs: avgCarbs,
+      avgFat: avgFat,
+      totalDays: trimmed.length,
+      trackedDays: trackedDays,
+      incompleteDays: incompleteDays,
     );
   }
 }
@@ -102,11 +199,16 @@ class MacroAnalyticsDataAdapter {
       _databaseHelper.getEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getFluidEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getMacroEntriesForDateRange(startDay, endOfDay),
+      _loadCalorieGoalTimeline(),
+      _databaseHelper.getIncompleteNutritionDays(startDay, endDay),
     ]);
 
     final foodEntries = results[0] as List<FoodEntry>;
     final fluidEntries = results[1] as List<FluidEntry>;
     final macroEntries = results[2] as List<MacroEntry>;
+    final goalTimeline =
+        results[3] as ({List<drift_db.DailyGoalsHistoryData> history, int? fallbackTarget});
+    final incompleteDays = results[4] as Set<DateTime>;
 
     final dailyMap = await _aggregateDays(
       startDay: startDay,
@@ -116,7 +218,11 @@ class MacroAnalyticsDataAdapter {
       macroEntries: macroEntries,
     );
 
-    final totalDays = endDay.difference(startDay).inDays + 1;
+    final totalDays =
+        DateTime.utc(endDay.year, endDay.month, endDay.day)
+            .difference(DateTime.utc(startDay.year, startDay.month, startDay.day))
+            .inDays +
+        1;
     final List<DailyMacroIntake> intakes = [];
     int sumCalories = 0;
     double sumProtein = 0.0;
@@ -125,21 +231,37 @@ class MacroAnalyticsDataAdapter {
     int trackedDays = 0;
 
     for (int i = 0; i < totalDays; i++) {
-      final currentDay = startDay.add(Duration(days: i));
+      final currentDay = DateTime(startDay.year, startDay.month, startDay.day + i);
       final dayKey = DateTime.utc(
         currentDay.year,
         currentDay.month,
         currentDay.day,
       );
-      final intake =
-          dailyMap[dayKey] ??
-          DailyMacroIntake(
-            date: currentDay,
-            calories: 0,
-            proteinGrams: 0.0,
-            carbsGrams: 0.0,
-            fatGrams: 0.0,
-          );
+      final targetForDay = _resolveTargetCaloriesForDay(
+        currentDay,
+        goalTimeline.history,
+        goalTimeline.fallbackTarget,
+      );
+      final isIncomplete = incompleteDays.contains(currentDay);
+      final existing = isIncomplete ? null : dailyMap[dayKey];
+      final intake = existing != null
+          ? DailyMacroIntake(
+              date: existing.date,
+              calories: existing.calories,
+              proteinGrams: existing.proteinGrams,
+              carbsGrams: existing.carbsGrams,
+              fatGrams: existing.fatGrams,
+              targetCalories: targetForDay,
+            )
+          : DailyMacroIntake(
+              date: currentDay,
+              calories: 0,
+              proteinGrams: 0.0,
+              carbsGrams: 0.0,
+              fatGrams: 0.0,
+              targetCalories: targetForDay,
+              isIncomplete: isIncomplete,
+            );
       intakes.add(intake);
       if (intake.hasData) {
         sumCalories += intake.calories;
@@ -165,6 +287,7 @@ class MacroAnalyticsDataAdapter {
       avgFat: sumFat / divisor,
       totalDays: totalDays,
       trackedDays: trackedDays,
+      incompleteDays: incompleteDays.length,
     );
   }
 
@@ -322,5 +445,46 @@ class MacroAnalyticsDataAdapter {
     }
 
     return result;
+  }
+
+  Future<({List<drift_db.DailyGoalsHistoryData> history, int? fallbackTarget})>
+  _loadCalorieGoalTimeline() async {
+    try {
+      final db = await _databaseHelper.database;
+      final history =
+          await (db.select(db.dailyGoalsHistory)..orderBy([
+                (t) => drift.OrderingTerm(expression: t.createdAt),
+                (t) => drift.OrderingTerm(expression: t.localId),
+              ]))
+              .get();
+      if (history.isNotEmpty) {
+        return (history: history, fallbackTarget: null);
+      }
+      final settings = await db.select(db.appSettings).getSingleOrNull();
+      return (history: history, fallbackTarget: settings?.targetCalories);
+    } catch (_) {
+      return (history: const <drift_db.DailyGoalsHistoryData>[], fallbackTarget: null);
+    }
+  }
+
+  int? _resolveTargetCaloriesForDay(
+    DateTime day,
+    List<drift_db.DailyGoalsHistoryData> history,
+    int? fallbackTarget,
+  ) {
+    if (history.isEmpty) {
+      return fallbackTarget != null && fallbackTarget > 0 ? fallbackTarget : null;
+    }
+    final endOfDay = DateTime(day.year, day.month, day.day, 23, 59, 59);
+    drift_db.DailyGoalsHistoryData? match;
+    for (final entry in history) {
+      if (!entry.createdAt.isAfter(endOfDay)) {
+        match = entry;
+      } else {
+        break;
+      }
+    }
+    final resolved = (match ?? history.first).targetCalories;
+    return resolved > 0 ? resolved : null;
   }
 }

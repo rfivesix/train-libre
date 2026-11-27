@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.7.1
+
+{chart_line} Statistics and progress analysis: The overview shows your key metrics and training days at a glance. Redesigned views help you track nutrition, progress and personal records in detail.
+
+{dumbbell} Live workouts and set management: See which sets are complete and which are still planned for each muscle group. Drag to reorder sets, display your estimated one-rep max if you like, and celebrate new records with animation and haptic feedback.
+
+{moon} Sleep analysis and heart rate: The new sleep overview shows sleep duration, sleep stages and heart rate. Your resting heart rate from Apple Health or Health Connect appears in the Diary and Statistics. Apple Health also provides heart rate variability.
+
+{sparkles} Customizable Liquid Glass appearance: Use the slider to adjust the glass appearance and see the result in the preview. Refined transitions make switching between views smoother.
+
+{shield} Improved performance and reliability: The Statistics overview scrolls more smoothly, workout days display correctly around daylight saving time changes, and step counting and rest timers have been improved.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.

@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/data/drift_database.dart' show AppDatabase;
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart'
@@ -11,6 +12,7 @@ import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/set_template.dart';
 import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 import 'package:train_libre/features/workout/presentation/live_workout_view_model.dart';
+import 'package:train_libre/services/haptic_feedback_service.dart';
 
 /// What survives when the app is killed mid-workout.
 ///
@@ -25,15 +27,20 @@ void main() {
   late AppDatabase database;
   late WorkoutLocalDataSource workoutDb;
   late LiveWorkoutViewModel manager;
+  late int restDoneSounds;
 
   LiveWorkoutViewModel buildManager() => LiveWorkoutViewModel.forTesting(
     workoutDb: WorkoutRepository(
       localDataSource: WorkoutLocalDataSource(database),
     ),
+    playRestDoneSound: () async {
+      restDoneSounds++;
+    },
   );
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    restDoneSounds = 0;
     database = AppDatabase(NativeDatabase.memory());
     workoutDb = WorkoutLocalDataSource.forTesting(database);
     manager = buildManager();
@@ -115,6 +122,119 @@ void main() {
     ]);
     return log;
   }
+
+  test('one set with multiple records emits one haptic pattern', () async {
+    const channel = MethodChannel('vibration');
+    var vibrationCount = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'hasCustomVibrationsSupport') return true;
+          if (call.method == 'vibrate') vibrationCount++;
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    HapticFeedbackService.instance.setEnabled(true);
+    await startSession();
+    await manager.updateSet(1001, weight: 100, reps: 5, isCompleted: true);
+    final events = <bool>[];
+    final subscription = manager.prEvents.listen(
+      (event) => events.add(event.celebrate),
+    );
+    await manager.updateSet(1002, weight: 110, reps: 6, isCompleted: true);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(events, [true, false, false]);
+    expect(vibrationCount, 1);
+    await subscription.cancel();
+  });
+
+  test('foreground expiration plays the completion sound once', () async {
+    await startSession();
+    manager.setRestDeadline(
+      DateTime.now().add(const Duration(milliseconds: 100)),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 1300));
+    expect(manager.showRestDone, isTrue);
+    expect(restDoneSounds, 1);
+    manager.setRestDeadline(
+      DateTime.now().subtract(const Duration(seconds: 1)),
+    );
+    expect(restDoneSounds, 1);
+  });
+
+  test('shortening a running rest to zero plays the sound once', () async {
+    await startSession();
+    manager.setRestDeadline(DateTime.now().add(const Duration(seconds: 10)));
+    manager.adjustRestTime(-15);
+    expect(manager.showRestDone, isTrue);
+    expect(restDoneSounds, 1);
+    manager.adjustRestTime(-15);
+    expect(restDoneSounds, 1);
+  });
+
+  test(
+    'an elapsed rest remains visible and can be extended or dismissed',
+    () async {
+      await startSession();
+      manager.setRestDeadline(
+        DateTime.now().subtract(const Duration(seconds: 5)),
+      );
+      expect(manager.showRestDone, isTrue);
+      expect(manager.remainingRestSeconds, 0);
+
+      manager.adjustRestTime(15);
+      expect(manager.showRestDone, isFalse);
+      expect(manager.remainingRestSeconds, inInclusiveRange(14, 15));
+      manager.adjustRestTime(-30);
+      expect(manager.showRestDone, isTrue);
+      expect(manager.remainingRestSeconds, 0);
+      manager.cancelRest();
+      expect(manager.showRestDone, isFalse);
+      expect(manager.targetRestEndTime, isNull);
+    },
+  );
+
+  test(
+    'volume follows completed sets when editing, unchecking and deleting',
+    () async {
+      await startSession();
+      await manager.updateSet(1001, weight: 100, reps: 5, isCompleted: true);
+      await manager.updateSet(1002, weight: 80, reps: 10);
+      expect(manager.totalVolume, 500);
+
+      await manager.removeSet(1002);
+      expect(manager.totalVolume, 500);
+      await manager.updateSet(1001, weight: 90, reps: 5);
+      expect(manager.totalVolume, 450);
+      await manager.updateSet(1001, isCompleted: false);
+      expect(manager.totalVolume, 0);
+      await manager.removeExercise(100);
+      expect(manager.totalVolume, 0);
+    },
+  );
+
+  test(
+    'restored volume excludes unfinished sets and updates on removal',
+    () async {
+      await startSession();
+      await manager.updateSet(1001, weight: 100, reps: 5, isCompleted: true);
+      await manager.updateSet(1002, weight: 80, reps: 10);
+      expect(manager.totalVolume, 500);
+
+      final restored = await restartApp();
+      expect(restored.totalVolume, 500);
+      final templates = restored.exercises.first.setTemplates;
+      final unfinishedId = templates
+          .firstWhere((t) => restored.setLogs[t.id]!.isCompleted != true)
+          .id!;
+      await restored.removeSet(unfinishedId);
+      expect(restored.totalVolume, 500);
+      await restored.removeExercise(restored.exercises.first.id!);
+      expect(restored.totalVolume, 0);
+    },
+  );
 
   test(
     'a killed session comes back with its exercises in the same order',
@@ -231,6 +351,28 @@ void main() {
       ['Barbell Row', 'Bench Press', 'Squat'],
     );
     expect([for (final e in restored.exercises) e.pauseSeconds], [120, 60, 90]);
+  });
+
+  test('a set reorder within an exercise survives the kill', () async {
+    await startSession();
+    await manager.updateSet(1001, weight: 60, reps: 10);
+    await manager.updateSet(1002, weight: 80, reps: 8);
+    await manager.updateSet(1003, weight: 100, reps: 5);
+
+    // Move first set to last, then move last to first/middle.
+    await manager.reorderSet(100, 0, 2);
+    expect([for (final s in setsOf(manager, 0)) s.weightKg], [80, 100, 60]);
+
+    await manager.reorderSet(100, 2, 1);
+    expect([for (final s in setsOf(manager, 0)) s.weightKg], [80, 60, 100]);
+
+    final restored = await restartApp();
+
+    expect(
+      [for (final s in setsOf(restored, 0)) s.weightKg],
+      [80, 60, 100],
+    );
+    expect([for (final s in setsOf(restored, 0)) s.reps], [8, 10, 5]);
   });
 
   test('a removed set does not come back', () async {

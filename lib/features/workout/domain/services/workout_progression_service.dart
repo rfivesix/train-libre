@@ -24,10 +24,9 @@ class WorkoutProgressionService {
   final UnitService _unitService;
 
   WorkoutProgressionService({
-    required IWorkoutRepository repository,
-    required UnitService unitService,
-  }) : _repository = repository,
-       _unitService = unitService;
+    required this._repository,
+    required this._unitService,
+  });
 
   /// Compatibility entry point for callers that request one template. It now
   /// follows the same first-working-set rule as the live workout and no longer
@@ -75,7 +74,7 @@ class WorkoutProgressionService {
     final suggestion = SimpleProgressionEngine.firstSet(
       previousLoadKg: previous.weightKg,
       previousReps: previous.reps,
-      previousRir: previous.rir,
+      previousRir: _effectiveRir(previous),
       target: _rangeFor(first),
       increment: _incrementFor(exercise),
       mode: mode,
@@ -128,13 +127,23 @@ class WorkoutProgressionService {
     return SimpleProgressionEngine.laterSet(
       previousLoggedLoadKg: previous.weightKg,
       previousReps: previous.reps,
-      previousRir: previous.rir,
+      previousRir: _effectiveRir(previous),
       testLoggedLoadKg: testLoad,
       target: _rangeFor(workingTemplates[targetIndex]),
       increment: _incrementFor(exercise),
       mode: mode,
       bodyweightKg: bodyweightKg,
     );
+  }
+
+  // RPE is authoritative when both representations exist. Keep legacy RIR
+  // as a fallback for old backups and records outside the convertible range.
+  double? _effectiveRir(SetLog set) {
+    final rpe = set.rpe?.toDouble();
+    if (rpe != null && rpe.isFinite && rpe >= 0 && rpe <= 10) {
+      return 10 - rpe;
+    }
+    return set.rir?.toDouble();
   }
 
   double? _testLoadFor({

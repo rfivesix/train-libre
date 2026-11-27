@@ -1,13 +1,57 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/statistics/domain/recovery_domain_service.dart';
 import 'package:train_libre/features/statistics/presentation/statistics_formatter.dart';
 import 'package:train_libre/generated/app_localizations_de.dart';
 import 'package:train_libre/generated/app_localizations_en.dart';
+import 'package:train_libre/services/unit_service.dart';
 import 'package:train_libre/util/body_nutrition_analytics_utils.dart';
 
 void main() {
   group('StatisticsPresentationFormatter', () {
+    test('formats localized weight and signed weight change', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'unit_system': 'metric',
+      });
+      final units = UnitService();
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        StatisticsPresentationFormatter.formatLocalizedWeight(
+          88.6,
+          units,
+          locale: 'de',
+        ),
+        '88,6 kg',
+      );
+      expect(
+        StatisticsPresentationFormatter.formatLocalizedWeightChange(
+          -1.2,
+          units,
+          locale: 'de',
+        ),
+        '-1,2 kg',
+      );
+      expect(
+        StatisticsPresentationFormatter.formatLocalizedWeightChange(
+          1.2,
+          units,
+          locale: 'en',
+        ),
+        '+1.2 kg',
+      );
+      expect(
+        StatisticsPresentationFormatter.formatLocalizedWeightChange(
+          -0.01,
+          units,
+          locale: 'de',
+        ),
+        '0,0 kg',
+      );
+      units.dispose();
+    });
+
     test('formats compact numbers with k suffix', () {
       expect(StatisticsPresentationFormatter.compactNumber(999), '999');
       expect(StatisticsPresentationFormatter.compactNumber(1250), '1.3k');

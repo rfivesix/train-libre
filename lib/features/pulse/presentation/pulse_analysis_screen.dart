@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -8,6 +8,7 @@ import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import '../../../widgets/common/value_summary_card.dart';
 import '../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../data/pulse_repository.dart';
+import '../data/hrv_repository.dart';
 import '../domain/pulse_models.dart';
 
 import 'dart:async';
@@ -17,10 +18,10 @@ import '../../../services/telemetry/telemetry_service.dart';
 class PulseAnalysisScreen extends StatefulWidget {
   const PulseAnalysisScreen({
     super.key,
-    PulseAnalysisRepository? repository,
+    this._repository,
     this.initialScope = SleepPeriodScope.day,
     this.initialDate,
-  }) : _repository = repository;
+  });
 
   final PulseAnalysisRepository? _repository;
   final SleepPeriodScope initialScope;
@@ -36,6 +37,7 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   late SleepPeriodScope _scope;
   late DateTime _anchorDate;
   bool _isLoading = true;
+  int _loadGeneration = 0;
   PulseAnalysisSummary? _summary;
 
   @override
@@ -54,18 +56,19 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   }
 
   Future<void> _loadAnalysis() async {
+    final generation = ++_loadGeneration;
     setState(() => _isLoading = true);
     try {
       final summary = await _repository.getAnalysis(
         window: _windowFor(scope: _scope, anchorDate: _anchorDate),
       );
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _summary = summary;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       debugPrint('PulseAnalysisScreen: failed to load analysis: $e');
       setState(() => _isLoading = false);
     }
@@ -88,7 +91,11 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
           );
           break;
         case SleepPeriodScope.week:
-          _anchorDate = _anchorDate.add(Duration(days: 7 * direction));
+          _anchorDate = DateTime(
+            _anchorDate.year,
+            _anchorDate.month,
+            _anchorDate.day + 7 * direction,
+          );
           break;
         case SleepPeriodScope.month:
           _anchorDate = DateTime(
@@ -155,13 +162,21 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       SleepPeriodScope.week => DateTime(
         anchorDate.year,
         anchorDate.month,
-        anchorDate.day,
-      ).subtract(Duration(days: anchorDate.weekday - DateTime.monday)),
+        anchorDate.day - (anchorDate.weekday - DateTime.monday),
+      ),
       SleepPeriodScope.month => DateTime(anchorDate.year, anchorDate.month, 1),
     };
     final fullLocalEndExclusive = switch (scope) {
-      SleepPeriodScope.day => localStart.add(const Duration(days: 1)),
-      SleepPeriodScope.week => localStart.add(const Duration(days: 7)),
+      SleepPeriodScope.day => DateTime(
+        localStart.year,
+        localStart.month,
+        localStart.day + 1,
+      ),
+      SleepPeriodScope.week => DateTime(
+        localStart.year,
+        localStart.month,
+        localStart.day + 7,
+      ),
       SleepPeriodScope.month => DateTime(localStart.year, localStart.month + 1),
     };
     final isCurrentLocalDay =
@@ -185,8 +200,38 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
 class _PulseAnalysisContent extends StatelessWidget {
   const _PulseAnalysisContent({required this.summary, required this.scope});
 
+  static const double _chartHeight = 220;
+
   final PulseAnalysisSummary summary;
   final SleepPeriodScope scope;
+
+  List<ChartDataPoint> _hrvChartPoints(HrvSummary hrv) {
+    if (scope == SleepPeriodScope.day) {
+      return [
+        for (final sample in hrv.samples)
+          ChartDataPoint(date: sample.startUtc.toLocal(), value: sample.sdnnMs),
+      ];
+    }
+
+    final samplesByDay = <DateTime, List<HrvSample>>{};
+    for (final sample in hrv.samples) {
+      final local = sample.startUtc.toLocal();
+      final day = DateTime(local.year, local.month, local.day, 12);
+      samplesByDay.putIfAbsent(day, () => []).add(sample);
+    }
+    return [
+      for (final entry in samplesByDay.entries)
+        ChartDataPoint(
+          date: entry.key,
+          value:
+              entry.value.fold<double>(
+                0,
+                (sum, sample) => sum + sample.sdnnMs,
+              ) /
+              entry.value.length,
+        ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +247,13 @@ class _PulseAnalysisContent extends StatelessWidget {
           ),
         )
         .toList(growable: false);
+    final isDay = scope == SleepPeriodScope.day;
+    final restingLabel = summary.restingBpmIsEstimated
+        ? l10n.pulseEstimatedRestingLabel
+        : copy.restingLabel;
+    final chartValue = isDay ? summary.averageBpm : summary.restingBpm;
+    final hrv = summary.hrv;
+    final averageHrv = hrv?.averageMs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,9 +268,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
               child: Text(
-                scope == SleepPeriodScope.day
-                    ? copy.chartTitle
-                    : copy.restingLabel,
+                isDay ? copy.chartTitle : restingLabel,
                 style: Theme.of(context).textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
@@ -230,6 +280,11 @@ class _PulseAnalysisContent extends StatelessWidget {
                 unit: l10n.sleepBpmUnit,
                 axisMode: MeasurementChartAxisMode.time,
                 valueFractionDigits: 0,
+                height: _chartHeight,
+                idleValueLabel: chartValue == null
+                    ? null
+                    : '${chartValue.round()} ${l10n.sleepBpmUnit}',
+                idleDateLabel: chartValue == null ? null : copy.averageLabel,
                 valueLabelBuilder: (value, unit) => '${value.round()} $unit',
                 selectedDateLabelBuilder: (value) =>
                     scope == SleepPeriodScope.day
@@ -247,10 +302,10 @@ class _PulseAnalysisContent extends StatelessWidget {
                   horizontal: DesignConstants.screenPaddingHorizontal,
                 ),
                 child: SizedBox(
-                  height: 220,
+                  height: _chartHeight,
                   child: Center(
                     child: Text(
-                      summary.hasData
+                      summary.sampleCount > 0
                           ? copy.insufficientData
                           : copy.noDataMessage(summary.noDataReason),
                       textAlign: TextAlign.center,
@@ -259,20 +314,78 @@ class _PulseAnalysisContent extends StatelessWidget {
                   ),
                 ),
               ),
-            const SizedBox(height: DesignConstants.spacingS),
+            if (summary.sampleCount > 0) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.screenPaddingHorizontal,
+                ),
+                child: Text(
+                  '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        if (hrv != null && hrv.state != HrvState.unavailable) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
+            ),
+            child: Text(
+              l10n.hrvTitle,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          if (hrv.samples.isNotEmpty)
+            MeasurementChartWidget.fromData(
+              dataPoints: _hrvChartPoints(hrv),
+              unit: 'ms',
+              axisMode: MeasurementChartAxisMode.time,
+              valueFractionDigits: 0,
+              height: _chartHeight,
+              idleValueLabel: averageHrv == null
+                  ? null
+                  : '${averageHrv.round()} ms',
+              idleDateLabel: copy.averageLabel,
+              selectedDateLabelBuilder: (value) => scope == SleepPeriodScope.day
+                  ? timeFormatter.format(value)
+                  : DateFormat.MMMd(locale).format(value),
+              axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
+                  ? timeFormatter.format(value)
+                  : DateFormat.MMMd(locale).format(value),
+              emptyStateLabel: l10n.hrvNoData,
+              edgeToEdge: true,
+            )
+          else
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
               child: Text(
-                '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                hrv.state == HrvState.queryFailed
+                    ? l10n.hrvQueryFailed
+                    : l10n.hrvNoData,
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
+              vertical: DesignConstants.spacingS,
+            ),
+            child: Text(
+              '${l10n.pulseSampleCount(hrv.sampleCount)} · ${l10n.hrvMethodNote}',
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.screenPaddingHorizontal,
@@ -349,10 +462,20 @@ class _KpiCard extends StatelessWidget {
         ),
         ValueSummaryCard(
           label: copy.restingLabel,
+          subtitle: summary.restingBpmIsEstimated
+              ? l10n.pulseEstimateLabel
+              : null,
           value: summary.restingBpm == null
               ? resting
               : '$resting ${l10n.sleepBpmUnit}',
         ),
+        if (summary.hrv != null && summary.hrv!.state != HrvState.unavailable)
+          ValueSummaryCard(
+            label: l10n.hrvTitle,
+            value: summary.hrv!.averageMs == null
+                ? '--'
+                : '${summary.hrv!.averageMs!.round()} ms',
+          ),
       ]),
     );
   }

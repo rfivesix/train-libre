@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../util/design_constants.dart';
 import 'summary_card.dart';
@@ -116,7 +116,7 @@ class ValueSummaryCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle!,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.55),

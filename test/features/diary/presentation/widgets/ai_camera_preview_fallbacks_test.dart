@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/diary/presentation/widgets/ai_camera_preview_fallbacks.dart';
@@ -10,7 +11,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           locale: Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: AiCameraFallbackView()),
         ),

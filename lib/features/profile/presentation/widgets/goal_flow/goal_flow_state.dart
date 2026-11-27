@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../../generated/app_localizations.dart';
 import '../../../../../services/unit_service.dart';
@@ -242,6 +242,11 @@ class GoalFlowState extends ChangeNotifier {
         (preset == GoalPreset.custom && customDirection == 'gain');
   }
 
+  double get signedWeeklyRateKg {
+    if (isMaintain) return 0.0;
+    return isLosing ? -weeklyRateKg.abs() : weeklyRateKg.abs();
+  }
+
   void onTargetDateChanged(
     DateTime newDate,
     UnitService unitService, {
@@ -456,14 +461,7 @@ class GoalFlowState extends ChangeNotifier {
     final baselineKg = getBaselineKg(unitService);
     final targetKg = getTargetKg(unitService);
 
-    double? signedWeeklyRateKg;
-    if (isMaintain) {
-      signedWeeklyRateKg = 0.0;
-    } else if (isLosing) {
-      signedWeeklyRateKg = -weeklyRateKg.abs();
-    } else {
-      signedWeeklyRateKg = weeklyRateKg.abs();
-    }
+    final rate = signedWeeklyRateKg;
 
     trackingMode = isMaintain
         ? GoalTrackingMode.open
@@ -511,7 +509,7 @@ class GoalFlowState extends ChangeNotifier {
         targetMetric: 'weight',
         targetValue: isMaintain ? baselineKg : targetKg,
         targetUnit: 'kg',
-        desiredWeeklyRateKg: signedWeeklyRateKg,
+        desiredWeeklyRateKg: rate,
         isNutritionDriver: isNutritionDriver,
       );
 

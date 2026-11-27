@@ -1,4 +1,7 @@
 {
+  "settingsWorkoutDisplay": "Workout display",
+  "settingsShowWorkoutE1rm": "Show estimated one-rep max",
+  "settingsShowWorkoutE1rmSubtitle": "Show estimated one-rep max for sets and session comparisons.",
   "@@locale": "en",
   "selectDateTitle": "Select Date",
   "selectTimeTitle": "Select Time",
@@ -1103,7 +1106,7 @@
   "onboardingMissionTitle": "Our Mission",
   "onboardingMissionBody": "Train Libre is for dedicated natural bodybuilders who demand science-based, data-driven progress.",
   "onboardingFeatureWorkoutTitle": "Workout Tracker",
-  "onboardingFeatureWorkoutBody": "Log sets (RIR/RPE) and follow your muscle recovery.",
+  "onboardingFeatureWorkoutBody": "Log sets (RPE) and follow your muscle recovery.",
   "onboardingFeatureTdeeTitle": "Adaptive TDEE",
   "onboardingFeatureTdeeBody": "An integrated Kalman filter calculates your real calorie expenditure.",
   "onboardingFeatureNutritionTitle": "Nutrition & Water",
@@ -1468,14 +1471,14 @@
   "recoveryDetailAverageRpe": "average RPE",
   "recoveryMovementPatterns": "Movement patterns",
   "recoveryDetailForecast": "Forecast",
-  "recoveryDetailRirData": "RIR data",
+  "recoveryDetailRirData": "RPE data",
   "recoveryCompactHours": "≈ {hours} h",
   "@recoveryCompactHours": {"placeholders": {"hours": {"type": "int"}}},
   "recoverySessionLoadAndAge": "{load} load units · {hours} h ago",
   "@recoverySessionLoadAndAge": {"placeholders": {"load": {"type": "String"}, "hours": {"type": "int"}}},
   "recoveryLastSessionDetails": "Last session: {load} load units · {hours} h ago",
   "@recoveryLastSessionDetails": {"placeholders": {"load": {"type": "String"}, "hours": {"type": "int"}}},
-  "recoveryRirCoverage": "RIR recorded for {covered} of {total} sets",
+  "recoveryRirCoverage": "RPE recorded for {covered} of {total} sets",
   "@recoveryRirCoverage": {"placeholders": {"covered": {"type": "int"}, "total": {"type": "int"}}},
   "recoveryLastLoadedHours": "Last significantly loaded: {hours} h ago",
   "@recoveryLastLoadedHours": {
@@ -1608,6 +1611,7 @@
   "newPersonalRecordLabel": "New Personal Record",
   "prBadgeTooltip": "New Personal Record!",
   "workoutSummaryNewRecordsTitle": "New Records",
+  "workoutRecordsTitle": "Records",
   "allTimeRecordsLabel": "All-Time Records",
   "recentActivityLabel": "Recent Activity",
   "prsByRepRangeLabel": "Best Set by Rep Range",
@@ -2398,6 +2402,9 @@
   "healthSettingsStepActive": "Step tracking is on",
   "healthSettingsStepAvailable": "Step data is available",
   "healthSettingsStepUnavailable": "Step data is unavailable",
+  "healthSettingsSyncPulse": "Sync pulse now",
+  "healthSettingsPulseSyncResult": "Read {count} pulse samples from the last year",
+  "@healthSettingsPulseSyncResult": {"placeholders": {"count": {"type": "int"}}},
   "healthSettingsSyncSteps": "Sync steps now",
   "healthSettingsSyncExport": "Export now",
   "healthSettingsStepsSyncResult": "Updated {count} step segments",
@@ -2425,8 +2432,10 @@
   "pulseRangeLabel": "Range",
   "pulseAverageLabel": "Average",
   "pulseRestingLabel": "Resting",
+  "pulseEstimatedRestingLabel": "Estimated resting pulse",
+  "pulseEstimateLabel": "Estimated",
   "pulseInsufficientData": "Too few pulse samples for a reliable chart.",
-  "pulseMethodNote": "Average pulse is time-weighted. Resting pulse is a conservative estimate from the lowest 20% of samples in the selected period.",
+  "pulseMethodNote": "Train Libre uses resting pulse from Apple Health or Health Connect when available. Otherwise it estimates resting pulse from heart rate samples.",
   "pulseSampleCount": "{count, plural, =0{No samples} one{1 sample} other{{count} samples}}",
   "@pulseSampleCount": {
     "placeholders": {
@@ -2447,8 +2456,8 @@
   "pulseSettingsEnableTitle": "Enable pulse analysis",
   "pulseSettingsEnableSubtitle": "Reads heart-rate data for the pulse view only when you turn this on.",
   "pulseSettingsPermissionTitle": "Allow heart-rate access",
-  "pulseSettingsPermissionSubtitle": "Opens Apple Health or Health Connect so Train Libre can read pulse samples.",
-  "pulseSettingsAnalysisSubtitle": "Shows range, time-weighted average, and a conservative resting-pulse estimate. Not a medical diagnosis.",
+  "pulseSettingsPermissionSubtitle": "Allow access to heart rate and resting heart rate in Health Connect.",
+  "pulseSettingsAnalysisSubtitle": "Shows pulse range, average, and resting pulse.",
   "pulseSettingsPermissionGranted": "Heart-rate access is ready.",
   "pulseSettingsPermissionFailed": "Heart-rate access was not granted.",
   "pulseOptInChip": "Opt-in",
@@ -2678,11 +2687,11 @@
   "infoAiMealKeyPoints": "In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.",
   "infoAiMealTechnicalTitle": "Hybrid BYOK AI & Jaro-Winkler Matching",
   "infoAiMealTechnicalExplanation": "In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.",
-  "infoSleepTitle": "Sleep Quality (SHS v3.5)",
-  "infoSleepExplanation": "Calculates a comprehensive sleep index from quantity, continuity, depth, timing, and daily regularity.",
-  "infoSleepKeyPoints": "• Aggregates five clinical dimensions using a weighted sum.\n• Automatically scales requirements if your wearable does not provide specific stages or efficiency data.\n• Protects you via soft-cap multipliers that limit the total score if a critical domain (like REM or Deep sleep) is compromised.",
-  "infoSleepTechnicalTitle": "Weighted Baseline & Continuous Soft-Caps",
-  "infoSleepTechnicalExplanation": "Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing.",
+  "infoSleepTitle": "Sleep score",
+  "infoSleepExplanation": "An estimate based on the available data.",
+  "infoSleepKeyPoints": "Duration, continuity, deep sleep, REM and regularity contribute.\nMissing components are excluded.\nStage estimates are imperfect.",
+  "infoSleepTechnicalTitle": "How it is calculated",
+  "infoSleepTechnicalExplanation": "Duration 45%, continuity 25%, deep 10%, REM 10%, regularity 10%. Short duration can cap the final score. This is not a clinical measurement.",
   "tdeeRecalculationNotificationTitle": "TDEE Recalculated",
   "tdeeRecalculationNotificationBody": "New daily targets: {calories} kcal | {protein}g Protein | {carbs}g Carbs | {fat}g Fat",
   "@tdeeRecalculationNotificationBody": {
@@ -3404,7 +3413,7 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "Best when starting out: focuses on the essentials with weight and reps. Uses simple everyday muscle terms like “Shoulders”.",
   "experienceLevelAdvancedDescription": "For regular gym-goers: detailed anatomical muscle breakdowns across the catalog and workouts (e.g. front, lateral, and rear deltoid).",
-  "experienceLevelProDescription": "Recommended only for experienced lifters with reliable gauge of failure: adds intensity logging via RIR (Reps in Reserve) and cardio intensity zones.",
+  "experienceLevelProDescription": "Recommended only for experienced lifters who can gauge effort reliably: adds RPE intensity logging and cardio intensity zones.",
   "diaryWeightLabel": "Weight",
   "diaryWeightPitch": "Your calorie target gets more accurate with a weight history",
   "diaryWeightStaleNudge": "It has been a while – regular entries keep your calorie target accurate",
@@ -4047,5 +4056,185 @@
   "aiAssistantUpdateIntroLauncherEnabledHint": "Show or hide the chat orb. You can still open chat from the Add menu."
 ,
   "aiAssistantIntroAboutRow": "Try the AI chat",
-  "aiAssistantIntroAboutRowSubtitle": "Open the new AI chat preview again at any time."
+  "aiAssistantIntroAboutRowSubtitle": "Open the new AI chat preview again at any time.",
+  "aiFailureTitle": "Analysis failed",
+  "aiFailureEmptyTitle": "No foods recognized",
+  "aiFailureTimeoutTitle": "The request took too long",
+  "aiFailureUnavailableTitle": "AI unavailable",
+  "aiFailureNetworkTitle": "Connection failed",
+  "aiFailureSetupTitle": "AI setup required",
+  "aiFailureRateTitle": "Request limit reached",
+  "aiFailureGenericBody": "The AI response could not be processed. Please try again or choose another model.",
+  "aiFailureEmptyBody": "No foods were returned. The image or description may not show food clearly, or the model may have made a mistake.",
+  "aiFailureTimeoutBody": "The configured waiting time was reached. Increase it in AI settings or try another model.",
+  "aiFailureNetworkBody": "The AI provider could not be reached. Check your connection or server.",
+  "aiFailureSetupBody": "Check your AI provider and credentials in AI settings.",
+  "aiFailureRateBody": "Wait a moment and try again.",
+  "aiFailureUnavailableBody": "Check whether Apple Intelligence is enabled and available, or select another provider.",
+  "aiFailureAppleHint": "Apple Intelligence may not recognize meals or their details reliably. Another AI model may give a better result.",
+  "aiFailureEdit": "Edit input",
+  "aiFailureSettings": "Open AI settings",
+  "aiFailureSlowHint": "This can take a little longer depending on the device and model.",
+  "aiFailureUnsupportedImage": "Apple Intelligence cannot use photos on this device or iOS version. Describe the meal in text or choose another provider.",
+  "aiFailureAppleTimeoutBody": "The configured waiting time was reached. Increase it in AI settings or choose another provider.",
+  "glassCustomizationTitle": "Glass appearance",
+  "glassTint": "Glass tint",
+  "glassTintClear": "Clear",
+  "glassTintTinted": "Tinted",
+  "glassBlur": "Blur",
+  "glassBlurOff": "Off",
+  "glassOpacity": "Opacity",
+  "glassOpacityClear": "0% (Clear)",
+  "glassReset": "Reset",
+  "glassCustomizationDescription": "Adjust the glass appearance from clear to tinted.",
+  "sessionMusclesTitle": "What this session hits",
+  "sessionMusclesWorked": "Already worked",
+  "sessionMusclesRemaining": "Still to come",
+  "discardWorkoutAction": "Discard workout",
+  "sleepDashboardScore": "Sleep score",
+  "sleepDashboardGoal": "Sleep goal",
+  "sleepDashboardGoalEight": "8 h goal",
+  "sleepDashboardSevenDays": "Last {count} days",
+  "@sleepDashboardSevenDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDashboardRecordedNights": "Recorded nights",
+  "sleepDashboardStageEstimate": "Sleep stages are estimates.",
+  "sleepDashboardStageHint": "Select the chart to inspect a stage.",
+  "sleepDashboardEfficiency": "Efficiency",
+  "sleepDashboardStart": "Start",
+  "sleepDashboardEnd": "End",
+  "sleepDashboardEmpty": "No sleep data for this day.",
+  "sleepDashboardNightHeartRate": "Heart rate during sleep",
+  "sleepDashboardNightHrv": "HRV during sleep",
+  "sleepDashboardSamples": "Available measurements",
+  "sleepDashboardContributors": "Score contributors",
+  "sleepDashboardInsufficient": "Not enough data",
+  "sleepDashboardAsleep": "Time asleep",
+  "hrvTitle": "Heart rate variability",
+  "hrvUnavailable": "No HRV data available",
+  "hrvMethodNote": "Mean of available Apple Health SDNN samples in milliseconds.",
+  "hrvNoData": "No HRV data available",
+  "sleepDashboardDebtNote": "Observed nights only; not a physiological measure of sleep debt.",
+  "sleepDashboardEstimate": "Estimate · limited data",
+  "sleepDashboardDurationCap": "Duration limits the score",
+  "sleepDashboardHrvError": "Unable to load HRV measurements.",
+  "pulseSettingsEnableSubtitleIos": "Reads heart rate, resting heart rate, and HRV from Apple Health when pulse analysis is enabled.",
+  "pulseSettingsPermissionSubtitleIos": "Allow access to heart rate, resting heart rate, and HRV in Apple Health.",
+  "pulseHealthStatusIos": "Apple Health does not reveal read permissions. If values are missing, check access in Health.",
+  "sleepDashboardTonightDelta": "Tonight vs. goal",
+  "sleepDashboardMinimum": "Minimum",
+  "sleepDashboardAverage": "Average",
+  "sleepDashboardPersonalBaseline": "Personal baseline (previous 30 days)",
+  "sleepDashboardBaselineUnavailable": "Not enough comparable nights for a baseline",
+  "hrvQueryFailed": "Could not load HRV. Try again.",
+  "statisticsOverviewTitle": "Overview",
+  "statisticsOverviewWorkouts": "Workouts",
+  "statisticsOverviewAllTime": "All time",
+  "statisticsOverview30Days": "Last 30 days",
+  "statisticsOverviewWeightChange": "Weight change",
+  "statisticsOverviewVolume": "Volume",
+  "statisticsOverviewSets": "sets",
+  "statisticsOverviewCalories": "Calories / day",
+  "statisticsOverviewProtein": "Protein / day",
+  "statisticsOverviewTrackedDays": "30 days · tracked days",
+  "statisticsOverviewSince": "Since {date}",
+  "@statisticsOverviewSince": {"placeholders": {"date": {"type": "String"}}},
+  "statisticsEmptySteps": "No steps recorded in the last 7 days.",
+  "statisticsEmptySleep": "No sleep recorded in the last 7 days.",
+  "statisticsEmptyPulse": "No pulse data recorded in the last 7 days.",
+  "statisticsEmptyTraining": "Complete a workout to see your training rhythm.",
+  "statisticsEmptyRecords": "No new personal bests in the last 30 days.",
+  "statisticsEmptyMuscles": "Complete strength sets to see your muscle groups.",
+  "statisticsEmptyBody": "Log weight or nutrition to see your trends.",
+  "statisticsEmptyNutrition": "No nutrition logged in the last 7 days.",
+  "analyticsDailyBreakdown": "Daily breakdown",
+  "analyticsCarbsShort": "Carbs",
+  "analyticsCalorieTargetLine": "Calorie target",
+  "analyticsWeightSlopePerWeek": "Weight rate",
+  "analyticsSlopePerWeekUnit": "{value} {unit}/wk",
+  "@analyticsSlopePerWeekUnit": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "analyticsThisWeekSummary": "This week: {count}",
+  "@analyticsThisWeekSummary": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "analyticsTrainingDaysCompact": "Active days: {days}/wk",
+  "@analyticsTrainingDaysCompact": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+  "analyticsAtLeast2PerWeekCompact": "≥ 2 workouts / wk",
+  "analyticsConsecutiveWeeks": "Consecutive weeks",
+  "analyticsSelectWorkout": "Select workout",
+  "analyticsNoWorkoutsOnDay": "No workouts on this day",
+  "analyticsPrImprovementsWindowHint": "Improvements vs. previous personal best",
+  "analyticsAllTimeBadge": "All-time",
+  "stepsModuleGoalProgress": "Goal progress",
+  "analyticsWaterTargetLabel": "Daily target",
+  "analyticsWaterLoggedDays": "Logged days",
+  "statisticsOverviewTotalWorkouts": "Total workouts",
+  "statisticsOverviewWorkouts30d": "Workouts (30d)",
+  "sleepHubNightsLogged": "{count, plural, =1{1 night logged} other{{count} nights logged}}",
+  "@sleepHubNightsLogged": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsMicronutrientsHubSummary": "{days} logged days · {count} nutrients",
+  "@statisticsMicronutrientsHubSummary": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "statisticsResetDefaults": "Reset to default",
+  "statisticsBestPerformancesCount": "{count, plural, =0{No new PRs} =1{1 new PR} other{{count} new PRs}}",
+  "@statisticsBestPerformancesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "diaryNutritionDayOptions": "Nutrition day options",
+  "diaryMarkNutritionDayIncomplete": "Mark as incomplete",
+  "diaryIncludeNutritionDay": "Include in statistics again",
+  "diaryIncompleteDayTitle": "Incomplete day",
+  "diaryIncompleteDayDetail": "Excluded from nutrition statistics",
+  "diaryNutritionDayIncompleteStatus": "Incomplete · Excluded from nutrition statistics",
+  "nutritionStatisticsDayCoverage": "{included, plural, one{1 day analyzed} other{{included} days analyzed}} · {incomplete} incomplete",
+  "@nutritionStatisticsDayCoverage": {
+    "description": "Number of days used for the nutrition average and number marked incomplete.",
+    "placeholders": {
+      "included": {
+        "type": "int"
+      },
+      "incomplete": {
+        "type": "int"
+      }
+    }
+  },
+  "rpeEffortTitle": "Perceived effort",
+  "rpeQuestion": "How hard was this set?",
+  "rpeNoReps": "No repetitions left",
+  "rpeRepsLeft": "About {count} repetitions left",
+  "rpeFourPlus": "4 or more repetitions left",
+  "rpeClear": "Clear",
+  "rpeSave": "Save",
+  "rpeHelpTitle": "What is RPE?",
+  "rpeHelpBody": "RPE describes how hard a set felt. Estimate how many repetitions you could still have completed.",
+  "rpeInvalid": "Enter an RPE from 6 to 10 in steps of 0.5.",
+  "rpeMaximumEffort": "Maximum effort",
+  "rpeHardEffort": "Hard",
+  "rpeModerateEffort": "Moderate"
 }

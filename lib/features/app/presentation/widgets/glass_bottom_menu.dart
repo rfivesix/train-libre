@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -107,6 +107,8 @@ Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
   required bool expandToFullHeight,
   required Color barrierColor,
 }) async {
+  // The presenting screen may already have consumed its top safe area.
+  final navigatorContext = Navigator.of(context, rootNavigator: true).context;
   final result = await showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
@@ -123,6 +125,7 @@ Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
         padding: EdgeInsets.only(bottom: kb),
         child: GlassBottomMenuSheet(
           title: title,
+          topSafeInset: MediaQuery.viewPaddingOf(navigatorContext).top,
           headerTrailing: headerTrailing,
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,
@@ -146,6 +149,7 @@ class GlassBottomMenuSheet extends StatefulWidget {
   const GlassBottomMenuSheet({
     super.key,
     this.title,
+    this.topSafeInset,
     this.headerTrailing,
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
@@ -158,6 +162,7 @@ class GlassBottomMenuSheet extends StatefulWidget {
   });
 
   final String? title;
+  final double? topSafeInset;
   final Widget? headerTrailing;
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
@@ -199,6 +204,7 @@ class _GlassBottomMenuSheetState extends State<GlassBottomMenuSheet> {
   Widget build(BuildContext context) {
     return _GlassBottomMenuSheetContent(
       title: widget.title,
+      topSafeInset: widget.topSafeInset,
       headerTrailing: widget.headerTrailing,
       contentBuilder: widget.contentBuilder,
       actions: widget.actions,
@@ -214,6 +220,7 @@ class _GlassBottomMenuSheetState extends State<GlassBottomMenuSheet> {
 class _GlassBottomMenuSheetContent extends StatelessWidget {
   const _GlassBottomMenuSheetContent({
     this.title,
+    this.topSafeInset,
     this.headerTrailing,
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
@@ -225,6 +232,7 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
   });
 
   final String? title;
+  final double? topSafeInset;
   final Widget? headerTrailing;
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
@@ -245,278 +253,294 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : const Color(0xFFF2F2F7).withValues(alpha: 0.92);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
-
-    const double r = 24;
-    final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
-    final maxAvailableHeight =
-        media.size.height - topPadding - 16 - keyboardInset;
-
-    Widget contentColumn() {
-      return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: maxAvailableHeight,
-          minHeight: expandToFullHeight ? maxAvailableHeight : 0,
-        ),
-        child: Column(
-          mainAxisSize: expandToFullHeight
-              ? MainAxisSize.max
-              : MainAxisSize.min,
-          children: [
-            const SizedBox(height: DesignConstants.spacingS),
-            Container(
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(100),
-              ),
-            ),
-            if (title != null) ...[
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (headerTrailing != null) const SizedBox(width: 80),
-                    Expanded(
-                      child: Text(
-                        title!,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    if (headerTrailing != null)
-                      SizedBox(
-                        width: 100,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: headerTrailing,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-            if (contentBuilder != null) ...[
-              const SizedBox(height: DesignConstants.spacingS),
-              Flexible(
-                fit: expandToFullHeight ? FlexFit.tight : FlexFit.loose,
-                child: Builder(
-                  builder: (context) {
-                    final content = Padding(
-                      padding: EdgeInsets.only(
-                        left: DesignConstants.spacingM,
-                        right: DesignConstants.spacingM,
-                        bottom: applySafeAreaBottom ? bottomInset : 0,
-                      ),
-                      child: contentBuilder!(context, () {
-                        if (onClose != null) {
-                          onClose!();
-                        } else {
-                          Navigator.maybeOf(context)?.maybePop();
-                        }
-                      }),
-                    );
-                    // A full-height sheet is a screen in its own right and lays
-                    // itself out against the space it was given; wrapping it in
-                    // a scroll view would hand it an unbounded height instead.
-                    return expandToFullHeight || scrollController != null
-                        ? content
-                        : SingleChildScrollView(
-                            clipBehavior: Clip.none,
-                            padding: const EdgeInsets.only(
-                              top: DesignConstants.spacingXS,
-                            ),
-                            controller: scrollController,
-                            child: content,
-                          );
-                  },
-                ),
-              ),
-            ] else if (actions.isNotEmpty) ...[
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 420),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      8,
-                      12,
-                      8,
-                      8 + (applySafeAreaBottom ? bottomInset : 0),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(actions.length, (i) {
-                        final a = actions[i];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingS,
-                          ),
-                          child: _GlassTile(
-                            icon: a.icon,
-                            customIcon: a.customIcon, // <--- Pass new value
-                            title: a.label,
-                            subtitle: a.subtitle,
-                            onTap: () {
-                              HapticFeedbackService.instance
-                                  .selectionFeedback();
-                              if (onClose != null) {
-                                onClose!();
-                              } else {
-                                Navigator.maybeOf(context)?.maybePop(a.result);
-                              }
-                              WidgetsBinding.instance.addPostFrameCallback(
-                                (_) => a.onTap(),
-                              );
-                            },
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-
-    // ... (liquidCard and plainCard stay identical, shortened here) ...
-    Widget liquidCard() {
-      return Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 30,
-                    spreadRadius: 4,
-                    offset: const Offset(0, 14),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          RepaintBoundary(
-            child: AdaptiveGlass(
-              settings: LiquidGlassSettings(
-                thickness: 0,
-                blur: 8,
-                glassColor: effectiveGlass,
-                lightIntensity: 0,
-                saturation: 1.20,
-              ),
-              shape: const LiquidVerticalRoundedSuperellipse(
-                topRadius: r,
-                bottomRadius: 0,
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      // Superellipse, not a plain circular radius: a circular
-                      // tint would cut across the squircle glass corners.
-                      decoration: ShapeDecoration(
-                        color: neutralTint,
-                        shape: const RoundedSuperellipseBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(r),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: GlassBorderPainter(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.15)
-                            : theme.colorScheme.onSurface.withValues(
-                                alpha: 0.08,
-                              ),
-                        radius: r,
-                        strokeWidth: 0.5,
-                        bottomPadding: bottomInset,
-                      ),
-                    ),
-                  ),
-                  contentColumn(),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    final sheet = SafeArea(
-      top: false,
-      bottom: false,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: 680,
-            maxHeight: maxAvailableHeight,
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              if (keyboardInset > 0)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: -keyboardInset,
-                  child: ClipPath(
-                    clipper: const ShapeBorderClipper(
-                      shape: RoundedSuperellipseBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(r),
-                        ),
-                      ),
-                    ),
-                    child: RepaintBoundary(
-                      child: AdaptiveGlass(
-                        settings: LiquidGlassSettings(
-                          thickness: 0,
-                          blur: 8,
-                          glassColor: effectiveGlass,
-                          lightIntensity: 0,
-                          saturation: 1.20,
-                        ),
-                        shape: const LiquidVerticalRoundedSuperellipse(
-                          topRadius: r,
-                          bottomRadius: 0,
-                        ),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(color: neutralTint),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              liquidCard(),
-            ],
-          ),
-        ),
-      ),
+    final Color effectiveGlass = Colors.white.withValues(
+      alpha: isDark ? 0.10 : 0.50,
     );
 
-    if (onDisposed != null) {
-      return _GlassMenuDisposalNotifier(onDisposed: onDisposed!, child: sheet);
-    }
-    return sheet;
+    const double r = 24;
+    final topPadding = topSafeInset ?? media.viewPadding.top;
+    // The route already reserves the keyboard via AnimatedPadding. Use the
+    // viewport to calculate the safe upper boundary, then respect the actual
+    // constraints as well (embedded draggable sheets can be shorter).
+    final safeHeight = (media.size.height - topPadding - 16 - keyboardInset)
+        .clamp(0.0, media.size.height);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxAvailableHeight = safeHeight.clamp(0.0, constraints.maxHeight);
+
+        Widget contentColumn() {
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: maxAvailableHeight,
+              minHeight: expandToFullHeight ? maxAvailableHeight : 0,
+            ),
+            child: Column(
+              mainAxisSize: expandToFullHeight
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
+              children: [
+                const SizedBox(height: DesignConstants.spacingS),
+                Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+                if (title != null) ...[
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingL,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (headerTrailing != null) const SizedBox(width: 80),
+                        Expanded(
+                          child: Text(
+                            title!,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        if (headerTrailing != null)
+                          SizedBox(
+                            width: 100,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: headerTrailing,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (contentBuilder != null) ...[
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Flexible(
+                    fit: expandToFullHeight ? FlexFit.tight : FlexFit.loose,
+                    child: Builder(
+                      builder: (context) {
+                        final content = Padding(
+                          padding: EdgeInsets.only(
+                            left: DesignConstants.spacingM,
+                            right: DesignConstants.spacingM,
+                            bottom: applySafeAreaBottom ? bottomInset : 0,
+                          ),
+                          child: contentBuilder!(context, () {
+                            if (onClose != null) {
+                              onClose!();
+                            } else {
+                              Navigator.maybeOf(context)?.maybePop();
+                            }
+                          }),
+                        );
+                        // A full-height sheet is a screen in its own right and lays
+                        // itself out against the space it was given; wrapping it in
+                        // a scroll view would hand it an unbounded height instead.
+                        return expandToFullHeight || scrollController != null
+                            ? content
+                            : SingleChildScrollView(
+                                clipBehavior: Clip.hardEdge,
+                                padding: const EdgeInsets.only(
+                                  top: DesignConstants.spacingXS,
+                                ),
+                                controller: scrollController,
+                                child: content,
+                              );
+                      },
+                    ),
+                  ),
+                ] else if (actions.isNotEmpty) ...[
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          8,
+                          12,
+                          8,
+                          8 + (applySafeAreaBottom ? bottomInset : 0),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(actions.length, (i) {
+                            final a = actions[i];
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: DesignConstants.spacingS,
+                              ),
+                              child: _GlassTile(
+                                icon: a.icon,
+                                customIcon: a.customIcon, // <--- Pass new value
+                                title: a.label,
+                                subtitle: a.subtitle,
+                                onTap: () {
+                                  HapticFeedbackService.instance
+                                      .selectionFeedback();
+                                  if (onClose != null) {
+                                    onClose!();
+                                  } else {
+                                    Navigator.maybeOf(context)
+                                        ?.maybePop(a.result);
+                                  }
+                                  WidgetsBinding.instance.addPostFrameCallback(
+                                    (_) => a.onTap(),
+                                  );
+                                },
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
+
+        // ... (liquidCard and plainCard stay identical, shortened here) ...
+        Widget liquidCard() {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(r),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 30,
+                        spreadRadius: 4,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              RepaintBoundary(
+                child: AdaptiveGlass(
+                  settings: LiquidGlassSettings(
+                    thickness: 0,
+                    blur: 8,
+                    glassColor: effectiveGlass,
+                    lightIntensity: 0,
+                    saturation: 1.20,
+                  ),
+                  shape: const LiquidVerticalRoundedSuperellipse(
+                    topRadius: r,
+                    bottomRadius: 0,
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          // Superellipse, not a plain circular radius: a circular
+                          // tint would cut across the squircle glass corners.
+                          decoration: ShapeDecoration(
+                            color: neutralTint,
+                            shape: const RoundedSuperellipseBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(r),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: GlassBorderPainter(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.08,
+                                  ),
+                            radius: r,
+                            strokeWidth: 0.5,
+                            bottomPadding: bottomInset,
+                          ),
+                        ),
+                      ),
+                      contentColumn(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        final sheet = SafeArea(
+          top: false,
+          bottom: false,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 680,
+                maxHeight: maxAvailableHeight,
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  if (keyboardInset > 0)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: -keyboardInset,
+                      child: ClipPath(
+                        clipper: const ShapeBorderClipper(
+                          shape: RoundedSuperellipseBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(r),
+                            ),
+                          ),
+                        ),
+                        child: RepaintBoundary(
+                          child: AdaptiveGlass(
+                            settings: LiquidGlassSettings(
+                              thickness: 0,
+                              blur: 8,
+                              glassColor: effectiveGlass,
+                              lightIntensity: 0,
+                              saturation: 1.20,
+                            ),
+                            shape: const LiquidVerticalRoundedSuperellipse(
+                              topRadius: r,
+                              bottomRadius: 0,
+                            ),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(color: neutralTint),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  liquidCard(),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        if (onDisposed != null) {
+          return _GlassMenuDisposalNotifier(
+            onDisposed: onDisposed!,
+            child: sheet,
+          );
+        }
+        return sheet;
+      },
+    );
   }
 }
 
@@ -569,7 +593,9 @@ class _GlassTile extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
+    final Color effectiveGlass = Colors.white.withValues(
+      alpha: isDark ? 0.10 : 0.50,
+    );
 
     final Widget leadingWidget = customIcon != null
         ? customIcon!

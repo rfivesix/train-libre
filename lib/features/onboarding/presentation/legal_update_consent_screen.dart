@@ -1,7 +1,7 @@
 // lib/features/onboarding/presentation/legal_update_consent_screen.dart
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -73,8 +73,8 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => widget.nextScreen,
-          transitionsBuilder: (_, anim, __, child) =>
+          pageBuilder: (_, _, _) => widget.nextScreen,
+          transitionsBuilder: (_, anim, _, child) =>
               FadeTransition(opacity: anim, child: child),
         ),
       );
@@ -117,7 +117,7 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      LucideIcons.shield_alert,
+                      LucideIcons.shield_exclamation_point,
                       size: 64,
                       color: theme.colorScheme.primary,
                     ),

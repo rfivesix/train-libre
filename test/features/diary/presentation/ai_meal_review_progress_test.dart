@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/diary/domain/models/food_item.dart';
 import 'package:train_libre/features/diary/presentation/ai_meal_review_screen.dart';
@@ -139,5 +139,30 @@ void main() {
     expect(find.text('550 kcal'), findsNothing);
     expect(_saveButton(tester).onPressed, isNull);
     preliminary.dispose();
+  });
+
+  testWidgets('progressive failure offers retry through the error menu',
+      (tester) async {
+    final result = Completer<AiValidationResult>();
+    var retried = false;
+    await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: AiMealReviewScreen(
+        suggestions: [
+          AiSuggestedItem(name: 'Rice', estimatedGrams: 100, confidence: 0.9),
+        ],
+        validationFuture: result.future,
+        originalImages: const [],
+        onFailedScanRetry: () => retried = true,
+      ),
+    ));
+    result.completeError(const AiEmptyMealException());
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(find.text('No foods recognized'), findsOneWidget);
+    await tester.tap(find.text('Retry').last);
+    await tester.pumpAndSettle();
+    expect(retried, isTrue);
   });
 }

@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../../services/unit_service.dart';
 import '../domain/recovery_domain_service.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 
@@ -18,6 +20,47 @@ class StatisticsPresentationFormatter implements StatisticsFormatter {
     final value = weight.toDouble();
     if (value == value.truncateToDouble()) return value.toInt().toString();
     return value.toStringAsFixed(1);
+  }
+
+  static String formatLocalizedWeight(
+    double metricKg,
+    UnitService unitService, {
+    required String locale,
+    int decimalDigits = 1,
+  }) {
+    final display = unitService.convertDisplayValue(
+      metricKg,
+      UnitDimension.weight,
+    );
+    final normalized = display.abs() < 0.05 && decimalDigits == 1
+        ? 0.0
+        : display;
+    final formatted = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: decimalDigits,
+    ).format(normalized);
+    return '$formatted ${unitService.suffixFor(UnitDimension.weight)}';
+  }
+
+  static String formatLocalizedWeightChange(
+    double deltaKg,
+    UnitService unitService, {
+    required String locale,
+    int decimalDigits = 1,
+  }) {
+    final display = unitService.convertDisplayValue(
+      deltaKg,
+      UnitDimension.weight,
+    );
+    final normalized = display.abs() < 0.05 && decimalDigits == 1
+        ? 0.0
+        : display;
+    final prefix = normalized > 0 ? '+' : '';
+    final formatted = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: decimalDigits,
+    ).format(normalized);
+    return '$prefix$formatted ${unitService.suffixFor(UnitDimension.weight)}';
   }
 
   static String compactNumber(num value) {

@@ -56,10 +56,15 @@ sealed class AssistantSqlCommand {
         if (scope != null && scope is! Map<String, dynamic>) {
           throw const FormatException('Invalid additional data scope.');
         }
+        final categoryScopes = decoded['categoryScopes'];
+        if (categoryScopes != null && categoryScopes is! Map<String, dynamic>) {
+          throw const FormatException('Invalid additional category scopes.');
+        }
         return AssistantSqlDataRequestCommand(
           categories.cast<String>(),
           dateExpression: expression as String?,
           scope: scope as Map<String, dynamic>?,
+          categoryScopes: categoryScopes as Map<String, dynamic>?,
         );
       case 'proposal':
         return AssistantSqlChangeProposalCommand(
@@ -127,10 +132,12 @@ class AssistantSqlDataRequestCommand extends AssistantSqlCommand {
     this.categories, {
     this.dateExpression,
     this.scope,
+    this.categoryScopes,
   });
   final List<String> categories;
   final String? dateExpression;
   final Map<String, dynamic>? scope;
+  final Map<String, dynamic>? categoryScopes;
 }
 
 class AssistantSqlChangeProposalCommand extends AssistantSqlCommand {

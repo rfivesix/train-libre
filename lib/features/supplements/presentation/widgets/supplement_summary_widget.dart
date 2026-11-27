@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../domain/models/tracked_supplement.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';

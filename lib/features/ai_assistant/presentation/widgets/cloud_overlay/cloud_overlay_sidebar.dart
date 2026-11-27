@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../../../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -95,7 +97,7 @@ class CloudOverlaySidebar extends StatelessWidget {
                         MediaQuery.paddingOf(context).bottom + 84,
                       ),
                       itemCount: useLiveAi ? conversations.length : 16,
-                      separatorBuilder: (_, __) => const SizedBox(height: 4),
+                      separatorBuilder: (_, _) => const SizedBox(height: 4),
                       itemBuilder: (context, index) {
                         final selected = index == selectedIndex;
                         return Material(
@@ -140,6 +142,7 @@ class CloudOverlaySidebar extends StatelessWidget {
                       left: 12,
                       bottom: MediaQuery.paddingOf(context).bottom + 12,
                       child: _buildSidebarChatButton(
+                        context: context,
                         theme: theme,
                         isDark: !surfaceIsLight,
                       ),
@@ -155,6 +158,7 @@ class CloudOverlaySidebar extends StatelessWidget {
   }
 
   Widget _buildSidebarChatButton({
+    required BuildContext context,
     required ThemeData theme,
     required bool isDark,
   }) {
@@ -162,11 +166,12 @@ class CloudOverlaySidebar extends StatelessWidget {
       brightness: isDark ? Brightness.dark : Brightness.light,
     );
     const radius = 24.0;
-    final settings = DesignConstants.liquidGlassSettings(isDark);
+    final settings = GlassPreferences.of(context)
+        .apply(DesignConstants.liquidGlassSettings(isDark), premium: true);
     final button = Container(
       height: 48,
       decoration: BoxDecoration(
-        color: controlFill,
+        color: GlassPreferences.of(context).tint(controlFill),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: foregroundColor.withValues(alpha: 0.14),

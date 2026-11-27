@@ -2,13 +2,13 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
+import 'widgets/exercise_record_card.dart';
 import 'widgets/exercise_record_data.dart';
 import '../../../../services/unit_service.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -31,10 +31,9 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/card_morph_route.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
+import 'widgets/workout_date_time_chips.dart';
 import 'widgets/workout_photo_card.dart';
-import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import '../domain/classification/set_load.dart';
@@ -300,13 +299,30 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     _rirControllers.clear();
   }
 
-  bool _isCardio(ExerciseBlockKey key) {
-    final ex = _exerciseDetails[key];
-    return ex?.isCardio ?? false;
+  bool _hasCardioSetData(ExerciseBlockKey key) {
+    final sets = _groupedSets[key];
+    if (sets == null || sets.isEmpty) return false;
+    final hasDistanceOrDuration = sets.any(
+      (s) => (s.distanceKm ?? 0) > 0 || (s.durationSeconds ?? 0) > 0,
+    );
+    final hasReps = sets.any((s) => (s.reps ?? 0) > 0);
+    return hasDistanceOrDuration && !hasReps;
   }
 
-  ExerciseLogMask _maskFor(ExerciseBlockKey key) =>
-      ExerciseLogMask.forExercise(_exerciseDetails[key]);
+  bool _isCardio(ExerciseBlockKey key) {
+    final ex = _exerciseDetails[key];
+    if (ex != null) return ex.isCardio;
+    return _hasCardioSetData(key);
+  }
+
+  ExerciseLogMask _maskFor(ExerciseBlockKey key) {
+    final ex = _exerciseDetails[key];
+    if (ex != null) return ExerciseLogMask.forExercise(ex);
+    if (_hasCardioSetData(key)) {
+      return ExerciseLogMask.distanceAndDuration;
+    }
+    return ExerciseLogMask.weightAndReps;
+  }
 
   int _nextExerciseBlock() {
     var next = 0;
@@ -521,7 +537,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       _weightControllers[setLog.id!] = TextEditingController(text: val1);
       _repsControllers[setLog.id!] = TextEditingController(text: val2);
       _rirControllers[setLog.id!] = TextEditingController(
-        text: setLog.rir?.toString() ?? '',
+        text: isCardio
+            ? (setLog.rir?.toString() ?? '')
+            : (setLog.rpe?.toString().replaceFirst(RegExp(r'\.0$'), '') ??
+                  (setLog.rir == null ? '' : (10 - setLog.rir!).toString())),
       );
     }
 
@@ -828,50 +847,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     setState(() => _editedDuration = selected);
   }
 
-  Widget _buildEditableMetadataField({
-    required IconData icon,
-    required String value,
-    required String semanticLabel,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Semantics(
-      button: true,
-      label: semanticLabel,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: DesignConstants.spacingXS,
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: colorScheme.primary),
-                const SizedBox(width: DesignConstants.spacingS),
-                Expanded(
-                  child: Text(
-                    value,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(
-                  LucideIcons.chevron_right,
-                  size: 18,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
@@ -885,6 +860,26 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
       final initialSetIds = _log!.sets.map((s) => s.id!).toSet();
       final currentSets = _groupedSets.values.expand((sets) => sets).toList();
+
+      for (final set in currentSets) {
+        if (_isCardio(ExerciseBlockKey.fromSet(set))) continue;
+        final raw = _rirControllers[set.id]?.text.trim() ?? '';
+        if (raw.isEmpty) continue;
+        final value = double.tryParse(raw.replaceAll(',', '.'));
+        final original =
+            set.rpe ?? (set.rir == null ? null : (10 - set.rir!).toDouble());
+        if (value != original &&
+            (value == null ||
+                value < 6 ||
+                value > 10 ||
+                (value * 2).roundToDouble() != value * 2)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(l10n.rpeInvalid)));
+          }
+          return;
+        }
+      }
 
       final idsToDelete = initialSetIds
           .difference(currentSets.map((s) => s.id!).toSet())
@@ -913,7 +908,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           final val2 = isCardio
               ? (parsePauseDuration(repsText) ?? 0).toDouble()
               : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
-          final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
+          final intensityText = _rirControllers[setLog.id!]?.text ?? '';
+          final rir = int.tryParse(intensityText);
+          final rpe = double.tryParse(intensityText.replaceAll(',', '.'));
+          final initialRpe =
+              setLog.rpe ??
+              (setLog.rir == null ? null : (10 - setLog.rir!).toDouble());
+          final rpeChanged = rpe != initialRpe;
 
           SetLog updatedSet;
 
@@ -934,8 +935,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
             updatedSet = setLog.copyWith(
               weightKg: val1,
               reps: val2.toInt(),
-              rir: rir,
-              clearRir: rir == null,
+              rpe: rpeChanged ? rpe : null,
+              clearRpe: rpeChanged && rpe == null,
+              clearRir: rpeChanged,
               logOrder: currentOrder++,
               // Cardio Felder nullen
               distanceKm: null,
@@ -1248,11 +1250,26 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     }
   }
 
+  void _reorderSet(ExerciseBlockKey key, int oldIndex, int newIndex) {
+    setState(() {
+      final sets = _groupedSets[key];
+      if (sets == null ||
+          oldIndex < 0 ||
+          oldIndex >= sets.length ||
+          newIndex < 0 ||
+          newIndex >= sets.length ||
+          oldIndex == newIndex) {
+        return;
+      }
+      final moved = sets.removeAt(oldIndex);
+      sets.insert(newIndex, moved);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    context.watch<UnitService>();
-    final locale = Localizations.localeOf(context).toString();
+    final unitService = context.watch<UnitService>();
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -1262,14 +1279,40 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
     }
+    final displayVolume = unitService.convertDisplayValue(
+      totalVolume,
+      UnitDimension.weight,
+    );
     final Duration duration = _isEditMode
         ? (_editedDuration ?? Duration.zero)
         : (_log?.endTime?.difference(_log!.startTime) ?? Duration.zero);
 
+    final rawTitle = _log?.routineName?.trim();
+    final workoutTitle = _log == null
+        ? l10n.workoutDetailsTitle
+        : ((rawTitle != null && rawTitle.isNotEmpty)
+              ? rawTitle
+              : l10n.freeWorkoutTitle);
+
+    final double topPadding =
+        MediaQuery.of(context).padding.top +
+        kToolbarHeight +
+        DesignConstants.spacingS;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      extendBodyBehindAppBar: true,
+      backgroundColor: colorScheme.surface,
       appBar: GlobalAppBar(
-        title: l10n.workoutDetailsTitle,
+        titleWidget: Tooltip(
+          message: workoutTitle,
+          triggerMode: TooltipTriggerMode.longPress,
+          child: Text(
+            workoutTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+        ),
         actions: [
           if (!_isLoading && _log != null)
             _isEditMode
@@ -1283,169 +1326,107 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                       ),
                     ),
                   )
-                : IconButton(
-                    tooltip: l10n.edit,
-                    icon: const Icon(LucideIcons.pencil),
-                    onPressed: _toggleEditMode,
+                : Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: PlatformAdaptivePopupMenu<String>(
+                      key: const ValueKey('workout_detail_actions_menu'),
+                      autoAdjustToScreen: true,
+                      icon: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(LucideIcons.ellipsis_vertical),
+                      ),
+                      items: [
+                        PlatformAdaptivePopupMenuItem<String>(
+                          value: 'edit',
+                          label: l10n.edit,
+                          icon: LucideIcons.pencil,
+                        ),
+                        PlatformAdaptivePopupMenuItem<String>(
+                          value: 'save_routine',
+                          label: l10n.saveAsRoutineTitle,
+                          icon: LucideIcons.bookmark_plus,
+                        ),
+                        PlatformAdaptivePopupMenuItem<String>(
+                          value: 'share',
+                          label: l10n.share,
+                          icon: DesignConstants.adaptiveShareIcon,
+                        ),
+                      ],
+                      onSelected: (action) {
+                        switch (action) {
+                          case 'edit':
+                            _toggleEditMode();
+                            break;
+                          case 'save_routine':
+                            _showSaveAsRoutineDialog();
+                            break;
+                          case 'share':
+                            _shareService.showWorkoutShareSheet(
+                              context: context,
+                              workout: _log!,
+                            );
+                            break;
+                        }
+                      },
+                    ),
                   ),
-          if (!_isLoading && _log != null && !_isEditMode) ...[
-            IconButton(
-              tooltip: l10n.saveAsRoutineTitle,
-              icon: const Icon(LucideIcons.bookmark_plus),
-              onPressed: _showSaveAsRoutineDialog,
-            ),
-            IconButton(
-              tooltip: l10n.share,
-              icon: Icon(DesignConstants.adaptiveShareIcon),
-              onPressed: () => _shareService.showWorkoutShareSheet(
-                context: context,
-                workout: _log!,
-              ),
-            ),
-          ],
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _log == null
           ? Center(child: Text(l10n.workoutNotFound))
-          : Column(
+          : ListView(
+              controller: _scrollController,
+              padding: EdgeInsets.only(
+                top: topPadding,
+                bottom: DesignConstants.bottomContentSpacer,
+              ),
               children: [
-                WorkoutSummaryBar(
-                  duration: duration,
-                  volume: totalVolume,
-                  sets: _log!.sets.length,
-                  progress: null,
-                ),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                ),
-                Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    children: [
-                      if (_isEditMode)
-                        ReorderHeadroom(
-                          height: _isDragging ? _dynamicHeadroom : 0.0,
-                        ),
-                      // Header Info (Clean Hero section)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.screenPaddingHorizontal,
-                          vertical: DesignConstants.spacingM,
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                if (_isEditMode)
+                  ReorderHeadroom(height: _isDragging ? _dynamicHeadroom : 0.0),
+                // Header Info (3-column KPI grid, date/time & notes)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.screenPaddingHorizontal,
+                    vertical: DesignConstants.spacingS,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _log!.routineName ??
-                                          l10n.freeWorkoutTitle,
-                                      style: textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              Expanded(
+                                child: ValueSummaryCard(
+                                  value: formatDuration(duration),
+                                  label: l10n.durationLabel,
+                                ),
                               ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                              if (_isEditMode) ...[
-                                _buildEditableMetadataField(
-                                  icon: LucideIcons.calendar,
-                                  value: DateFormat.yMMMMd(locale)
-                                      .add_Hm()
-                                      .format(
-                                        _editedStartTime ?? _log!.startTime,
-                                      ),
-                                  semanticLabel: l10n.selectDateTitle,
-                                  onTap: _pickDateTime,
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Expanded(
+                                child: ValueSummaryCard(
+                                  value:
+                                      '${displayVolume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}',
+                                  label: l10n.volumeLabel,
                                 ),
-                                if (_log!.endTime != null) ...[
-                                  const SizedBox(
-                                    height: DesignConstants.spacingXS,
-                                  ),
-                                  _buildEditableMetadataField(
-                                    icon: LucideIcons.timer,
-                                    value:
-                                        '${l10n.durationLabel}: ${formatDuration(duration)}',
-                                    semanticLabel: l10n.durationLabel,
-                                    onTap: _pickDuration,
-                                  ),
-                                ],
-                              ] else
-                                Text(
-                                  DateFormat.yMMMMd(locale)
-                                      .add_Hm()
-                                      .format(_log!.startTime),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                              ),
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Expanded(
+                                child: ValueSummaryCard(
+                                  value: '${_log!.sets.length}',
+                                  label: l10n.setsLabel,
                                 ),
-                              if (_isEditMode) ...[
-                                const SizedBox(
-                                  height: DesignConstants.spacingM,
-                                ),
-                                TextFormField(
-                                  controller: _notesController,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.notesLabel,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        DesignConstants.borderRadiusM,
-                                      ),
-                                    ),
-                                  ),
-                                  maxLines: 3,
-                                ),
-                              ] else if (_log!.notes != null &&
-                                  _log!.notes!.isNotEmpty) ...[
-                                const SizedBox(
-                                  height: DesignConstants.spacingM,
-                                ),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(
-                                    DesignConstants.spacingM,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerLow,
-                                    borderRadius: BorderRadius.circular(
-                                      DesignConstants.borderRadiusM,
-                                    ),
-                                    border: Border.all(
-                                      color: colorScheme.outlineVariant
-                                          .withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '${l10n.notesLabel}: ${_log!.notes!}',
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ],
                           ),
                         ),
-                      ),
-
-                      // Workout Photos (UNDER Header Info)
-                      if (_log!.photoPaths.isNotEmpty || _isEditMode)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            DesignConstants.screenPaddingHorizontal,
-                            0,
-                            DesignConstants.screenPaddingHorizontal,
-                            DesignConstants.spacingM,
-                          ),
-                          child: WorkoutPhotoCard(
+                        const SizedBox(height: DesignConstants.spacingS),
+                        if (_log!.photoPaths.isNotEmpty || _isEditMode) ...[
+                          WorkoutPhotoCard(
                             workoutLogId: _log!.id,
                             photoPaths: _log!.photoPaths,
                             isEditable: _isEditMode,
@@ -1455,296 +1436,254 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               });
                             },
                           ),
-                        ),
-                      if (_exerciseDetails.isNotEmpty) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                        ],
                         Builder(
                           builder: (context) {
-                            final heatmapWidget = _buildMuscleHeatmap(l10n);
-                            if (heatmapWidget is SizedBox) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal:
-                                    DesignConstants.screenPaddingHorizontal,
-                                vertical: DesignConstants.spacingM,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AppSectionHeader(
-                                    title:
-                                        l10n.analyticsRecentDistributionHeatmap,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                  const SizedBox(
-                                    height: DesignConstants.spacingM,
-                                  ),
-                                  heatmapWidget,
-                                ],
-                              ),
+                            final effectiveStartTime = _isEditMode
+                                ? (_editedStartTime ?? _log!.startTime)
+                                : _log!.startTime;
+                            final effectiveEndTime = _log!.endTime == null
+                                ? null
+                                : (_isEditMode
+                                      ? effectiveStartTime.add(duration)
+                                      : _log!.endTime);
+                            return WorkoutDateTimeChips(
+                              startTime: effectiveStartTime,
+                              endTime: effectiveEndTime,
+                              onDateTap: _isEditMode ? _pickDateTime : null,
+                              onTimeTap: _isEditMode && _log!.endTime != null
+                                  ? _pickDuration
+                                  : null,
                             );
                           },
                         ),
-                      ],
-                      if (_heartRateSummary != null &&
-                          (_pulseTrackingEnabled || _heartRateSummary!.hasData))
-                        Padding(
-                          padding: DesignConstants.cardPadding.copyWith(top: 0),
-                          child: WorkoutHeartRateSection(
-                            summary: _heartRateSummary!,
-                            pulseTrackingEnabled: _pulseTrackingEnabled,
+                        if (_isEditMode) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          TextFormField(
+                            controller: _notesController,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: l10n.workoutNoteAddHint,
+                              hintStyle: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              filled: false,
+                              fillColor: Colors.transparent,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                              ),
+                            ),
+                            minLines: 1,
+                            maxLines: null,
                           ),
-                        ),
-
-                      // NEW RECORDS SECTION
-                      if (_newRecordsPerExercise.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.screenPaddingHorizontal,
-                          ),
-                          child: AppSectionHeader(
-                            title: l10n.workoutSummaryNewRecordsTitle,
-                            padding: EdgeInsets.zero,
-                            action: AlgorithmInfoButton(
-                              title: l10n.estimatedOneRepMaxInfoTitle,
-                              explanation:
-                                  l10n.estimatedOneRepMaxInfoExplanation,
-                              keyPoints: l10n.estimatedOneRepMaxInfoPoints
-                                  .split('\n'),
-                              technicalTitle:
-                                  l10n.estimatedOneRepMaxInfoDetailsTitle,
-                              technicalExplanation:
-                                  l10n.estimatedOneRepMaxInfoDetails,
-                              citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
+                        ] else if (_log!.notes != null &&
+                            _log!.notes!.trim().isNotEmpty) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              _log!.notes!,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingS),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.screenPaddingHorizontal,
-                          ),
-                          child: Column(
-                            children: _newRecordsPerExercise.entries.map((
-                              entry,
-                            ) {
-                              return SummaryCard(
-                                child: ListTile(
-                                  leading: const Icon(
-                                    LucideIcons.trophy,
-                                    color: Colors.amber,
-                                  ),
-                                  title: Text(
-                                    _exerciseDetails[entry.key]
-                                            ?.getLocalizedName(context) ??
-                                        entry.key.exerciseName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    entry.value
-                                        .map(
-                                          (record) => record.format(
-                                            context.read<UnitService>(),
-                                          ),
-                                        )
-                                        .join(', '),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingL),
+                        ],
                       ],
+                    ),
+                  ),
+                ),
 
-                      // EXERCISE LIST SECTION HEADER
-                      Padding(
+                if (_exerciseDetails.isNotEmpty) ...[
+                  Builder(
+                    builder: (context) {
+                      final heatmapWidget = _buildMuscleHeatmap(l10n);
+                      if (heatmapWidget is SizedBox) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: DesignConstants.screenPaddingHorizontal,
-                          vertical: DesignConstants.spacingS,
+                          vertical: DesignConstants.spacingM,
                         ),
-                        child: AppSectionHeader(
-                          title: l10n.workoutSummaryExerciseOverview,
-                          padding: EdgeInsets.zero,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppSectionHeader(
+                              title: l10n.muscleSplitLabel,
+                              padding: EdgeInsets.zero,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingM),
+                            heatmapWidget,
+                          ],
                         ),
+                      );
+                    },
+                  ),
+                ],
+                if (_heartRateSummary?.hasData == true)
+                  Padding(
+                    padding: DesignConstants.cardPadding.copyWith(top: 0),
+                    child: WorkoutHeartRateSection(
+                      summary: _heartRateSummary!,
+                      pulseTrackingEnabled: _pulseTrackingEnabled,
+                    ),
+                  ),
+
+                // NEW RECORDS SECTION
+                if (_newRecordsPerExercise.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: AppSectionHeader(
+                      title: l10n.workoutRecordsTitle,
+                      padding: EdgeInsets.zero,
+                      action: AlgorithmInfoButton(
+                        title: l10n.estimatedOneRepMaxInfoTitle,
+                        explanation: l10n.estimatedOneRepMaxInfoExplanation,
+                        keyPoints: l10n.estimatedOneRepMaxInfoPoints.split(
+                          '\n',
+                        ),
+                        technicalTitle: l10n.estimatedOneRepMaxInfoDetailsTitle,
+                        technicalExplanation:
+                            l10n.estimatedOneRepMaxInfoDetails,
+                        citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: Column(
+                      children: _newRecordsPerExercise.entries.map((entry) {
+                        return ExerciseRecordCard(
+                          exerciseName:
+                              _exerciseDetails[entry.key]?.getLocalizedName(
+                                context,
+                              ) ??
+                              entry.key.exerciseName,
+                          records: entry.value,
+                          unitService: context.read<UnitService>(),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                ],
 
-                      // Sets
-                      if (!_isEditMode)
-                        ..._groupedSets.entries.toList().asMap().entries.map((
-                          indexedEntry,
-                        ) {
-                          final index = indexedEntry.key;
-                          final entry = indexedEntry.value;
-                          final key = entry.key;
-                          final exerciseName = key.exerciseName;
-                          final Exercise? exercise = _exerciseDetails[key];
-                          final List<SetLog> sets = entry.value;
-                          final isCardio = _isCardio(key);
-                          final supersetStyle = _historySupersetStyleAt(index);
+                // EXERCISE LIST SECTION HEADER
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.screenPaddingHorizontal,
+                    vertical: DesignConstants.spacingS,
+                  ),
+                  child: AppSectionHeader(
+                    title: l10n.workout,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
 
-                          return WorkoutExerciseLogCard(
-                            exerciseName: exerciseName,
-                            exercise: exercise,
-                            sets: sets,
-                            isEditMode: false,
-                            isCardio: isCardio,
-                            mask: _maskFor(key),
-                            bodyweightKg: _bodyweightKg,
-                            weightControllers: _weightControllers,
-                            repsControllers: _repsControllers,
-                            rirControllers: _rirControllers,
-                            exerciseNote: _exerciseNotes[key],
-                            pauseSeconds: _pauseSecondsForSets(sets),
-                            onEditPauseTime: () => _editPauseTime(context, key),
-                            onEditNotes: (_) =>
-                                _editExerciseNotes(context, key),
-                            onDeleteExercise: (_) {
-                              setState(() {
-                                for (var set in sets) {
-                                  _weightControllers.remove(set.id!)?.dispose();
-                                  _repsControllers.remove(set.id!)?.dispose();
-                                  _rirControllers.remove(set.id!)?.dispose();
-                                }
-                                _groupedSets.remove(key);
-                                _exerciseNotes.remove(key);
-                              });
-                            },
-                            onAddSet: () {},
-                            onDeleteSet: (setId) {},
-                            onSetTypeTap: (setId) {},
-                            onSetTypeChanged: (setId, newType) =>
-                                _changeSetType(setId, newType),
-                            index: -1,
-                            supersetLabel: supersetStyle?.label,
-                            supersetColor: supersetStyle?.color,
-                            continuesSupersetAbove:
-                                supersetStyle?.continuesAbove ?? false,
-                            continuesSupersetBelow:
-                                supersetStyle?.continuesBelow ?? false,
-                          );
-                        })
-                      else ...[
-                        Listener(
-                          onPointerMove: (e) {
-                            if (_isDragActive) {
-                              _trackReorderHover(e.position.dy);
-                            }
-                          },
-                          child: ReorderableListView.builder(
-                            buildDefaultDragHandles: false,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            onReorderStart: (index) {
-                              if (!_isEditMode) return;
-                              _isDragActive = true;
-                              ReorderHapticFeedback.onDragStart(index);
-                              _scrollAnchor.discard();
-                              _collapseTimer?.cancel();
-                              _expandTimer?.cancel();
-                              if (!_isDragging) {
-                                setState(() {
-                                  _isDragging = true;
-                                });
-                              }
-                            },
-                            onReorderEnd: (index) {
-                              _isDragActive = false;
-                              ReorderHapticFeedback.onDragEnd();
-                              _scheduleExpandAfterDrop();
-                            },
-                            proxyDecorator:
-                                (
-                                  Widget child,
-                                  int index,
-                                  Animation<double> animation,
-                                ) {
-                                  if (index >= 0 &&
-                                      index < _groupedSets.length) {
-                                    final entry = _groupedSets.entries
-                                        .elementAt(index);
-                                    final key = entry.key;
-                                    final exerciseName = key.exerciseName;
-                                    final Exercise? exercise =
-                                        _exerciseDetails[key];
-                                    final List<SetLog> sets = entry.value;
-                                    final isCardio = _isCardio(key);
-                                    final supersetStyle =
-                                        _historySupersetStyleAt(index);
+                // Sets
+                if (!_isEditMode)
+                  ..._groupedSets.entries.toList().asMap().entries.map((
+                    indexedEntry,
+                  ) {
+                    final index = indexedEntry.key;
+                    final entry = indexedEntry.value;
+                    final key = entry.key;
+                    final exerciseName = key.exerciseName;
+                    final Exercise? exercise = _exerciseDetails[key];
+                    final List<SetLog> sets = entry.value;
+                    final isCardio = _isCardio(key);
+                    final supersetStyle = _historySupersetStyleAt(index);
 
-                                    final proxyChild = WorkoutExerciseLogCard(
-                                      exerciseName: exerciseName,
-                                      exercise: exercise,
-                                      sets: sets,
-                                      isEditMode: true,
-                                      isCardio: isCardio,
-                                      mask: _maskFor(key),
-                                      bodyweightKg: _bodyweightKg,
-                                      isDragging: true,
-                                      weightControllers: _weightControllers,
-                                      repsControllers: _repsControllers,
-                                      rirControllers: _rirControllers,
-                                      exerciseNote: _exerciseNotes[key],
-                                      pauseSeconds: _pauseSecondsForSets(sets),
-                                      onEditPauseTime: () {},
-                                      onEditNotes: (_) {},
-                                      onDeleteExercise: (_) {},
-                                      onAddSet: () {},
-                                      onDeleteSet: (_) {},
-                                      onSetTypeTap: (_) {},
-                                      onSetTypeChanged: (_, __) {},
-                                      index: index,
-                                      supersetLabel: supersetStyle?.label,
-                                      supersetColor: supersetStyle?.color,
-                                    );
-                                    return buildReorderDragProxy(
-                                      context,
-                                      proxyChild,
-                                      animation,
-                                    );
-                                  }
-                                  return buildReorderDragProxy(
-                                    context,
-                                    child,
-                                    animation,
-                                  );
-                                },
-                            onReorderItem: (int oldIndex, int newIndex) {
-                              setState(() {
-                                final entries =
-                                    reorderWithSupersets<
-                                      MapEntry<ExerciseBlockKey, List<SetLog>>
-                                    >(
-                                      items: _groupedSets.entries.toList(),
-                                      oldIndex: oldIndex,
-                                      newIndex: newIndex,
-                                      getGroup: (entry) => entry.value.isEmpty
-                                          ? null
-                                          : entry.value.first.supersetGroup,
-                                      withGroup: (entry, group) =>
-                                          MapEntry(entry.key, [
-                                            for (final set in entry.value)
-                                              group == null
-                                                  ? set.copyWith(
-                                                      clearSupersetGroup: true,
-                                                    )
-                                                  : set.copyWith(
-                                                      supersetGroup: group,
-                                                    ),
-                                          ]),
-                                    );
-                                _groupedSets.clear();
-                                for (var entry in entries) {
-                                  _groupedSets[entry.key] = entry.value;
-                                }
-                              });
-                            },
-                            itemCount: _groupedSets.length,
-                            itemBuilder: (context, index) {
+                    return WorkoutExerciseLogCard(
+                      exerciseName: exerciseName,
+                      exercise: exercise,
+                      sets: sets,
+                      isEditMode: false,
+                      isCardio: isCardio,
+                      mask: _maskFor(key),
+                      bodyweightKg: _bodyweightKg,
+                      weightControllers: _weightControllers,
+                      repsControllers: _repsControllers,
+                      rirControllers: _rirControllers,
+                      exerciseNote: _exerciseNotes[key],
+                      pauseSeconds: _pauseSecondsForSets(sets),
+                      onEditPauseTime: () => _editPauseTime(context, key),
+                      onEditNotes: (_) => _editExerciseNotes(context, key),
+                      onDeleteExercise: (_) {
+                        setState(() {
+                          for (var set in sets) {
+                            _weightControllers.remove(set.id!)?.dispose();
+                            _repsControllers.remove(set.id!)?.dispose();
+                            _rirControllers.remove(set.id!)?.dispose();
+                          }
+                          _groupedSets.remove(key);
+                          _exerciseNotes.remove(key);
+                        });
+                      },
+                      onAddSet: () {},
+                      onDeleteSet: (setId) {},
+                      onSetTypeTap: (setId) {},
+                      onSetTypeChanged: (setId, newType) =>
+                          _changeSetType(setId, newType),
+                      index: -1,
+                      supersetLabel: supersetStyle?.label,
+                      supersetColor: supersetStyle?.color,
+                      continuesSupersetAbove:
+                          supersetStyle?.continuesAbove ?? false,
+                      continuesSupersetBelow:
+                          supersetStyle?.continuesBelow ?? false,
+                    );
+                  })
+                else ...[
+                  Listener(
+                    onPointerMove: (e) {
+                      if (_isDragActive) {
+                        _trackReorderHover(e.position.dy);
+                      }
+                    },
+                    child: ReorderableListView.builder(
+                      buildDefaultDragHandles: false,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      onReorderStart: (index) {
+                        if (!_isEditMode) return;
+                        _isDragActive = true;
+                        ReorderHapticFeedback.onDragStart(index);
+                        _scrollAnchor.discard();
+                        _collapseTimer?.cancel();
+                        _expandTimer?.cancel();
+                        if (!_isDragging) {
+                          setState(() {
+                            _isDragging = true;
+                          });
+                        }
+                      },
+                      onReorderEnd: (index) {
+                        _isDragActive = false;
+                        ReorderHapticFeedback.onDragEnd();
+                        _scheduleExpandAfterDrop();
+                      },
+                      proxyDecorator:
+                          (
+                            Widget child,
+                            int index,
+                            Animation<double> animation,
+                          ) {
+                            if (index >= 0 && index < _groupedSets.length) {
                               final entry = _groupedSets.entries.elementAt(
                                 index,
                               );
@@ -1757,263 +1696,316 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 index,
                               );
 
-                              final isDeleting = _deletingExercises.contains(
-                                key,
+                              final proxyChild = WorkoutExerciseLogCard(
+                                exerciseName: exerciseName,
+                                exercise: exercise,
+                                sets: sets,
+                                isEditMode: true,
+                                isCardio: isCardio,
+                                mask: _maskFor(key),
+                                bodyweightKg: _bodyweightKg,
+                                isDragging: true,
+                                weightControllers: _weightControllers,
+                                repsControllers: _repsControllers,
+                                rirControllers: _rirControllers,
+                                exerciseNote: _exerciseNotes[key],
+                                pauseSeconds: _pauseSecondsForSets(sets),
+                                onEditPauseTime: () {},
+                                onEditNotes: (_) {},
+                                onDeleteExercise: (_) {},
+                                onAddSet: () {},
+                                onDeleteSet: (_) {},
+                                onSetTypeTap: (_) {},
+                                onSetTypeChanged: (_, _) {},
+                                index: index,
+                                supersetLabel: supersetStyle?.label,
+                                supersetColor: supersetStyle?.color,
                               );
-
-                              return KeyedSubtree(
-                                key: _scrollAnchor.keyFor(key.anchorId),
-                                child: AnimatedSize(
-                                  duration: kReorderCardResizeDuration,
-                                  curve: Curves.easeInOutCubic,
-                                  alignment: Alignment.topCenter,
-                                  child: isDeleting
-                                      ? const SizedBox(
-                                          width: double.infinity,
-                                          height: 0,
-                                        )
-                                      : AnimatedOpacity(
-                                          duration: const Duration(
-                                            milliseconds: 180,
-                                          ),
-                                          curve: Curves.easeOut,
-                                          opacity: isDeleting ? 0.0 : 1.0,
-                                          child: RepaintBoundary(
-                                            key: ValueKey(key.anchorId),
-                                            child: Column(
-                                              children: [
-                                                WorkoutExerciseLogCard(
-                                                  exerciseName: exerciseName,
-                                                  exercise: exercise,
-                                                  sets: sets,
-                                                  isEditMode: true,
-                                                  isCardio: isCardio,
-                                                  mask: _maskFor(key),
-                                                  bodyweightKg: _bodyweightKg,
-                                                  isDragging: _isDragging,
-                                                  onPointerDown: (e) =>
-                                                      _onDragPointerDown(
-                                                        e,
-                                                        key.anchorId,
-                                                        index,
-                                                      ),
-                                                  onPointerMove:
-                                                      _onDragPointerMove,
-                                                  onPointerUp: _onDragPointerUp,
-                                                  onPointerCancel:
-                                                      _onDragPointerCancel,
-                                                  weightControllers:
-                                                      _weightControllers,
-                                                  repsControllers:
-                                                      _repsControllers,
-                                                  rirControllers:
-                                                      _rirControllers,
-                                                  exerciseNote:
-                                                      _exerciseNotes[key],
-                                                  pauseSeconds:
-                                                      _pauseSecondsForSets(
-                                                        sets,
-                                                      ),
-                                                  onEditPauseTime: () =>
-                                                      _editPauseTime(
-                                                        context,
-                                                        key,
-                                                      ),
-                                                  onEditNotes: (_) =>
-                                                      _editExerciseNotes(
-                                                        context,
-                                                        key,
-                                                      ),
-                                                  onDeleteExercise: (_) =>
-                                                      _onDeleteExercise(
-                                                        key,
-                                                        sets,
-                                                      ),
-                                                  onAddSet: () {
-                                                    final newSet = SetLog(
-                                                      id: -DateTime.now()
-                                                          .millisecondsSinceEpoch,
-                                                      workoutLogId: _log!.id!,
-                                                      exerciseName:
-                                                          exerciseName,
-                                                      setType: 'normal',
-                                                      isCompleted: true,
-                                                      exerciseBlock:
-                                                          key.exerciseBlock,
-                                                      restTimeSeconds:
-                                                          _pauseSecondsForSets(
-                                                            sets,
-                                                          ),
-                                                    );
-                                                    setState(() {
-                                                      sets.add(newSet);
-                                                      _weightControllers[newSet
-                                                              .id!] =
-                                                          TextEditingController();
-                                                      _repsControllers[newSet
-                                                              .id!] =
-                                                          TextEditingController();
-                                                      _rirControllers[newSet
-                                                              .id!] =
-                                                          TextEditingController();
-                                                    });
-                                                  },
-                                                  onDeleteSet: (setId) {
-                                                    setState(() {
-                                                      sets.removeWhere(
-                                                        (s) => s.id == setId,
-                                                      );
-                                                      _weightControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                      _repsControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                      _rirControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                    });
-                                                  },
-                                                  onSetTypeTap: (setId) =>
-                                                      _showSetTypePicker(setId),
-                                                  onSetTypeChanged:
-                                                      (setId, newType) =>
-                                                          _changeSetType(
-                                                            setId,
-                                                            newType,
-                                                          ),
-                                                  index: index,
-                                                  supersetLabel:
-                                                      supersetStyle?.label,
-                                                  supersetColor:
-                                                      supersetStyle?.color,
-                                                  continuesSupersetAbove:
-                                                      supersetStyle
-                                                          ?.continuesAbove ??
-                                                      false,
-                                                  continuesSupersetBelow:
-                                                      supersetStyle
-                                                          ?.continuesBelow ??
-                                                      false,
-                                                  onToggleSupersetBelow:
-                                                      index + 1 <
-                                                          _groupedSets.length
-                                                      ? () =>
-                                                            _toggleSupersetAfter(
-                                                              index,
-                                                            )
-                                                      : null,
-                                                  isConnectedBelow:
-                                                      index + 1 <
-                                                          _groupedSets.length &&
-                                                      entry
-                                                              .value
-                                                              .first
-                                                              .supersetGroup !=
-                                                          null &&
-                                                      entry
-                                                              .value
-                                                              .first
-                                                              .supersetGroup ==
-                                                          _groupedSets.entries
-                                                              .elementAt(
-                                                                index + 1,
-                                                              )
-                                                              .value
-                                                              .first
-                                                              .supersetGroup,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                              return buildReorderDragProxy(
+                                context,
+                                proxyChild,
+                                animation,
+                              );
+                            }
+                            return buildReorderDragProxy(
+                              context,
+                              child,
+                              animation,
+                            );
+                          },
+                      onReorderItem: (int oldIndex, int newIndex) {
+                        setState(() {
+                          final entries =
+                              reorderWithSupersets<
+                                MapEntry<ExerciseBlockKey, List<SetLog>>
+                              >(
+                                items: _groupedSets.entries.toList(),
+                                oldIndex: oldIndex,
+                                newIndex: newIndex,
+                                getGroup: (entry) => entry.value.isEmpty
+                                    ? null
+                                    : entry.value.first.supersetGroup,
+                                withGroup: (entry, group) => MapEntry(
+                                  entry.key,
+                                  [
+                                    for (final set in entry.value)
+                                      group == null
+                                          ? set.copyWith(
+                                              clearSupersetGroup: true,
+                                            )
+                                          : set.copyWith(supersetGroup: group),
+                                  ],
                                 ),
                               );
-                            },
-                          ),
-                        ),
-                      ],
+                          _groupedSets.clear();
+                          for (var entry in entries) {
+                            _groupedSets[entry.key] = entry.value;
+                          }
+                        });
+                      },
+                      itemCount: _groupedSets.length,
+                      itemBuilder: (context, index) {
+                        final entry = _groupedSets.entries.elementAt(index);
+                        final key = entry.key;
+                        final exerciseName = key.exerciseName;
+                        final Exercise? exercise = _exerciseDetails[key];
+                        final List<SetLog> sets = entry.value;
+                        final isCardio = _isCardio(key);
+                        final supersetStyle = _historySupersetStyleAt(index);
 
-                      // Add Exercise (Edit Mode)
-                      if (_isEditMode)
-                        Padding(
-                          padding: const EdgeInsets.all(
-                            DesignConstants.spacingL,
-                          ),
-                          child: MorphSourceScope(
-                            builder: (context, setHidden) => Builder(
-                              builder: (btnCtx) {
-                                // Flies with the container, so the catalog
-                                // dissolves out of the button instead of
-                                // being there from the first frame.
-                                late final Widget addButton;
-                                addButton = TextButton.icon(
-                                  onPressed: () async {
-                                    final selectedExercise =
-                                        await Navigator.of(context)
-                                            .push<Exercise>(
-                                              CardMorphRoute(
-                                                sourceContext: btnCtx,
-                                                sourceBorderRadius: 14.0,
-                                                sourceBuilder: (_) => addButton,
-                                                onSourceVisibilityChanged:
-                                                    setHidden,
-                                                builder: (context) =>
-                                                    const ExerciseCatalogScreen(
-                                                      isSelectionMode: true,
+                        final isDeleting = _deletingExercises.contains(key);
+
+                        return KeyedSubtree(
+                          key: _scrollAnchor.keyFor(key.anchorId),
+                          child: AnimatedSize(
+                            duration: kReorderCardResizeDuration,
+                            curve: Curves.easeInOutCubic,
+                            alignment: Alignment.topCenter,
+                            child: isDeleting
+                                ? const SizedBox(
+                                    width: double.infinity,
+                                    height: 0,
+                                  )
+                                : AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 180),
+                                    curve: Curves.easeOut,
+                                    opacity: isDeleting ? 0.0 : 1.0,
+                                    child: RepaintBoundary(
+                                      key: ValueKey(key.anchorId),
+                                      child: Column(
+                                        children: [
+                                          WorkoutExerciseLogCard(
+                                            exerciseName: exerciseName,
+                                            exercise: exercise,
+                                            sets: sets,
+                                            isEditMode: true,
+                                            isCardio: isCardio,
+                                            mask: _maskFor(key),
+                                            bodyweightKg: _bodyweightKg,
+                                            isDragging: _isDragging,
+                                            onPointerDown: (e) =>
+                                                _onDragPointerDown(
+                                                  e,
+                                                  key.anchorId,
+                                                  index,
+                                                ),
+                                            onPointerMove: _onDragPointerMove,
+                                            onPointerUp: _onDragPointerUp,
+                                            onPointerCancel:
+                                                _onDragPointerCancel,
+                                            weightControllers:
+                                                _weightControllers,
+                                            repsControllers: _repsControllers,
+                                            rirControllers: _rirControllers,
+                                            exerciseNote: _exerciseNotes[key],
+                                            pauseSeconds: _pauseSecondsForSets(
+                                              sets,
+                                            ),
+                                            onEditPauseTime: () =>
+                                                _editPauseTime(context, key),
+                                            onEditNotes: (_) =>
+                                                _editExerciseNotes(
+                                                  context,
+                                                  key,
+                                                ),
+                                            onDeleteExercise: (_) =>
+                                                _onDeleteExercise(key, sets),
+                                            onAddSet: () {
+                                              var syntheticId = -DateTime.now()
+                                                  .millisecondsSinceEpoch;
+                                              while (_weightControllers
+                                                      .containsKey(
+                                                        syntheticId,
+                                                      ) ||
+                                                  sets.any(
+                                                    (s) => s.id == syntheticId,
+                                                  )) {
+                                                syntheticId--;
+                                              }
+                                              final newSet = SetLog(
+                                                id: syntheticId,
+                                                workoutLogId: _log!.id!,
+                                                exerciseName: exerciseName,
+                                                setType: 'normal',
+                                                isCompleted: true,
+                                                exerciseBlock:
+                                                    key.exerciseBlock,
+                                                restTimeSeconds:
+                                                    _pauseSecondsForSets(sets),
+                                              );
+                                              setState(() {
+                                                sets.add(newSet);
+                                                _weightControllers[newSet.id!] =
+                                                    TextEditingController();
+                                                _repsControllers[newSet.id!] =
+                                                    TextEditingController();
+                                                _rirControllers[newSet.id!] =
+                                                    TextEditingController();
+                                              });
+                                            },
+                                            onDeleteSet: (setId) {
+                                              setState(() {
+                                                sets.removeWhere(
+                                                  (s) => s.id == setId,
+                                                );
+                                                _weightControllers
+                                                    .remove(setId)
+                                                    ?.dispose();
+                                                _repsControllers
+                                                    .remove(setId)
+                                                    ?.dispose();
+                                                _rirControllers
+                                                    .remove(setId)
+                                                    ?.dispose();
+                                              });
+                                            },
+                                            onReorderSet:
+                                                (oldIndex, newIndex) =>
+                                                    _reorderSet(
+                                                      key,
+                                                      oldIndex,
+                                                      newIndex,
                                                     ),
-                                              ),
-                                            );
-                                    if (selectedExercise != null) {
-                                      setState(() {
-                                        final exerciseBlock =
-                                            _nextExerciseBlock();
-                                        final exerciseName = selectedExercise
-                                            .getLocalizedName(context);
-                                        final key = ExerciseBlockKey(
-                                          exerciseBlock: exerciseBlock,
-                                          exerciseName: exerciseName,
-                                        );
-                                        // Store exercise details locally so _isCardio and name work.
-                                        _exerciseDetails[key] =
-                                            selectedExercise;
-
-                                        final newSet = SetLog(
-                                          id: -DateTime.now()
-                                              .millisecondsSinceEpoch,
-                                          workoutLogId: _log!.id!,
-                                          exerciseName: exerciseName,
-                                          setType: 'normal',
-                                          isCompleted: true,
-                                          exerciseBlock: exerciseBlock,
-                                          // Set default values
-                                          weightKg: 0,
-                                          reps: 0,
-                                          distanceKm: 0,
-                                          durationSeconds: 0,
-                                        );
-                                        _groupedSets[key] = [newSet];
-
-                                        _weightControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _repsControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _rirControllers[newSet.id!] =
-                                            TextEditingController();
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(LucideIcons.plus),
-                                  label: Text(l10n.addExerciseToWorkoutButton),
-                                );
-                                return addButton;
-                              },
-                            ),
+                                            onSetTypeTap: (setId) =>
+                                                _showSetTypePicker(setId),
+                                            onSetTypeChanged: (
+                                              setId,
+                                              newType,
+                                            ) => _changeSetType(setId, newType),
+                                            index: index,
+                                            supersetLabel: supersetStyle?.label,
+                                            supersetColor: supersetStyle?.color,
+                                            continuesSupersetAbove:
+                                                supersetStyle?.continuesAbove ??
+                                                false,
+                                            continuesSupersetBelow:
+                                                supersetStyle?.continuesBelow ??
+                                                false,
+                                            onToggleSupersetBelow:
+                                                index + 1 < _groupedSets.length
+                                                ? () => _toggleSupersetAfter(
+                                                    index,
+                                                  )
+                                                : null,
+                                            isConnectedBelow:
+                                                index + 1 <
+                                                    _groupedSets.length &&
+                                                entry
+                                                        .value
+                                                        .first
+                                                        .supersetGroup !=
+                                                    null &&
+                                                entry
+                                                        .value
+                                                        .first
+                                                        .supersetGroup ==
+                                                    _groupedSets.entries
+                                                        .elementAt(index + 1)
+                                                        .value
+                                                        .first
+                                                        .supersetGroup,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                           ),
-                        ),
-                    ],
+                        );
+                      },
+                    ),
                   ),
-                ),
+                ],
+
+                // Add Exercise (Edit Mode)
+                if (_isEditMode)
+                  Padding(
+                    padding: const EdgeInsets.all(DesignConstants.spacingL),
+                    child: MorphSourceScope(
+                      builder: (context, setHidden) => Builder(
+                        builder: (btnCtx) {
+                          // Flies with the container, so the catalog
+                          // dissolves out of the button instead of
+                          // being there from the first frame.
+                          late final Widget addButton;
+                          addButton = TextButton.icon(
+                            onPressed: () async {
+                              final selectedExercise =
+                                  await Navigator.of(context).push<Exercise>(
+                                    CardMorphRoute(
+                                      sourceContext: btnCtx,
+                                      sourceBorderRadius: 14.0,
+                                      sourceBuilder: (_) => addButton,
+                                      onSourceVisibilityChanged: setHidden,
+                                      builder: (context) =>
+                                          const ExerciseCatalogScreen(
+                                            isSelectionMode: true,
+                                          ),
+                                    ),
+                                  );
+                              if (selectedExercise != null) {
+                                setState(() {
+                                  final exerciseBlock = _nextExerciseBlock();
+                                  final exerciseName = selectedExercise
+                                      .getLocalizedName(context);
+                                  final key = ExerciseBlockKey(
+                                    exerciseBlock: exerciseBlock,
+                                    exerciseName: exerciseName,
+                                  );
+                                  // Store exercise details locally so _isCardio and name work.
+                                  _exerciseDetails[key] = selectedExercise;
+
+                                  final newSet = SetLog(
+                                    id: -DateTime.now().millisecondsSinceEpoch,
+                                    workoutLogId: _log!.id!,
+                                    exerciseName: exerciseName,
+                                    setType: 'normal',
+                                    isCompleted: true,
+                                    exerciseBlock: exerciseBlock,
+                                    // Set default values
+                                    weightKg: 0,
+                                    reps: 0,
+                                    distanceKm: 0,
+                                    durationSeconds: 0,
+                                  );
+                                  _groupedSets[key] = [newSet];
+
+                                  _weightControllers[newSet.id!] =
+                                      TextEditingController();
+                                  _repsControllers[newSet.id!] =
+                                      TextEditingController();
+                                  _rirControllers[newSet.id!] =
+                                      TextEditingController();
+                                });
+                              }
+                            },
+                            icon: const Icon(LucideIcons.plus),
+                            label: Text(l10n.addExerciseToWorkoutButton),
+                          );
+                          return addButton;
+                        },
+                      ),
+                    ),
+                  ),
               ],
             ),
     );

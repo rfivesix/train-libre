@@ -80,12 +80,10 @@ import Foundation
         return .result()
       }
 
-      let newEnd = currentEnd.addingTimeInterval(TimeInterval(deltaSeconds))
-      // Shortening below "now" ends the pause rather than going negative.
-      guard newEnd > Date() else {
-        try await SkipRestIntent().perform()
-        return .result()
-      }
+      let now = Date()
+      // Once overdue, adding time starts a fresh countdown from now.
+      let base = max(currentEnd, now)
+      let newEnd = base.addingTimeInterval(TimeInterval(deltaSeconds))
 
       let old = activity.content.state
       let next = WorkoutActivityAttributes.ContentState(
@@ -115,10 +113,17 @@ import Foundation
 
       LiveActivityCommandStore.writeRestEndsAt(newEnd)
       // Without this the pre-scheduled sound stays on the old time.
-      RestSoundScheduler.schedule(at: newEnd)
+      if newEnd > now {
+        RestSoundScheduler.schedule(at: newEnd)
+      } else {
+        RestSoundScheduler.cancel()
+      }
       LiveActivityCommandStore.enqueue(
         "adjustRest",
-        payload: ["deltaSeconds": deltaSeconds]
+        payload: [
+          "deltaSeconds": deltaSeconds,
+          "restEndsAtEpochMs": Int64(newEnd.timeIntervalSince1970 * 1000),
+        ]
       )
       await LiveActivityUpdater.push(activity, next)
       return .result()

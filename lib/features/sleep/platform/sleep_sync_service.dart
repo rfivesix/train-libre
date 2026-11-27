@@ -79,21 +79,17 @@ class SleepSyncService implements SleepSettingsService {
        _androidDataSource = null;
 
   SleepSyncService.withOverrides({
-    required SleepPermissionsService iosPermissionsService,
-    required SleepPermissionsService androidPermissionsService,
-    required HealthKitDataSource iosDataSource,
-    required HealthConnectDataSource androidDataSource,
+    required SleepPermissionsService this._iosPermissionsService,
+    required SleepPermissionsService this._androidPermissionsService,
+    required HealthKitDataSource this._iosDataSource,
+    required HealthConnectDataSource this._androidDataSource,
     AppDatabase? database,
     DatabaseHelper? databaseHelper,
     bool ownsDatabase = false,
   }) : _databaseFuture = database != null
            ? Future.value(database)
            : (databaseHelper ?? DatabaseHelper.instance).database,
-       _ownsDatabase = ownsDatabase && database != null,
-       _iosPermissionsService = iosPermissionsService,
-       _androidPermissionsService = androidPermissionsService,
-       _iosDataSource = iosDataSource,
-       _androidDataSource = androidDataSource;
+       _ownsDatabase = ownsDatabase && database != null;
 
   final Future<AppDatabase> _databaseFuture;
   final bool _ownsDatabase;
@@ -350,11 +346,15 @@ class SleepSyncService implements SleepSettingsService {
   }) async {
     final db = _database ??= await _databaseFuture;
     final pipeline = SleepPipelineService(database: db);
-    return pipeline.runImport(
+    final result = await pipeline.runImport(
       batch: batch,
       token: token,
       onProgress: onProgress,
     );
+    if (result.importedSessions > 0) {
+      await pipeline.recomputeStoredHistory(force: true, token: token);
+    }
+    return result;
   }
 
   @override

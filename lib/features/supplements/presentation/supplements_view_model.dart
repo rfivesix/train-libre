@@ -1,7 +1,7 @@
 // lib/features/supplements/presentation/supplements_view_model.dart
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../domain/repositories/supplement_repository.dart';
 import '../data/supplement_repository_impl.dart';

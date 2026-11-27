@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import '../../util/glass_preferences.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../util/design_constants.dart';
@@ -86,14 +87,16 @@ class _OperationProgressWidgetState extends State<OperationProgressWidget>
         children: [
           Center(
             child: AdaptiveGlass(
-              settings: LiquidGlassSettings(
-                thickness: 0,
-                blur: 8,
-                glassColor: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.02),
-                lightIntensity: isDark ? 0 : 0.4,
-                saturation: 1.2,
+              settings: GlassPreferences.of(context).apply(
+                LiquidGlassSettings(
+                  thickness: 0,
+                  blur: 8,
+                  glassColor: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.02),
+                  lightIntensity: isDark ? 0 : 0.4,
+                  saturation: 1.2,
+                ),
               ),
               shape: const LiquidRoundedSuperellipse(borderRadius: 100),
               child: Container(

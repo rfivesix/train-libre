@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/app/presentation/legal_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(
     locale: const Locale('de'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: child,
   );

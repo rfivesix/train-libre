@@ -1,5 +1,5 @@
 // lib/features/exercise_catalog/presentation/exercise_detail_screen.dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
@@ -448,117 +448,117 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final isLightMode = theme.brightness == Brightness.light;
+    const double tabBarHeight = 48.0;
     final double topPadding =
-        MediaQuery.of(context).padding.top + kToolbarHeight;
+        MediaQuery.of(context).padding.top + kToolbarHeight + tabBarHeight;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: _currentExercise.getLocalizedName(context),
-        actions: [
-          if (_currentExercise.source == 'user')
-            IconButton(
-              tooltip: l10n.delete,
-              icon: const Icon(LucideIcons.trash),
-              onPressed: () => _showDeleteConfirmMenu(context),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        extendBodyBehindAppBar: true,
+        appBar: GlobalAppBar(
+          title: _currentExercise.getLocalizedName(context),
+          bottomHeight: tabBarHeight,
+          bottom: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingL,
             ),
-          MorphSourceScope(
-            builder: (context, setHidden) => Builder(
-              builder: (iconCtx) {
-                // The button is the morph's source, so it also has to be the
-                // copy that flies with the growing container.
-                late final Widget editButton;
-                editButton = IconButton(
-                  tooltip: l10n.edit,
-                  icon: const Icon(LucideIcons.pencil),
-                  onPressed: () {
-                    if (_currentExercise.source == 'user') {
-                      Navigator.of(context)
-                          .push(
-                            CardMorphRoute(
-                              sourceContext: iconCtx,
-                              sourceBorderRadius: 20.0,
-                              sourceBuilder: (_) => editButton,
-                              onSourceVisibilityChanged: setHidden,
-                              builder: (context) => CreateExerciseScreen(
-                                repository: _repository,
-                                exerciseToEdit: _currentExercise,
+            child: TabBar(
+              isScrollable: false,
+              indicator: const BoxDecoration(),
+              splashFactory: NoSplash.splashFactory,
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              labelPadding: EdgeInsets.zero,
+              labelColor: isLightMode ? Colors.black : Colors.white,
+              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+              labelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+              tabs: const [
+                Tab(text: 'Zusammenfassung'),
+                Tab(text: 'Historie'),
+                Tab(text: 'So geht’s'),
+              ],
+            ),
+          ),
+          actions: [
+            if (_currentExercise.source == 'user')
+              IconButton(
+                tooltip: l10n.delete,
+                icon: const Icon(LucideIcons.trash),
+                onPressed: () => _showDeleteConfirmMenu(context),
+              ),
+            MorphSourceScope(
+              builder: (context, setHidden) => Builder(
+                builder: (iconCtx) {
+                  // The button is the morph's source, so it also has to be the
+                  // copy that flies with the growing container.
+                  late final Widget editButton;
+                  editButton = IconButton(
+                    tooltip: l10n.edit,
+                    icon: const Icon(LucideIcons.pencil),
+                    onPressed: () {
+                      if (_currentExercise.source == 'user') {
+                        Navigator.of(context)
+                            .push(
+                              CardMorphRoute(
+                                sourceContext: iconCtx,
+                                sourceBorderRadius: 20.0,
+                                sourceBuilder: (_) => editButton,
+                                onSourceVisibilityChanged: setHidden,
+                                builder: (context) => CreateExerciseScreen(
+                                  repository: _repository,
+                                  exerciseToEdit: _currentExercise,
+                                ),
                               ),
-                            ),
-                          )
-                          .then((wasSaved) {
-                            if (wasSaved == true) {
-                              _loadData();
-                            }
-                          });
-                    } else {
-                      _showSystemEditMenu(context);
-                    }
-                  },
-                );
-                return editButton;
-              },
+                            )
+                            .then((wasSaved) {
+                              if (wasSaved == true) {
+                                _loadData();
+                              }
+                            });
+                      } else {
+                        _showSystemEditMenu(context);
+                      }
+                    },
+                  );
+                  return editButton;
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-            child: ExerciseCategoryBadge(text: _currentExercise.categoryName),
-          ),
-        ],
-      ),
-      body: DefaultTabController(
-        length: 3,
-        child: Column(
-          children: [
-            SizedBox(height: topPadding),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingL,
-                vertical: DesignConstants.spacingXS,
-              ),
-              child: TabBar(
-                isScrollable: false,
-                indicator: const BoxDecoration(),
-                splashFactory: NoSplash.splashFactory,
-                overlayColor: WidgetStateProperty.all(Colors.transparent),
-                labelPadding: EdgeInsets.zero,
-                labelColor: isLightMode ? Colors.black : Colors.white,
-                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                labelStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-                tabs: const [
-                  Tab(text: 'Zusammenfassung'),
-                  Tab(text: 'Historie'),
-                  Tab(text: 'So geht’s'),
-                ],
-              ),
+              padding: const EdgeInsets.only(right: DesignConstants.spacingM),
+              child: ExerciseCategoryBadge(text: _currentExercise.categoryName),
             ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildSummaryTab(l10n, textTheme),
-                  _buildExerciseHistoryTab(),
-                  _buildInstructionsTab(l10n),
-                ],
-              ),
-            ),
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            _buildSummaryTab(l10n, textTheme, topPadding: topPadding),
+            _buildExerciseHistoryTab(topPadding: topPadding),
+            _buildInstructionsTab(l10n, topPadding: topPadding),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryTab(AppLocalizations l10n, TextTheme textTheme) {
+  Widget _buildSummaryTab(
+    AppLocalizations l10n,
+    TextTheme textTheme, {
+    required double topPadding,
+  }) {
     return SingleChildScrollView(
       clipBehavior: Clip.none,
-      padding: DesignConstants.cardPadding,
+      padding: DesignConstants.cardPadding.copyWith(
+        top: DesignConstants.cardPadding.top + topPadding,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -607,7 +607,43 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   children: [
                     _buildPRSummarySection(l10n),
                     const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(title: l10n.workoutHistoryButton),
+                    AppSectionHeader(
+                      title: l10n.workoutHistoryButton,
+                      action: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_selectedMetric == ExerciseMetric.est1rm) ...[
+                            AlgorithmInfoButton(
+                              title: l10n.estimatedOneRepMaxInfoTitle,
+                              explanation:
+                                  l10n.estimatedOneRepMaxInfoExplanation,
+                              keyPoints: l10n.estimatedOneRepMaxInfoPoints
+                                  .split('\n'),
+                              technicalTitle:
+                                  l10n.estimatedOneRepMaxInfoDetailsTitle,
+                              technicalExplanation:
+                                  l10n.estimatedOneRepMaxInfoDetails,
+                              citationUrl:
+                                  "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
+                            ),
+                            const SizedBox(width: DesignConstants.spacingXS),
+                          ],
+                          PlatformAdaptiveChipDropdown<ExerciseMetric>(
+                            selectedValue: _selectedMetric,
+                            onSelected: (ExerciseMetric newValue) {
+                              setState(() => _selectedMetric = newValue);
+                            },
+                            items: [
+                              for (final metric in _availableMetrics)
+                                PlatformAdaptivePopupMenuItem<ExerciseMetric>(
+                                  value: metric,
+                                  label: _metricLabel(metric, l10n),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                     RepaintBoundary(child: _buildConsolidatedChart(l10n)),
                   ],
                 ),
@@ -628,9 +664,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  Widget _buildInstructionsTab(AppLocalizations l10n) {
+  Widget _buildInstructionsTab(
+    AppLocalizations l10n, {
+    required double topPadding,
+  }) {
     return SingleChildScrollView(
-      padding: DesignConstants.cardPadding,
+      padding: DesignConstants.cardPadding.copyWith(
+        top: DesignConstants.cardPadding.top + topPadding,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -667,7 +708,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  Widget _buildExerciseHistoryTab() {
+  Widget _buildExerciseHistoryTab({required double topPadding}) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
     return StreamBuilder<List<WorkoutLog>>(
@@ -701,7 +742,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           return Center(child: Text(l10n.exerciseAnalyticsNoData));
         }
         return ListView.builder(
-          padding: const EdgeInsets.only(bottom: DesignConstants.spacingXL),
+          padding: EdgeInsets.only(
+            top: topPadding,
+            bottom: DesignConstants.spacingXL,
+          ),
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
@@ -822,7 +866,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       '${units.suffixFor(UnitDimension.weight)}';
             subtitle = l10n.repsCount(prSet.reps ?? 0);
         }
-        valueColor = theme.colorScheme.primary;
+        valueColor = theme.brightness == Brightness.light
+            ? Colors.black
+            : Colors.white;
       } else {
         value = '-';
         subtitle = l10n.noData;
@@ -953,48 +999,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       };
 
   Widget _buildChartHeader(AppLocalizations l10n) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      spacing: 8.0,
       children: [
-        Expanded(
-          child: PlatformAdaptiveDropdownFormField<ExerciseMetric>(
-            value: _selectedMetric,
-            onChanged: (ExerciseMetric? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _selectedMetric = newValue;
-                });
-              }
-            },
-            items: [
-              for (final metric in _availableMetrics)
-                DropdownMenuItem(
-                  value: metric,
-                  child: Text(_metricLabel(metric, l10n)),
-                ),
-            ],
-          ),
-        ),
-        if (_selectedMetric == ExerciseMetric.est1rm) ...[
-          const SizedBox(width: DesignConstants.spacingXS),
-          AlgorithmInfoButton(
-            title: l10n.estimatedOneRepMaxInfoTitle,
-            explanation: l10n.estimatedOneRepMaxInfoExplanation,
-            keyPoints: l10n.estimatedOneRepMaxInfoPoints.split('\n'),
-            technicalTitle: l10n.estimatedOneRepMaxInfoDetailsTitle,
-            technicalExplanation: l10n.estimatedOneRepMaxInfoDetails,
-            citationUrl: "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
-          ),
-        ],
-        const SizedBox(width: DesignConstants.spacingS),
-        Wrap(
-          spacing: 8.0,
-          children: [
-            _buildFilterButton(l10n.filter30DaysShort, '30D'),
-            _buildFilterButton(l10n.filter90DaysShort, '90D'),
-            _buildFilterButton(l10n.filterMax, 'All'),
-          ],
-        ),
+        _buildFilterButton(l10n.filter30DaysShort, '30D'),
+        _buildFilterButton(l10n.filter90DaysShort, '90D'),
+        _buildFilterButton(l10n.filterMax, 'All'),
       ],
     );
   }

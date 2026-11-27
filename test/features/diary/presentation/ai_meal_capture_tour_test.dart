@@ -1,8 +1,9 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 // test/features/diary/presentation/ai_meal_capture_tour_test.dart
 
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
@@ -85,7 +86,7 @@ void main() {
   Widget buildCaptureScreen() {
     return MaterialApp(
       locale: const Locale('de'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       navigatorObservers: [appRouteObserver],
       home: const AiMealCaptureScreen(),

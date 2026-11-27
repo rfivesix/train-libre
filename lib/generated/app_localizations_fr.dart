@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -7,6 +8,17 @@ import 'app_localizations.dart';
 /// The translations for French (`fr`).
 class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
+
+  @override
+  String get settingsWorkoutDisplay => 'Affichage des entraînements';
+
+  @override
+  String get settingsShowWorkoutE1rm =>
+      'Afficher le maximum estimé sur une répétition';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle =>
+      'Affiche le maximum estimé par série et la comparaison des séances.';
 
   @override
   String get selectDateTitle => 'Choisir une date';
@@ -2835,7 +2847,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingFeatureWorkoutBody =>
-      'Enregistrez vos séries (RIR/RPE) et suivez votre récupération musculaire.';
+      'Enregistrez vos séries (RPE) et suivez votre récupération musculaire.';
 
   @override
   String get onboardingFeatureTdeeTitle => 'TDEE adaptatif';
@@ -3333,34 +3345,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  ) {
     return 'Delta : $kcalDelta kcal · ${proteinDelta}g Protéines · ${carbsDelta}g Glucides · ${fatDelta}g Lipides';
   }
 
   @override
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
       other:
           'Les elements $unmatchedCount n\'ont pas de correspondance dans la base de données locale et ne seront pas enregistrés.',
-      one:
-          '1 element n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
+      one: '1 element n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
     );
     return '$_temp0';
   }
 
   @override
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
       other:
           'Les ingredients $unmatchedCount n\'ont pas de correspondance dans la base de données locale et ne seront pas enregistrés.',
-      one:
-          '1 ingredient n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
+      one: '1 ingredient n\'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.',
     );
     return '$_temp0';
   }
@@ -3444,8 +3462,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other:
           'Les elements $count ne peuvent pas être enregistrés tant qu\'ils n\'ont pas été mis en correspondance.',
-      one:
-          '1 element ne peut pas etre enregistre tant qu\'il n\'a pas ete associe.',
+      one: '1 element ne peut pas etre enregistre tant qu\'il n\'a pas ete associe.',
     );
     return '$_temp0';
   }
@@ -3688,7 +3705,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recoveryDetailForecast => 'Prévision';
 
   @override
-  String get recoveryDetailRirData => 'Données RIR';
+  String get recoveryDetailRirData => 'Données RPE';
 
   @override
   String recoveryCompactHours(int hours) {
@@ -3707,7 +3724,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String recoveryRirCoverage(int covered, int total) {
-    return 'RIR saisi pour $covered séries sur $total';
+    return 'RPE saisi pour $covered séries sur $total';
   }
 
   @override
@@ -3943,6 +3960,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get workoutSummaryNewRecordsTitle => 'Nouveaux records';
+
+  @override
+  String get workoutRecordsTitle => 'Records';
 
   @override
   String get allTimeRecordsLabel => 'Records de tous les temps';
@@ -5307,7 +5327,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays) {
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  ) {
     return 'Base de données : $windowDays jours, $weightLogs journaux de poids, $intakeDays jours de prise';
   }
 
@@ -5504,6 +5527,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les données de pas sont indisponibles';
 
   @override
+  String get healthSettingsSyncPulse => 'Synchroniser le pouls';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '$count mesures du pouls lues pour la dernière année';
+  }
+
+  @override
   String get healthSettingsSyncSteps => 'Synchroniser les pas';
 
   @override
@@ -5593,12 +5624,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pulseRestingLabel => 'Repos';
 
   @override
+  String get pulseEstimatedRestingLabel => 'Pouls au repos estimé';
+
+  @override
+  String get pulseEstimateLabel => 'Estimé';
+
+  @override
   String get pulseInsufficientData =>
       'Trop peu d\'échantillons d\'impulsions pour un graphique fiable.';
 
   @override
   String get pulseMethodNote =>
-      'Le pouls moyen est pondéré dans le temps. Le pouls au repos est une estimation prudente à partir des 20 % d’échantillons les plus bas de la période sélectionnée.';
+      'Train Libre utilise le pouls au repos d’Apple Santé ou de Health Connect lorsqu’il est disponible. Sinon, il l’estime à partir des mesures du pouls.';
 
   @override
   String pulseSampleCount(int count) {
@@ -5657,11 +5694,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Ouvre Apple Health ou Health Connect pour que Train Libre puisse lire des échantillons de pouls.';
+      'Autorisez l’accès au pouls et au pouls au repos dans Health Connect.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Affiche la plage, la moyenne pondérée dans le temps et une estimation prudente du pouls au repos. Pas un diagnostic médical.';
+      'Affiche la plage, la moyenne et le pouls au repos.';
 
   @override
   String get pulseSettingsPermissionGranted =>
@@ -6287,30 +6324,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'En mode catalogue, les suggestions de l’IA sont rapprochées des aliments locaux. Le mode d’estimation directe peut utiliser des valeurs nutritionnelles estimées par l’IA. Vérifiez les résultats avant l’enregistrement.';
 
   @override
-  String get infoSleepTitle => 'Qualité du sommeil (SHS v3.5)';
+  String get infoSleepTitle => 'Score de sommeil';
 
   @override
   String get infoSleepExplanation =>
-      'Calcule un indice de sommeil complet à partir de la quantité, de la continuité, de la profondeur, du timing et de la régularité quotidienne.';
+      'Une estimation basée sur les données disponibles.';
 
   @override
   String get infoSleepKeyPoints =>
-      '• Regroupe cinq dimensions cliniques à l\'aide d\'une somme pondérée.\n• Ajuste automatiquement les exigences si votre portable ne fournit pas d\'étapes spécifiques ou de données d\'efficacité.\n• Vous protège via des multiplicateurs à plafond souple qui limitent le score total si un domaine critique (comme le sommeil paradoxal ou profond) est compromis.';
+      'Durée, continuité, sommeil profond, REM et régularité contribuent au score.\nLes éléments manquants sont exclus.\nLes phases sont des estimations.';
 
   @override
-  String get infoSleepTechnicalTitle =>
-      'Base de référence pondérée et soft-caps continus';
+  String get infoSleepTechnicalTitle => 'Méthode de calcul';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      'Agrége cinq domaines principaux à l\'aide d\'une somme linéaire pondérée : durée (30 %), continuité (20 %), architecture (25 %), synchronisation (15 %) et régularité (10 %). Pour éviter des moyennes trompeuses lorsqu\'un domaine clinique est compromis, le score final est dégradé si des goulots d\'étranglement importants sont détectés au cours des phases de sommeil ou du timing circadien.';
+      'Durée 45 %, continuité 25 %, profond 10 %, REM 10 %, régularité 10 %. Une courte durée peut limiter le score. Ce n’est pas une mesure clinique.';
 
   @override
   String get tdeeRecalculationNotificationTitle => 'TDEE recalculé';
 
   @override
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat) {
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  ) {
     return 'Nouveaux objectifs quotidiens : $calories kcal | ${protein}g Protéine | ${carbs}g Glucides | ${fat}g Graisse';
   }
 
@@ -7208,8 +7248,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other:
           'La photo et le groupe sont supprimés. Les $count entrées restent seules dans le journal — tes totaux du jour ne changent pas.',
-      one:
-          'La photo et le groupe sont supprimés. L’entrée reste seule dans le journal — tes totaux du jour ne changent pas.',
+      one: 'La photo et le groupe sont supprimés. L’entrée reste seule dans le journal — tes totaux du jour ne changent pas.',
     );
     return '$_temp0';
   }
@@ -7652,7 +7691,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get experienceLevelProDescription =>
-      'Recommandé uniquement aux pratiquants expérimentés qui évaluent précisément l\'échec : ajoute le RIR (répétitions en réserve) et les zones d\'intensité cardio.';
+      'Pour les sportifs expérimentés capables d’évaluer leur effort : ajoute le RPE et les zones cardio.';
 
   @override
   String get diaryWeightLabel => 'Poids';
@@ -8342,7 +8381,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String weeklyReviewCaloriesComparison(
-      String current, String recommended, String change) {
+    String current,
+    String recommended,
+    String change,
+  ) {
     return '$current → $recommended kcal/jour ($change)';
   }
 
@@ -8833,7 +8875,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String weeklyGoalReviewNotificationDetailedBody(
-      String goalTitle, int calories) {
+    String goalTitle,
+    int calories,
+  ) {
     return '$goalTitle : votre recommandation actualisée est de $calories kcal par jour. Ouvrez le bilan pour consulter le raisonnement complet.';
   }
 
@@ -9538,4 +9582,464 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get aiAssistantIntroAboutRowSubtitle =>
       'Rouvrez à tout moment la présentation du nouveau chat IA.';
+
+  @override
+  String get aiFailureTitle => 'Échec de l’analyse';
+
+  @override
+  String get aiFailureEmptyTitle => 'Aucun aliment reconnu';
+
+  @override
+  String get aiFailureTimeoutTitle => 'La demande prend trop de temps';
+
+  @override
+  String get aiFailureUnavailableTitle => 'IA indisponible';
+
+  @override
+  String get aiFailureNetworkTitle => 'Échec de connexion';
+
+  @override
+  String get aiFailureSetupTitle => 'Configuration de l’IA requise';
+
+  @override
+  String get aiFailureRateTitle => 'Limite de demandes atteinte';
+
+  @override
+  String get aiFailureGenericBody =>
+      'La réponse de l’IA n’a pas pu être traitée. Réessaie ou choisis un autre modèle.';
+
+  @override
+  String get aiFailureEmptyBody =>
+      'Aucun aliment n’a été renvoyé. L’image ou la description peut manquer de clarté, ou le modèle a pu se tromper.';
+
+  @override
+  String get aiFailureTimeoutBody =>
+      'Le délai configuré est écoulé. Augmente-le dans les réglages IA ou essaie un autre modèle.';
+
+  @override
+  String get aiFailureNetworkBody =>
+      'Le fournisseur IA est inaccessible. Vérifie ta connexion ou ton serveur.';
+
+  @override
+  String get aiFailureSetupBody =>
+      'Vérifie le fournisseur IA et tes identifiants dans les réglages.';
+
+  @override
+  String get aiFailureRateBody => 'Attends un instant et réessaie.';
+
+  @override
+  String get aiFailureUnavailableBody =>
+      'Vérifie qu’Apple Intelligence est activé et disponible, ou choisis un autre fournisseur.';
+
+  @override
+  String get aiFailureAppleHint =>
+      'Apple Intelligence peut ne pas reconnaître les repas de façon fiable. Un autre modèle peut donner un meilleur résultat.';
+
+  @override
+  String get aiFailureEdit => 'Modifier la saisie';
+
+  @override
+  String get aiFailureSettings => 'Ouvrir les réglages IA';
+
+  @override
+  String get aiFailureSlowHint =>
+      'Cela peut prendre un peu plus de temps selon l’appareil et le modèle.';
+
+  @override
+  String get aiFailureUnsupportedImage =>
+      'Apple Intelligence ne peut pas utiliser de photos sur cet appareil ou cette version d’iOS. Décris le repas ou choisis un autre fournisseur.';
+
+  @override
+  String get aiFailureAppleTimeoutBody =>
+      'Le délai configuré est écoulé. Augmente-le dans les réglages IA ou choisis un autre fournisseur.';
+
+  @override
+  String get glassCustomizationTitle => 'Apparence du verre';
+
+  @override
+  String get glassTint => 'Teinte du verre';
+
+  @override
+  String get glassTintClear => 'Clair';
+
+  @override
+  String get glassTintTinted => 'Teinté';
+
+  @override
+  String get glassBlur => 'Flou';
+
+  @override
+  String get glassBlurOff => 'Désactivé';
+
+  @override
+  String get glassOpacity => 'Opacité';
+
+  @override
+  String get glassOpacityClear => '0 % (Transparent)';
+
+  @override
+  String get glassReset => 'Réinitialiser';
+
+  @override
+  String get glassCustomizationDescription =>
+      'Réglez le verre de clair à teinté.';
+
+  @override
+  String get sessionMusclesTitle => 'Muscles de cette séance';
+
+  @override
+  String get sessionMusclesWorked => 'Déjà sollicités';
+
+  @override
+  String get sessionMusclesRemaining => 'À venir';
+
+  @override
+  String get discardWorkoutAction => 'Abandonner la séance';
+
+  @override
+  String get sleepDashboardScore => 'Score de sommeil';
+
+  @override
+  String get sleepDashboardGoal => 'Objectif de sommeil';
+
+  @override
+  String get sleepDashboardGoalEight => 'Objectif de 8 h';
+
+  @override
+  String sleepDashboardSevenDays(int count) {
+    return '$count derniers jours';
+  }
+
+  @override
+  String get sleepDashboardRecordedNights => 'Nuits enregistrées';
+
+  @override
+  String get sleepDashboardStageEstimate =>
+      'Les phases de sommeil sont des estimations.';
+
+  @override
+  String get sleepDashboardStageHint =>
+      'Touchez le graphique pour examiner une phase.';
+
+  @override
+  String get sleepDashboardEfficiency => 'Efficacité';
+
+  @override
+  String get sleepDashboardStart => 'Début';
+
+  @override
+  String get sleepDashboardEnd => 'Fin';
+
+  @override
+  String get sleepDashboardEmpty => 'Aucune donnée de sommeil pour ce jour.';
+
+  @override
+  String get sleepDashboardNightHeartRate => 'Pouls pendant le sommeil';
+
+  @override
+  String get sleepDashboardNightHrv => 'VFC pendant le sommeil';
+
+  @override
+  String get sleepDashboardSamples => 'Mesures disponibles';
+
+  @override
+  String get sleepDashboardContributors => 'Facteurs du score';
+
+  @override
+  String get sleepDashboardInsufficient => 'Données insuffisantes';
+
+  @override
+  String get sleepDashboardAsleep => 'Temps de sommeil';
+
+  @override
+  String get hrvTitle => 'Variabilité de la fréquence cardiaque';
+
+  @override
+  String get hrvUnavailable => 'Aucune donnée VFC';
+
+  @override
+  String get hrvMethodNote =>
+      'Moyenne des mesures SDNN disponibles dans Apple Santé, en millisecondes.';
+
+  @override
+  String get hrvNoData => 'Aucune donnée VFC';
+
+  @override
+  String get sleepDashboardDebtNote =>
+      'Nuits enregistrées uniquement ; ce n’est pas une mesure physiologique de la dette de sommeil.';
+
+  @override
+  String get sleepDashboardEstimate => 'Estimation · données limitées';
+
+  @override
+  String get sleepDashboardDurationCap => 'La durée limite le score';
+
+  @override
+  String get sleepDashboardHrvError => 'Impossible de charger les mesures VFC.';
+
+  @override
+  String get pulseSettingsEnableSubtitleIos =>
+      'Lit le pouls, le pouls au repos et la VFC dans Apple Santé lorsque l’analyse du pouls est activée.';
+
+  @override
+  String get pulseSettingsPermissionSubtitleIos =>
+      'Autorisez l’accès au pouls, au pouls au repos et à la VFC dans Apple Santé.';
+
+  @override
+  String get pulseHealthStatusIos =>
+      'Apple Santé ne révèle pas les autorisations de lecture. Vérifiez les accès si les valeurs manquent.';
+
+  @override
+  String get sleepDashboardTonightDelta =>
+      'Cette nuit par rapport à l’objectif';
+
+  @override
+  String get sleepDashboardMinimum => 'Minimum';
+
+  @override
+  String get sleepDashboardAverage => 'Moyenne';
+
+  @override
+  String get sleepDashboardPersonalBaseline =>
+      'Référence personnelle (30 jours précédents)';
+
+  @override
+  String get sleepDashboardBaselineUnavailable =>
+      'Pas assez de nuits comparables';
+
+  @override
+  String get hrvQueryFailed => 'Impossible de charger la VFC. Réessayez.';
+
+  @override
+  String get statisticsOverviewTitle => 'Aperçu';
+
+  @override
+  String get statisticsOverviewWorkouts => 'Entraînements';
+
+  @override
+  String get statisticsOverviewAllTime => 'Depuis le début';
+
+  @override
+  String get statisticsOverview30Days => '30 derniers jours';
+
+  @override
+  String get statisticsOverviewWeightChange => 'Variation de poids';
+
+  @override
+  String get statisticsOverviewVolume => 'Volume';
+
+  @override
+  String get statisticsOverviewSets => 'séries';
+
+  @override
+  String get statisticsOverviewCalories => 'Calories / jour';
+
+  @override
+  String get statisticsOverviewProtein => 'Protéines / jour';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30 jours · jours suivis';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return 'Depuis le $date';
+  }
+
+  @override
+  String get statisticsEmptySteps =>
+      'Aucun pas enregistré ces 7 derniers jours.';
+
+  @override
+  String get statisticsEmptySleep =>
+      'Aucun sommeil enregistré ces 7 derniers jours.';
+
+  @override
+  String get statisticsEmptyPulse =>
+      'Aucune donnée de pouls ces 7 derniers jours.';
+
+  @override
+  String get statisticsEmptyTraining =>
+      'Terminez un entraînement pour voir votre rythme.';
+
+  @override
+  String get statisticsEmptyRecords =>
+      'Aucun nouveau record ces 30 derniers jours.';
+
+  @override
+  String get statisticsEmptyMuscles =>
+      'Terminez des séries de force pour voir vos groupes musculaires.';
+
+  @override
+  String get statisticsEmptyBody =>
+      'Enregistrez votre poids ou votre alimentation pour voir vos tendances.';
+
+  @override
+  String get statisticsEmptyNutrition =>
+      'Aucune alimentation enregistrée ces 7 derniers jours.';
+
+  @override
+  String get analyticsDailyBreakdown => 'Détail journalier';
+
+  @override
+  String get analyticsCarbsShort => 'Gluc.';
+
+  @override
+  String get analyticsCalorieTargetLine => 'Objectif calorique';
+
+  @override
+  String get analyticsWeightSlopePerWeek => 'Rythme pondéral';
+
+  @override
+  String analyticsSlopePerWeekUnit(String value, String unit) {
+    return '$value $unit/sem';
+  }
+
+  @override
+  String analyticsThisWeekSummary(int count) {
+    return 'Cette semaine : $count';
+  }
+
+  @override
+  String analyticsTrainingDaysCompact(String days) {
+    return 'Jours actifs : $days/sem';
+  }
+
+  @override
+  String get analyticsAtLeast2PerWeekCompact => '≥ 2 séances / sem';
+
+  @override
+  String get analyticsConsecutiveWeeks => 'Semaines consécutives';
+
+  @override
+  String get analyticsSelectWorkout => 'Choisir une séance';
+
+  @override
+  String get analyticsNoWorkoutsOnDay => 'Aucune séance ce jour-là';
+
+  @override
+  String get analyticsPrImprovementsWindowHint =>
+      'Progression vs record précédent';
+
+  @override
+  String get analyticsAllTimeBadge => 'Tout le temps';
+
+  @override
+  String get stepsModuleGoalProgress => 'Objectif atteint';
+
+  @override
+  String get analyticsWaterTargetLabel => 'Objectif quotidien';
+
+  @override
+  String get analyticsWaterLoggedDays => 'Jours saisis';
+
+  @override
+  String get statisticsOverviewTotalWorkouts => 'Séances totales';
+
+  @override
+  String get statisticsOverviewWorkouts30d => 'Séances (30j)';
+
+  @override
+  String sleepHubNightsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nuits enregistrées',
+      one: '1 nuit enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statisticsMicronutrientsHubSummary(int days, int count) {
+    return '$days jours · $count nutriments';
+  }
+
+  @override
+  String get statisticsResetDefaults => 'Rétablir par défaut';
+
+  @override
+  String statisticsBestPerformancesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouveaux records',
+      one: '1 nouveau record',
+      zero: 'Aucun nouveau record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diaryNutritionDayOptions =>
+      'Options du journal alimentaire du jour';
+
+  @override
+  String get diaryMarkNutritionDayIncomplete => 'Marquer comme incomplet';
+
+  @override
+  String get diaryIncludeNutritionDay => 'Réintégrer dans les statistiques';
+
+  @override
+  String get diaryIncompleteDayTitle => 'Journée incomplète';
+
+  @override
+  String get diaryIncompleteDayDetail =>
+      'Exclue des statistiques nutritionnelles';
+
+  @override
+  String get diaryNutritionDayIncompleteStatus =>
+      'Incomplet · Exclu des statistiques nutritionnelles';
+
+  @override
+  String nutritionStatisticsDayCoverage(int included, int incomplete) {
+    String _temp0 = intl.Intl.pluralLogic(
+      included,
+      locale: localeName,
+      other: '$included jours analysés',
+      one: '1 jour analysé',
+    );
+    return '$_temp0 · $incomplete incomplets';
+  }
+
+  @override
+  String get rpeEffortTitle => 'Effort perçu';
+
+  @override
+  String get rpeQuestion => 'Cette série était-elle difficile ?';
+
+  @override
+  String get rpeNoReps => 'Aucune répétition restante';
+
+  @override
+  String rpeRepsLeft(Object count) {
+    return 'Environ $count répétitions restantes';
+  }
+
+  @override
+  String get rpeFourPlus => '4 répétitions ou plus restantes';
+
+  @override
+  String get rpeClear => 'Effacer';
+
+  @override
+  String get rpeSave => 'Enregistrer';
+
+  @override
+  String get rpeHelpTitle => 'Qu’est-ce que le RPE ?';
+
+  @override
+  String get rpeHelpBody =>
+      'Le RPE décrit la difficulté ressentie. Estimez combien de répétitions vous auriez encore pu faire.';
+
+  @override
+  String get rpeInvalid => 'Saisissez un RPE de 6 à 10 par pas de 0,5.';
+
+  @override
+  String get rpeMaximumEffort => 'Effort maximal';
+
+  @override
+  String get rpeHardEffort => 'Difficile';
+
+  @override
+  String get rpeModerateEffort => 'Modéré';
 }

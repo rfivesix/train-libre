@@ -34,8 +34,11 @@ One file per store locale:
 {zap} Noticeably smoother: Faster navigation in Diary and Statistics.
 ```
 
-- `## <version> (<YYYY-MM-DD>)` — the version must match `pubspec.yaml`
-  **exactly** (without the `+buildnumber`). Newest version at the top.
+- `## <version> (<YYYY-MM-DD>)` — use the version from `pubspec.yaml`
+  without the `+buildnumber`. Newest version at the top.
+- To share notes across betas and the final release, use one section for the
+  base version, for example `## 1.7.1`. The generator uses it when the current
+  prerelease has no section of its own. Add the final release date once known.
 - One paragraph = one entry. Separate paragraphs with a blank line.
 - A leading `{icon}` is optional and picks the symbol shown in the app.
   Without it, `sparkles` is used. Allowed names live in

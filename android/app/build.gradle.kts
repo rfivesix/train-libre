@@ -21,7 +21,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+android {
     namespace = "com.rfivesix.trainlibre"
     compileSdk = 37
     ndkVersion = "28.2.13676358"
@@ -83,23 +83,21 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.health.connect:connect-client:1.2.0-alpha06")
     implementation("androidx.documentfile:documentfile:1.1.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
     // --- Home screen widgets ---
     // Glance renders the app widgets. It brings DataStore along, which is what
     // backs the per-widget-instance configuration.
-    implementation("androidx.glance:glance-appwidget:1.1.1")
-    implementation("androidx.glance:glance-material3:1.1.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("androidx.glance:glance-appwidget:1.2.0")
+    implementation("androidx.glance:glance-material3:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0")
     // 1.16 is the first release carrying setRequestPromotedOngoing, which the
     // workout Live Update needs on Android 16.
-    implementation("androidx.core:core-ktx:1.18.0")
+    implementation("androidx.core:core-ktx:1.19.1")
 
     // Compose, for the three widget configuration Activities only.
-    // Keep the widgets on the already tested Compose BOM while the Android
-    // Gradle toolchain is upgraded for Health Connect's set-segment API.
-    implementation(platform("androidx.compose:compose-bom:2026.02.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.activity:activity-compose:1.11.0")
+    implementation("androidx.activity:activity-compose:1.13.0")
 }

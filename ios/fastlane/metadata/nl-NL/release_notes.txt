@@ -1,9 +1,9 @@
-Maak kennis met de nieuwe AI-chat: stel vragen over voeding en training. De chat kan concepten maken voor trainingsschema’s, routines en recepten. Persoonlijke gegevens worden alleen met jouw toestemming gedeeld; voorstellen bekijk je voordat je ze toepast.
+Statistieken en voortgangsanalyse: Bekijk je belangrijkste cijfers en trainingsdagen in één oogopslag. Vernieuwde schermen helpen je om je voeding, voortgang en persoonlijke records in detail te volgen.
 
-Hallo, Spanje! Hallo, Nederland!: Train Libre en de oefeningencatalogus zijn nu beschikbaar in het Spaans en Nederlands. Ook de BLS- en oefeningencatalogus bevatten vertaalde namen. Open Food Facts biedt catalogi voor Nederland, Spanje en Australië.
+Liveworkouts en setbeheer: Bekijk per spiergroep welke sets klaar zijn en welke nog op het programma staan. Versleep sets om ze te ordenen, toon desgewenst je geschatte maximumgewicht voor één herhaling en vier nieuwe records met animaties en haptische feedback.
 
-Verbeterde maaltijdherkenning: maaltijden worden betrouwbaarder en veel sneller vastgelegd. AI herkent en registreert nu ook drankjes en cafeïne.
+Slaapanalyse en hartslag: Het nieuwe slaapoverzicht toont je slaapduur, slaapfasen en hartslag. Je rusthartslag uit Apple Gezondheid of Health Connect staat in je dagboek en statistieken. Met Apple Gezondheid zie je ook je hartslagvariabiliteit.
 
-Voeding synchroniseren met Health: importeer en exporteer calorieën en macronutriënten met Apple Health en Health Connect. Workouts worden niet gesynchroniseerd.
+Aanpasbare Liquid Glass-weergave: Pas het glaseffect aan met de schuifregelaar en bekijk het resultaat direct in het voorbeeld. Vernieuwde overgangen maken wisselen tussen schermen vloeiender.
 
-Meer personalisatie: stel een eigen accentkleur in en kies welke kaarten in de Statistiekhub verschijnen.
+Betere prestaties en betrouwbaarheid: Het statistiekenoverzicht scrolt vloeiender, trainingsdagen worden ook rond de overgang tussen zomer- en wintertijd correct weergegeven, en de stappentelling en rusttimer zijn verbeterd.

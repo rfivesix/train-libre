@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistics and progress analysis',
+          body: 'The overview shows your key metrics and training days at a glance. Redesigned views help you track nutrition, progress and personal records in detail.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Live workouts and set management',
+          body: 'See which sets are complete and which are still planned for each muscle group. Drag to reorder sets, display your estimated one-rep max if you like, and celebrate new records with animation and haptic feedback.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Sleep analysis and heart rate',
+          body: 'The new sleep overview shows sleep duration, sleep stages and heart rate. Your resting heart rate from Apple Health or Health Connect appears in the Diary and Statistics. Apple Health also provides heart rate variability.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Customizable Liquid Glass appearance',
+          body: 'Use the slider to adjust the glass appearance and see the result in the preview. Refined transitions make switching between views smoother.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Improved performance and reliability',
+          body: 'The Statistics overview scrolls more smoothly, workout days display correctly around daylight saving time changes, and step counting and rest timers have been improved.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -297,6 +328,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiken und Fortschrittsanalyse',
+          body: 'Die Übersicht zeigt deine wichtigsten Kennzahlen und Trainingstage auf einen Blick. Überarbeitete Ansichten helfen dir, Ernährung, Fortschritt und persönliche Bestleistungen im Detail zu verfolgen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Live-Workout und Satzverwaltung',
+          body: 'Sieh, welche Sätze pro Muskelgruppe erledigt sind und welche noch anstehen. Sortiere Sätze per Ziehen, blende auf Wunsch dein geschätztes Maximalgewicht für eine Wiederholung ein und feiere neue Rekorde mit Animation und haptischem Feedback.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Schlafanalyse und Herzfrequenz',
+          body: 'Die neue Schlafübersicht zeigt Schlafdauer, Schlafphasen und Herzfrequenz. Dein Ruhepuls aus Apple Health oder Health Connect erscheint im Tagebuch und in der Statistik. Mit Apple Health siehst du zusätzlich deine Herzfrequenzvariabilität.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Anpassbare Liquid-Glass-Darstellung',
+          body: 'Passe die Glasdarstellung mit einem Regler an und sieh das Ergebnis direkt in der Vorschau. Überarbeitete Übergänge machen den Wechsel zwischen Ansichten flüssiger.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Verbesserte Leistung und Zuverlässigkeit',
+          body: 'Die Statistikübersicht scrollt flüssiger, Trainingstage erscheinen auch rund um die Zeitumstellung korrekt, und Schrittzählung sowie Pausentimer wurden verbessert.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
@@ -580,6 +642,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiques et analyse des progrès',
+          body: 'Retrouve en un coup d’œil tes indicateurs clés et tes jours d’entraînement. Les vues repensées facilitent le suivi détaillé de ton alimentation, de tes progrès et de tes records personnels.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Entraînement en direct et gestion des séries',
+          body: 'Vois les séries terminées et celles qui restent à faire pour chaque groupe musculaire. Réorganise les séries en les faisant glisser, affiche si tu le souhaites ta charge maximale estimée sur une répétition et célèbre tes nouveaux records avec une animation et un retour haptique.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Analyse du sommeil et fréquence cardiaque',
+          body: 'Le nouvel aperçu du sommeil affiche la durée, les phases et la fréquence cardiaque. Ta fréquence cardiaque au repos issue d’Apple Santé ou de Health Connect apparaît dans le journal et les statistiques. Apple Santé te permet aussi de consulter la variabilité de ta fréquence cardiaque.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Apparence Liquid Glass personnalisable',
+          body: 'Ajuste l’effet de verre à l’aide d’un curseur et vois le résultat dans l’aperçu. Les transitions retravaillées fluidifient le passage d’un écran à l’autre.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Performances et fiabilité améliorées',
+          body: 'Le défilement de l’aperçu des statistiques est plus fluide, les jours d’entraînement s’affichent correctement lors des changements d’heure, et le comptage des pas ainsi que le minuteur de repos ont été améliorés.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -862,6 +955,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistiche e analisi dei progressi',
+          body: 'La panoramica mostra a colpo d’occhio i dati principali e i giorni di allenamento. Le schermate rinnovate ti aiutano a seguire nel dettaglio alimentazione, progressi e record personali.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Allenamento in corso e gestione delle serie',
+          body: 'Vedi quali serie hai completato e quali restano da fare per ogni gruppo muscolare. Trascina le serie per riordinarle, mostra il massimale stimato per una ripetizione se vuoi e festeggia i nuovi record con un’animazione e un feedback aptico.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Analisi del sonno e frequenza cardiaca',
+          body: 'La nuova panoramica mostra durata e fasi del sonno e frequenza cardiaca. La frequenza cardiaca a riposo da Apple Salute o Health Connect compare nel diario e nelle statistiche. Con Apple Salute puoi vedere anche la variabilità della frequenza cardiaca.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Aspetto di Liquid Glass personalizzabile',
+          body: 'Regola l’effetto vetro con il cursore e guarda subito il risultato nell’anteprima. Le transizioni rinnovate rendono più fluido il passaggio da una schermata all’altra.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Prestazioni e affidabilità migliorate',
+          body: 'La panoramica delle statistiche scorre più fluidamente, i giorni di allenamento vengono mostrati correttamente durante i cambi d’ora e sono stati migliorati il conteggio dei passi e il timer di recupero.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -1143,6 +1267,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: '統計と進捗分析',
+          body: '主な指標やトレーニング日をひと目で確認できます。刷新された画面で、栄養摂取、進捗、自己ベストを詳しく振り返れます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'ライブワークアウトとセット管理',
+          body: '筋群ごとに完了したセットと残りのセットを確認できます。ドラッグでセットの順番を変えたり、推定1回最大重量を表示したりできます。自己ベストを更新すると、アニメーションと触覚フィードバックでお知らせします。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: '睡眠分析と心拍数',
+          body: '新しい睡眠概要で、睡眠時間、睡眠段階、心拍数を確認できます。Appleヘルスケアまたはヘルスコネクトの安静時心拍数は、日誌と統計に表示されます。Appleヘルスケアでは心拍変動も確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Liquid Glassの外観設定',
+          body: 'スライダーでガラスの外観を調整し、プレビューで結果を確認できます。画面の切り替えもより滑らかになりました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'パフォーマンスと信頼性の向上',
+          body: '統計概要をより滑らかにスクロールでき、夏時間の切り替え前後もトレーニング日が正しく表示されます。歩数の集計と休憩タイマーも改善しました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
@@ -1428,6 +1583,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'es': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Estadísticas y análisis del progreso',
+          body: 'Consulta de un vistazo tus métricas principales y tus días de entrenamiento. Las vistas renovadas te ayudan a seguir en detalle tu nutrición, tu progreso y tus récords personales.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Entrenamientos en directo y gestión de series',
+          body: 'Consulta qué series has completado y cuáles quedan pendientes para cada grupo muscular. Arrastra las series para reordenarlas, muestra tu máximo estimado para una repetición si quieres y celebra tus nuevos récords con una animación y respuesta háptica.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Análisis del sueño y frecuencia cardíaca',
+          body: 'El nuevo resumen del sueño muestra su duración, sus fases y tu frecuencia cardíaca. Tu frecuencia cardíaca en reposo de Apple Health o Health Connect aparece en el diario y en las estadísticas. Con Apple Health también puedes consultar la variabilidad de la frecuencia cardíaca.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Aspecto de Liquid Glass personalizable',
+          body: 'Ajusta el efecto de cristal con un control deslizante y comprueba el resultado en la vista previa. Las transiciones renovadas hacen más fluido el cambio entre pantallas.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Mejor rendimiento y fiabilidad',
+          body: 'El resumen de estadísticas se desplaza con más fluidez, los días de entrenamiento se muestran correctamente durante los cambios de hora y se han mejorado el recuento de pasos y el temporizador de descanso.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
       entries: <WhatsNewEntry>[
@@ -1460,6 +1646,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'nl': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.1',
+      releasedOn: '',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Statistieken en voortgangsanalyse',
+          body: 'Bekijk je belangrijkste cijfers en trainingsdagen in één oogopslag. Vernieuwde schermen helpen je om je voeding, voortgang en persoonlijke records in detail te volgen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Liveworkouts en setbeheer',
+          body: 'Bekijk per spiergroep welke sets klaar zijn en welke nog op het programma staan. Versleep sets om ze te ordenen, toon desgewenst je geschatte maximumgewicht voor één herhaling en vier nieuwe records met animaties en haptische feedback.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.moon,
+          title: 'Slaapanalyse en hartslag',
+          body: 'Het nieuwe slaapoverzicht toont je slaapduur, slaapfasen en hartslag. Je rusthartslag uit Apple Gezondheid of Health Connect staat in je dagboek en statistieken. Met Apple Gezondheid zie je ook je hartslagvariabiliteit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Aanpasbare Liquid Glass-weergave',
+          body: 'Pas het glaseffect aan met de schuifregelaar en bekijk het resultaat direct in het voorbeeld. Vernieuwde overgangen maken wisselen tussen schermen vloeiender.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.shield,
+          title: 'Betere prestaties en betrouwbaarheid',
+          body: 'Het statistiekenoverzicht scrolt vloeiender, trainingsdagen worden ook rond de overgang tussen zomer- en wintertijd correct weergegeven, en de stappentelling en rusttimer zijn verbeterd.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.7.0',
       releasedOn: '2026-11-03',
@@ -1498,4 +1715,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.7.0';
+const String kWhatsNewGeneratedForVersion = '1.7.1';

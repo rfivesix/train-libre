@@ -1,6 +1,6 @@
 // lib/features/profile/presentation/widgets/goal_adjustment_sheet.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -545,7 +545,7 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
               child: Row(
                 children: [
                   const Icon(
-                    LucideIcons.triangle_alert,
+                    LucideIcons.triangle_exclamation_point,
                     color: Colors.orange,
                     size: 20,
                   ),

@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -15,6 +14,7 @@ import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/time_range_filter.dart';
 import '../../../statistics/data/bls_micronutrient_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
+import 'analytics_card_base.dart';
 
 class MicronutrientSectionCard extends StatefulWidget {
   const MicronutrientSectionCard({
@@ -78,7 +78,6 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     return FutureBuilder<MicronutrientPeriodSummary>(
       future: _summary,
       builder: (context, snapshot) {
@@ -89,34 +88,9 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(DesignConstants.spacingL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.statisticsMicronutrientsTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      LucideIcons.chevron_right,
-                      size: 18,
-                      color: theme.colorScheme.outline,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: DesignConstants.spacingXS),
-                Text(
-                  l10n.statisticsMicronutrientsPreviewSubtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
+            child: AnalyticsCardBase.buildHeaderWithChevron(
+              context,
+              label: l10n.statisticsMicronutrientsTitle,
             ),
           ),
         );

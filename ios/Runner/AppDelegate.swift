@@ -333,7 +333,11 @@ import UserNotifications
     case "readStepSegments":
       readStepSegments(call: call, result: result)
     case "readHeartRateSamples":
-      readHeartRateSamples(call: call, result: result)
+      readHeartRateSamples(call: call, type: .heartRate, result: result)
+    case "readRestingHeartRateSamples":
+      readHeartRateSamples(call: call, type: .restingHeartRate, result: result)
+    case "readHrvSamples":
+      readHrvSamples(call: call, result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -365,18 +369,60 @@ import UserNotifications
       return
     }
 
-    guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
+    guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate),
+          let restingType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate),
+          let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
       result(FlutterError(code: "not_available", message: "Heart rate type unavailable", details: nil))
       return
     }
 
-    healthStore.requestAuthorization(toShare: nil, read: [heartRateType]) { success, error in
+    healthStore.requestAuthorization(toShare: nil, read: [heartRateType, restingType, hrvType]) { success, error in
       if let error = error {
         result(FlutterError(code: "permission_denied", message: error.localizedDescription, details: nil))
         return
       }
       result(success)
     }
+  }
+
+  private func readHrvSamples(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard HKHealthStore.isHealthDataAvailable() else {
+      result(FlutterError(code: "not_available", message: "HealthKit unavailable", details: nil))
+      return
+    }
+    guard let args = call.arguments as? [String: Any],
+          let fromIso = args["fromUtcIso"] as? String,
+          let toIso = args["toUtcIso"] as? String else {
+      result(FlutterError(code: "invalid_arguments", message: "Missing HRV date range", details: nil))
+      return
+    }
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let from = formatter.date(from: fromIso), let to = formatter.date(from: toIso),
+          let type = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+      result(FlutterError(code: "invalid_arguments", message: "Invalid HRV date range", details: nil))
+      return
+    }
+    let predicate = HKQuery.predicateForSamples(withStart: from, end: to, options: [.strictStartDate])
+    let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit,
+      sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, samples, error in
+      if let error = error {
+        result(FlutterError(code: "query_failed", message: error.localizedDescription, details: nil))
+        return
+      }
+      let output = ISO8601DateFormatter()
+      output.timeZone = TimeZone(secondsFromGMT: 0)
+      output.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      let rows = (samples as? [HKQuantitySample] ?? []).map { sample in
+        ["startUtcIso": output.string(from: sample.startDate),
+         "endUtcIso": output.string(from: sample.endDate),
+         "sdnnMs": sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)),
+         "sourceId": sample.sourceRevision.source.bundleIdentifier,
+         "nativeId": sample.uuid.uuidString] as [String: Any]
+      }
+      result(rows)
+    }
+    healthStore.execute(query)
   }
 
   private func readStepSegments(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -404,37 +450,55 @@ import UserNotifications
       return
     }
 
-    let predicate = HKQuery.predicateForSamples(withStart: fromDate, end: toDate, options: [.strictStartDate])
-    let query = HKSampleQuery(
-      sampleType: stepType,
-      predicate: predicate,
-      limit: HKObjectQueryNoLimit,
-      sortDescriptors: nil
-    ) { _, samples, error in
+    // HealthKit resolves overlapping sources using the user's Health data
+    // priorities before producing each hourly total.
+    let calendar = Calendar.current
+    let anchor = calendar.startOfDay(for: fromDate)
+    let predicate = HKQuery.predicateForSamples(withStart: anchor, end: toDate, options: [])
+    let query = HKStatisticsCollectionQuery(
+      quantityType: stepType,
+      quantitySamplePredicate: predicate,
+      options: .cumulativeSum,
+      anchorDate: anchor,
+      intervalComponents: DateComponents(hour: 1)
+    )
+    query.initialResultsHandler = { _, collection, error in
       if let error = error {
-        result(FlutterError(code: "permission_denied", message: error.localizedDescription, details: nil))
+        result(FlutterError(code: "health_query_failed", message: error.localizedDescription, details: nil))
         return
       }
-
+      guard let collection = collection else {
+        result(FlutterError(code: "health_query_failed", message: "No statistics returned", details: nil))
+        return
+      }
       let formatterOut = ISO8601DateFormatter()
       formatterOut.timeZone = TimeZone(secondsFromGMT: 0)
       formatterOut.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-      let mapped = (samples as? [HKQuantitySample] ?? []).map { sample in
-        [
-          "startAtUtcIso": formatterOut.string(from: sample.startDate),
-          "endAtUtcIso": formatterOut.string(from: sample.endDate),
-          "stepCount": Int(sample.quantity.doubleValue(for: HKUnit.count())),
-          "sourceId": sample.sourceRevision.source.bundleIdentifier,
-          "nativeId": sample.uuid.uuidString
-        ] as [String: Any]
+      var mapped: [[String: Any]] = []
+      collection.enumerateStatistics(from: anchor, to: toDate) { statistics, _ in
+        guard statistics.startDate < toDate,
+              let quantity = statistics.sumQuantity() else { return }
+        let count = Int(quantity.doubleValue(for: HKUnit.count()).rounded())
+        guard count > 0 else { return }
+        let start = formatterOut.string(from: statistics.startDate)
+        mapped.append([
+          "startAtUtcIso": start,
+          "endAtUtcIso": formatterOut.string(from: statistics.endDate),
+          "stepCount": count,
+          "sourceId": "healthkit_merged",
+          "nativeId": "merged-hour-" + start
+        ])
       }
       result(mapped)
     }
     healthStore.execute(query)
   }
 
-  private func readHeartRateSamples(call: FlutterMethodCall, result: @escaping FlutterResult) {
+  private func readHeartRateSamples(
+    call: FlutterMethodCall,
+    type: HKQuantityTypeIdentifier,
+    result: @escaping FlutterResult
+  ) {
     guard HKHealthStore.isHealthDataAvailable() else {
       result(FlutterError(code: "not_available", message: "HealthKit unavailable", details: nil))
       return
@@ -453,24 +517,14 @@ import UserNotifications
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     guard let fromDate = formatter.date(from: fromIso),
           let toDate = formatter.date(from: toIso),
-          let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)
+          let heartRateType = HKQuantityType.quantityType(forIdentifier: type)
     else {
       result([])
       return
     }
 
-    let heartRateAuthorized =
-      healthStore.authorizationStatus(for: heartRateType) == .sharingAuthorized
-    if !heartRateAuthorized {
-      result(
-        FlutterError(
-          code: "permission_denied",
-          message: "Heart rate permission not granted",
-          details: nil
-        )
-      )
-      return
-    }
+    // HealthKit only reports sharing (write) authorization. Read authorization
+    // is private, so execute the query and let HealthKit filter its results.
 
     let predicate = HKQuery.predicateForSamples(
       withStart: fromDate,
@@ -1322,7 +1376,12 @@ import UserNotifications
       }
 
       let hrRows: [[String: Any]] = heartSamples.compactMap { sample in
-          guard let session = sleepSamples.first(where: { self.overlap(sample.startDate, sample.endDate, $0.startDate, $0.endDate) }) else {
+          guard let session = sleepSamples.first(where: {
+            if sample.startDate == sample.endDate {
+              return sample.startDate >= $0.startDate && sample.startDate < $0.endDate
+            }
+            return self.overlap(sample.startDate, sample.endDate, $0.startDate, $0.endDate)
+          }) else {
           return nil
         }
         return [

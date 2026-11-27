@@ -10,7 +10,7 @@ You can also create or revise routines with the built-in AI assistant. It can us
 2. Enter a routine name in **Name of the routine**.
 3. Tap **Add Exercise** and choose an exercise from the Exercise Catalog. Repeat to add more exercises. Strength exercises start with three sets; cardio exercises start with one.
 4. For each set, enter the target reps and, if useful, weight. For duration or distance-based exercises, fill in the fields shown for that exercise. The weight and distance units follow your selected unit system.
-5. To add a set, tap **Add Set** below the exercise. Tap the set-type marker to choose **Normal**, **Warm-up**, **Failure**, or **Dropset**. The **RIR** target is shown when your Training experience setting displays intensity fields.
+5. To add a set, tap **Add Set** below the exercise. Tap the set-type marker to choose **Normal**, **Warm-up**, **Failure**, or **Dropset**. The **RPE** target is shown when your Training experience setting displays intensity fields.
 6. Tap **Save**. A routine needs a name; you can save it before adding exercises and complete it later.
 
 ## Edit a routine

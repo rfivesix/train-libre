@@ -30,6 +30,25 @@ class ExerciseRecordData {
        diffStr = diff,
        isCardio = true;
 
+  String formatValue(UnitService unitService) {
+    if (isCardio) {
+      return valueStr ?? '';
+    }
+    final value = unitService.convertDisplayValue(
+      valueKg,
+      UnitDimension.weight,
+    );
+    return '${value.toStringAsFixed(fractionDigits).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}';
+  }
+
+  String? formatDiff(UnitService unitService) {
+    if (isCardio) {
+      return diffStr;
+    }
+    if (diffKg == null) return null;
+    return '+${unitService.formatDisplayWeight(diffKg!, fractionDigits: fractionDigits)} ${unitService.suffixFor(UnitDimension.weight)}';
+  }
+
   String format(UnitService unitService) {
     if (isCardio) {
       final diffText = diffStr == null ? '' : ' ($diffStr)';

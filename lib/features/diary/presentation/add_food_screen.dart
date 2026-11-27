@@ -3,8 +3,7 @@ import 'widgets/food_search_sections.dart';
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
@@ -171,6 +170,12 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   final bool _suspendFab = false;
   bool _isFabHidden = false;
   static const double _bottomPadding = 100.0;
+  static const EdgeInsets _resultsPadding = EdgeInsets.fromLTRB(
+    DesignConstants.cardPaddingInternal,
+    DesignConstants.cardPaddingInternal,
+    DesignConstants.cardPaddingInternal,
+    _bottomPadding,
+  );
 
   Future<void> _loadMeals() async {
     if (!mounted) return;
@@ -533,7 +538,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL,
+                  horizontal: DesignConstants.cardPaddingInternal,
                   vertical: DesignConstants.spacingXS,
                 ),
                 child: Column(
@@ -665,9 +670,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         Expanded(
           child: ListView.builder(
             scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-            padding: DesignConstants.cardPadding.copyWith(
-              bottom: _bottomPadding,
-            ),
+            padding: _resultsPadding,
             itemCount: _favoriteFoodItems.length,
             itemBuilder: (context, index) =>
                 _buildFoodListItem(_favoriteFoodItems[index]),
@@ -696,9 +699,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         Expanded(
           child: ListView.builder(
             scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-            padding: DesignConstants.cardPadding.copyWith(
-              bottom: _bottomPadding,
-            ),
+            padding: _resultsPadding,
             itemCount: _recentFoodItems.length,
             itemBuilder: (context, index) =>
                 _buildFoodListItem(_recentFoodItems[index]),
@@ -834,7 +835,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         !isSearching && MediaQuery.sizeOf(context).width >= 390;
     final searchRow = Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingL,
+        horizontal: DesignConstants.cardPaddingInternal,
         vertical: 0,
       ),
       child: Row(
@@ -1132,9 +1133,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                         scrollCacheExtent: const ScrollCacheExtent.pixels(
                           1500.0,
                         ),
-                        padding: DesignConstants.cardPadding.copyWith(
-                          bottom: _bottomPadding,
-                        ),
+                        padding: _resultsPadding,
                         itemCount: listItems.length,
                         itemBuilder: (context, index) {
                           return listItems.buildRow(
@@ -1169,7 +1168,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     return RefreshIndicator(
       onRefresh: _loadMeals,
       child: ListView.builder(
-        padding: DesignConstants.cardPadding.copyWith(bottom: _bottomPadding),
+        padding: _resultsPadding,
         itemCount: _meals.length,
         itemBuilder: (_, i) {
           final meal = _meals[i];
@@ -1184,6 +1183,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     return MealItemCard(
       meal: meal,
+      compact: true,
       mealTotalsFuture: _getMealTotals(mealId),
       ingredientCount: _mealItemsCache[mealId]?.length ?? 0,
       onAdd: () => _confirmAndLogMeal(meal, l10n),

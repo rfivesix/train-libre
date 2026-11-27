@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../util/design_constants.dart';
 
@@ -374,16 +374,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   double _resolveEffectiveTargetRate() {
-    if (_skippedGoal) return 0.0;
-    if (_goalFlowState.preset == GoalPreset.maintainWeight ||
-        _goalFlowState.preset == GoalPreset.recomposition) {
-      return 0.0;
-    }
-    if (_goalFlowState.preset == GoalPreset.custom &&
-        _goalFlowState.customDirection == 'maintain') {
-      return 0.0;
-    }
-    return _goalFlowState.weeklyRateKg;
+    return _skippedGoal ? 0.0 : _goalFlowState.signedWeeklyRateKg;
   }
 
   Future<void> _loadAdaptiveGoalSettings() async {
@@ -400,7 +391,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       switch (goal) {
         case BodyweightGoal.loseWeight:
           _goalFlowState.preset = GoalPreset.loseWeight;
-          _goalFlowState.weeklyRateKg = rate > 0 ? rate : 0.5;
+          _goalFlowState.weeklyRateKg = rate < 0 ? rate.abs() : 0.5;
           break;
         case BodyweightGoal.gainWeight:
           _goalFlowState.preset = GoalPreset.gainWeight;
@@ -408,7 +399,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           break;
         case BodyweightGoal.maintainWeight:
           _goalFlowState.preset = GoalPreset.maintainWeight;
-          _goalFlowState.weeklyRateKg = 0.0;
           break;
       }
     });
@@ -642,7 +632,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await LegacyGoalMigration(
       database: _databaseHelper.dbInstance,
       goalRepository: _goalRepository is GoalRepositoryImpl
-          ? _goalRepository as GoalRepositoryImpl
+          ? _goalRepository
           : null,
     ).run();
 
@@ -1159,7 +1149,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() {
       _skippedGoal = true;
       _goalFlowState.preset = GoalPreset.maintainWeight;
-      _goalFlowState.weeklyRateKg = 0.0;
     });
     _refreshOnboardingRecommendationPreview();
     _pageController.animateToPage(

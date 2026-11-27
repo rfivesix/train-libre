@@ -66,7 +66,7 @@ class SetLog {
   final int? durationSeconds;
 
   /// Rate of Perceived Exertion (1-10 scale).
-  final int? rpe;
+  final double? rpe;
 
   /// Identifier for supersets if this set is part of one.
   final int? supersetId;
@@ -124,6 +124,7 @@ class SetLog {
 
   /// Prescribed Reps in Reserve.
   final int? prescribedRir;
+  final double? prescribedRpe;
 
   /// Whether the prescription was overridden by the user.
   final bool prescriptionOverridden;
@@ -182,6 +183,7 @@ class SetLog {
     this.prescribedRepMax,
     this.prescribedWeight,
     this.prescribedRir,
+    this.prescribedRpe,
     this.prescriptionOverridden = false,
     this.valuesAutoFilled = false,
     this.substitutedForExerciseId,
@@ -214,7 +216,7 @@ class SetLog {
           (map['distance_km'] as num?)?.toDouble() ??
           (map['distanceKm'] as num?)?.toDouble(),
       durationSeconds: map['duration_seconds'] ?? map['durationSeconds'],
-      rpe: map['rpe'],
+      rpe: (map['rpe'] as num?)?.toDouble(),
       rir: map['rir'],
       supersetId: map['superset_id'] ?? map['supersetId'],
       prescriptionOrigin:
@@ -227,6 +229,8 @@ class SetLog {
           (map['prescribed_weight'] as num?)?.toDouble() ??
           (map['prescribedWeight'] as num?)?.toDouble(),
       prescribedRir: map['prescribed_rir'] ?? map['prescribedRir'],
+      prescribedRpe: ((map['prescribed_rpe'] ?? map['prescribedRpe']) as num?)
+          ?.toDouble(),
       prescriptionOverridden:
           map['prescription_overridden'] == 1 ||
           map['prescriptionOverridden'] == true,
@@ -282,6 +286,7 @@ class SetLog {
       'prescribed_rep_max': prescribedRepMax,
       'prescribed_weight': prescribedWeight,
       'prescribed_rir': prescribedRir,
+      'prescribed_rpe': prescribedRpe,
       'prescription_overridden': prescriptionOverridden ? 1 : 0,
       'values_auto_filled': valuesAutoFilled ? 1 : 0,
       'substituted_for_exercise_id': substitutedForExerciseId,
@@ -312,7 +317,7 @@ class SetLog {
     String? notes,
     double? distanceKm,
     int? durationSeconds,
-    int? rpe,
+    double? rpe,
     int? rir,
     int? supersetId,
     bool? isMaxWeightPR,
@@ -332,6 +337,7 @@ class SetLog {
     int? prescribedRepMax,
     double? prescribedWeight,
     int? prescribedRir,
+    double? prescribedRpe,
     bool? prescriptionOverridden,
     bool? valuesAutoFilled,
     String? substitutedForExerciseId,
@@ -343,12 +349,14 @@ class SetLog {
     bool clearReps = false,
     bool clearRestTimeSeconds = false,
     bool clearRir = false,
+    bool clearRpe = false,
     bool clearDistance = false,
     bool clearDuration = false,
     bool clearSupersetGroup = false,
     bool clearExerciseId = false,
     bool clearPrescribedWeight = false,
     bool clearPrescribedRir = false,
+    bool clearPrescribedRpe = false,
     bool clearPrescribedRepMin = false,
     bool clearPrescribedRepMax = false,
   }) {
@@ -375,7 +383,7 @@ class SetLog {
       durationSeconds: clearDuration
           ? null
           : (durationSeconds ?? this.durationSeconds),
-      rpe: rpe ?? this.rpe,
+      rpe: clearRpe ? null : (rpe ?? this.rpe),
       rir: clearRir ? null : (rir ?? this.rir),
       supersetId: supersetId ?? this.supersetId,
       isMaxWeightPR: isMaxWeightPR ?? this.isMaxWeightPR,
@@ -400,6 +408,9 @@ class SetLog {
       prescribedWeight: clearPrescribedWeight
           ? null
           : (prescribedWeight ?? this.prescribedWeight),
+      prescribedRpe: clearPrescribedRpe
+          ? null
+          : (prescribedRpe ?? this.prescribedRpe),
       prescribedRir: clearPrescribedRir
           ? null
           : (prescribedRir ?? this.prescribedRir),

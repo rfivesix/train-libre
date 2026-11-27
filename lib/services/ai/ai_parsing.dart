@@ -1,5 +1,39 @@
 part of '../ai_service.dart';
 
+bool _isExplicitlyEmptyMeal(dynamic value) {
+  bool hasFood(List<dynamic> items) => items.any((item) {
+        if (item is String) return item.trim().isNotEmpty;
+        if (item is Map) {
+          final name = item['name'];
+          return name is String && name.trim().isNotEmpty;
+        }
+        return false;
+      });
+  if (value is List) return !hasFood(value);
+  if (value is Map) {
+    final name = value['name'];
+    if (name is String && name.trim().isNotEmpty) return false;
+    var foundList = false;
+    for (final key in const [
+      'items',
+      'meal',
+      'food_components',
+      'components',
+      'foods',
+      'ingredients',
+      'dish'
+    ]) {
+      final items = value[key];
+      if (items is List) {
+        foundList = true;
+        if (hasFood(items)) return false;
+      }
+    }
+    return foundList;
+  }
+  return false;
+}
+
 void _debugLog(String message) {
   if (kDebugMode) {
     debugPrint(message);
@@ -17,21 +51,19 @@ List<String> _parseSearchTerms(dynamic raw) {
 }
 
 AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
-  final grams =
-      (e['estimatedGrams'] as num?)?.toInt() ??
+  final grams = (e['estimatedGrams'] as num?)?.toInt() ??
       (e['grams'] as num?)?.toInt() ??
       (e['servedGrams'] as num?)?.toInt() ??
       0;
-  final served =
-      (e['servedGrams'] as num?)?.toInt() ??
+  final served = (e['servedGrams'] as num?)?.toInt() ??
       (e['estimatedGrams'] as num?)?.toInt() ??
       (e['grams'] as num?)?.toInt();
   final rawCatalog = e['catalogSearchTerm'];
   final catalogSearchTerm = rawCatalog is String
       ? rawCatalog
       : (rawCatalog is List && rawCatalog.isNotEmpty
-            ? rawCatalog.first?.toString()
-            : null);
+          ? rawCatalog.first?.toString()
+          : null);
   Map<String, double?>? nutritionPer100g;
   final rawNutrition = e['nutritionPer100g'] ?? e['nutrition_per_100g'];
   if (rawNutrition is Map) {
@@ -227,14 +259,22 @@ extension AiParsing on AiService {
         .replaceAll(RegExp(r'\]\s*\]\s*\}'), ']}')
         .replaceAll(RegExp(r'\}\s*\}\s*\}\s*$'), '}}');
 
+    // Only a valid, explicitly empty list is an empty meal; malformed JSON
+    // must remain a parse error. Do this outside the recovery try/catch.
+    dynamic emptyCheck;
+    try {
+      emptyCheck = jsonDecode(cleaned);
+    } catch (_) {}
+    if (_isExplicitlyEmptyMeal(emptyCheck)) throw const AiEmptyMealException();
+
     try {
       final decoded = jsonDecode(cleaned);
       if (decoded is Map<String, dynamic>) {
         final contextMap = decoded['mealContext'];
         AiMealContext? mealContext =
             contextMap != null && contextMap is Map<String, dynamic>
-            ? AiMealContext.fromJson(contextMap)
-            : null;
+                ? AiMealContext.fromJson(contextMap)
+                : null;
 
         if (mealContext == null && decoded.containsKey('dishType')) {
           final dishType = decoded['dishType']?.toString().trim();
@@ -299,8 +339,8 @@ extension AiParsing on AiService {
           final contextMap = decoded['mealContext'];
           AiMealContext? mealContext =
               contextMap != null && contextMap is Map<String, dynamic>
-              ? AiMealContext.fromJson(contextMap)
-              : null;
+                  ? AiMealContext.fromJson(contextMap)
+                  : null;
 
           if (mealContext == null && decoded.containsKey('dishType')) {
             final dishType = decoded['dishType']?.toString().trim();
@@ -325,8 +365,8 @@ extension AiParsing on AiService {
 
     // Check if the response was emitted as {"mealContext": {...}}, {"name": ...}
     // where on-device models close mealContext prematurely and append item objects.
-    final mealContextMatch = RegExp(r'^\{\s*"mealContext"\s*:\s*\{')
-        .firstMatch(cleaned);
+    final mealContextMatch =
+        RegExp(r'^\{\s*"mealContext"\s*:\s*\{').firstMatch(cleaned);
     if (mealContextMatch != null) {
       try {
         final mcStart = cleaned.indexOf('{', mealContextMatch.end - 1);
@@ -384,8 +424,8 @@ extension AiParsing on AiService {
 
     // Try extracting all top-level JSON objects from the text if it's a sequence of objects
     // e.g. {"mealContext": ...}, {"name": "Fladenbrot", ...} {"name": "Hähnchenbrust", ...}
-    final objectMatches = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}')
-        .allMatches(cleaned);
+    final objectMatches =
+        RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').allMatches(cleaned);
     if (objectMatches.isNotEmpty) {
       AiMealContext? extractedContext;
       final extractedItems = <AiMealCandidateItem>[];
@@ -451,9 +491,8 @@ extension AiParsing on AiService {
           r'(\d+)\s*g\b',
           caseSensitive: false,
         ).firstMatch(line);
-        final grams = gramMatch != null
-            ? int.tryParse(gramMatch.group(1)!) ?? 100
-            : 100;
+        final grams =
+            gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
         final cleanName = line
             .replaceAll(RegExp(r'\(\s*\d+\s*g\s*\)', caseSensitive: false), '')
             .replaceAll(RegExp(r'\b\d+\s*g\b', caseSensitive: false), '')
@@ -499,6 +538,12 @@ extension AiParsing on AiService {
     cleaned = cleaned
         .replaceAll(RegExp(r'\]\s*\]\s*\}'), ']}')
         .replaceAll(RegExp(r'\}\s*\}\s*\}\s*$'), '}}');
+
+    dynamic emptyCheck;
+    try {
+      emptyCheck = jsonDecode(cleaned);
+    } catch (_) {}
+    if (_isExplicitlyEmptyMeal(emptyCheck)) throw const AiEmptyMealException();
 
     // First attempt: try full jsonDecode in case the response is clean JSON
     try {
@@ -598,8 +643,8 @@ extension AiParsing on AiService {
 
     // Fourth attempt: Extract sequence of JSON objects from the text
     // e.g. {"mealContext": ...}, {"name": "Fladenbrot", ...} {"name": "Hähnchenbrust", ...}
-    final objMatches = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}')
-        .allMatches(cleaned);
+    final objMatches =
+        RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').allMatches(cleaned);
     if (objMatches.isNotEmpty) {
       final items = <AiSuggestedItem>[];
       for (final match in objMatches) {
@@ -639,9 +684,8 @@ extension AiParsing on AiService {
           r'(\d+)\s*g\b',
           caseSensitive: false,
         ).firstMatch(line);
-        final grams = gramMatch != null
-            ? int.tryParse(gramMatch.group(1)!) ?? 100
-            : 100;
+        final grams =
+            gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
         final cleanName = line
             .replaceAll(RegExp(r'\(\s*\d+\s*g\s*\)', caseSensitive: false), '')
             .replaceAll(RegExp(r'\b\d+\s*g\b', caseSensitive: false), '')

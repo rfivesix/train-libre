@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +10,7 @@ import 'package:train_libre/features/sleep/platform/permissions/sleep_permission
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/features/workout/domain/models/prescription_enums.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/training_autonomy_service.dart';
@@ -154,7 +155,7 @@ void main() {
             ChangeNotifierProvider.value(value: experienceService),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('de'),
             home: SettingsScreen(

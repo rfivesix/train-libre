@@ -1,7 +1,9 @@
+import '../../../../../util/glass_preferences.dart';
+
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -65,8 +67,9 @@ class CloudOverlayComposer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final composerGlassSettings = DesignConstants.liquidGlassSettings(
-      cloudSurfaceDark,
+    final composerGlassSettings = GlassPreferences.of(context).apply(
+      DesignConstants.liquidGlassSettings(cloudSurfaceDark),
+      premium: true,
     );
     final glassTheme = theme.copyWith(
       brightness: cloudSurfaceDark ? Brightness.dark : Brightness.light,
@@ -257,7 +260,7 @@ class CloudOverlayComposer extends StatelessWidget {
                     ? Image.file(
                         image,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const ColoredBox(
+                        errorBuilder: (_, _, _) => const ColoredBox(
                           color: Colors.black12,
                           child: Icon(Icons.broken_image_outlined),
                         ),

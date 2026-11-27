@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'recovery_domain_service.dart';
 import 'timeframe_block.dart';

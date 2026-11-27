@@ -5,20 +5,54 @@ set -euo pipefail
 # Train Libre Automated Release Script (Android, iOS & GitHub)
 # ==============================================================================
 
-# Temporary file to store extracted changelog release notes
-CHANGELOG_TEMP_FILE=$(mktemp /tmp/changelog-XXXXXX.md)
+RELEASE_TEMP_DIR=$(mktemp -d /tmp/train-libre-release-XXXXXX)
+CHANGELOG_TEMP_FILE="$RELEASE_TEMP_DIR/changelog.md"
+FLUTTER_BUILD_LOG="$RELEASE_TEMP_DIR/flutter-build.log"
 cleanup() {
-  rm -f "$CHANGELOG_TEMP_FILE"
+  rm -rf "$RELEASE_TEMP_DIR"
 }
 trap cleanup EXIT
 
-# Release builds must not depend on a long-lived Gradle daemon. On macOS the
-# daemon occasionally registers successfully but cannot be reached again over
-# localhost (for example after a network, VPN or Android Studio change). Keep
-# the setting scoped to this script so day-to-day Android Studio builds retain
-# their normal daemon behaviour.
+# Avoid reusing a long-lived Gradle daemon for release builds. Gradle may still
+# start a single-use daemon when the build requires different JVM settings.
+# Scope this setting to the script so Android Studio keeps its normal behavior.
 run_flutter() {
   GRADLE_OPTS="-Dorg.gradle.daemon=false${GRADLE_OPTS:+ $GRADLE_OPTS}" flutter "$@"
+}
+
+# Retry known transient SQLite download and Gradle daemon connection failures.
+# Retry only the failed build so Flutter can reuse downloaded native assets.
+run_flutter_build() {
+  local attempt=1 max_attempts=3 delay retry_reason
+  local -a status
+
+  while true; do
+    if run_flutter "$@" 2>&1 | tee "$FLUTTER_BUILD_LOG"; then
+      return 0
+    else
+      status=("${PIPESTATUS[@]}")
+    fi
+
+    if (( status[1] != 0 )); then
+      return "${status[1]}"
+    fi
+    retry_reason=''
+    if grep -Fq 'Could not connect to the Gradle daemon.' "$FLUTTER_BUILD_LOG"; then
+      retry_reason='Gradle daemon connection failed'
+    elif grep -Fq 'https://github.com/simolus3/sqlite3.dart/releases/download/' "$FLUTTER_BUILD_LOG" &&
+      grep -Eq 'Unexpected response code: (408|429|500|502|503|504)([[:space:]]|$)' "$FLUTTER_BUILD_LOG"; then
+      retry_reason='SQLite download failed temporarily'
+    fi
+    if (( attempt >= max_attempts )) || [ -z "$retry_reason" ]; then
+      return "${status[0]}"
+    fi
+
+    delay=$((attempt * 5))
+    printf '%s. Retrying flutter %s in %s seconds (%s/%s).\n' \
+      "$retry_reason" "$*" "$delay" "$((attempt + 1))" "$max_attempts" >&2
+    sleep "$delay"
+    attempt=$((attempt + 1))
+  done
 }
 
 # ------------------------------------------------------------------------------
@@ -105,7 +139,7 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
 fi
 
 # ------------------------------------------------------------------------------
-# STEP 3: Clean, Increment pubspec.yaml & Generate All Release Artifacts
+# STEP 3: Clean & Generate All Release Artifacts with the Next Build Number
 # ------------------------------------------------------------------------------
 echo "Running core build preparation pipeline..."
 run_flutter clean
@@ -113,9 +147,7 @@ run_flutter clean
 OLD_BUILD_NUMBER=${FULL_VERSION#*+}
 NEW_BUILD_NUMBER=$((OLD_BUILD_NUMBER + 1))
 
-echo "Incrementing build number in pubspec.yaml: $OLD_BUILD_NUMBER -> $NEW_BUILD_NUMBER"
-
-sed -i '' "s/version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/g" pubspec.yaml
+echo "Preparing the next build number: $OLD_BUILD_NUMBER -> $NEW_BUILD_NUMBER"
 
 run_flutter pub get
 run_flutter gen-l10n
@@ -124,9 +156,9 @@ echo "Updating iOS deployment target to 14.0 in project..."
 sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g' ios/Runner.xcodeproj/project.pbxproj
 
 echo "Building Android Production Release Artifacts (Build: $NEW_BUILD_NUMBER)..."
-run_flutter build appbundle --release
-run_flutter build apk --release --split-per-abi
-run_flutter build apk --release
+run_flutter_build build appbundle --release --build-number="$NEW_BUILD_NUMBER"
+run_flutter_build build apk --release --split-per-abi --build-number="$NEW_BUILD_NUMBER"
+run_flutter_build build apk --release --build-number="$NEW_BUILD_NUMBER"
 
 # Freshly prepare l10n and CocoaPods infrastructure before building iOS.
 # The updated Podfile enforces iOS 14.0 deployment target across all targets (including Swift packages).
@@ -134,7 +166,10 @@ echo "Regenerating iOS configuration with correct 14.0 deployment target (Versio
 run_flutter build ios --config-only --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
 
 echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER, Version: $IOS_BUILD_NAME)..."
-run_flutter build ipa --release --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
+run_flutter_build build ipa --release --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
+
+echo "Saving build number $NEW_BUILD_NUMBER in pubspec.yaml..."
+sed -i '' "s/^version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/" pubspec.yaml
 
 # ------------------------------------------------------------------------------
 # STEP 4: Changelog Extraction

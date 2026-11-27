@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -140,6 +140,7 @@ class DesignConstants {
   /// with the tab bar's `indicatorExpansion`, which is how far the indicator
   /// blooms *outwards* while being dragged.
   static const double floatingBarPillInset = 4.0;
+  static const double floatingBarPillBlur = 3.0;
 
   /// Diameter / height of those pills. Derived from the inset, so the pill
   /// always reaches to within [floatingBarPillInset] of the bar's edges.
@@ -149,7 +150,7 @@ class DesignConstants {
   /// Fill behind those pills — what makes them read as buttons. Single source
   /// of truth for the navigation indicator and the workout bar's affordances.
   static Color floatingBarPillColor(bool isDark) =>
-      (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15);
+      Colors.black.withValues(alpha: isDark ? 0.32 : 0.12);
 
   /// Label typography inside the floating bottom bars.
   static const TextStyle floatingBarLabelStyle = TextStyle(
@@ -231,7 +232,7 @@ class DesignConstants {
   /// Unified base color tint for the glass shader.
   static Color glassColor(bool isDark) => isDark
       ? Colors.white.withValues(alpha: 0.10)
-      : Colors.white.withValues(alpha: 0.50);
+      : Colors.white.withValues(alpha: 0.18);
 
   /// Default platform-adaptive glass quality.
   /// Uses [GlassQuality.standard] on Android for optimal GPU subpass performance,
@@ -260,35 +261,9 @@ class DesignConstants {
 
   /// Unified settings for liquid glassmorphic rendering.
   ///
-  /// Tuned to match real iOS *system UI* glass (UITabBar / navigation
-  /// chrome), not the "simulated glass object" look used for buttons and
-  /// panels:
-  /// - [fresnelStrength]: 0 disables the physics-based lens rim that makes
-  ///   glass read as a thick optical object. Per the package docs, 0.0 is
-  ///   what matches "iOS 26 system UI glass such as Messages buttons,
-  ///   notification banners, and lock screen controls" — i.e. our tab bar.
-  /// - [blur]: raised so the backdrop frosts the way a real `UIBlurEffect`
-  ///   material does (content behind the bar should read as soft color, not
-  ///   a legible warped image).
-  /// - [whitenStrength]: adds the light-mode "legibility veil" real iOS glass
-  ///   lays over bright backgrounds; gated ([whitenGated]) so it only lifts
-  ///   bright pixels and dark icons/text stay crisp. In dark mode this is
-  ///   applied *ungated* instead — a small uniform lift so the bar reads as
-  ///   dark grey (matching `UIBlurEffect` dark materials) instead of pure
-  ///   black when there's nothing behind it to blur; a gated lift would be a
-  ///   no-op there since an all-black backdrop has no bright pixels to gate on.
+  /// The package's native-comparison iOS 27 material, before user adjustments.
   static LiquidGlassSettings liquidGlassSettings(bool isDark) =>
-      LiquidGlassSettings(
-        thickness: 30,
-        blur: 2.0,
-        glassColor: glassColor(isDark),
-        lightIntensity: isDark ? 0.55 : 0.80,
-        saturation: 1.90,
-        ambientRim: 0.01,
-        fresnelStrength: 0.0,
-        whitenStrength: isDark ? 0.00 : 0.05,
-        whitenGated: !isDark,
-      );
+      isDark ? LiquidGlassSettings.ios27Dark : LiquidGlassSettings.ios27Light;
 
   /// The primary brand color for Train Libre, sourced from the app icon.
   static const Color brandAccentColor = Color(0xFFDDFF00);

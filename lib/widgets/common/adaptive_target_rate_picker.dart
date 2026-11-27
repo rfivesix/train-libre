@@ -1,7 +1,7 @@
 // lib/widgets/common/adaptive_target_rate_picker.dart
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../features/nutrition_recommendation/domain/goal_models.dart';
 import '../../generated/app_localizations.dart';

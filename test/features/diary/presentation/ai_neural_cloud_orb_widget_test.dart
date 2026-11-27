@@ -1,6 +1,6 @@
 // test/features/diary/presentation/ai_neural_cloud_orb_widget_test.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 

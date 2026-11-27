@@ -1,13 +1,14 @@
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
+import '../../../../services/theme_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/classification/workout_set_position.dart';
 import 'log_mask_labels.dart';
@@ -20,7 +21,12 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
 import '../../../../util/design_constants.dart';
 import 'generated_value_morph.dart';
+import 'set_row_style.dart';
+import 'rpe_picker.dart';
+import 'set_type_chip.dart';
 import 'set_type_menu.dart';
+import 'pr_sparkle_burst.dart';
+import 'workout_keyboard_accessory_bar.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -65,38 +71,22 @@ class LiveWorkoutSetRow extends StatelessWidget {
   /// Column widths, shared with the heading above the row.
   SetRowFlex get flex => SetRowFlex.forMask(mask);
 
+  Widget _buildInputColumn({required int flex, required Widget child}) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: child,
+      ),
+    );
+  }
+
   void _removeSet(int templateId) {
     manager.removeSet(templateId);
   }
 
   void _changeSetType(int templateId, String newType) {
     manager.updateSet(templateId, setType: newType);
-  }
-
-  String _getSetDisplayText(String setType, int setIndex) {
-    switch (setType) {
-      case 'warmup':
-        return 'W';
-      case 'failure':
-        return 'F';
-      case 'dropset':
-        return 'D';
-      default:
-        return '$setIndex';
-    }
-  }
-
-  Color _getSetTypeColor(String setType) {
-    switch (setType) {
-      case 'warmup':
-        return Colors.orange;
-      case 'dropset':
-        return Colors.blue;
-      case 'failure':
-        return DesignConstants.brandRedColor;
-      default:
-        return Colors.grey;
-    }
   }
 
   bool _isQualifyingSetForE1rm(
@@ -150,39 +140,57 @@ class LiveWorkoutSetRow extends StatelessWidget {
           "+${unitService.formatDisplayWeight(setLog.volumePRDiff!, fractionDigits: 0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";
     }
 
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 600),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.elasticOut,
-      builder: (context, value, child) {
-        return Transform.scale(scale: value, child: child);
-      },
-      child: Tooltip(
-        message: l10n.prBadgeTooltip,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.amber.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.amber,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+    final badge = Tooltip(
+      message: l10n.prBadgeTooltip,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.amber.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.amber,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+    if (!manager.isCelebratingPr(templateId) ||
+        MediaQuery.disableAnimationsOf(context)) {
+      return badge;
+    }
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 900),
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, value, child) => Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: PrSparkleBurst(
+              progress: value,
+              color: Colors.amber,
+              accentColor: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          Transform.scale(
+            scale: 1 + 0.16 * (1 - (2 * value - 1).abs()),
+            child: child,
+          ),
+        ],
+      ),
+      child: badge,
     );
   }
 
@@ -208,24 +216,45 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final unitService = context.read<UnitService>();
     final showsIntensity = showsIntensityColumn(context, mask);
 
+    Future<void> openRpe() async {
+      FocusManager.instance.primaryFocus?.unfocus();
+      final current = manager.setLogs[templateId] ?? log;
+      final result = await showRpePicker(
+        context,
+        value:
+            current.rpe ??
+            (current.rir == null ? null : (10 - current.rir!).toDouble()),
+        allowComplete: true,
+      );
+      if (result == null) return;
+      await manager.updateSet(
+        templateId,
+        rpe: result.value,
+        clearRpe: result.value == null,
+        clearRir: true,
+        isCompleted: result.complete ? true : null,
+      );
+    }
+
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final suggestionMorphColor = isLightMode ? Colors.black : Colors.white;
     final Color? textColor = isCompleted
         ? (isLightMode ? Colors.black : Colors.white)
         : null;
-    final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
-    final Color rowColor = isColoredRow
-        ? (isLightMode
-              ? Colors.grey.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.1))
-        : Colors.transparent;
+    final comparisonTextColor = setComparisonTextColor(context);
 
     // Hint Logic
     String weightHint = '0';
     String repHint = '0';
-    final String rirHint = isCompleted
+    final targetEffort = isCardio
+        ? template.targetRir?.toDouble()
+        : (template.targetRpe ??
+              (template.targetRir == null
+                  ? null
+                  : (10 - template.targetRir!).toDouble()));
+    final String rirHint = isCompleted || targetEffort == null
         ? '-'
-        : (template.targetRir != null ? template.targetRir.toString() : '-');
+        : formatRpe(targetEffort);
 
     final double tWeight = template.targetWeight ?? 0.0;
     weightHint = switch (mask.primary) {
@@ -264,28 +293,19 @@ class LiveWorkoutSetRow extends StatelessWidget {
         // 1. SET NUMBER
         Expanded(
           flex: flex.index,
-          child: Center(
-            child: SetTypeMenu(
-              currentSetType: log.setType,
-              enabled: !isCompleted,
-              onSetTypeChanged: (newType) =>
-                  _changeSetType(templateId, newType),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4.0,
-                  vertical: 8.0,
-                ),
-                child: Text(
-                  _getSetDisplayText(log.setType, setIndex),
-                  style: TextStyle(
-                    color: isCompleted
-                        ? (log.setType == 'normal'
-                              ? (isLightMode ? Colors.black : Colors.white)
-                              : _getSetTypeColor(log.setType))
-                        : _getSetTypeColor(log.setType),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: SetTypeMenu(
+                currentSetType: log.setType,
+                enabled: !isCompleted,
+                onSetTypeChanged: (newType) =>
+                    _changeSetType(templateId, newType),
+                child: SetTypeChip(
+                  setType: log.setType,
+                  setIndex: setIndex,
+                  isCompleted: isCompleted,
                 ),
               ),
             ),
@@ -373,7 +393,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  color: comparisonTextColor,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -383,7 +403,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ),
 
         // 3. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
-        Expanded(
+        _buildInputColumn(
           flex: flex.primary,
           child: !mask.showsPrimary
               // A plank has nothing to put here. An empty box invites a
@@ -415,10 +435,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: isSuggested ? generatedTextColor : textColor,
                         ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          isDense: true,
-                          fillColor: Colors.transparent,
+                        decoration: setFieldDecoration(
+                          context,
+                          isEditable: !isCompleted,
                           hintText: weightHint,
                           hintStyle: TextStyle(
                             color: Colors.grey.withValues(alpha: 0.5),
@@ -485,97 +504,124 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ),
 
         // 4. INPUT 2: REPS / TIME
-        Expanded(
+        _buildInputColumn(
           flex: flex.secondary,
           child: !mask.showsSecondary
               ? const SizedBox.shrink()
               : mask.logsDuration
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: !isCompleted && !setTimerRunning
-                            ? () async {
-                                final currentSeconds = log.durationSeconds ?? 0;
-                                final newDuration = await adaptive_pickers
-                                    .showAdaptiveDurationPicker(
-                                      context: context,
-                                      initialDuration: Duration(
-                                        seconds: currentSeconds,
-                                      ),
-                                      title: l10n.durationLabel,
-                                      allowClear: true,
+              ? Container(
+                  height: 36,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusS,
+                    ),
+                    border: isCompleted
+                        ? null
+                        : Border.all(
+                            color: Theme.of(context).colorScheme.onSurface
+                                .withValues(alpha: 0.28),
+                          ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: !isCompleted && !setTimerRunning
+                              ? () async {
+                                  final currentSeconds =
+                                      log.durationSeconds ?? 0;
+                                  final newDuration = await adaptive_pickers
+                                      .showAdaptiveDurationPicker(
+                                        context: context,
+                                        initialDuration: Duration(
+                                          seconds: currentSeconds,
+                                        ),
+                                        title: l10n.durationLabel,
+                                        allowClear: true,
+                                      );
+                                  if (newDuration != null) {
+                                    final seconds = newDuration.inSeconds;
+                                    final clearDuration = seconds == 0;
+                                    manager.repsControllers[templateId]?.text =
+                                        formatPauseDuration(seconds);
+                                    await manager.updateSet(
+                                      templateId,
+                                      duration: seconds,
+                                      clearDuration: clearDuration,
                                     );
-                                if (newDuration != null) {
-                                  final seconds = newDuration.inSeconds;
-                                  final clearDuration = seconds == 0;
-                                  manager.repsControllers[templateId]?.text =
-                                      formatPauseDuration(seconds);
-                                  await manager.updateSet(
-                                    templateId,
-                                    duration: seconds,
-                                    clearDuration: clearDuration,
-                                  );
+                                  }
                                 }
-                              }
-                            : null,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            formatDuration(
-                              Duration(
-                                seconds: setTimerRunning
-                                    ? timerState.elapsed
-                                    : log.durationSeconds ?? 0,
+                              : null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                formatDuration(
+                                  Duration(
+                                    seconds: setTimerRunning
+                                        ? timerState.elapsed
+                                        : log.durationSeconds ?? 0,
+                                  ),
+                                ),
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      textColor ??
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
                               ),
                             ),
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  textColor ??
-                                  Theme.of(context).colorScheme.onSurface,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
+                          ),
+                        ),
+                      ),
+                      if (!isCompleted)
+                        Container(
+                          width: 30,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(
+                                color: Theme.of(context).colorScheme.onSurface
+                                    .withValues(alpha: 0.28),
+                              ),
+                            ),
+                          ),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            tooltip: setTimerRunning
+                                ? l10n.setTimerStop
+                                : l10n.setTimerStart,
+                            onPressed: !canTimeCurrentSet
+                                ? null
+                                : () {
+                                    if (setTimerRunning) {
+                                      manager.stopSetTimer(templateId);
+                                    } else {
+                                      manager.startSetTimer(templateId);
+                                    }
+                                  },
+                            icon: Icon(
+                              setTimerRunning
+                                  ? Icons.stop_rounded
+                                  : Icons.play_arrow_rounded,
+                              size: 22,
+                              color: setTimerRunning
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    if (!isCompleted)
-                      SizedBox(
-                        width: 34,
-                        height: 36,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                          tooltip: setTimerRunning
-                              ? l10n.setTimerStop
-                              : l10n.setTimerStart,
-                          onPressed: !canTimeCurrentSet
-                              ? null
-                              : () {
-                                  if (setTimerRunning) {
-                                    manager.stopSetTimer(templateId);
-                                  } else {
-                                    manager.startSetTimer(templateId);
-                                  }
-                                },
-                          icon: Icon(
-                            setTimerRunning
-                                ? LucideIcons.square
-                                : LucideIcons.play,
-                            size: 17,
-                            color: setTimerRunning
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 )
               : GeneratedValueMorph(
                   suggestionKey: mask.logsDuration ? null : suggestionKey,
@@ -587,113 +633,130 @@ class LiveWorkoutSetRow extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                  childBuilder: (generatedTextColor) => TextFormField(
-                    controller: manager.repsControllers[templateId],
-                    readOnly: mask.logsDuration,
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: mask.logsDuration
-                        ? [TimerInputFormatter()]
-                        : null,
-                    textInputAction: TextInputAction.next,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: suggestionKey == null
-                          ? textColor
-                          : generatedTextColor,
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
-                      hintText: repHint,
-                      hintStyle: TextStyle(
-                        color: Colors.grey.withValues(alpha: 0.5),
-                        fontSize: 18,
-                      ),
-                    ),
-                    enabled: !isCompleted,
-                    onTap: (mask.logsDuration && !isCompleted)
-                        ? () async {
-                            final currentSeconds =
-                                manager.setLogs[templateId]?.durationSeconds ??
-                                0;
-                            final newDuration = await adaptive_pickers
-                                .showAdaptiveDurationPicker(
-                                  context: context,
-                                  initialDuration: Duration(
-                                    seconds: currentSeconds,
-                                  ),
-                                  title: l10n.durationLabel,
-                                  allowClear: true,
-                                );
-                            if (newDuration != null) {
-                              final seconds = newDuration.inSeconds;
-                              final clearDuration = seconds == 0;
+                  childBuilder: (generatedTextColor) =>
+                      WorkoutKeyboardNextAction(
+                        onNext:
+                            showsIntensity &&
+                                !isCardio &&
+                                !mask.logsDuration &&
+                                !isCompleted
+                            ? openRpe
+                            : null,
+                        child: TextFormField(
+                          controller: manager.repsControllers[templateId],
+                          readOnly: mask.logsDuration,
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: mask.logsDuration
+                              ? [TimerInputFormatter()]
+                              : null,
+                          textInputAction: TextInputAction.next,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: suggestionKey == null
+                                ? textColor
+                                : generatedTextColor,
+                          ),
+                          decoration: setFieldDecoration(
+                            context,
+                            isEditable: !isCompleted,
+                            hintText: repHint,
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withValues(alpha: 0.5),
+                              fontSize: 18,
+                            ),
+                          ),
+                          enabled: !isCompleted,
+                          onTap: (mask.logsDuration && !isCompleted)
+                              ? () async {
+                                  final currentSeconds =
+                                      manager
+                                          .setLogs[templateId]
+                                          ?.durationSeconds ??
+                                      0;
+                                  final newDuration = await adaptive_pickers
+                                      .showAdaptiveDurationPicker(
+                                        context: context,
+                                        initialDuration: Duration(
+                                          seconds: currentSeconds,
+                                        ),
+                                        title: l10n.durationLabel,
+                                        allowClear: true,
+                                      );
+                                  if (newDuration != null) {
+                                    final seconds = newDuration.inSeconds;
+                                    final clearDuration = seconds == 0;
+                                    if (seconds !=
+                                            manager
+                                                .setLogs[templateId]
+                                                ?.durationSeconds ||
+                                        clearDuration) {
+                                      manager
+                                          .repsControllers[templateId]
+                                          ?.text = formatPauseDuration(
+                                        seconds,
+                                      );
+                                      manager.updateSet(
+                                        templateId,
+                                        duration: seconds,
+                                        clearDuration: clearDuration,
+                                      );
+                                    }
+                                  }
+                                }
+                              : null,
+                          onChanged: (text) {
+                            if (!mask.logsDuration &&
+                                manager.isSetSuggested(templateId)) {
+                              manager.markSetOverridden(templateId);
+                            }
+                            if (mask.logsDuration) {
+                              final seconds = parsePauseDuration(text);
+                              final clearDuration =
+                                  seconds == null && text.isEmpty;
                               if (seconds !=
                                       manager
                                           .setLogs[templateId]
                                           ?.durationSeconds ||
                                   clearDuration) {
-                                manager.repsControllers[templateId]?.text =
-                                    formatPauseDuration(seconds);
                                 manager.updateSet(
                                   templateId,
                                   duration: seconds,
                                   clearDuration: clearDuration,
                                 );
                               }
-                            }
-                          }
-                        : null,
-                    onChanged: (text) {
-                      if (!mask.logsDuration &&
-                          manager.isSetSuggested(templateId)) {
-                        manager.markSetOverridden(templateId);
-                      }
-                      if (mask.logsDuration) {
-                        final seconds = parsePauseDuration(text);
-                        final clearDuration = seconds == null && text.isEmpty;
-                        if (seconds !=
-                                manager.setLogs[templateId]?.durationSeconds ||
-                            clearDuration) {
-                          manager.updateSet(
-                            templateId,
-                            duration: seconds,
-                            clearDuration: clearDuration,
-                          );
-                        }
-                      } else {
-                        final int? val;
-                        if (text.contains('-')) {
-                          final parts = text.split('-');
-                          if (parts.length == 2) {
-                            final min = int.tryParse(parts[0].trim());
-                            final max = int.tryParse(parts[1].trim());
-                            if (min != null && max != null) {
-                              val = ((min + max) / 2).round();
                             } else {
-                              val = null;
+                              final int? val;
+                              if (text.contains('-')) {
+                                final parts = text.split('-');
+                                if (parts.length == 2) {
+                                  final min = int.tryParse(parts[0].trim());
+                                  final max = int.tryParse(parts[1].trim());
+                                  if (min != null && max != null) {
+                                    val = ((min + max) / 2).round();
+                                  } else {
+                                    val = null;
+                                  }
+                                } else {
+                                  val = null;
+                                }
+                              } else {
+                                val = int.tryParse(text);
+                              }
+                              final clearValue = val == null && text.isEmpty;
+                              if (val != manager.setLogs[templateId]?.reps ||
+                                  clearValue) {
+                                manager.updateSet(
+                                  templateId,
+                                  reps: val,
+                                  clearReps: clearValue,
+                                );
+                              }
                             }
-                          } else {
-                            val = null;
-                          }
-                        } else {
-                          val = int.tryParse(text);
-                        }
-                        final clearValue = val == null && text.isEmpty;
-                        if (val != manager.setLogs[templateId]?.reps ||
-                            clearValue) {
-                          manager.updateSet(
-                            templateId,
-                            reps: val,
-                            clearReps: clearValue,
-                          );
-                        }
-                      }
-                    },
-                  ),
+                          },
+                        ),
+                      ),
                 ),
         ),
 
@@ -704,11 +767,12 @@ class LiveWorkoutSetRow extends StatelessWidget {
         // Below "pro" it is gone from every card at once, placeholder
         // included, and the fields beside it widen.
         if (showsIntensity || keepsIntensityPlaceholder(context, mask))
-          Expanded(
+          _buildInputColumn(
             flex: flex.intensity,
             child: !showsIntensity
                 ? const SizedBox.shrink()
-                : TextFormField(
+                : isCardio
+                ? TextFormField(
                     controller: manager.rirControllers[templateId],
                     textAlign: TextAlign.center,
                     keyboardType: TextInputType.number,
@@ -721,10 +785,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
+                    decoration: setFieldDecoration(
+                      context,
+                      isEditable: !isCompleted,
                       hintText: rirHint,
                       hintStyle: TextStyle(
                         color: Colors.grey.withValues(alpha: 0.5),
@@ -744,50 +807,104 @@ class LiveWorkoutSetRow extends StatelessWidget {
                         );
                       }
                     },
+                  )
+                : Center(
+                    child: Tooltip(
+                      message: l10n.rpeEffortTitle,
+                      child: Material(
+                        color: isCompleted
+                            ? Colors.black.withValues(
+                                alpha: isLightMode ? 0.07 : 0.16,
+                              )
+                            : isLightMode
+                            ? DesignConstants.summaryCardSecondaryLightMode
+                            : DesignConstants.summaryCardDarkMode,
+                        borderRadius: BorderRadius.circular(
+                          DesignConstants.borderRadiusS,
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusS,
+                          ),
+                          onTap: isCompleted ? null : openRpe,
+                          child: SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Center(
+                              child: log.rpe == null && log.rir == null
+                                  ? const Icon(
+                                      LucideIcons.gauge,
+                                      size: 22,
+                                      color: Colors.grey,
+                                    )
+                                  : Text(
+                                      formatRpe(log.rpe ?? (10 - log.rir!)),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
           ),
 
         // 6. CHECKBOX
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 48,
-                child: IconButton(
-                  tooltip: isCompleted ? l10n.undo : l10n.doneButtonLabel,
-                  icon: Icon(
-                    isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
-                    color: isCompleted ? Colors.green : Colors.grey,
-                  ),
-                  onPressed: () async {
-                    if (!isCompleted) {
-                      HapticFeedbackService.instance.confirmationFeedback();
-                    } else {
-                      HapticFeedbackService.instance.selectionFeedback();
-                    }
-                    // updateSet fills the input fields with the values it
-                    // resolved from the template, for every completion path.
-                    if (!isCompleted && mask.logsDuration) {
-                      await manager.completeTimedSet(templateId);
-                    } else {
-                      await manager.updateSet(
-                        templateId,
-                        isCompleted: !isCompleted,
-                      );
-                    }
-                  },
+        SizedBox(
+          width: 48,
+          child: IconButton(
+            padding: const EdgeInsets.only(right: 4),
+            alignment: Alignment.centerRight,
+            iconSize: 36,
+            tooltip: isCompleted ? l10n.undo : l10n.doneButtonLabel,
+            icon: Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? Colors.green
+                    : (isLightMode
+                          ? DesignConstants.summaryCardSecondaryLightMode
+                          : DesignConstants.summaryCardDarkMode),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusS,
                 ),
               ),
-            ],
+              child: Icon(
+                LucideIcons.check,
+                size: 22,
+                color: isCompleted ? Colors.white : Colors.grey,
+              ),
+            ),
+            onPressed: () async {
+              if (!isCompleted) {
+                HapticFeedbackService.instance.confirmationFeedback();
+              } else {
+                HapticFeedbackService.instance.selectionFeedback();
+              }
+              // updateSet fills the input fields with the values it
+              // resolved from the template, for every completion path.
+              if (!isCompleted && mask.logsDuration) {
+                await manager.completeTimedSet(templateId);
+              } else {
+                await manager.updateSet(templateId, isCompleted: !isCompleted);
+              }
+            },
           ),
         ),
       ],
     );
 
     final currentSetE1rm = _calculateBrzyckiE1rm(log, requireCompleted: false);
-    final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
+    final showCurrentSetE1rm =
+        (context.watch<ThemeService?>()?.showWorkoutE1rm ?? false) &&
+        !isCardio &&
+        currentSetE1rm != null;
 
     final bool hasPR =
         isCompleted &&
@@ -800,7 +917,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     final rowWithSubInfo = Column(
       children: [
-        rowContent,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: rowContent,
+        ),
         if (showCurrentSetE1rm || hasPR)
           Padding(
             padding: const EdgeInsets.only(right: 12.0, bottom: 4.0),
@@ -818,7 +938,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                       unitService.suffixFor(UnitDimension.weight),
                     ),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: comparisonTextColor,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -841,17 +961,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(LucideIcons.trash, color: Colors.white),
       ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              color: isCompleted
-                  ? Colors.green.withValues(alpha: 0.3)
-                  : rowColor,
-            ),
-          ),
-          rowWithSubInfo,
-        ],
+      child: ColoredBox(
+        color: isCompleted
+            ? Colors.green.withValues(alpha: 0.3)
+            : Colors.transparent,
+        child: rowWithSubInfo,
       ),
     );
   }

@@ -135,8 +135,8 @@ class DiaryViewModel extends ChangeNotifier {
   Map<String, List<MacroEntry>> macroEntriesByMeal = {};
   List<MealEntry> mealEntries = [];
   Map<String, MealEntry> get mealEntriesById => {
-    for (final m in mealEntries) m.id: m,
-  };
+        for (final m in mealEntries) m.id: m,
+      };
   List<FluidEntry> fluidEntries = [];
   List<TrackedSupplement> trackedSupplements = [];
   Map<String, dynamic>? workoutSummary;
@@ -154,7 +154,7 @@ class DiaryViewModel extends ChangeNotifier {
       _activeWorkouts.isNotEmpty ||
       (stepsForSelectedDay != null && stepsForSelectedDay! > 0) ||
       (sleepOverview != null && (sleepOverview!.totalSleepMinutes ?? 0) > 0) ||
-      (pulseSummary != null && pulseSummary!.sampleCount > 0) ||
+      (pulseSummary?.hasData ?? false) ||
       hasWeightMeasurementForSelectedDate;
   bool get isSelectedDateToday => selectedDate.isSameDate(DateTime.now());
 
@@ -175,22 +175,18 @@ class DiaryViewModel extends ChangeNotifier {
   bool get pulseTrackingEnabled => healthSyncCoordinator.pulseTrackingEnabled;
 
   final ValueNotifier<DateTime> selectedDateNotifier;
-  bool _skipNextAutomaticHealthSync;
+  int _healthLoadGeneration = 0;
+  bool _disposed = false;
   DateTime get selectedDate => selectedDateNotifier.value;
 
   DiaryViewModel({
-    required IDiaryRepository nutritionRepo,
-    required SupplementRepository supplementRepo,
-    required IWorkoutRepository workoutRepo,
+    required this._nutritionRepo,
+    required this._supplementRepo,
+    required this._workoutRepo,
     DateTime? initialDate,
-    bool deferInitialHealthSync = false,
-  }) : _nutritionRepo = nutritionRepo,
-       _supplementRepo = supplementRepo,
-       _workoutRepo = workoutRepo,
-       _skipNextAutomaticHealthSync = deferInitialHealthSync,
-       selectedDateNotifier = ValueNotifier(
-         resolveDiaryInitialDate(initialDate: initialDate),
-       ) {
+  })  : selectedDateNotifier = ValueNotifier(
+          resolveDiaryInitialDate(initialDate: initialDate),
+        ) {
     healthSyncCoordinator.addListener(notifyListeners);
     _extraNutrientSubscription = _prefsRepo.watchOverviewExtraNutrient().listen(
       (nutrient) {
@@ -206,6 +202,8 @@ class DiaryViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _healthLoadGeneration++;
     _extraNutrientSubscription?.cancel();
     _updateDebounceTimer?.cancel();
     _goalsSubscription?.cancel();
@@ -251,67 +249,56 @@ class DiaryViewModel extends ChangeNotifier {
       },
     );
 
-    _macroEntriesSubscription = _nutritionRepo
-        .watchMacroEntriesForDate(diaryDate)
-        .listen((entries) {
-          _activeMacroEntries = entries;
-          _updateCalculatedState();
-        });
+    _macroEntriesSubscription =
+        _nutritionRepo.watchMacroEntriesForDate(diaryDate).listen((entries) {
+      _activeMacroEntries = entries;
+      _updateCalculatedState();
+    });
 
-    _mealEntriesSubscription = _nutritionRepo
-        .watchMealEntriesForDate(diaryDate)
-        .listen((meals) {
-          _activeMealEntries = meals;
-          _updateCalculatedState();
-        });
+    _mealEntriesSubscription =
+        _nutritionRepo.watchMealEntriesForDate(diaryDate).listen((meals) {
+      _activeMealEntries = meals;
+      _updateCalculatedState();
+    });
 
-    _fluidsSubscription = _nutritionRepo
-        .watchFluidEntriesForDate(diaryDate)
-        .listen((fluids) {
-          _activeFluids = fluids;
-          _updateCalculatedState();
-        });
+    _fluidsSubscription =
+        _nutritionRepo.watchFluidEntriesForDate(diaryDate).listen((fluids) {
+      _activeFluids = fluids;
+      _updateCalculatedState();
+    });
 
-    _supplementsSubscription = _supplementRepo
-        .watchSupplementsForDate(diaryDate)
-        .listen((supps) {
-          _activeSupplements = supps;
-          _updateCalculatedState();
-        });
+    _supplementsSubscription =
+        _supplementRepo.watchSupplementsForDate(diaryDate).listen((supps) {
+      _activeSupplements = supps;
+      _updateCalculatedState();
+    });
 
-    _supplementLogsSubscription = _supplementRepo
-        .watchSupplementLogsForDate(diaryDate)
-        .listen((logs) {
-          _activeSupplementLogs = logs;
-          _updateCalculatedState();
-        });
+    _supplementLogsSubscription =
+        _supplementRepo.watchSupplementLogsForDate(diaryDate).listen((logs) {
+      _activeSupplementLogs = logs;
+      _updateCalculatedState();
+    });
 
     _workoutsSubscription = _workoutRepo
         .watchWorkoutLogsForDateRange(diaryDate, diaryDate)
         .listen((workouts) {
-          _activeWorkouts = workouts;
-          _updateCalculatedState();
-        });
+      _activeWorkouts = workouts;
+      _updateCalculatedState();
+    });
 
-    // Delegate all health data loading and background sync
-    if (_skipNextAutomaticHealthSync) {
-      _skipNextAutomaticHealthSync = false;
-    } else {
-      unawaited(
-        healthSyncCoordinator.loadAndSyncHealthData(
-          date: diaryDate,
-          forceStepsRefresh: false,
-          isCurrentLoad: (d) => d.isSameDate(diaryDate),
-        ),
-      );
-    }
+    unawaited(syncHealthData());
   }
 
   Future<void> syncHealthData({bool forceStepsRefresh = false}) async {
+    final date = selectedDate;
+    final generation = ++_healthLoadGeneration;
     await healthSyncCoordinator.loadAndSyncHealthData(
-      date: selectedDate,
+      date: date,
       forceStepsRefresh: forceStepsRefresh,
-      isCurrentLoad: (d) => d.isSameDate(selectedDate),
+      isCurrentLoad: (d) =>
+          !_disposed &&
+          generation == _healthLoadGeneration &&
+          d.isSameDate(selectedDate),
     );
   }
 
@@ -413,8 +400,8 @@ class DiaryViewModel extends ChangeNotifier {
           _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
 
       hasEverLoggedData = await _nutritionRepo.hasAnyDiaryEntries();
-      hasWeightMeasurementForSelectedDate = await _nutritionRepo
-          .hasWeightMeasurementForDate(selectedDate);
+      hasWeightMeasurementForSelectedDate =
+          await _nutritionRepo.hasWeightMeasurementForDate(selectedDate);
 
       isLoading = false;
       notifyListeners();

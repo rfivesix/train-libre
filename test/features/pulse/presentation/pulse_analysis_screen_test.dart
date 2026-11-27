@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/pulse/data/pulse_repository.dart';
 import 'package:train_libre/features/pulse/domain/pulse_models.dart';
+import 'package:train_libre/features/pulse/domain/hrv_models.dart';
 import 'package:train_libre/features/pulse/presentation/pulse_analysis_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/profile/presentation/widgets/measurement_chart_widget.dart';
@@ -65,6 +66,67 @@ PulseAnalysisSummary _summaryWithSamples(PulseAnalysisWindow window) {
 }
 
 void main() {
+  testWidgets('shows SDNN value and chart when HRV is available', (
+    tester,
+  ) async {
+    final repository = _FakePulseRepository(
+      (window) => _summaryWithSamples(window).withHrv(
+        HrvSummary(
+          state: HrvState.available,
+          samples: [
+            HrvSample(
+              startUtc: window.startUtc.add(const Duration(hours: 1)),
+              endUtc: window.startUtc.add(const Duration(hours: 1, minutes: 1)),
+              sdnnMs: 45,
+              sourceId: 'watch',
+              nativeId: 'one',
+            ),
+            HrvSample(
+              startUtc: window.startUtc.add(const Duration(hours: 2)),
+              endUtc: window.startUtc.add(const Duration(hours: 2, minutes: 1)),
+              sdnnMs: 55,
+              sourceId: 'watch',
+              nativeId: 'two',
+            ),
+            if (window.duration > const Duration(days: 1))
+              HrvSample(
+                startUtc: window.startUtc.add(
+                  const Duration(days: 1, hours: 1),
+                ),
+                endUtc: window.startUtc.add(
+                  const Duration(days: 1, hours: 1, minutes: 1),
+                ),
+                sdnnMs: 80,
+                sourceId: 'watch',
+                nativeId: 'three',
+              ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      _wrap(
+        PulseAnalysisScreen(
+          repository: repository,
+          initialDate: DateTime(2026, 4, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('50 ms'), findsNWidgets(2));
+    expect(find.byType(MeasurementChartWidget), findsNWidgets(2));
+    MeasurementChartWidget hrvChart() => tester
+        .widgetList<MeasurementChartWidget>(find.byType(MeasurementChartWidget))
+        .singleWhere((chart) => chart.unit == 'ms');
+    expect(hrvChart().connectDataPoints, isTrue);
+    expect(hrvChart().dataPoints!.map((point) => point.value), [45, 55]);
+
+    await tester.tap(find.text('Week'));
+    await tester.pumpAndSettle();
+    expect(hrvChart().dataPoints!.map((point) => point.value), [50, 80]);
+    expect(find.text('60 ms'), findsNWidgets(2));
+  });
+
   testWidgets('renders KPI metrics and reused measurement chart', (
     tester,
   ) async {
@@ -82,8 +144,8 @@ void main() {
 
     expect(find.text('Range'), findsOneWidget);
     expect(find.text('60-80 bpm'), findsOneWidget);
-    expect(find.text('Average'), findsOneWidget);
-    expect(find.text('70 bpm'), findsWidgets);
+    expect(find.text('Average'), findsNWidgets(2));
+    expect(find.text('70 bpm'), findsNWidgets(2));
     expect(find.text('Resting'), findsOneWidget);
     expect(find.byType(MeasurementChartWidget), findsOneWidget);
   });
@@ -114,6 +176,26 @@ void main() {
 
     expect(repository.windows.last.startUtc, DateTime(2026, 4, 13).toUtc());
     expect(repository.windows.last.endUtc, DateTime(2026, 4, 20).toUtc());
+  });
+
+  testWidgets('labels a fallback resting pulse as estimated', (tester) async {
+    final repository = _FakePulseRepository(
+      (window) =>
+          _summaryWithSamples(window).copyWith(restingBpmIsEstimated: true),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        PulseAnalysisScreen(
+          repository: repository,
+          initialDate: DateTime(2026, 4, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Estimated'), findsOneWidget);
+    expect(find.text('60 bpm'), findsOneWidget);
   });
 
   testWidgets('shows disabled empty state honestly', (tester) async {

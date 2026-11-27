@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 
+import 'widgets/exercise_record_card.dart';
 import 'widgets/exercise_record_data.dart';
 
 import 'package:provider/provider.dart';
@@ -21,21 +21,20 @@ import '../domain/models/workout_log.dart';
 import 'edit_routine_screen.dart';
 import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
-import '../../pulse/application/pulse_tracking_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
+import '../../../util/time_util.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/value_summary_card.dart';
+import 'widgets/workout_date_time_chips.dart';
 import 'widgets/workout_photo_card.dart';
-import 'widgets/workout_summary_bar.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
-
-import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../widgets/common/app_button.dart';
 
@@ -75,9 +74,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   WorkoutHeartRateSummary? _heartRateSummary;
   static const ShareService _shareService = ShareService();
 
-  // Store metric values and format them at build time so unit toggles update.
-  Map<String, _ExerciseSummaryData> _summaryPerExercise = {};
-
   /// Stores new records achieved in this session per exercise.
   Map<String, List<ExerciseRecordData>> _newRecordsPerExercise = {};
 
@@ -86,7 +82,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   bool _showSyncBanner = false;
   Routine? _associatedRoutine;
   bool _isSyncing = false;
-  bool _pulseTrackingEnabled = false;
   bool _handlingClose = false;
   bool _allowClose = false;
 
@@ -125,8 +120,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         startTime: data.startTime,
         endTime: data.endTime,
       );
-      final pulseTrackingFuture = PulseTrackingService().isTrackingEnabled();
-      final Map<String, _ExerciseSummaryData> summaryMap = {};
       final Map<String, List<ExerciseRecordData>> newRecordsMap = {};
       final Map<String, Exercise> detailsMap = {};
 
@@ -151,9 +144,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         final isCardio = exercise?.isCardio ?? false;
 
         if (isCardio) {
-          double totalDist = 0;
-          int totalSeconds = 0;
-
           double sessionMaxDist = 0;
           int sessionMaxDur = 0;
           double sessionFastestPace = double.infinity;
@@ -161,9 +151,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           for (var s in sets) {
             final dist = s.distanceKm ?? 0.0;
             final dur = s.durationSeconds ?? 0;
-
-            totalDist += dist;
-            totalSeconds += dur;
 
             if (s.isCompleted == true) {
               if (dist > sessionMaxDist) sessionMaxDist = dist;
@@ -174,11 +161,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
               }
             }
           }
-          final int minutes = (totalSeconds / 60).round();
-          summaryMap[name] = _ExerciseSummaryData.cardio(
-            distanceKm: totalDist,
-            minutes: minutes,
-          );
 
           // Calculate PRs for cardio exercises
           final historicalBests = await db.getExerciseBests(
@@ -250,7 +232,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             newRecordsMap[name] = records;
           }
         } else {
-          double totalVol = 0;
           double sessionMaxWeight = 0;
           double sessionMaxVolume = 0;
           double sessionMaxEst1rm = 0;
@@ -266,7 +247,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
               reps: s.reps,
               bodyweightKg: bodyweightKg,
             );
-            totalVol += vol;
 
             if (s.isCompleted == true && s.setType != 'warmup') {
               if (w > sessionMaxWeight) sessionMaxWeight = w;
@@ -283,9 +263,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
               }
             }
           }
-          summaryMap[name] = _ExerciseSummaryData.strength(
-            totalVolumeKg: totalVol,
-          );
 
           // Calculate PRs for strength exercises
           final historicalBests = await db.getExerciseBests(
@@ -345,16 +322,13 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
 
       final heartRate = await heartRateFuture;
-      final pulseTrackingEnabled = await pulseTrackingFuture;
 
       if (mounted) {
         setState(() {
           _log = data;
-          _summaryPerExercise = summaryMap;
           _newRecordsPerExercise = newRecordsMap;
           _exerciseDetails = detailsMap;
           _heartRateSummary = heartRate;
-          _pulseTrackingEnabled = pulseTrackingEnabled;
           _associatedRoutine = associatedRoutine;
           _showSyncBanner = showSyncBanner;
           _isLoading = false;
@@ -409,15 +383,41 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
     }
 
+    final displayVolume = unitService.convertDisplayValue(
+      globalVolume,
+      UnitDimension.weight,
+    );
+    final duration = _log?.endTime?.difference(_log!.startTime) ?? Duration.zero;
+    final rawTitle = _log?.routineName?.trim();
+    final workoutTitle = _log == null
+        ? l10n.workoutSummaryTitle
+        : ((rawTitle != null && rawTitle.isNotEmpty)
+              ? rawTitle
+              : l10n.freeWorkoutTitle);
+    final double topPadding =
+        MediaQuery.of(context).padding.top +
+        kToolbarHeight +
+        DesignConstants.spacingS;
+
     return PopScope(
       canPop: !widget.requestReviewOnClose || _allowClose,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) unawaited(_handleCloseAttempt());
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: GlobalAppBar(
-          title: l10n.workoutSummaryTitle,
+          titleWidget: Tooltip(
+            message: workoutTitle,
+            triggerMode: TooltipTriggerMode.longPress,
+            child: Text(
+              workoutTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            ),
+          ),
           actions: [
             if (!_isLoading && _log != null)
               IconButton(
@@ -438,43 +438,69 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 top: false,
                 bottom: true,
                 child: Padding(
-                  padding: DesignConstants.cardPadding,
+                  padding: DesignConstants.screenPadding.copyWith(
+                    top: 0,
+                    bottom: DesignConstants.spacingM,
+                  ),
                   child: Column(
                     children: [
-                      // Exercise list and all summary content
                       Expanded(
                         child: ListView(
+                          padding: EdgeInsets.only(
+                            top: topPadding,
+                            bottom: DesignConstants.spacingM,
+                          ),
                           children: [
-                            // Overall statistics (very top, under the app bar)
-                            WorkoutSummaryBar(
-                              duration: _log!.endTime?.difference(
-                                _log!.startTime,
+                            // 3-column KPI grid (Duration, Volume, Sets)
+                            IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: ValueSummaryCard(
+                                      value: formatDuration(duration),
+                                      label: l10n.durationLabel,
+                                    ),
+                                  ),
+                                  const SizedBox(width: DesignConstants.spacingS),
+                                  Expanded(
+                                    child: ValueSummaryCard(
+                                      value:
+                                          '${displayVolume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}',
+                                      label: l10n.volumeLabel,
+                                    ),
+                                  ),
+                                  const SizedBox(width: DesignConstants.spacingS),
+                                  Expanded(
+                                    child: ValueSummaryCard(
+                                      value: '${_log!.sets.length}',
+                                      label: l10n.setsLabel,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              volume: globalVolume,
-                              sets: _log!.sets.length,
-                              progress: null,
                             ),
-                            const SizedBox(height: DesignConstants.spacingL),
+                            const SizedBox(height: DesignConstants.spacingS),
 
-                            // Routine Title, Date/Time & Notes
-                            Text(
-                              _log!.routineName != null &&
-                                      _log!.routineName!.isNotEmpty
-                                  ? _log!.routineName!
-                                  : l10n.freeWorkoutTitle,
-                              style: textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.left,
+                            // Photos above Date/Time
+                            WorkoutPhotoCard(
+                              workoutLogId: _log!.id,
+                              photoPaths: _log!.photoPaths,
+                              isEditable: true,
+                              onPhotosChanged: (updatedPaths) {
+                                setState(() {
+                                  _log = _log!.copyWith(
+                                    photoPaths: updatedPaths,
+                                  );
+                                });
+                              },
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat.yMMMMd(
-                                Localizations.localeOf(context).toString(),
-                              ).add_Hm().format(_log!.startTime),
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                            const SizedBox(height: DesignConstants.spacingS),
+
+                            // Date/Time chips & Notes
+                            WorkoutDateTimeChips(
+                              startTime: _log!.startTime,
+                              endTime: _log!.endTime,
                             ),
                             if (_log!.notes != null &&
                                 _log!.notes!.isNotEmpty) ...[
@@ -488,30 +514,13 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                 textAlign: TextAlign.left,
                               ),
                             ],
-                            const SizedBox(height: DesignConstants.spacingM),
-
-                            // Photos (under Title, Date, Time and Stats)
-                            WorkoutPhotoCard(
-                              workoutLogId: _log!.id,
-                              photoPaths: _log!.photoPaths,
-                              isEditable: true,
-                              onPhotosChanged: (updatedPaths) {
-                                setState(() {
-                                  _log = _log!.copyWith(
-                                    photoPaths: updatedPaths,
-                                  );
-                                });
-                              },
-                            ),
                             const SizedBox(height: DesignConstants.spacingL),
 
                             if (_exerciseDetails.isNotEmpty) ...[
                               _buildMuscleHeatmap(l10n),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
-                            if (_heartRateSummary != null &&
-                                (_pulseTrackingEnabled ||
-                                    _heartRateSummary!.hasData)) ...[
+                            if (_heartRateSummary?.hasData == true) ...[
                               _buildHeartRateCard(l10n, _heartRateSummary!),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
@@ -519,7 +528,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                             // NEW RECORDS SECTION
                             if (_newRecordsPerExercise.isNotEmpty) ...[
                               AppSectionHeader(
-                                title: l10n.workoutSummaryNewRecordsTitle,
+                                title: l10n.workoutRecordsTitle,
                                 padding: EdgeInsets.zero,
                                 action: AlgorithmInfoButton(
                                   title: l10n.estimatedOneRepMaxInfoTitle,
@@ -536,68 +545,27 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               ),
                               const SizedBox(height: DesignConstants.spacingS),
                               ..._newRecordsPerExercise.entries.map((entry) {
-                                return SummaryCard(
-                                  child: ListTile(
-                                    leading: const Icon(
-                                      LucideIcons.trophy,
-                                      color: Colors.amber,
-                                    ),
-                                    title: Text(
+                                return ExerciseRecordCard(
+                                  exerciseName:
                                       _exerciseDetails[entry.key]
-                                              ?.getLocalizedName(context) ??
-                                          entry.key,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      entry.value
-                                          .map(
-                                            (record) =>
-                                                record.format(unitService),
-                                          )
-                                          .join(', '),
-                                    ),
-                                  ),
+                                          ?.getLocalizedName(context) ??
+                                      entry.key,
+                                  records: entry.value,
+                                  unitService: unitService,
                                 );
                               }),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
 
-                            AppSectionHeader(
-                              title: l10n.workoutSummaryExerciseOverview,
-                              padding: EdgeInsets.zero,
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            ..._summaryPerExercise.entries.map((entry) {
-                              return SummaryCard(
-                                child: ListTile(
-                                  title: Text(
-                                    _exerciseDetails[entry.key]
-                                            ?.getLocalizedName(context) ??
-                                        entry.key,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  trailing: Text(
-                                    entry.value.format(unitService),
-                                    style: textTheme.bodyLarge,
-                                  ),
-                                ),
-                              );
-                            }),
-
                             // Update Routine Banner at the very bottom of the screen
                             if (_showSyncBanner &&
                                 _associatedRoutine != null) ...[
-                              const SizedBox(height: DesignConstants.spacingL),
                               _buildSyncBanner(colorScheme, textTheme),
                             ],
                           ],
                         ),
                       ),
-                      const SizedBox(height: DesignConstants.spacingXL),
+                      const SizedBox(height: DesignConstants.spacingM),
 
                       // Fertig-Button
                       SizedBox(
@@ -740,7 +708,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppSectionHeader(
-          title: l10n.analyticsRecentDistributionHeatmap,
+          title: l10n.muscleSplitLabel,
           padding: EdgeInsets.zero,
         ),
         const SizedBox(height: DesignConstants.spacingM),
@@ -821,105 +789,54 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   Widget _buildSyncBanner(ColorScheme colorScheme, TextTheme textTheme) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
-      child: Card(
+      child: SummaryCard(
         key: const ValueKey('sync_routine_banner'),
-        elevation: 4,
-        shadowColor: colorScheme.primary.withValues(alpha: 0.2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.primary.withValues(alpha: 0.08),
-                colorScheme.secondary.withValues(alpha: 0.03),
+        margin: EdgeInsets.zero,
+        borderColor: colorScheme.primary.withValues(alpha: isDark ? 0.35 : 0.25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.syncRoutineTitle,
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingXS),
+            Text(
+              l10n.syncRoutineBody(_associatedRoutine!.name),
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showSyncBanner = false;
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: colorScheme.outline,
+                  ),
+                  child: Text(l10n.discard),
+                ),
+                const SizedBox(width: DesignConstants.spacingS),
+                AppButton.primary(
+                  onPressed: _isSyncing ? null : _syncRoutine,
+                  label: l10n.updateNow,
+                  tooltip: l10n.updateNow,
+                ),
               ],
             ),
-          ),
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(DesignConstants.spacingS),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.refresh_cw,
-                      color: colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.syncRoutineTitle,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.syncRoutineSubtitle,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              Text(
-                l10n.syncRoutineBody(_associatedRoutine!.name),
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.8),
-                ),
-              ),
-              const SizedBox(height: DesignConstants.spacingL),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _showSyncBanner = false;
-                      });
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.outline,
-                    ),
-                    child: Text(l10n.discard),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  AppButton.primary(
-                    onPressed: _isSyncing ? null : _syncRoutine,
-                    label: l10n.updateNow,
-                    tooltip: l10n.updateNow,
-                  ),
-                ],
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -986,48 +903,5 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         });
       }
     }
-  }
-}
-
-class _ExerciseSummaryData {
-  final bool isCardio;
-  final double? distanceKm;
-  final int? minutes;
-  final double? totalVolumeKg;
-
-  const _ExerciseSummaryData._({
-    required this.isCardio,
-    this.distanceKm,
-    this.minutes,
-    this.totalVolumeKg,
-  });
-
-  factory _ExerciseSummaryData.cardio({
-    required double distanceKm,
-    required int minutes,
-  }) {
-    return _ExerciseSummaryData._(
-      isCardio: true,
-      distanceKm: distanceKm,
-      minutes: minutes,
-    );
-  }
-
-  factory _ExerciseSummaryData.strength({required double totalVolumeKg}) {
-    return _ExerciseSummaryData._(
-      isCardio: false,
-      totalVolumeKg: totalVolumeKg,
-    );
-  }
-
-  String format(UnitService unitService) {
-    if (isCardio) {
-      return '${(distanceKm ?? 0).toStringAsFixed(1).replaceAll('.0', '')} km | ${minutes ?? 0} min';
-    }
-    final volume = unitService.convertDisplayValue(
-      totalVolumeKg ?? 0,
-      UnitDimension.weight,
-    );
-    return '${volume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}';
   }
 }

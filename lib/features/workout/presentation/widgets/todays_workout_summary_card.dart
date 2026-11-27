@@ -1,6 +1,6 @@
 // lib/widgets/todays_workout_summary_card.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../util/design_constants.dart';
 

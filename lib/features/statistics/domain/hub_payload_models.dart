@@ -10,6 +10,7 @@ class StatisticsHubPayload {
   final TrainingStatsPayload trainingStats;
   final RecoveryAnalyticsPayload recoveryAnalytics;
   final List<Map<String, dynamic>> notableImprovements;
+  final Map<DateTime, int> workoutDayCounts;
 
   const StatisticsHubPayload({
     required this.recentPrs,
@@ -20,5 +21,6 @@ class StatisticsHubPayload {
     required this.trainingStats,
     required this.recoveryAnalytics,
     required this.notableImprovements,
+    this.workoutDayCounts = const {},
   });
 }

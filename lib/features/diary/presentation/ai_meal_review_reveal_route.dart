@@ -2,7 +2,7 @@
 
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Slow-motion debugging switch:
 /// Set to 10.0 for 10x slow-motion. Set back to 1.0 for normal speed.

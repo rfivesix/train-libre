@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -7,6 +8,15 @@ import 'app_localizations.dart';
 /// The translations for Japanese (`ja`).
 class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
+
+  @override
+  String get settingsWorkoutDisplay => 'ワークアウト表示';
+
+  @override
+  String get settingsShowWorkoutE1rm => '推定1回最大重量を表示';
+
+  @override
+  String get settingsShowWorkoutE1rmSubtitle => 'セットごとの推定1回最大重量とセッション比較を表示します。';
 
   @override
   String get selectDateTitle => '日付を選択';
@@ -2747,7 +2757,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingFeatureWorkoutTitle => 'ワークアウトトラッカー';
 
   @override
-  String get onboardingFeatureWorkoutBody => 'セット（RIR/RPE）を記録し、筋肉の回復を追跡します。';
+  String get onboardingFeatureWorkoutBody => 'セット（RPE）を記録し、筋肉の回復を追跡します。';
 
   @override
   String get onboardingFeatureTdeeTitle => '適応型TDEE';
@@ -3212,13 +3222,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  ) {
     return 'デルタ: $kcalDelta kcal · ${proteinDelta}g タンパク質 · ${carbsDelta}g 炭水化物 · ${fatDelta}g 脂肪';
   }
 
   @override
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
@@ -3230,7 +3246,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount) {
+    int unmatchedCount,
+    int matchedCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
@@ -3533,7 +3551,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recoveryDetailForecast => '見通し';
 
   @override
-  String get recoveryDetailRirData => 'RIRデータ';
+  String get recoveryDetailRirData => 'RPEデータ';
 
   @override
   String recoveryCompactHours(int hours) {
@@ -3552,7 +3570,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String recoveryRirCoverage(int covered, int total) {
-    return 'RIRを記録したセット: $covered/$total';
+    return 'RPEを記録したセット: $covered/$total';
   }
 
   @override
@@ -3778,6 +3796,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get workoutSummaryNewRecordsTitle => '新しい記録';
+
+  @override
+  String get workoutRecordsTitle => '記録';
 
   @override
   String get allTimeRecordsLabel => '歴代記録';
@@ -5063,7 +5084,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays) {
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  ) {
     return 'データ基準: $windowDays 日、$weightLogs 体重ログ、$intakeDays 摂取日';
   }
 
@@ -5247,6 +5271,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthSettingsStepUnavailable => '歩数データを利用できません';
 
   @override
+  String get healthSettingsSyncPulse => '心拍数を今すぐ同期';
+
+  @override
+  String healthSettingsPulseSyncResult(int count) {
+    return '過去1年間の心拍数データを$count件読み込みました';
+  }
+
+  @override
   String get healthSettingsSyncSteps => '歩数を今すぐ同期';
 
   @override
@@ -5330,11 +5362,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pulseRestingLabel => '休憩中';
 
   @override
+  String get pulseEstimatedRestingLabel => '安静時心拍数（推定）';
+
+  @override
+  String get pulseEstimateLabel => '推定';
+
+  @override
   String get pulseInsufficientData => '信頼できるグラフを作成するにはパルス サンプルが少なすぎます。';
 
   @override
   String get pulseMethodNote =>
-      '平均パルスは時間重み付けされます。安静時脈拍は、選択した期間のサンプルの下位 20% からの控えめな推定値です。';
+      'Appleヘルスケアまたはヘルスコネクトに安静時心拍数がある場合は、その値を表示します。記録がない場合は、心拍数の測定値から推定します。';
 
   @override
   String pulseSampleCount(int count) {
@@ -5387,11 +5425,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Apple Health または Health Connect を開くと、Train Libre が脈拍サンプルを読み取ることができます。';
+      'ヘルスコネクトで心拍数と安静時心拍数へのアクセスを許可してください。';
 
   @override
-  String get pulseSettingsAnalysisSubtitle =>
-      '範囲、時間加重平均、および控えめな安静時脈拍推定値を表示します。医学的な診断ではありません。';
+  String get pulseSettingsAnalysisSubtitle => '心拍数の範囲、平均、安静時心拍数を表示します。';
 
   @override
   String get pulseSettingsPermissionGranted => '心拍数へのアクセスの準備ができました。';
@@ -5987,28 +6024,32 @@ class AppLocalizationsJa extends AppLocalizations {
       'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
-  String get infoSleepTitle => '睡眠の質 (SHS v3.5)';
+  String get infoSleepTitle => '睡眠スコア';
 
   @override
-  String get infoSleepExplanation => '量、継続性、深さ、タイミング、毎日の規則性から総合的な睡眠指数を計算します。';
+  String get infoSleepExplanation => '利用可能なデータに基づく推定値です。';
 
   @override
   String get infoSleepKeyPoints =>
-      '• 加重合計を使用して 5 つの臨床的側面を集計します。\n• ウェアラブルが特定の段階や効率データを提供しない場合、要件を自動的にスケールします。\n• 重要なドメイン (REM やディープ スリープなど) が侵害された場合に、合計スコアを制限するソフト キャップ乗数によってユーザーを保護します。';
+      '睡眠時間、連続性、深い睡眠、REM、規則性を使用します。\n欠損項目は除外されます。\n睡眠段階は推定値です。';
 
   @override
-  String get infoSleepTechnicalTitle => '加重ベースラインと連続ソフトキャップ';
+  String get infoSleepTechnicalTitle => '計算方法';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      '加重線形和を使用して 5 つのプライマリ ドメインを集計します: 期間 (30%)、継続性 (20%)、アーキテクチャ (25%)、タイミング (15%)、および規則性 (10%)。臨床領域が侵害された場合に誤解を招く平均値を防ぐため、睡眠段階または概日タイミングで重大なボトルネックが検出された場合、最終スコアは低下します。';
+      '睡眠時間45%、連続性25%、深い睡眠10%、REM 10%、規則性10%。短い睡眠時間はスコアの上限となる場合があります。臨床測定値ではありません。';
 
   @override
   String get tdeeRecalculationNotificationTitle => 'TDEEの再計算';
 
   @override
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat) {
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  ) {
     return '新しい 1 日の目標: $calories kcal | ${protein}g プロテイン | ${carbs}g 炭水化物 | ${fat}g 脂肪';
   }
 
@@ -7293,7 +7334,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get experienceLevelProDescription =>
-      '限界までの余力を正確に把握できる経験者向け：RIR (余力回数) による強度管理や有酸素運動の強度ゾーンを追加します。';
+      '運動強度を正確に判断できる経験者向け：RPEと有酸素運動の強度ゾーンを追加します。';
 
   @override
   String get diaryWeightLabel => '体重';
@@ -7929,7 +7970,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String weeklyReviewCaloriesComparison(
-      String current, String recommended, String change) {
+    String current,
+    String recommended,
+    String change,
+  ) {
     return '1日 $current → $recommended kcal（$change）';
   }
 
@@ -8385,7 +8429,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String weeklyGoalReviewNotificationDetailedBody(
-      String goalTitle, int calories) {
+    String goalTitle,
+    int calories,
+  ) {
     return '$goalTitle：更新後の推奨は1日$calories kcalです。詳しい根拠はレビューで確認できます。';
   }
 
@@ -9047,4 +9093,419 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiAssistantIntroAboutRowSubtitle => '新しいAIチャットの紹介をいつでも再表示できます。';
+
+  @override
+  String get aiFailureTitle => '分析できませんでした';
+
+  @override
+  String get aiFailureEmptyTitle => '食品を認識できませんでした';
+
+  @override
+  String get aiFailureTimeoutTitle => 'リクエストに時間がかかりすぎています';
+
+  @override
+  String get aiFailureUnavailableTitle => 'AIを利用できません';
+
+  @override
+  String get aiFailureNetworkTitle => '接続できませんでした';
+
+  @override
+  String get aiFailureSetupTitle => 'AIの設定が必要です';
+
+  @override
+  String get aiFailureRateTitle => 'リクエストの上限に達しました';
+
+  @override
+  String get aiFailureGenericBody => 'AIの応答を処理できませんでした。再試行するか、別のモデルを選んでください。';
+
+  @override
+  String get aiFailureEmptyBody => '食品が返されませんでした。画像や説明が不明瞭か、モデルが誤った可能性があります。';
+
+  @override
+  String get aiFailureTimeoutBody =>
+      '設定された待機時間を超えました。AI設定で延長するか、別のモデルを試してください。';
+
+  @override
+  String get aiFailureNetworkBody => 'AIプロバイダーに接続できませんでした。接続またはサーバーを確認してください。';
+
+  @override
+  String get aiFailureSetupBody => 'AI設定でプロバイダーと認証情報を確認してください。';
+
+  @override
+  String get aiFailureRateBody => '少し待ってから再試行してください。';
+
+  @override
+  String get aiFailureUnavailableBody =>
+      'Apple Intelligenceが有効で利用可能か確認するか、別のプロバイダーを選んでください。';
+
+  @override
+  String get aiFailureAppleHint =>
+      'Apple Intelligenceは食事を正確に認識できない場合があります。別のモデルで改善する可能性があります。';
+
+  @override
+  String get aiFailureEdit => '入力を編集';
+
+  @override
+  String get aiFailureSettings => 'AI設定を開く';
+
+  @override
+  String get aiFailureSlowHint => 'デバイスやモデルによっては時間がかかることがあります。';
+
+  @override
+  String get aiFailureUnsupportedImage =>
+      'このデバイスまたはiOSバージョンではApple Intelligenceに写真を使用できません。食事を文章で説明するか、別のプロバイダーを選んでください。';
+
+  @override
+  String get aiFailureAppleTimeoutBody =>
+      '設定された待機時間を超えました。AI設定で延長するか、別のプロバイダーを選んでください。';
+
+  @override
+  String get glassCustomizationTitle => 'ガラスの外観';
+
+  @override
+  String get glassTint => 'ガラスの色合い';
+
+  @override
+  String get glassTintClear => '透明';
+
+  @override
+  String get glassTintTinted => '色付き';
+
+  @override
+  String get glassBlur => 'ぼかし';
+
+  @override
+  String get glassBlurOff => 'オフ';
+
+  @override
+  String get glassOpacity => '不透明度';
+
+  @override
+  String get glassOpacityClear => '0%（透明）';
+
+  @override
+  String get glassReset => 'リセット';
+
+  @override
+  String get glassCustomizationDescription => 'ガラスの外観を透明から色付きまで調整します。';
+
+  @override
+  String get sessionMusclesTitle => 'このセッションで鍛える筋肉';
+
+  @override
+  String get sessionMusclesWorked => 'トレーニング済み';
+
+  @override
+  String get sessionMusclesRemaining => 'これから';
+
+  @override
+  String get discardWorkoutAction => 'ワークアウトを破棄';
+
+  @override
+  String get sleepDashboardScore => '睡眠スコア';
+
+  @override
+  String get sleepDashboardGoal => '睡眠目標';
+
+  @override
+  String get sleepDashboardGoalEight => '8時間の目標';
+
+  @override
+  String sleepDashboardSevenDays(int count) {
+    return '過去$count日間';
+  }
+
+  @override
+  String get sleepDashboardRecordedNights => '記録された夜';
+
+  @override
+  String get sleepDashboardStageEstimate => '睡眠段階は推定値です。';
+
+  @override
+  String get sleepDashboardStageHint => 'グラフをタップして睡眠段階を確認します。';
+
+  @override
+  String get sleepDashboardEfficiency => '効率';
+
+  @override
+  String get sleepDashboardStart => '開始';
+
+  @override
+  String get sleepDashboardEnd => '終了';
+
+  @override
+  String get sleepDashboardEmpty => 'この日の睡眠データはありません。';
+
+  @override
+  String get sleepDashboardNightHeartRate => '睡眠中の心拍数';
+
+  @override
+  String get sleepDashboardNightHrv => '睡眠中のHRV';
+
+  @override
+  String get sleepDashboardSamples => '利用可能な測定値';
+
+  @override
+  String get sleepDashboardContributors => 'スコアの内訳';
+
+  @override
+  String get sleepDashboardInsufficient => 'データ不足';
+
+  @override
+  String get sleepDashboardAsleep => '睡眠時間';
+
+  @override
+  String get hrvTitle => '心拍変動';
+
+  @override
+  String get hrvUnavailable => 'HRVデータがありません';
+
+  @override
+  String get hrvMethodNote => 'Appleヘルスケアの利用可能なSDNN測定値の平均（ミリ秒）。';
+
+  @override
+  String get hrvNoData => 'HRVデータがありません';
+
+  @override
+  String get sleepDashboardDebtNote => '記録された夜のみ。睡眠負債の生理学的な指標ではありません。';
+
+  @override
+  String get sleepDashboardEstimate => '推定値 · データ不足';
+
+  @override
+  String get sleepDashboardDurationCap => '睡眠時間によりスコアが制限されます';
+
+  @override
+  String get sleepDashboardHrvError => 'HRV測定値を読み込めませんでした。';
+
+  @override
+  String get pulseSettingsEnableSubtitleIos =>
+      '心拍数分析を有効にすると、Appleヘルスケアから心拍数、安静時心拍数、HRVを読み取ります。';
+
+  @override
+  String get pulseSettingsPermissionSubtitleIos =>
+      'Appleヘルスケアで心拍数、安静時心拍数、HRVへのアクセスを許可してください。';
+
+  @override
+  String get pulseHealthStatusIos =>
+      'Appleヘルスケアは読み取り権限を開示しません。値がない場合はヘルスケアでアクセスを確認してください。';
+
+  @override
+  String get sleepDashboardTonightDelta => '今夜の目標との差';
+
+  @override
+  String get sleepDashboardMinimum => '最低';
+
+  @override
+  String get sleepDashboardAverage => '平均';
+
+  @override
+  String get sleepDashboardPersonalBaseline => '個人の基準値（過去30日間）';
+
+  @override
+  String get sleepDashboardBaselineUnavailable => '比較可能な夜が不足しています';
+
+  @override
+  String get hrvQueryFailed => 'HRVを読み込めませんでした。もう一度お試しください。';
+
+  @override
+  String get statisticsOverviewTitle => '概要';
+
+  @override
+  String get statisticsOverviewWorkouts => 'ワークアウト';
+
+  @override
+  String get statisticsOverviewAllTime => '全期間';
+
+  @override
+  String get statisticsOverview30Days => '過去30日間';
+
+  @override
+  String get statisticsOverviewWeightChange => '体重の変化';
+
+  @override
+  String get statisticsOverviewVolume => 'ボリューム';
+
+  @override
+  String get statisticsOverviewSets => 'セット';
+
+  @override
+  String get statisticsOverviewCalories => 'カロリー / 日';
+
+  @override
+  String get statisticsOverviewProtein => 'たんぱく質 / 日';
+
+  @override
+  String get statisticsOverviewTrackedDays => '30日間・記録した日';
+
+  @override
+  String statisticsOverviewSince(String date) {
+    return '$dateから';
+  }
+
+  @override
+  String get statisticsEmptySteps => '過去7日間の歩数の記録はありません。';
+
+  @override
+  String get statisticsEmptySleep => '過去7日間の睡眠の記録はありません。';
+
+  @override
+  String get statisticsEmptyPulse => '過去7日間の脈拍データはありません。';
+
+  @override
+  String get statisticsEmptyTraining => 'ワークアウトを完了するとトレーニングのリズムが表示されます。';
+
+  @override
+  String get statisticsEmptyRecords => '過去30日間の新記録はありません。';
+
+  @override
+  String get statisticsEmptyMuscles => '筋力トレーニングのセットを完了すると筋肉群が表示されます。';
+
+  @override
+  String get statisticsEmptyBody => '体重や栄養を記録すると傾向が表示されます。';
+
+  @override
+  String get statisticsEmptyNutrition => '過去7日間の栄養の記録はありません。';
+
+  @override
+  String get analyticsDailyBreakdown => '日別の推移';
+
+  @override
+  String get analyticsCarbsShort => '炭水化物';
+
+  @override
+  String get analyticsCalorieTargetLine => '目標カロリー';
+
+  @override
+  String get analyticsWeightSlopePerWeek => '週間変化率';
+
+  @override
+  String analyticsSlopePerWeekUnit(String value, String unit) {
+    return '$value $unit/週';
+  }
+
+  @override
+  String analyticsThisWeekSummary(int count) {
+    return '今週: $count';
+  }
+
+  @override
+  String analyticsTrainingDaysCompact(String days) {
+    return '活動日: $days日/週';
+  }
+
+  @override
+  String get analyticsAtLeast2PerWeekCompact => '週2回以上';
+
+  @override
+  String get analyticsConsecutiveWeeks => '連続週数';
+
+  @override
+  String get analyticsSelectWorkout => 'ワークアウトを選択';
+
+  @override
+  String get analyticsNoWorkoutsOnDay => 'この日のワークアウトはありません';
+
+  @override
+  String get analyticsPrImprovementsWindowHint => '自己ベストからの向上';
+
+  @override
+  String get analyticsAllTimeBadge => '全期間';
+
+  @override
+  String get stepsModuleGoalProgress => '目標達成率';
+
+  @override
+  String get analyticsWaterTargetLabel => '1日の目標';
+
+  @override
+  String get analyticsWaterLoggedDays => '記録日数';
+
+  @override
+  String get statisticsOverviewTotalWorkouts => '合計ワークアウト';
+
+  @override
+  String get statisticsOverviewWorkouts30d => 'ワークアウト (30日)';
+
+  @override
+  String sleepHubNightsLogged(int count) {
+    return '$count晩記録済み';
+  }
+
+  @override
+  String statisticsMicronutrientsHubSummary(int days, int count) {
+    return '$days日記録 · $count栄養素';
+  }
+
+  @override
+  String get statisticsResetDefaults => 'デフォルトに戻す';
+
+  @override
+  String statisticsBestPerformancesCount(int count) {
+    return '$count件の新記録';
+  }
+
+  @override
+  String get diaryNutritionDayOptions => 'この日の食事記録のオプション';
+
+  @override
+  String get diaryMarkNutritionDayIncomplete => '未完了にする';
+
+  @override
+  String get diaryIncludeNutritionDay => '統計に再度含める';
+
+  @override
+  String get diaryIncompleteDayTitle => '記録が不完全な日';
+
+  @override
+  String get diaryIncompleteDayDetail => '栄養統計の対象外';
+
+  @override
+  String get diaryNutritionDayIncompleteStatus => '未完了 · 栄養統計の対象外';
+
+  @override
+  String nutritionStatisticsDayCoverage(int included, int incomplete) {
+    return '$included日を集計 · $incomplete日が未完了';
+  }
+
+  @override
+  String get rpeEffortTitle => '自覚的運動強度';
+
+  @override
+  String get rpeQuestion => 'このセットのきつさは？';
+
+  @override
+  String get rpeNoReps => 'もう反復できない';
+
+  @override
+  String rpeRepsLeft(Object count) {
+    return 'あと約$count回可能';
+  }
+
+  @override
+  String get rpeFourPlus => 'あと4回以上可能';
+
+  @override
+  String get rpeClear => 'クリア';
+
+  @override
+  String get rpeSave => '保存';
+
+  @override
+  String get rpeHelpTitle => 'RPEとは？';
+
+  @override
+  String get rpeHelpBody => 'RPEはセットのきつさを示します。あと何回できたかを推定します。';
+
+  @override
+  String get rpeInvalid => 'RPEを6から10まで0.5刻みで入力してください。';
+
+  @override
+  String get rpeMaximumEffort => '最大の努力';
+
+  @override
+  String get rpeHardEffort => 'きつい';
+
+  @override
+  String get rpeModerateEffort => '中程度';
 }

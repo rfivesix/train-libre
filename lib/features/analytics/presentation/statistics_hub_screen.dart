@@ -4,21 +4,19 @@ import 'dart:async';
 
 import 'statistics_hub_preferences.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
-import '../../../widgets/common/platform_adaptive_pickers.dart'
-    as adaptive_pickers;
 import '../../statistics/data/statistics_hub_data_adapter.dart';
 import '../../statistics/domain/body_nutrition_analytics_models.dart';
 import '../../statistics/domain/hub_payload_models.dart';
+import '../../statistics/presentation/statistics_formatter.dart';
 import '../../pulse/data/pulse_repository.dart';
 import '../../sleep/data/sleep_hub_summary_repository.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
@@ -40,9 +38,9 @@ import '../../../services/health/steps_sync_service.dart';
 import 'statistics_hub_view_model.dart';
 import '../../../util/timeframe_label_formatter.dart';
 
-import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 // Standalone widget imports
 import 'widgets/analytics_card_base.dart';
+import 'widgets/statistics_overview_card.dart';
 import 'widgets/body_metrics_section_card.dart';
 import 'widgets/consistency_section_card.dart';
 import 'widgets/muscle_volume_section_card.dart';
@@ -58,10 +56,10 @@ import 'macro_statistics_screen.dart';
 class StatisticsHubScreen extends StatefulWidget {
   const StatisticsHubScreen({
     super.key,
-    StatisticsHubDataAdapter? hubDataAdapter,
-    StepsAggregationRepository? stepsRepository,
-    SleepHubSummaryRepository? sleepSummaryRepository,
-    PulseAnalysisRepository? pulseRepository,
+    this._hubDataAdapter,
+    this._stepsRepository,
+    this._sleepSummaryRepository,
+    this._pulseRepository,
     this.fetchHubAnalytics,
     this.importSleepIfDue,
     this.isSleepTrackingEnabled,
@@ -71,10 +69,7 @@ class StatisticsHubScreen extends StatefulWidget {
     this.initialBlockType = TimeframeBlock.week,
     this.initialAnchorDate,
     this.initialIsRolling = true,
-  }) : _hubDataAdapter = hubDataAdapter,
-       _stepsRepository = stepsRepository,
-       _sleepSummaryRepository = sleepSummaryRepository,
-       _pulseRepository = pulseRepository;
+  });
 
   final StatisticsHubDataAdapter? _hubDataAdapter;
   final StepsAggregationRepository? _stepsRepository;
@@ -105,7 +100,12 @@ class StatisticsHubScreen extends StatefulWidget {
 }
 
 class StatisticsHubScreenState extends State<StatisticsHubScreen> {
+  static const _overviewCacheTtl = Duration(seconds: 30);
+
   late StatisticsHubViewModel _viewModel;
+  int _overviewRefreshToken = 0;
+  DateTime _overviewLastRefreshedAt = DateTime.now();
+  bool _overviewIsDirty = false;
   List<StatisticsHubCardId> _pinnedCards =
       StatisticsHubPreferences.defaultPinnedCards;
 
@@ -145,9 +145,9 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
             if (providerRaw == 'fitbit') return l10n.statisticsProviderFitbit;
             return l10n.statisticsProviderLocal;
           },
-      initialBlockType: widget.initialBlockType,
-      initialAnchorDate: widget.initialAnchorDate,
-      initialIsRolling: widget.initialIsRolling,
+      initialBlockType: TimeframeBlock.week,
+      initialAnchorDate: DateTime.now(),
+      initialIsRolling: true,
     );
     unawaited(
       StatisticsHubPreferences.loadPinnedCards().then((cards) {
@@ -164,28 +164,26 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
 
   void refresh({bool force = false}) {
     _viewModel.loadHubAnalytics(force: force);
+    final now = DateTime.now();
+    if (!force &&
+        !_overviewIsDirty &&
+        now.difference(_overviewLastRefreshedAt) < _overviewCacheTtl) {
+      return;
+    }
+
+    _overviewIsDirty = false;
+    _overviewLastRefreshedAt = now;
+    setState(() => _overviewRefreshToken++);
   }
 
   void markDirty() {
     _viewModel.markDirty();
+    _overviewIsDirty = true;
   }
 
   Future<void> reloadPinnedCards() async {
     final cards = await StatisticsHubPreferences.loadPinnedCards();
     if (mounted) setState(() => _pinnedCards = cards);
-  }
-
-  Widget buildPinnedTimeframeFilter(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _viewModel,
-      builder: (context, _) {
-        final l10n = AppLocalizations.of(context)!;
-        return _StatisticsHubScreenView(
-          showAllData: widget.showAllData,
-          pinnedCards: _pinnedCards,
-        )._buildTimeframeFilter(context, _viewModel, l10n);
-      },
-    );
   }
 
   @override
@@ -195,6 +193,7 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
       child: _StatisticsHubScreenView(
         showAllData: widget.showAllData,
         pinnedCards: _pinnedCards,
+        overviewRefreshToken: _overviewRefreshToken,
       ),
     );
   }
@@ -204,67 +203,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
   const _StatisticsHubScreenView({
     required this.showAllData,
     required this.pinnedCards,
+    this.overviewRefreshToken = 0,
   });
 
   final bool showAllData;
   final List<StatisticsHubCardId> pinnedCards;
-
-  static const _hubBlocks = [
-    TimeframeBlock.week,
-    TimeframeBlock.month,
-    TimeframeBlock.threeMonths,
-    TimeframeBlock.sixMonths,
-    TimeframeBlock.year,
-    TimeframeBlock.maxBlock,
-  ];
-
-  Widget _buildTimeframeFilter(
-    BuildContext context,
-    StatisticsHubViewModel viewModel,
-    AppLocalizations l10n,
-  ) {
-    return TimeRangeFilter(
-      ranges: [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-        l10n.filter1YearShort,
-        l10n.filterMax,
-      ],
-      selectedIndex: _hubBlocks.indexOf(viewModel.activeBlockType),
-      onSelected: (index) => viewModel.activeBlockType = _hubBlocks[index],
-      onPrevious: viewModel.activeBlockType == TimeframeBlock.maxBlock
-          ? null
-          : () => viewModel.shiftTimeframe(true),
-      onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock
-          ? null
-          : () => viewModel.shiftTimeframe(false),
-      displayDate: _unifiedRangeLabel(viewModel, l10n),
-      onTapDateDisplay: () async {
-        final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
-          context: context,
-          activeBlock: viewModel.activeBlockType,
-          initialAnchor: viewModel.anchorDate,
-          initialIsRolling: viewModel.isRolling,
-          earliestAvailableDay: DateTime(2020),
-        );
-        if (selected != null) viewModel.setTimeframeSelection(selected);
-      },
-      nextEnabled:
-          viewModel.activeBlockType != TimeframeBlock.maxBlock &&
-          (viewModel.isRolling ||
-              !viewModel.activeBlockType
-                  .getBounds(viewModel.anchorDate, DateTime(2020))
-                  .start
-                  .isAtSameMomentAs(
-                    viewModel.activeBlockType
-                        .getBounds(DateTime.now(), DateTime(2020))
-                        .start,
-                  )),
-      showDateNavigation: viewModel.activeBlockType != TimeframeBlock.maxBlock,
-    );
-  }
+  final int overviewRefreshToken;
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +219,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     final finalPadding = EdgeInsets.only(
       top:
           (showAllData
-              ? MediaQuery.paddingOf(context).top + kToolbarHeight + 56
+              ? MediaQuery.paddingOf(context).top + kToolbarHeight
               : MediaQuery.paddingOf(context).top) +
           DesignConstants.cardPadding.top,
       left: 0,
@@ -289,10 +233,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
           : Colors.transparent,
       extendBodyBehindAppBar: showAllData,
       appBar: showAllData
-          ? GlobalAppBar(
-              title: l10n.statisticsAllDataTitle,
-              bottom: _buildTimeframeFilter(context, viewModel, l10n),
-            )
+          ? GlobalAppBar(title: l10n.statisticsAllDataTitle)
           : null,
       body: CustomScrollView(
         slivers: [
@@ -300,7 +241,18 @@ class _StatisticsHubScreenView extends StatelessWidget {
             padding: finalPadding,
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildHubCards(context, viewModel, l10n),
+                if (!showAllData)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.cardPaddingInternal,
+                    ),
+                    child: StatisticsOverviewCard(
+                      refreshToken: overviewRefreshToken,
+                    ),
+                  ),
+                if (!showAllData)
+                  const SizedBox(height: DesignConstants.spacingS),
+                ..._buildHubCards(context, viewModel, l10n),
               ]),
             ),
           ),
@@ -317,7 +269,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     _ => l10n.nutrition,
   };
 
-  Widget _buildHubCards(
+  List<Widget> _buildHubCards(
     BuildContext context,
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
@@ -375,20 +327,16 @@ class _StatisticsHubScreenView extends StatelessWidget {
     }
 
     children.add(const BottomContentSpacer());
-    Widget content = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.cardPaddingInternal,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-
-    if (viewModel.isSkeletonizing || viewModel.isActiveGap) {
-      content = Skeletonizer(enabled: true, child: content);
-    }
-    return content;
+    return children
+        .map(
+          (child) => Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal,
+            ),
+            child: child,
+          ),
+        )
+        .toList();
   }
 
   Widget _buildHubCard(
@@ -405,7 +353,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       case StatisticsHubCardId.pulse:
         return _buildPulseSection(context, viewModel, l10n);
       case StatisticsHubCardId.recoveryReadiness:
-        final chipText = _unifiedRangeLabel(viewModel, l10n);
+        final String? chipText = null;
         return MorphSourceScope(
           builder: (context, setHidden) => Builder(
             builder: (cardContext) => RecoverySectionCard(
@@ -431,7 +379,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       case StatisticsHubCardId.bodyNutrition:
         return _buildBodyMetricsSection(context, viewModel, l10n);
       case StatisticsHubCardId.bodyMeasurements:
-        return _buildMeasurementsShortcutCard(context, l10n);
+        return _buildMeasurementsShortcutCard(context, viewModel, l10n);
       case StatisticsHubCardId.consistency:
         return _buildConsistencySection(context, viewModel, l10n);
       case StatisticsHubCardId.performance:
@@ -442,17 +390,50 @@ class _StatisticsHubScreenView extends StatelessWidget {
         return _buildMacroSection(context, viewModel, l10n);
       case StatisticsHubCardId.water:
         return WaterSectionCard(
-          block: viewModel.activeBlockType,
-          anchor: viewModel.anchorDate,
-          isRolling: viewModel.isRolling,
+          block: TimeframeBlock.week,
+          anchor: DateTime.now(),
+          isRolling: true,
         );
       case StatisticsHubCardId.micronutrients:
         return MicronutrientSectionCard(
-          block: viewModel.activeBlockType,
-          anchor: viewModel.anchorDate,
-          isRolling: viewModel.isRolling,
+          block: TimeframeBlock.week,
+          anchor: DateTime.now(),
+          isRolling: true,
         );
     }
+  }
+
+  Widget _emptyCard(
+    BuildContext context,
+    String title,
+    String message,
+    Widget Function() destination, {
+    String? chipText,
+  }) {
+    final theme = Theme.of(context);
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => destination())),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnalyticsCardBase.buildHeaderWithChevron(
+            context,
+            label: title,
+            chipText: chipText,
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(
+            message,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAllDataShortcut(
@@ -512,35 +493,49 @@ class _StatisticsHubScreenView extends StatelessWidget {
         (range?.dailyTotals.any((bucket) => bucket.steps > 0) ?? false);
     final subtitleRange = _unifiedRangeLabel(viewModel, l10n);
     final stepsTitle = l10n.steps;
+    final isEmpty = !hasData && !section.isLoading && !section.hasError;
 
-    final displayRange = hasData
-        ? range!
-        : RangeStepsAggregation(
-            start: DateTime.now().subtract(const Duration(days: 7)),
-            end: DateTime.now(),
-            dailyTotals: List.generate(7, (i) {
-              return StepsBucket(
-                start: DateTime.now().subtract(Duration(days: 7 - i)),
-                steps: showAllData
-                    ? 0
-                    : [6200, 8100, 7300, 5400, 9200, 10500, 8500][i],
-              );
-            }),
-            totalSteps: showAllData ? 0 : 55200,
-            averageDailySteps: showAllData ? 0 : 7885.0,
-          );
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    const mockStepValues = <int>[6420, 8950, 7310, 10420, 8120, 9640, 7840];
+    final displayRange = isEmpty
+        ? RangeStepsAggregation(
+            start: todayStart.subtract(const Duration(days: 6)),
+            end: todayStart,
+            dailyTotals: List<StepsBucket>.generate(
+              mockStepValues.length,
+              (i) => StepsBucket(
+                start: todayStart.subtract(
+                  Duration(days: mockStepValues.length - 1 - i),
+                ),
+                steps: mockStepValues[i],
+              ),
+              growable: false,
+            ),
+            totalSteps: mockStepValues.fold(0, (a, b) => a + b),
+            averageDailySteps:
+                mockStepValues.fold(0, (a, b) => a + b) / mockStepValues.length,
+          )
+        : (range ??
+              RangeStepsAggregation(
+                start: now.subtract(const Duration(days: 7)),
+                end: now,
+                dailyTotals: const [],
+                totalSteps: 0,
+                averageDailySteps: 0.0,
+              ));
 
     // In 7-day mode we show today's steps; in longer ranges we show total steps.
-    final bool isSevenDays = viewModel.activeBlockType.index == 0;
+    final bool isSevenDays = viewModel.activeBlockType == TimeframeBlock.week;
 
     int currentSteps = 0;
     String stepsSubtitle = l10n.today;
 
-    if (isSevenDays) {
+    if (isSevenDays && displayRange.dailyTotals.isNotEmpty) {
       final todayBucket = displayRange.dailyTotals.lastWhere(
         (bucket) =>
             bucket.start.isBefore(DateTime.now().add(const Duration(days: 1))),
-        orElse: () => displayRange.dailyTotals.last, // fallback
+        orElse: () => displayRange.dailyTotals.last,
       );
       currentSteps = todayBucket.steps;
     } else {
@@ -548,7 +543,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
       stepsSubtitle = l10n.statisticsTotalSteps;
     }
 
-    Widget cardChild = MorphSourceScope(
+    final emptyMessage = isEmpty ? l10n.statisticsEmptySteps : null;
+
+    final Widget cardChild = MorphSourceScope(
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => StatisticsStepsCard(
           onTap: () {
@@ -563,9 +560,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   currentStepsSubtitle: stepsSubtitle,
                   dailyTotals: displayRange.dailyTotals,
                   dailyGoal: viewModel.targetSteps,
+                  emptyStateMessage: emptyMessage,
                 ),
                 onSourceVisibilityChanged: setHidden,
-                builder: (_) => const StepsModuleScreen(),
+                builder: (_) => const StepsModuleScreen(
+                  initialScope: StepsScope.week,
+                ),
               ),
             );
           },
@@ -575,17 +575,10 @@ class _StatisticsHubScreenView extends StatelessWidget {
           currentStepsSubtitle: stepsSubtitle,
           dailyTotals: displayRange.dailyTotals,
           dailyGoal: viewModel.targetSteps,
+          emptyStateMessage: emptyMessage,
         ),
       ),
     );
-
-    if (!hasData && !showAllData) {
-      cardChild = CardEmptyStateOverlay(
-        isEmpty: true,
-        message: l10n.emptyStateActiveGapOverlay,
-        child: cardChild,
-      );
-    }
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -594,25 +587,10 @@ class _StatisticsHubScreenView extends StatelessWidget {
     );
   }
 
-  String? _unifiedRangeLabel(
+  String _unifiedRangeLabel(
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
-  ) {
-    if (viewModel.activeBlockType == TimeframeBlock.maxBlock) {
-      return l10n.filterMax;
-    }
-    if (viewModel.isRolling) {
-      return TimeframeLabelFormatter.formatRolling(
-        viewModel.activeBlockType,
-        l10n,
-      );
-    }
-    return TimeframeLabelFormatter.format(
-      viewModel.activeBlockType,
-      viewModel.anchorDate,
-      l10n,
-    );
-  }
+  ) => TimeframeLabelFormatter.formatRelativeRolling(TimeframeBlock.week, l10n);
 
   Widget _buildSleepSection(
     BuildContext context,
@@ -644,14 +622,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
         ),
       ),
     );
-    // Only show overlay when tracking IS enabled but no data
-    final hasData = viewModel.sleepState.data?.hasData ?? false;
-    if (hasData || showAllData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
-    );
+    return card;
   }
 
   Widget _buildPulseSection(
@@ -664,7 +635,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => PulseSectionCard(
           state: viewModel.pulseState,
-          fallbackRangeLabel: rangeLabel ?? '',
+          fallbackRangeLabel: rangeLabel,
           onRetry: () => viewModel.loadHubAnalytics(),
           onTap: () {
             Navigator.of(context).push(
@@ -672,7 +643,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 sourceContext: cardCtx,
                 sourceBuilder: (_) => PulseSectionCard(
                   state: viewModel.pulseState,
-                  fallbackRangeLabel: rangeLabel ?? '',
+                  fallbackRangeLabel: rangeLabel,
                   onRetry: () {},
                   onTap: () {},
                 ),
@@ -686,11 +657,18 @@ class _StatisticsHubScreenView extends StatelessWidget {
     );
     // Only show overlay when tracking IS enabled but no data
     final hasData = viewModel.pulseState.data?.hasData ?? false;
-    if (hasData || showAllData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
+    if (hasData) return card;
+    if (viewModel.pulseState.isLoading ||
+        viewModel.pulseState.hasError ||
+        !viewModel.pulseState.hasData) {
+      return card;
+    }
+    return _emptyCard(
+      context,
+      l10n.pulseTitle,
+      l10n.statisticsEmptyPulse,
+      () => const PulseAnalysisScreen(),
+      chipText: rangeLabel,
     );
   }
 
@@ -723,11 +701,18 @@ class _StatisticsHubScreenView extends StatelessWidget {
     );
     final totalWorkouts =
         viewModel.consistencyState.data?.trainingStats.totalWorkouts ?? 0;
-    if (totalWorkouts > 0 || showAllData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
+    if (totalWorkouts > 0) return card;
+    if (viewModel.consistencyState.isLoading ||
+        viewModel.consistencyState.hasError ||
+        !viewModel.consistencyState.hasData) {
+      return card;
+    }
+    return _emptyCard(
+      context,
+      l10n.consistencyTrackerTitle,
+      l10n.statisticsEmptyTraining,
+      () => const ConsistencyTrackerScreen(),
+      chipText: l10n.analyticsLastWeeks(6),
     );
   }
 
@@ -740,7 +725,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => PerformanceSectionCard(
           state: viewModel.performanceState,
-          chipText: _unifiedRangeLabel(viewModel, l10n),
+          chipText: l10n.statisticsOverview30Days,
           onRetry: () => viewModel.loadHubAnalytics(),
           onTap: () {
             Navigator.of(context).push(
@@ -748,7 +733,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 sourceContext: cardCtx,
                 sourceBuilder: (_) => PerformanceSectionCard(
                   state: viewModel.performanceState,
-                  chipText: _unifiedRangeLabel(viewModel, l10n),
+                  chipText: l10n.statisticsOverview30Days,
                   onRetry: () {},
                   onTap: () {},
                 ),
@@ -761,14 +746,20 @@ class _StatisticsHubScreenView extends StatelessWidget {
       ),
     );
     final hasRecords =
-        (viewModel.performanceState.data?.recentPrs.isNotEmpty ?? false) ||
-        (viewModel.performanceState.data?.notableImprovements.isNotEmpty ??
-            false);
-    if (hasRecords || showAllData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
+        viewModel.performanceState.data?.notableImprovements.isNotEmpty ??
+        false;
+    if (hasRecords) return card;
+    if (viewModel.performanceState.isLoading ||
+        viewModel.performanceState.hasError ||
+        !viewModel.performanceState.hasData) {
+      return card;
+    }
+    return _emptyCard(
+      context,
+      l10n.analyticsNewBestPerformances,
+      l10n.statisticsEmptyRecords,
+      () => const PRDashboardScreen(),
+      chipText: l10n.statisticsOverview30Days,
     );
   }
 
@@ -792,7 +783,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   onTap: () {},
                 ),
                 onSourceVisibilityChanged: setHidden,
-                builder: (_) => const MuscleGroupAnalyticsScreen(),
+                builder: (_) => const MuscleGroupAnalyticsScreen(
+                  initialBlock: TimeframeBlock.threeMonths,
+                ),
               ),
             );
           },
@@ -800,12 +793,23 @@ class _StatisticsHubScreenView extends StatelessWidget {
       ),
     );
     final hasVolumeData =
-        viewModel.volumeMusclesState.data?.weeklyVolume.isNotEmpty ?? false;
-    if (hasVolumeData || showAllData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
+        (viewModel.volumeMusclesState.data?.muscleAnalytics['muscles'] as List?)
+            ?.isNotEmpty ??
+        false;
+    if (hasVolumeData) return card;
+    if (viewModel.volumeMusclesState.isLoading ||
+        viewModel.volumeMusclesState.hasError ||
+        !viewModel.volumeMusclesState.hasData) {
+      return card;
+    }
+    return _emptyCard(
+      context,
+      l10n.analyticsMuscleGroups,
+      l10n.statisticsEmptyMuscles,
+      () => const MuscleGroupAnalyticsScreen(
+        initialBlock: TimeframeBlock.threeMonths,
+      ),
+      chipText: l10n.analyticsLastWeeks(8),
     );
   }
 
@@ -818,7 +822,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => BodyMetricsSectionCard(
           state: viewModel.bodyNutritionState,
-          rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+          rangeLabel: l10n.statisticsOverview30Days,
           onRetry: () => viewModel.loadHubAnalytics(),
           onTap: () {
             Navigator.of(context).push(
@@ -826,15 +830,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 sourceContext: cardCtx,
                 sourceBuilder: (_) => BodyMetricsSectionCard(
                   state: viewModel.bodyNutritionState,
-                  rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                  rangeLabel: l10n.statisticsOverview30Days,
                   onRetry: () {},
                   onTap: () {},
                 ),
                 onSourceVisibilityChanged: setHidden,
                 builder: (_) => BodyNutritionCorrelationScreen(
-                  initialBlock: viewModel.activeBlockType,
+                  initialBlock: TimeframeBlock.month,
                   initialAnchorDate: viewModel.anchorDate,
-                  initialIsRolling: viewModel.isRolling,
+                  initialIsRolling: true,
                 ),
               ),
             );
@@ -842,14 +846,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
         ),
       ),
     );
-    final bodyNutrition = viewModel.bodyNutritionState.data;
-    final hasBodyData = bodyNutrition?.hasAnyData ?? false;
-    if (hasBodyData || showAllData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
-    );
+    return card;
   }
 
   Widget _buildMacroSection(
@@ -861,6 +858,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     return MorphSourceScope(
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => MacroSectionCard(
+          refreshToken: overviewRefreshToken,
           activeBlockType: viewModel.activeBlockType,
           anchorDate: viewModel.anchorDate,
           isRolling: viewModel.isRolling,
@@ -892,31 +890,58 @@ class _StatisticsHubScreenView extends StatelessWidget {
 
   Widget _buildMeasurementsShortcutCard(
     BuildContext context,
+    StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
+    final unitService = context.watch<UnitService>();
+    final locale = Localizations.localeOf(context).toString();
+    final weightKg = viewModel.bodyNutrition?.currentWeightKg;
+    final changeKg = viewModel.bodyNutrition?.weightChangeKg;
+    final weightText = weightKg == null
+        ? null
+        : StatisticsPresentationFormatter.formatLocalizedWeight(
+            weightKg,
+            unitService,
+            locale: locale,
+          );
+    final changeText = changeKg == null
+        ? null
+        : '${StatisticsPresentationFormatter.formatLocalizedWeightChange(changeKg, unitService, locale: locale)} (${l10n.statisticsOverview30Days})';
+
     Widget buildShortcutContent() => Padding(
       padding: const EdgeInsets.all(DesignConstants.spacingL),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.body_measurements,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  l10n.all_measurements_no_cap,
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
-                ),
-              ],
-            ),
+          AnalyticsCardBase.buildHeaderWithChevron(
+            context,
+            label: l10n.body_measurements,
+            chipText: weightText != null ? l10n.statisticsOverview30Days : null,
           ),
-          const Icon(LucideIcons.chevron_right),
+          if (weightText != null) ...[
+            const SizedBox(height: DesignConstants.spacingXS),
+            Text(
+              weightText,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              changeText ?? l10n.all_measurements_no_cap,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: DesignConstants.spacingXS),
+            Text(
+              l10n.all_measurements_no_cap,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
         ],
       ),
     );

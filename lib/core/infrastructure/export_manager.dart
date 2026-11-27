@@ -63,7 +63,7 @@ class WorkoutRowDto {
   final double? weight;
   final int? reps;
   final int? rir;
-  final int? rpe;
+  final double? rpe;
   final String? setNotes;
   final String? workoutComments;
   final int? exerciseBlock;
@@ -366,6 +366,11 @@ class ExportManager {
       excludedColumns: {'source_app_id', 'source_record_hash'},
     ),
     _WorkbookTableSpec('pulse_hourly_aggregates', 'pulse_hourly_aggregates'),
+    _WorkbookTableSpec(
+      'pulse_hrv_samples',
+      'pulse_hrv_samples',
+      excludedColumns: {'native_id', 'source_id'},
+    ),
     _WorkbookTableSpec('posts', 'shared_posts'),
     _WorkbookTableSpec('social_interactions', 'social_interactions'),
   ];
@@ -1271,12 +1276,7 @@ class ExportManager {
       }
 
       if (rowData.rpe != null) {
-        writeCell(
-          workoutSheet,
-          6,
-          rowIndex,
-          IntCellValue(rowData.rpe!.toInt()),
-        );
+        writeCell(workoutSheet, 6, rowIndex, DoubleCellValue(rowData.rpe!));
       } else {
         writeCell(workoutSheet, 6, rowIndex, TextCellValue(''));
       }
@@ -1394,9 +1394,9 @@ class ExportManager {
       'Datum',
       'Schritte (Gesamt)',
       'Schritte-Quelle',
-      'Ruhepuls Min (BPM)',
-      'Ruhepuls Max (BPM)',
-      'Ruhepuls Avg (BPM)',
+      'Puls Min (BPM)',
+      'Puls Max (BPM)',
+      'Puls Avg (BPM)',
       'Workout Puls Min (BPM)',
       'Workout Puls Max (BPM)',
       'Workout Puls Avg (BPM)',
@@ -1473,7 +1473,7 @@ class ExportManager {
         writeCell(activitySheet, 2, rowIndex, TextCellValue(''));
       }
 
-      // Resting Heart Rate Outer-Join aggregation
+      // Daily heart rate from the hourly pulse aggregates.
       final dayPulses = pulseByDay[d] ?? [];
       if (dayPulses.isNotEmpty) {
         double minHr = double.infinity;

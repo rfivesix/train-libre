@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +8,7 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
 import '../../domain/classification/exercise_log_mask.dart';
+import 'set_row_style.dart';
 import 'set_type_chip.dart';
 import 'set_type_menu.dart';
 
@@ -20,7 +21,6 @@ import '../../../../util/design_constants.dart';
 
 class RoutineSetRowWidget extends StatelessWidget {
   final int setIndex;
-  final int rowIndex;
   final RoutineExercise routineExercise;
   final SetTemplate template;
   final int listIndex;
@@ -36,7 +36,6 @@ class RoutineSetRowWidget extends StatelessWidget {
   const RoutineSetRowWidget({
     super.key,
     required this.setIndex,
-    required this.rowIndex,
     required this.routineExercise,
     required this.template,
     required this.listIndex,
@@ -64,211 +63,195 @@ class RoutineSetRowWidget extends StatelessWidget {
     final showsIntensity = context
         .watch<ExperienceLevelService>()
         .showsIntensity;
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-    final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
 
-    final Color rowColor;
-    if (isColoredRow) {
-      rowColor = isLightMode
-          ? Colors.grey.withValues(alpha: 0.08)
-          : Colors.white.withValues(alpha: 0.05);
-    } else {
-      rowColor = Colors.transparent;
-    }
-
-    return Container(
-      color: rowColor,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Row(
-          children: [
-            Expanded(
-              flex: isCardio ? 2 : 2,
-              child: Center(
-                child: SetTypeMenu(
-                  currentSetType: template.setType,
-                  enabled: isEditMode && onSetTypeChanged != null,
-                  onSetTypeChanged: onSetTypeChanged ?? (_) {},
-                  child: SetTypeChip(
-                    setType: template.setType,
-                    setIndex: (template.setType == 'warmup') ? null : setIndex,
-                    onTap: (isEditMode && onSetTypeChanged == null)
-                        ? onShowSetTypePicker
-                        : null,
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: isCardio ? 2 : 2,
+            child: Center(
+              child: SetTypeMenu(
+                currentSetType: template.setType,
+                enabled: isEditMode && onSetTypeChanged != null,
+                onSetTypeChanged: onSetTypeChanged ?? (_) {},
+                child: SetTypeChip(
+                  setType: template.setType,
+                  setIndex: (template.setType == 'warmup') ? null : setIndex,
+                  onTap: (isEditMode && onSetTypeChanged == null)
+                      ? onShowSetTypePicker
+                      : null,
                 ),
               ),
             ),
-            if (isCardio) ...[
-              // DURATION-BASED FIELDS
-              Expanded(
-                flex: 4,
-                child: !mask.showsPrimary
-                    // `time`: a duration and nothing else. A plank has no
-                    // distance and no weight to plan.
-                    ? const SizedBox.shrink()
-                    : TextFormField(
-                        controller: weightController,
-                        readOnly: !isEditMode,
-                        textAlign: TextAlign.center,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          isDense: true,
-                          fillColor: Colors.transparent,
-                          hintText: "-",
-                        ),
+          ),
+          if (isCardio) ...[
+            // DURATION-BASED FIELDS
+            Expanded(
+              flex: 4,
+              child: !mask.showsPrimary
+                  // `time`: a duration and nothing else. A plank has no
+                  // distance and no weight to plan.
+                  ? const SizedBox.shrink()
+                  : TextFormField(
+                      controller: weightController,
+                      readOnly: !isEditMode,
+                      textAlign: TextAlign.center,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 4,
-                child: TextFormField(
-                  controller: repsController,
-                  readOnly: !isEditMode || mask.logsDuration,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: mask.logsDuration
-                      ? [TimerInputFormatter()]
-                      : null,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: "00:00",
-                  ),
-                  onTap: (mask.logsDuration && isEditMode)
-                      ? () async {
-                          final currentSeconds =
-                              parsePauseDuration(repsController.text) ?? 0;
-                          final newDuration = await adaptive_pickers
-                              .showAdaptiveDurationPicker(
-                                context: context,
-                                initialDuration: Duration(
-                                  seconds: currentSeconds,
-                                ),
-                                title: AppLocalizations.of(context)!
-                                    .durationLabel,
-                                allowClear: true,
-                              );
-                          if (newDuration != null) {
-                            final seconds = newDuration.inSeconds;
-                            repsController.text = seconds > 0
-                                ? formatPauseDuration(seconds)
-                                : "";
-                          }
-                        }
-                      : null,
-                ),
-              ),
-              if (showsIntensity) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: rirController,
-                    readOnly: !isEditMode,
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
-                      hintText: "-",
+                      textInputAction: TextInputAction.next,
+                      decoration: setFieldDecoration(
+                        context,
+                        isEditable: isEditMode,
+                        hintText: "-",
+                      ),
                     ),
-                  ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 4,
+              child: TextFormField(
+                controller: repsController,
+                readOnly: !isEditMode || mask.logsDuration,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: mask.logsDuration
+                    ? [TimerInputFormatter()]
+                    : null,
+                textInputAction: TextInputAction.next,
+                decoration: setFieldDecoration(
+                  context,
+                  isEditable: isEditMode,
+                  hintText: "00:00",
                 ),
-              ],
-            ] else ...[
-              // STRENGTH FIELDS
+                onTap: (mask.logsDuration && isEditMode)
+                    ? () async {
+                        final currentSeconds =
+                            parsePauseDuration(repsController.text) ?? 0;
+                        final newDuration = await adaptive_pickers
+                            .showAdaptiveDurationPicker(
+                              context: context,
+                              initialDuration: Duration(
+                                seconds: currentSeconds,
+                              ),
+                              title: AppLocalizations.of(context)!
+                                  .durationLabel,
+                              allowClear: true,
+                            );
+                        if (newDuration != null) {
+                          final seconds = newDuration.inSeconds;
+                          repsController.text = seconds > 0
+                              ? formatPauseDuration(seconds)
+                              : "";
+                        }
+                      }
+                    : null,
+              ),
+            ),
+            if (showsIntensity) ...[
+              const SizedBox(width: 8),
               Expanded(
                 flex: 2,
                 child: TextFormField(
-                  controller: weightController,
+                  controller: rirController,
+                  readOnly: !isEditMode,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  decoration: setFieldDecoration(
+                    context,
+                    isEditable: isEditMode,
+                    hintText: "-",
+                  ),
+                ),
+              ),
+            ],
+          ] else ...[
+            // STRENGTH FIELDS
+            Expanded(
+              flex: 2,
+              child: TextFormField(
+                controller: weightController,
+                readOnly: !isEditMode,
+                textAlign: TextAlign.center,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                textInputAction: TextInputAction.next,
+                decoration: setFieldDecoration(
+                  context,
+                  isEditable: isEditMode,
+                  hintText: isEditMode
+                      ? context.read<UnitService>().suffixFor(
+                          UnitDimension.weight,
+                        )
+                      : "-",
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: TextFormField(
+                controller: repsController,
+                readOnly: !isEditMode,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                decoration: setFieldDecoration(
+                  context,
+                  isEditable: isEditMode,
+                  hintText: isEditMode ? l10n.set_reps_hint : "-",
+                ),
+              ),
+            ),
+            if (showsIntensity) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: TextFormField(
+                  controller: rirController,
                   readOnly: !isEditMode,
                   textAlign: TextAlign.center,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: isEditMode
-                        ? context.read<UnitService>().suffixFor(
-                            UnitDimension.weight,
-                          )
-                        : "-",
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                  ],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  decoration: setFieldDecoration(
+                    context,
+                    isEditable: isEditMode,
+                    hintText: "-",
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: TextFormField(
-                  controller: repsController,
-                  readOnly: !isEditMode,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: isEditMode ? l10n.set_reps_hint : "-",
-                  ),
-                ),
-              ),
-              if (showsIntensity) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: rirController,
-                    readOnly: !isEditMode,
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
-                      hintText: "-",
-                    ),
-                  ),
-                ),
-              ],
             ],
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: SizedBox(
-                width: 48,
-                child: isEditMode
-                    ? IconButton(
-                        tooltip: AppLocalizations.of(context)!.delete,
-                        icon: const Icon(
-                          LucideIcons.trash,
-                          color: DesignConstants.brandRedColor,
-                        ),
-                        onPressed: onRemoveSet,
-                      )
-                    : const SizedBox(width: 48, height: 48),
-              ),
-            ),
           ],
-        ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: SizedBox(
+              width: 48,
+              child: isEditMode
+                  ? IconButton(
+                      tooltip: AppLocalizations.of(context)!.delete,
+                      icon: const Icon(
+                        LucideIcons.trash,
+                        color: DesignConstants.brandRedColor,
+                      ),
+                      onPressed: onRemoveSet,
+                    )
+                  : const SizedBox(width: 48, height: 48),
+            ),
+          ),
+        ],
       ),
     );
   }

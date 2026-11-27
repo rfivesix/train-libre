@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum TimeframeBlock { day, week, month, threeMonths, sixMonths, year, maxBlock }
 
@@ -114,7 +114,7 @@ extension TimeframeBlockExtension on TimeframeBlock {
       return getBounds(now, DateTime(2020));
     }
 
-    final duration = Duration(days: rollingDurationDays);
+    final duration = Duration(days: rollingDurationDays - 1);
     final start = now.subtract(duration);
 
     return DateTimeRange(

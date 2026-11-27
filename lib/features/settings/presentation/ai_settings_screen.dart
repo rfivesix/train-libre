@@ -1,6 +1,6 @@
 // lib/screens/ai_settings_screen.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -352,7 +352,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.triangle_alert, size: 18, color: color),
+          Icon(LucideIcons.triangle_exclamation_point, size: 18, color: color),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -503,7 +503,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                   : null,
             ),
           ),
-          if (aiEnabled && _hasLidar) ...[
+          if (aiEnabled &&
+              _hasLidar &&
+              _selectedProvider != AiProvider.appleFoundation) ...[
             AppSettingsRow.switchTile(
               title: l10n.aiLidarScaleTitle,
               subtitle: l10n.aiLidarScaleSubtitle,
@@ -528,7 +530,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             ),
           ],
 
-          if (aiEnabled) ...[
+          if (aiEnabled && _selectedProvider != AiProvider.appleFoundation) ...[
             PlatformAdaptivePopupMenu<AiMealNutritionMode>(
               selectedValue: _mealNutritionMode,
               onSelected: (mode) async {
@@ -596,7 +598,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     leading: Icon(
                       _isAppleFoundationAvailable
                           ? LucideIcons.shield_check
-                          : LucideIcons.circle_alert,
+                          : LucideIcons.circle_exclamation_point,
                       color: _isAppleFoundationAvailable
                           ? const Color(0xFF34C759)
                           : Colors.orange,
@@ -835,8 +837,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                       ],
                                     ),
                                   ),
-                                  Slider(
+                                  PlatformAdaptiveSlider(
                                     value: _timeoutSeconds.toDouble(),
+                                    semanticLabel: l10n.settingsRequestTimeout,
+                                    semanticValue: l10n.settingsSeconds(
+                                      _timeoutSeconds,
+                                    ),
+                                    semanticFormatter: (value) =>
+                                        l10n.settingsSeconds(value.round()),
                                     min: 10,
                                     max: 300,
                                     divisions: 29,

@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import '../../../../util/glass_preferences.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,20 @@ import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../services/training_autonomy_service.dart';
 import '../../../../util/design_constants.dart';
+
+/// Supplies a custom next action for a focused workout field.
+class WorkoutKeyboardNextAction extends InheritedWidget {
+  const WorkoutKeyboardNextAction({
+    super.key,
+    required this.onNext,
+    required super.child,
+  });
+  final VoidCallback? onNext;
+
+  @override
+  bool updateShouldNotify(WorkoutKeyboardNextAction oldWidget) =>
+      onNext != oldWidget.onNext;
+}
 
 /// Glass accessory controls shown above the keyboard on workout screens.
 class WorkoutKeyboardAccessoryBar extends StatefulWidget {
@@ -88,6 +104,12 @@ class _WorkoutKeyboardAccessoryBarState
   bool _hasNextFocus() {
     final current = FocusManager.instance.primaryFocus;
     final currentContext = current?.context;
+    if (currentContext
+            ?.findAncestorWidgetOfExactType<WorkoutKeyboardNextAction>()
+            ?.onNext !=
+        null) {
+      return true;
+    }
     final scope = current?.nearestScope;
     if (current == null ||
         currentContext == null ||
@@ -161,8 +183,19 @@ class _WorkoutKeyboardAccessoryBarState
                 icon: LucideIcons.chevron_right,
                 semanticLabel: l10n.appTourNext,
                 tooltip: l10n.workoutKeyboardNextField,
-                onPressed: () =>
-                    FocusManager.instance.primaryFocus?.nextFocus(),
+                onPressed: () {
+                  final focus = FocusManager.instance.primaryFocus;
+                  final action = focus?.context
+                      ?.findAncestorWidgetOfExactType<
+                        WorkoutKeyboardNextAction
+                      >()
+                      ?.onNext;
+                  if (action != null) {
+                    action();
+                  } else {
+                    focus?.nextFocus();
+                  }
+                },
                 circular: true,
               ),
               const SizedBox(width: 8),
@@ -270,7 +303,10 @@ class _KeyboardGlassButton extends StatelessWidget {
                     ? const LiquidOval()
                     : const LiquidRoundedSuperellipse(borderRadius: 18),
                 quality: DesignConstants.defaultGlassQuality,
-                settings: DesignConstants.liquidGlassSettings(isDark),
+                settings: GlassPreferences.of(context).apply(
+                  DesignConstants.liquidGlassSettings(isDark),
+                  premium: true,
+                ),
                 child: content,
               ),
             ),

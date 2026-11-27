@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../analytics/domain/models/chart_data_point.dart';
@@ -32,6 +32,7 @@ import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/app_button.dart';
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import '../../../services/telemetry/telemetry_service.dart';
 import 'measurement_import_settings_screen.dart';
@@ -96,12 +97,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   bool _isRolling = true;
 
   List<String> _timeRangeLabels(AppLocalizations l10n) => [
-    l10n.filter7DaysShort,
-    l10n.filter1MonthShort,
-    l10n.filter3MonthsShort,
-    l10n.filter6MonthsShort,
-    l10n.filterMax,
-  ];
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filterMax,
+      ];
 
   DateTimeRange get _activeDateRange {
     if (_isRolling) return _activeBlock.getRollingBounds();
@@ -145,8 +146,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             previousAnchor,
             DateTime(2020),
           );
-          final isPreviousToOngoing =
-              !_isRolling &&
+          final isPreviousToOngoing = !_isRolling &&
               myBounds.start.isAtSameMomentAs(previousBounds.start);
 
           if (isPreviousToOngoing && _activeBlock != TimeframeBlock.day) {
@@ -161,7 +161,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
   bool get _nextEnabled {
     if (_activeBlock == TimeframeBlock.maxBlock) return false;
-    if (_isRolling) return false;
+    if (_isRolling) return true;
     final now = DateTime.now();
     final currentBounds = _activeBlock.getBounds(now, DateTime(2020));
     final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
@@ -261,6 +261,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final l10n = AppLocalizations.of(context)!;
     showGlassBottomMenu<bool?>(
       context: context,
+      expandToFullHeight: true,
       title: existingSession != null
           ? l10n.addMeasurementDialogTitle
           : l10n.addMeasurement,
@@ -280,23 +281,21 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final unitService = context.watch<UnitService>();
     final locale = Localizations.localeOf(context).toString();
     final dateFormat = DateFormat.yMMMMEEEEd(locale).add_Hm();
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
-    final hasNoData = _filteredSessions.isEmpty;
-    final displaySessions = hasNoData
-        ? getMockSessions(_activeDateRange)
-              .where(
-                (session) => session.measurements.any(
-                  (measurement) => measurement.type == _displayChartType,
-                ),
-              )
-              .toList()
+    final chartType = _displayChartType;
+    final hasNoData = !_isLoading && _filteredSessions.isEmpty;
+    final isInitialLoading = _isLoading && _filteredSessions.isEmpty;
+    final useMockData = hasNoData || isInitialLoading;
+    final mockRange = _activeBlock == TimeframeBlock.maxBlock
+        ? TimeframeBlock.month.getRollingBounds()
+        : _activeDateRange;
+    final displaySessions = useMockData
+        ? getMockSessions(mockRange, chartType)
         : _filteredSessions;
 
     final timeframeFilter = TimeRangeFilter(
@@ -317,14 +316,14 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
           ? null
           : () async {
-              final selected = await adaptive_pickers
-                  .showAdaptiveTimeframePicker(
-                    context: context,
-                    activeBlock: _activeBlock,
-                    initialAnchor: _anchorDate,
-                    initialIsRolling: _isRolling,
-                    earliestAvailableDay: DateTime(2020),
-                  );
+              final selected =
+                  await adaptive_pickers.showAdaptiveTimeframePicker(
+                context: context,
+                activeBlock: _activeBlock,
+                initialAnchor: _anchorDate,
+                initialIsRolling: _isRolling,
+                earliestAvailableDay: DateTime(2020),
+              );
               if (selected != null) {
                 setState(() {
                   _anchorDate = selected.anchorDate;
@@ -374,20 +373,79 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
               slivers: [
                 SliverPadding(
                   padding: EdgeInsets.only(
-                    top: topPadding + DesignConstants.spacingM,
+                    top: topPadding + DesignConstants.spacingS,
                     left: 0,
                     right: 0,
                     bottom: DesignConstants.spacingS,
                   ),
                   sliver: SliverToBoxAdapter(
+                    child: _buildChartTypeSelector(l10n),
+                  ),
+                ),
+                if (useMockData)
+                  SliverToBoxAdapter(
+                    child: Builder(
+                      builder: (context) {
+                        final mockContent = Skeletonizer(
+                          enabled: true,
+                          child: IgnorePointer(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildChartWidget(
+                                  unitService,
+                                  chartType,
+                                  useMockData: true,
+                                  mockRange: mockRange,
+                                ),
+                                const SizedBox(
+                                  height: DesignConstants.spacingXL,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal:
+                                        DesignConstants.screenPaddingHorizontal,
+                                  ),
+                                  child: AppSectionHeader(
+                                    title: l10n.all_measurements,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: DesignConstants.spacingS,
+                                ),
+                                ...displaySessions.map(
+                                  (session) => _buildSessionCard(
+                                    unitService,
+                                    dateFormat,
+                                    session,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                        if (hasNoData) {
+                          return ActiveGapOverlay(
+                            message: l10n.emptyStateActiveGapOverlay,
+                            background: mockContent,
+                          );
+                        }
+                        return mockContent;
+                      },
+                    ),
+                  )
+                else ...[
+                  SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: DesignConstants.spacingL),
-                        // ── Chart (follows same date range) ──
-                        _buildChartSection(l10n, colorScheme, textTheme),
+                        _buildChartWidget(
+                          unitService,
+                          chartType,
+                          useMockData: false,
+                          mockRange: mockRange,
+                        ),
                         const SizedBox(height: DesignConstants.spacingXL),
-                        // ── Session list header ──
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: DesignConstants.screenPaddingHorizontal,
@@ -398,28 +456,6 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                       ],
                     ),
                   ),
-                ),
-                if (hasNoData)
-                  SliverToBoxAdapter(
-                    child: ActiveGapOverlay(
-                      message: l10n.emptyStateActiveGapOverlay,
-                      background: Skeletonizer(
-                        enabled: true,
-                        child: Column(
-                          children: displaySessions
-                              .map(
-                                (session) => _buildSessionCard(
-                                  unitService,
-                                  dateFormat,
-                                  session,
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                  )
-                else
                   SliverList.builder(
                     itemCount: displaySessions.length,
                     itemBuilder: (context, index) {
@@ -430,6 +466,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                       );
                     },
                   ),
+                ],
                 const SliverToBoxAdapter(child: BottomContentSpacer()),
               ],
             ),
@@ -444,59 +481,58 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     );
   }
 
-  Widget _buildChartSection(
-    AppLocalizations l10n,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    final unitService = context.watch<UnitService>();
+  Widget _buildChartTypeSelector(AppLocalizations l10n) {
     final chartType = _displayChartType;
     final types = _displayMeasurementTypes;
-    final hasNoData = _filteredSessions.isEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.screenPaddingHorizontal,
-          ),
-          child: PlatformAdaptiveDropdownFormField<String>(
-            value: chartType,
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                setState(() => _selectedChartType = newValue);
-              }
-            },
-            items: types.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(l10n.getLocalizedMeasurementName(value)),
-              );
-            }).toList(),
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: PlatformAdaptiveChipDropdown<String>(
+          selectedValue: chartType,
+          onSelected: (String newValue) {
+            setState(() => _selectedChartType = newValue);
+          },
+          items: types
+              .map(
+                (String value) => PlatformAdaptivePopupMenuItem<String>(
+                  value: value,
+                  label: l10n.getLocalizedMeasurementName(value),
+                ),
+              )
+              .toList(),
         ),
-        const SizedBox(height: DesignConstants.spacingS),
-        if (hasNoData)
-          MeasurementChartWidget.fromData(
-            dataPoints: _getMockChartDataPoints(chartType, _activeDateRange),
-            // Same axis as the real chart below: the mock points span days, and
-            // the `time` default would both label them as clock times and blow
-            // the axis up to one step per minute.
-            axisMode: MeasurementChartAxisMode.day,
-            unit: _getMeasurementUnit(chartType, unitService),
-            edgeToEdge: true,
-            smoothWeightTrend: chartType == 'weight',
-          )
-        else
-          MeasurementChartWidget(
-            chartType: chartType,
-            dateRange: _activeDateRange,
-            unit: _getMeasurementUnit(chartType, unitService),
-            repository: _repository,
-            edgeToEdge: true,
-          ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildChartWidget(
+    UnitService unitService,
+    String chartType, {
+    required bool useMockData,
+    required DateTimeRange mockRange,
+  }) {
+    if (useMockData) {
+      return MeasurementChartWidget.fromData(
+        dataPoints: _getMockChartDataPoints(chartType, mockRange),
+        // Same axis as the real chart below: the mock points span days, and
+        // the `time` default would both label them as clock times and blow
+        // the axis up to one step per minute.
+        axisMode: MeasurementChartAxisMode.day,
+        unit: _getMeasurementUnit(chartType, unitService),
+        edgeToEdge: true,
+        smoothWeightTrend: chartType == 'weight',
+      );
+    }
+    return MeasurementChartWidget(
+      chartType: chartType,
+      dateRange: _activeDateRange,
+      unit: _getMeasurementUnit(chartType, unitService),
+      repository: _repository,
+      edgeToEdge: true,
     );
   }
 
@@ -551,7 +587,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             const SizedBox(width: DesignConstants.spacingM),
             Text(
               '$value $unit'.trim(),
-              style: Theme.of(context).textTheme.bodyMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.end,
             ),
@@ -615,31 +653,66 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     }
   }
 
-  DateTimeRange? _mockRange;
+  String? _mockSessionsKey;
   List<MeasurementSession>? _mockSessions;
   String? _mockChartKey;
   List<ChartDataPoint>? _mockChartPoints;
 
-  List<MeasurementSession> getMockSessions(DateTimeRange range) {
+  double _mockBaseValueForType(String chartType) {
+    return switch (chartType) {
+      'fat_percent' => 15.0,
+      'waist' => 85.0,
+      'neck' => 38.0,
+      'chest' => 100.0,
+      'shoulder' => 118.0,
+      'abdomen' => 88.0,
+      'hips' => 98.0,
+      'left_bicep' || 'right_bicep' => 36.0,
+      'left_forearm' || 'right_forearm' => 29.0,
+      'left_thigh' || 'right_thigh' => 58.0,
+      'left_calf' || 'right_calf' => 38.0,
+      _ => 78.0,
+    };
+  }
+
+  String _mockUnitForType(String chartType) {
+    return switch (chartType) {
+      'weight' => 'kg',
+      'fat_percent' => '%',
+      _ => 'cm',
+    };
+  }
+
+  List<MeasurementSession> getMockSessions(
+    DateTimeRange range,
+    String chartType,
+  ) {
+    final key =
+        '$chartType|${range.start.millisecondsSinceEpoch}|${range.end.millisecondsSinceEpoch}';
     final cached = _mockSessions;
-    final cachedRange = _mockRange;
-    if (cached != null &&
-        cachedRange != null &&
-        cachedRange.start == range.start &&
-        cachedRange.end == range.end) {
+    if (cached != null && _mockSessionsKey == key) {
       return cached;
     }
-    final built = _buildMockSessions(range);
-    _mockRange = range;
+    final built = _buildMockSessions(range, chartType);
+    _mockSessionsKey = key;
     _mockSessions = built;
     return built;
   }
 
-  List<MeasurementSession> _buildMockSessions(DateTimeRange range) {
-    final start = range.start;
-    final end = range.end;
-    final duration = end.difference(start);
-    final step = duration.inDays ~/ 4;
+  List<MeasurementSession> _buildMockSessions(
+    DateTimeRange range,
+    String chartType,
+  ) {
+    final start = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final end = DateTime(range.end.year, range.end.month, range.end.day);
+    final totalDays = math.max(6, end.difference(start).inDays);
+    final step = math.max(1, totalDays ~/ 4);
+    final baseValue = _mockBaseValueForType(chartType);
+    final unit = _mockUnitForType(chartType);
 
     return List.generate(3, (i) {
       final date = start.add(Duration(days: (i + 1) * step));
@@ -649,25 +722,13 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         measurements: [
           Measurement(
             sessionId: i,
-            type: 'weight',
-            value: 80.0 - i * 0.5,
-            unit: 'kg',
-          ),
-          Measurement(
-            sessionId: i,
-            type: 'fat_percent',
-            value: 15.0 - i * 0.1,
-            unit: '%',
-          ),
-          Measurement(
-            sessionId: i,
-            type: 'waist',
-            value: 88.0 - i * 0.2,
-            unit: 'cm',
+            type: chartType,
+            value: baseValue - i * 0.4,
+            unit: unit,
           ),
         ],
       );
-    });
+    }, growable: false);
   }
 
   /// Cached by type and range: a fresh list on every build would make
@@ -677,8 +738,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     String chartType,
     DateTimeRange range,
   ) {
-    final key =
-        '$chartType|${range.start.millisecondsSinceEpoch}'
+    final key = '$chartType|${range.start.millisecondsSinceEpoch}'
         '|${range.end.millisecondsSinceEpoch}';
     final cached = _mockChartPoints;
     if (cached != null && _mockChartKey == key) return cached;
@@ -692,27 +752,22 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     String chartType,
     DateTimeRange range,
   ) {
-    final start = range.start;
-    final end = range.end;
-    final duration = end.difference(start);
-    final step = duration.inDays ~/ 4;
+    final start = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final end = DateTime(range.end.year, range.end.month, range.end.day);
+    final totalDays = math.max(6, end.difference(start).inDays);
+    const sampleCount = 7;
+    final stepDays = totalDays / (sampleCount - 1);
+    final baseValue = _mockBaseValueForType(chartType);
+    const offsets = <double>[1.2, 0.7, 0.9, 0.2, -0.3, -0.6, -1.1];
 
-    double baseValue = 75.0;
-    if (chartType == 'fat_percent') {
-      baseValue = 15.0;
-    } else if (chartType == 'waist') {
-      baseValue = 85.0;
-    } else if (chartType == 'neck') {
-      baseValue = 38.0;
-    } else if (chartType == 'chest') {
-      baseValue = 100.0;
-    }
-
-    return List.generate(4, (i) {
-      final date = start.add(Duration(days: (i + 1) * step));
-      final double variation = i * 0.3 - 0.5;
-      return ChartDataPoint(date: date, value: baseValue + variation);
-    });
+    return List.generate(sampleCount, (i) {
+      final date = start.add(Duration(days: (i * stepDays).round()));
+      return ChartDataPoint(date: date, value: baseValue + offsets[i]);
+    }, growable: false);
   }
 
   List<String> get _displayMeasurementTypes {
@@ -776,11 +831,10 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? context.read<IProfileRepository>();
-    _selectedDateTime =
-        (widget.existingSession?.timestamp ??
-                widget.initialDate ??
-                DateTime.now())
-            .withCurrentTime;
+    _selectedDateTime = (widget.existingSession?.timestamp ??
+            widget.initialDate ??
+            DateTime.now())
+        .withCurrentTime;
     for (var key in _measurementTypes.keys) {
       _controllers[key] = TextEditingController();
     }
@@ -919,84 +973,81 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
     final formattedDate = DateFormat('dd.MM.yyyy').format(_selectedDateTime);
     final formattedTime = DateFormat.Hm().format(_selectedDateTime);
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 420),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton.icon(
-                icon: const Icon(LucideIcons.calendar, size: 20),
-                label: Text(
-                  formattedDate,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                onPressed: _selectDate,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton.icon(
+              icon: const Icon(LucideIcons.calendar, size: 20),
+              label: Text(
+                formattedDate,
+                style: const TextStyle(fontSize: 16),
               ),
-              TextButton.icon(
-                icon: const Icon(LucideIcons.clock, size: 20),
-                label: Text(
-                  formattedTime,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                onPressed: _selectTime,
+              onPressed: _selectDate,
+            ),
+            TextButton.icon(
+              icon: const Icon(LucideIcons.clock, size: 20),
+              label: Text(
+                formattedTime,
+                style: const TextStyle(fontSize: 16),
               ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Expanded(
-            child: SingleChildScrollView(
-              clipBehavior: Clip.none,
-              padding: const EdgeInsets.only(
-                top: DesignConstants.spacingS,
-                bottom: DesignConstants.spacingL,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    ..._measurementTypes.keys.map(
-                      (key) => Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: DesignConstants.spacingM,
+              onPressed: _selectTime,
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Expanded(
+          child: SingleChildScrollView(
+            clipBehavior: Clip.hardEdge,
+            padding: const EdgeInsets.only(
+              top: DesignConstants.spacingS,
+              bottom: DesignConstants.spacingL,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  ..._measurementTypes.keys.map(
+                    (key) => Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: DesignConstants.spacingM,
+                      ),
+                      child: TextFormField(
+                        controller: _controllers[key],
+                        decoration: InputDecoration(
+                          labelText: l10n.getLocalizedMeasurementName(key),
+                          suffixText: _displayUnit(key, unitService),
                         ),
-                        child: TextFormField(
-                          controller: _controllers[key],
-                          decoration: InputDecoration(
-                            labelText: l10n.getLocalizedMeasurementName(key),
-                            suffixText: _displayUnit(key, unitService),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value != null &&
-                                value.isNotEmpty &&
-                                double.tryParse(value.replaceAll(',', '.')) ==
-                                    null) {
-                              return l10n.validatorPleaseEnterNumber;
-                            }
-                            return null;
-                          },
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value != null &&
+                              value.isNotEmpty &&
+                              double.tryParse(value.replaceAll(',', '.')) ==
+                                  null) {
+                            return l10n.validatorPleaseEnterNumber;
+                          }
+                          return null;
+                        },
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingL),
-          AppButton.primary(
-            onPressed: _saveSession,
-            label: l10n.save,
-            tooltip: l10n.save,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+        AppButton.primary(
+          onPressed: _saveSession,
+          label: l10n.save,
+          tooltip: l10n.save,
+        ),
+      ],
     );
   }
 }

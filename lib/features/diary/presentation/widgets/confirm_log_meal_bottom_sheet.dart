@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../util/design_constants.dart';
@@ -428,7 +428,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           child: ListView.separated(
             shrinkWrap: true,
             itemCount: widget.rawItems.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (_, i) {
               final it = widget.rawItems[i];
               final bc = it['barcode'] as String;

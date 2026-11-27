@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -1138,7 +1138,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       child: Row(
         children: [
           Icon(
-            isMet ? LucideIcons.circle_check : LucideIcons.circle_alert,
+            isMet ? LucideIcons.circle_check : LucideIcons.circle_exclamation_point,
             color: isMet ? Colors.green : Colors.orange,
             size: 16,
           ),

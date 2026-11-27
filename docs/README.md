@@ -34,7 +34,7 @@ browse:
 - [Workout Progression Engine](docs/features/workout-progression-engine/)
 - [Estimated 1-Rep Max](docs/features/intelligent-workouts/)
 - [Muscle Recovery](docs/features/muscle-recovery-model/)
-- [Sleep Health Score (SHS v3)](docs/features/sleep-scoring-engine/)
+- [Sleep Health Score](docs/features/sleep-scoring-engine/)
 - [Workout Live Activity](docs/features/live-activity-workout/)
 - [Meal Capture Pipeline](docs/features/meal-capture-pipeline/)
 - [BYOK AI Meal Capture & Validation](docs/features/byok-ai-validation/)

@@ -62,26 +62,19 @@ class HomeWidgetSyncService {
       CalculateDailyNutritionUseCase();
 
   HomeWidgetSyncService({
-    required IDiaryRepository diaryRepo,
-    required SupplementRepository supplementRepo,
-    required UnitService unitService,
-    IProfileRepository? profileRepo,
-    IWorkoutRepository? workoutRepo,
+    required this._diaryRepo,
+    required this._supplementRepo,
+    required this._unitService,
+    this._profileRepo,
+    this._workoutRepo,
     StepsAggregationRepository? stepsRepo,
     RecoveryAnalyticsFetcher? fetchRecoveryAnalytics,
-    WorkoutHeatmapPublisher heatmapPublisher = const WorkoutHeatmapPublisher(),
-    HomeWidgetChannel channel = const HomeWidgetChannel(),
-  }) : _diaryRepo = diaryRepo,
-       _supplementRepo = supplementRepo,
-       _profileRepo = profileRepo,
-       _workoutRepo = workoutRepo,
-       _stepsRepo = stepsRepo ?? HealthStepsAggregationRepository(),
+    this._heatmapPublisher = const WorkoutHeatmapPublisher(),
+    this._channel = const HomeWidgetChannel(),
+  }) : _stepsRepo = stepsRepo ?? HealthStepsAggregationRepository(),
        _fetchRecoveryAnalytics =
            fetchRecoveryAnalytics ??
-           (() => WorkoutLocalDataSource.instance.getRecoveryAnalytics()),
-       _heatmapPublisher = heatmapPublisher,
-       _unitService = unitService,
-       _channel = channel;
+           (() => WorkoutLocalDataSource.instance.getRecoveryAnalytics());
 
   Timer? _debounce;
   bool _isRunning = false;

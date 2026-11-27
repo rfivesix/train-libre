@@ -1,4 +1,8 @@
-import 'package:flutter/material.dart';
+// UNUSED SCREEN: No longer linked from the sleep UI. Retained temporarily;
+// review and remove once the replacement has been verified. The named route
+// remains registered for compatibility.
+
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../util/design_constants.dart';
 

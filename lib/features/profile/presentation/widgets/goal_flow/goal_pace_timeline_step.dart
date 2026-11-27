@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -244,7 +244,7 @@ class GoalPaceTimelineStep extends StatelessWidget {
                     children: [
                       Icon(
                         state.weeklyRateKg > 1.0
-                            ? LucideIcons.triangle_alert
+                            ? LucideIcons.triangle_exclamation_point
                             : (state.weeklyRateKg < 0.3
                                   ? LucideIcons.info
                                   : LucideIcons.circle_check),

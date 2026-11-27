@@ -135,7 +135,7 @@ extension AiNetwork on AiService {
     final candidates = _geminiModelCandidates(model);
     final cachedRoute = _geminiResolvedRoutes[model];
     final routes = <(String, String)>[
-      if (cachedRoute != null) cachedRoute,
+      ?cachedRoute,
       for (final candidate in candidates)
         for (final version in const ['v1beta', 'v1'])
           if ((candidate, version) != cachedRoute) (candidate, version),
@@ -528,7 +528,7 @@ extension AiNetwork on AiService {
 
   Future<AiModelIdsFetch> _loadDynamicModelIds(AiProvider provider) async {
     if (_dynamicModelIdsLoader != null) {
-      final ids = await _dynamicModelIdsLoader!(provider);
+      final ids = await _dynamicModelIdsLoader(provider);
       if (ids == null) {
         return const AiModelIdsFetch.failure(
           AiModelListError(AiModelListErrorKind.unsupported),

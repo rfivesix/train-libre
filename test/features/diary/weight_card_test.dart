@@ -1,10 +1,11 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:drift/native.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
@@ -99,7 +100,7 @@ void main() {
         value: units,
         child: MaterialApp(
           locale: Locale(language),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(
             useMaterial3: false,
@@ -114,7 +115,7 @@ void main() {
                   onPrimary: Colors.black,
                 ),
           ),
-          navigatorObservers: [if (observer != null) observer],
+          navigatorObservers: [?observer],
           home: Scaffold(
             body: MediaQuery(
               data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
@@ -293,6 +294,25 @@ void main() {
     // Navigation is checked without starting the unrelated profile screen.
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  for (final hasPreviousWeight in [false, true]) {
+    cardTest(
+      '${hasPreviousWeight ? 'older' : 'missing'} weight opens history from the card',
+      (tester) async {
+        if (hasPreviousWeight) {
+          await seed(tester, 85.1, today.subtract(const Duration(days: 3)));
+        }
+        final observer = _NavigationObserver();
+        await mount(tester, observer: observer);
+        await tester.tap(find.text('Gewicht'));
+        final route = observer.lastRoute! as CardMorphRoute<void>;
+        final destination = route.builder(tester.element(find.byType(WeightCard)));
+        expect(destination, isA<MeasurementsScreen>());
+        expect((destination as MeasurementsScreen).initialMeasurementType, 'weight');
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
 
   for (final imperial in [false, true]) {
     cardTest('drag and save persists kg with imperial=$imperial', (

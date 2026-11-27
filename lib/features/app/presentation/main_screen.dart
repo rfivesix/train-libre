@@ -1,7 +1,9 @@
+import '../../../util/glass_preferences.dart';
+
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../../core/performance/jank_route_observer.dart';
@@ -55,6 +57,7 @@ import '../../onboarding/presentation/telemetry_consent_sheet.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/glass_bottom_menu.dart';
+import 'widgets/main_navigation_bar.dart';
 import 'widgets/running_workout_overlay.dart';
 import 'widgets/speed_dial_menu_overlay.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -204,7 +207,6 @@ class _MainScreenState extends State<MainScreen>
         final pendingTap = LocalNotificationService.instance
             .takePendingNotificationTap();
         if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
-        unawaited(_tagebuchKey.currentState?.syncHealthData());
         refreshHomeWidgets();
       },
       Priority.idle,
@@ -375,17 +377,9 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _onPageChanged(int index) {
-    if (_isWarping) {
-      return;
-    }
-    final previousIndex = _currentIndex;
+    if (index == _currentIndex) return;
     setState(() => _currentIndex = index);
-    // PageView can report onPageChanged once after initial layout settles,
-    // even when the page didn't actually change (e.g. still the initial tab
-    // from initState's own trackScreenView call) — guard against double-firing.
-    if (index != previousIndex &&
-        index >= 0 &&
-        index < _tabScreenNames.length) {
+    if (index >= 0 && index < _tabScreenNames.length) {
       _publishPerfTabLabel(index);
       unawaited(
         TelemetryService.instance.trackScreenView(
@@ -393,14 +387,8 @@ class _MainScreenState extends State<MainScreen>
         ),
       );
     }
-    if (index == 2) {
-      if (mounted && _currentIndex == 2) {
-        _statsKey.currentState?.refresh();
-      }
-    }
+    if (index == 2) _statsKey.currentState?.refresh();
   }
-
-  final bool _isWarping = false;
 
   void _onNavigationTapped(int index) {
     if (!_pageController.hasClients) return;
@@ -520,8 +508,8 @@ class _MainScreenState extends State<MainScreen>
   Future<void> _handleDirectBarcodeScan() async {
     final String? barcode = await Navigator.of(context).push<String>(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const ScannerScreen(),
-        transitionsBuilder: (_, animation, __, child) =>
+        pageBuilder: (_, _, _) => const ScannerScreen(),
+        transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
     );
@@ -617,7 +605,16 @@ class _MainScreenState extends State<MainScreen>
       // If we're not on the diary tab, we still want to trigger a background sync if due
       await _stepsRepository.refresh(force: false);
     }
-    _statsKey.currentState?.markDirty();
+    _invalidateStatistics();
+  }
+
+  void _invalidateStatistics() {
+    final statistics = _statsKey.currentState;
+    if (_currentIndex == 2) {
+      statistics?.refresh(force: true);
+    } else {
+      statistics?.markDirty();
+    }
   }
 
   /// Republishes the iOS Home Screen snapshot.
@@ -703,6 +700,7 @@ class _MainScreenState extends State<MainScreen>
     final l10n = AppLocalizations.of(context)!;
     showGlassBottomMenu<bool?>(
       context: context,
+      expandToFullHeight: true,
       title: l10n.addMeasurement,
       contentBuilder: (ctx, close) {
         return MeasurementFormSheet(
@@ -815,7 +813,7 @@ class _MainScreenState extends State<MainScreen>
                 padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
                 shrinkWrap: true,
                 itemCount: routines.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (ctx, i) {
                   final r = routines[i];
                   return glassCard(
@@ -1258,7 +1256,6 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  // Replace this method
   GlobalAppBar _buildAppBar(
     BuildContext context,
     int index,
@@ -1274,11 +1271,6 @@ class _MainScreenState extends State<MainScreen>
           ],
         );
       case 2: // Stats
-        if (_statsKey.currentState == null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _currentIndex == 2) setState(() {});
-          });
-        }
         return GlobalAppBar(
           title: l10n.statistics,
           actions: [
@@ -1328,7 +1320,6 @@ class _MainScreenState extends State<MainScreen>
             ),
             _profileAppBarButton(context),
           ],
-          bottom: _statsKey.currentState?.buildPinnedTimeframeFilter(context),
         );
       case 3: // Nutrition Hub
         return GlobalAppBar(
@@ -1811,12 +1802,9 @@ class _MainScreenState extends State<MainScreen>
         ? appTourSteps[_tourStepIndex]
         : null;
 
-    final manager = context.watch<LiveWorkoutViewModel>();
-    final bool isWorkoutRunning = manager.isActive;
-
-    // Animation parameters
-    // const basePad = 120.0; // Unused locally
-    // final runningPad = manager.isActive ? 68.0 : 0.0; // Unused locally
+    final isWorkoutRunning = context.select<LiveWorkoutViewModel, bool>(
+      (manager) => manager.isActive,
+    );
 
     // Because we use a completely custom floating Bottom Navigation Bar and Workout Bar,
     // the system Scaffold does not automatically inset floating Snackbars.
@@ -1839,27 +1827,34 @@ class _MainScreenState extends State<MainScreen>
             body: PageView(
               controller: _pageController,
               onPageChanged: _onPageChanged,
-              children: <Widget>[
-                KeepAlivePage(
-                  storageKey: const PageStorageKey('tab_tagebuch'),
-                  child: DiaryScreen(
-                    contentKey: _tagebuchKey,
-                    deferInitialHealthSync: true,
-                  ),
-                ),
-                const KeepAlivePage(
-                  storageKey: PageStorageKey('tab_workout'),
-                  child: WorkoutHubScreen(),
-                ),
-                KeepAlivePage(
-                  storageKey: const PageStorageKey('tab_stats'),
-                  child: StatisticsHubScreen(key: _statsKey),
-                ),
-                const KeepAlivePage(
-                  storageKey: PageStorageKey('tab_nutrition'),
-                  child: NutritionHubScreen(),
-                ),
-              ],
+              children:
+                  <Widget>[
+                    KeepAlivePage(
+                      storageKey: const PageStorageKey('tab_tagebuch'),
+                      child: DiaryScreen(
+                        contentKey: _tagebuchKey,
+                        onNutritionDayStatusChanged: _invalidateStatistics,
+                      ),
+                    ),
+                    const KeepAlivePage(
+                      storageKey: PageStorageKey('tab_workout'),
+                      child: WorkoutHubScreen(),
+                    ),
+                    KeepAlivePage(
+                      storageKey: const PageStorageKey('tab_stats'),
+                      child: StatisticsHubScreen(key: _statsKey),
+                    ),
+                    const KeepAlivePage(
+                      storageKey: PageStorageKey('tab_nutrition'),
+                      child: NutritionHubScreen(),
+                    ),
+                  ].indexed.map((tab) {
+                    final (index, page) = tab;
+                    return TickerMode(
+                      enabled: index == _currentIndex,
+                      child: page,
+                    );
+                  }).toList(),
             ),
           ),
         ),
@@ -1890,7 +1885,7 @@ class _MainScreenState extends State<MainScreen>
               builder: (context, hidden, _) => hidden
                   ? const SizedBox.shrink()
                   : RepaintBoundary(
-                      child: _buildRunningWorkoutOverlay(context),
+                      child: Builder(builder: _buildRunningWorkoutOverlay),
                     ),
             ),
           ),
@@ -1987,82 +1982,13 @@ class _MainScreenState extends State<MainScreen>
                                     width: maxTabW,
                                     height: DesignConstants
                                         .bottomNavigationBarHeight,
-                                    child: GlassTabBar.bottom(
+                                    child: MainNavigationBar(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
-                                      barHeight: DesignConstants
-                                          .bottomNavigationBarHeight,
-                                      barBorderRadius:
-                                          GlassDefaults.capsuleRadius,
-                                      indicatorBorderRadius:
-                                          GlassDefaults.capsuleRadius,
-                                      tabWidth: null,
-                                      horizontalPadding: 0.0,
-                                      verticalPadding: 0.0,
-                                      quality:
-                                          DesignConstants.defaultGlassQuality,
-                                      // Drag-time bloom, unrelated to the
-                                      // indicator's resting inset.
-                                      indicatorExpansion:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 14,
-                                            vertical: 8,
-                                          ),
-                                      selectedIconColor:
-                                          theme.colorScheme.primary,
-                                      unselectedIconColor: isDark
-                                          ? Colors.white
-                                          : Colors.black,
-                                      indicatorColor:
-                                          DesignConstants.floatingBarPillColor(
-                                            isDark,
-                                          ),
-                                      settings:
-                                          DesignConstants.liquidGlassSettings(
-                                            isDark,
-                                          ),
-                                      tabs: [
-                                        GlassTab(
-                                          label: l10n.diary,
-                                          icon: Icon(
-                                            LucideIcons.notebook,
-                                            key: _tourDiaryTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.notebook,
-                                          ),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.workout,
-                                          icon: Icon(
-                                            LucideIcons.dumbbell,
-                                            key: _tourWorkoutTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.dumbbell,
-                                          ),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.statistics,
-                                          icon: Icon(
-                                            LucideIcons.chart_no_axes_column,
-                                            key: _tourStatisticsTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.chart_no_axes_column,
-                                          ),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.nutrition,
-                                          icon: Icon(
-                                            LucideIcons.utensils,
-                                            key: _tourNutritionTabKey,
-                                          ),
-                                          activeIcon: const Icon(
-                                            LucideIcons.utensils,
-                                          ),
-                                        ),
-                                      ],
+                                      diaryKey: _tourDiaryTabKey,
+                                      workoutKey: _tourWorkoutTabKey,
+                                      statisticsKey: _tourStatisticsTabKey,
+                                      nutritionKey: _tourNutritionTabKey,
                                     ),
                                   ),
                                 ),
@@ -2080,9 +2006,12 @@ class _MainScreenState extends State<MainScreen>
                                   },
                                   child: AdaptiveGlass(
                                     shape: const LiquidOval(),
-                                    settings:
-                                        DesignConstants.liquidGlassSettings(
-                                          isDark,
+                                    settings: GlassPreferences.of(context)
+                                        .apply(
+                                          DesignConstants.liquidGlassSettings(
+                                            isDark,
+                                          ),
+                                          premium: true,
                                         ),
                                     quality:
                                         DesignConstants.defaultGlassQuality,

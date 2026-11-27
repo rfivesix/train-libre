@@ -137,7 +137,8 @@ void main() {
     expect(segments.read<int>('c'), greaterThan(0));
     expect(hrs.read<int>('c'), greaterThan(0));
     expect(analyses.readNullable<double>('score'), isNotNull);
-    expect(analyses.readNullable<int>('interruptions_count'), isNotNull);
+    // No wake samples were imported; zero interruptions cannot be inferred.
+    expect(analyses.readNullable<int>('interruptions_count'), isNull);
     await db.close();
   });
 

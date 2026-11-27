@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -7,6 +7,7 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'ai_overlay_demo_screen.dart';
 import 'developer_lab/nutrition_developer_lab_view.dart';
+import 'developer_lab/statistics_sample_data_seeder.dart';
 import 'performance_diagnostics_screen.dart';
 import 'widgets/ai_meal_scan_logs_section.dart';
 
@@ -94,6 +95,48 @@ class DeveloperSettingsScreen extends StatelessWidget {
                 builder: (_) => const PerformanceDiagnosticsScreen(),
               ),
             ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          AppSettingsRow.navigation(
+            key: const Key('developer_seed_statistics_sample'),
+            title: 'Statistik-Beispieldaten laden',
+            subtitle:
+                'Fügt 45 Tage Beispieldaten für alle Statistik-Hub-Karten und Screens ein',
+            leading: Icon(
+              LucideIcons.database,
+              size: 24,
+              color: theme.colorScheme.primary,
+            ),
+            onTap: () async {
+              await StatisticsSampleDataSeeder.seedAll();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Statistik-Beispieldaten wurden eingefügt.'),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          AppSettingsRow.navigation(
+            key: const Key('developer_clear_statistics_sample'),
+            title: 'Statistik-Beispieldaten entfernen',
+            subtitle:
+                'Entfernt nur die eingefügten Emulator-/Simulator-Beispieldaten',
+            leading: Icon(
+              LucideIcons.trash,
+              size: 24,
+              color: theme.colorScheme.error,
+            ),
+            onTap: () async {
+              await StatisticsSampleDataSeeder.clearSampleData();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Statistik-Beispieldaten wurden entfernt.'),
+                ),
+              );
+            },
           ),
         ],
       ),

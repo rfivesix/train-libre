@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../generated/app_localizations.dart';
@@ -188,7 +188,9 @@ class _ShareLinkPreviewScreenState extends State<ShareLinkPreviewScreen> {
     if (payload.type == 'workout') {
       return (payload.data['sets'] as List).map((raw) {
         final set = raw as Map;
-        return '${set['exercise_name']} · ${set['weight_kg'] ?? '–'} kg × ${set['reps'] ?? '–'} · RIR ${set['rir'] ?? '–'}';
+        final rpe = set['rpe'] as num? ??
+            (set['rir'] is num ? 10 - (set['rir'] as num) : null);
+        return '${set['exercise_name']} · ${set['weight_kg'] ?? '–'} kg × ${set['reps'] ?? '–'} · RPE ${rpe ?? '–'}';
       }).toList();
     }
     return (payload.data['items'] as List).map((raw) {

@@ -35,6 +35,53 @@ void main() {
       noOpService = const NoOpTelemetryService();
     });
 
+    test('health exports are limited per platform and local day', () async {
+      final recorder = TestRecordingPostHogService();
+      await recorder.optIn();
+      await Future.wait(
+        List.generate(
+          10,
+          (_) => recorder.trackFeatureUsed(
+            featureKey: FeatureKey.appleHealthExported,
+          ),
+        ),
+      );
+      await recorder.trackFeatureUsed(
+        featureKey: FeatureKey.healthConnectExported,
+      );
+      expect(recorder.recorded.length, 2);
+      expect(
+        recorder.recorded.map((event) => event.properties?['feature_key']),
+        containsAll([
+          FeatureKey.appleHealthExported,
+          FeatureKey.healthConnectExported,
+        ]),
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'telemetry_health_export_date_${FeatureKey.appleHealthExported}',
+        '2000-1-1',
+      );
+      await recorder.trackFeatureUsed(
+        featureKey: FeatureKey.appleHealthExported,
+      );
+      expect(recorder.recorded.length, 3);
+      await recorder.optOut();
+      await prefs.remove(
+        'telemetry_health_export_date_${FeatureKey.appleHealthExported}',
+      );
+      await recorder.trackFeatureUsed(
+        featureKey: FeatureKey.appleHealthExported,
+      );
+      expect(recorder.recorded.length, 3);
+      expect(
+        prefs.containsKey(
+          'telemetry_health_export_date_${FeatureKey.appleHealthExported}',
+        ),
+        isFalse,
+      );
+    });
+
     test('NoOpTelemetryService defaults to opted out and performs no-ops without throwing', () async {
       expect(await noOpService.isOptedIn(), isFalse);
 
@@ -715,7 +762,7 @@ class TestTelemetryService extends NoOpTelemetryService {
     onTrack({
       'type': 'feature_used',
       'feature_key': featureKey,
-      if (extraProps != null) ...extraProps,
+      ...?extraProps,
     });
   }
 }

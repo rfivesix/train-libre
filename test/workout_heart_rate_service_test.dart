@@ -249,5 +249,38 @@ void main() {
         WorkoutHeartRateNoDataReason.workoutNotFinished,
       );
     });
+
+    test(
+      'retries when the direct response has no valid in-window samples',
+      () async {
+        final start = DateTime.utc(2026, 5, 12, 18);
+        final end = start.add(const Duration(hours: 1));
+        var reads = 0;
+        final service = WorkoutHeartRateService(
+          dataSource: _FakeHeartRateDataSource(
+            onRead: (from, to) {
+              reads++;
+              return [
+                HealthHeartRateSampleDto(
+                  sampledAtUtc: reads == 1
+                      ? start.subtract(const Duration(seconds: 1))
+                      : start.add(const Duration(seconds: 45)),
+                  bpm: 130,
+                ),
+              ];
+            },
+          ),
+        );
+        final result = await service.loadForWorkoutWindow(
+          startTime: start,
+          endTime: end,
+        );
+        expect(reads, 2);
+        expect(
+          result.samples.single.sampledAtUtc,
+          start.add(const Duration(seconds: 45)),
+        );
+      },
+    );
   });
 }

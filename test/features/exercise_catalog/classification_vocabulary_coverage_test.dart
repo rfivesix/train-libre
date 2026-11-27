@@ -2,9 +2,10 @@
 library;
 
 import 'dart:io';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -69,7 +70,7 @@ void main() {
     late BuildContext captured;
     await tester.pumpWidget(
       MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('de'),
         home: Builder(

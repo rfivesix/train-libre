@@ -22,8 +22,7 @@ class WorkoutRepository
 
   final WorkoutLocalDataSource _localDataSource;
 
-  WorkoutRepository({required WorkoutLocalDataSource localDataSource})
-    : _localDataSource = localDataSource;
+  WorkoutRepository({required this._localDataSource});
 
   @override
   Future<WorkoutLog?> getOngoingWorkout() =>

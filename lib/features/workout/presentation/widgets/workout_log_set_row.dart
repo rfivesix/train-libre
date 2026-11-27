@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
+import '../../../../services/theme_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
 
@@ -14,13 +14,14 @@ import '../../../../util/time_util.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../../../util/design_constants.dart';
+import 'set_row_style.dart';
+import 'set_type_chip.dart';
 import 'set_type_menu.dart';
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
 class WorkoutLogSetRow extends StatelessWidget {
   final SetLog setLog;
-  final int rowIndex;
   final int workingSetIndex;
   final String exerciseName;
   final bool isEditMode;
@@ -40,7 +41,6 @@ class WorkoutLogSetRow extends StatelessWidget {
   const WorkoutLogSetRow({
     super.key,
     required this.setLog,
-    required this.rowIndex,
     required this.workingSetIndex,
     required this.exerciseName,
     required this.isEditMode,
@@ -61,13 +61,6 @@ class WorkoutLogSetRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final mask = this.mask.withSnapshotMode(setLog.progression.loadMode?.name);
     final setType = setLog.setType;
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-    final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
-    final Color rowColor = isColoredRow
-        ? (isLightMode
-              ? Colors.grey.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.1))
-        : Colors.transparent;
     final unitService = context.read<UnitService>();
     final showsIntensity = context
         .watch<ExperienceLevelService>()
@@ -101,7 +94,10 @@ class WorkoutLogSetRow extends StatelessWidget {
 
     final currentSetE1rm = _calculateBrzyckiE1rm(setLog);
     final showCurrentSetE1rm =
-        mask.logsWeight && mask.logsReps && currentSetE1rm != null;
+        (context.watch<ThemeService?>()?.showWorkoutE1rm ?? false) &&
+        mask.logsWeight &&
+        mask.logsReps &&
+        currentSetE1rm != null;
     final bool hasPR =
         setLog.isMaxWeightPR ||
         setLog.isMaxVolumePR ||
@@ -121,39 +117,15 @@ class WorkoutLogSetRow extends StatelessWidget {
                     currentSetType: setType,
                     enabled: isEditMode,
                     onSetTypeChanged: onSetTypeChanged!,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4.0,
-                        vertical: 8.0,
-                      ),
-                      child: Text(
-                        _getSetDisplayText(setType, workingSetIndex),
-                        style: TextStyle(
-                          color: _getSetTypeColor(setType),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    child: SetTypeChip(
+                      setType: setType,
+                      setIndex: workingSetIndex,
                     ),
                   )
-                : GestureDetector(
-                    onTap: () {
-                      if (isEditMode && onSetTypeTap != null) onSetTypeTap!();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4.0,
-                        vertical: 8.0,
-                      ),
-                      child: Text(
-                        _getSetDisplayText(setType, workingSetIndex),
-                        style: TextStyle(
-                          color: _getSetTypeColor(setType),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                : SetTypeChip(
+                    setType: setType,
+                    setIndex: workingSetIndex,
+                    onTap: isEditMode ? onSetTypeTap : null,
                   ),
           ),
         ),
@@ -176,12 +148,10 @@ class WorkoutLogSetRow extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
+                  decoration: setFieldDecoration(
+                    context,
+                    isEditable: true,
                     hintText: "-",
-                    contentPadding: EdgeInsets.zero,
                   ),
                 )
               : Text(
@@ -214,10 +184,9 @@ class WorkoutLogSetRow extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
+                  decoration: setFieldDecoration(
+                    context,
+                    isEditable: true,
                     hintText: mask.logsDuration ? "00:00" : "-",
                   ),
                   onTap: mask.logsDuration
@@ -266,8 +235,9 @@ class WorkoutLogSetRow extends StatelessWidget {
                 ? TextFormField(
                     controller: rirController,
                     textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) =>
                         FocusManager.instance.primaryFocus?.unfocus(),
@@ -275,15 +245,22 @@ class WorkoutLogSetRow extends StatelessWidget {
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      fillColor: Colors.transparent,
+                    decoration: setFieldDecoration(
+                      context,
+                      isEditable: true,
                       hintText: "-",
                     ),
                   )
                 : Text(
-                    setLog.rir?.toString() ?? '-',
+                    mask.logsDistance
+                        ? (setLog.rir?.toString() ?? '-')
+                        : (setLog.rpe?.toString().replaceFirst(
+                                RegExp(r'\.0$'),
+                                '',
+                              ) ??
+                              (setLog.rir == null
+                                  ? '-'
+                                  : (10 - setLog.rir!).toString())),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 18,
@@ -314,65 +291,36 @@ class WorkoutLogSetRow extends StatelessWidget {
       ],
     );
 
-    return Container(
-      color: rowColor,
-      child: Column(
-        children: [
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: rowContent,
+        ),
+        if (showCurrentSetE1rm || hasPR)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: rowContent,
-          ),
-          if (showCurrentSetE1rm || hasPR)
-            Padding(
-              padding: const EdgeInsets.only(right: 12.0, bottom: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (hasPR) ...[
-                    _buildPRBadge(context, setLog),
-                    if (showCurrentSetE1rm) const SizedBox(width: 8),
-                  ],
-                  if (showCurrentSetE1rm)
-                    Text(
-                      '${unitService.formatDisplayWeight(currentSetE1rm)} ${unitService.suffixFor(UnitDimension.weight)}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+            padding: const EdgeInsets.only(right: 12.0, bottom: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (hasPR) ...[
+                  _buildPRBadge(context, setLog),
+                  if (showCurrentSetE1rm) const SizedBox(width: 8),
                 ],
-              ),
+                if (showCurrentSetE1rm)
+                  Text(
+                    '${unitService.formatDisplayWeight(currentSetE1rm)} ${unitService.suffixFor(UnitDimension.weight)}',
+                    style: TextStyle(
+                      color: setComparisonTextColor(context),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
     );
-  }
-
-  String _getSetDisplayText(String setType, int setIndex) {
-    switch (setType) {
-      case 'warmup':
-        return 'W';
-      case 'failure':
-        return 'F';
-      case 'dropset':
-        return 'D';
-      default:
-        return '$setIndex';
-    }
-  }
-
-  Color _getSetTypeColor(String setType) {
-    switch (setType) {
-      case 'warmup':
-        return Colors.orange;
-      case 'dropset':
-        return Colors.blue;
-      case 'failure':
-        return DesignConstants.brandRedColor;
-      default:
-        return Colors.grey;
-    }
   }
 
   bool _isQualifyingSetForE1rm(SetLog setLog) {

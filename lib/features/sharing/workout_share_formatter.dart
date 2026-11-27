@@ -348,7 +348,8 @@ class WorkoutShareFormatter {
     if (hasDuration) {
       parts.add(_formatMinutes(Duration(seconds: set.durationSeconds!)));
     }
-    if (set.rir != null) parts.add('RIR ${set.rir}');
+    final rpe = set.rpe ?? (set.rir == null ? null : 10.0 - set.rir!);
+    if (rpe != null) parts.add('RPE ${_formatNumber(rpe)}');
 
     final line = parts.isEmpty ? labels.set : parts.join(' · ');
     final suffix = _specialSetTypeSuffix(set);

@@ -50,6 +50,7 @@ class PulseAnalysisEngine {
       minBpm: minBpm,
       maxBpm: maxBpm,
       restingBpm: restingBpm,
+      restingBpmIsEstimated: true,
       quality: quality,
       noDataReason: PulseNoDataReason.none,
     );

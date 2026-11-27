@@ -104,10 +104,9 @@ class WeeklyGoalReviewOrchestrator {
   final WeeklyGoalReviewInputSource _inputSource;
 
   WeeklyGoalReviewOrchestrator({
-    required IGoalRepository goalRepository,
+    required this._goalRepository,
     WeeklyGoalReviewInputSource? inputSource,
-  }) : _goalRepository = goalRepository,
-       _inputSource = inputSource ?? DatabaseWeeklyGoalReviewInputSource();
+  }) : _inputSource = inputSource ?? DatabaseWeeklyGoalReviewInputSource();
 
   Future<WeeklyGoalReviewGenerationResult> generateIfDue({
     DateTime? now,

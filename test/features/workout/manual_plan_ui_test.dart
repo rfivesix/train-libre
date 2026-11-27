@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -13,10 +13,11 @@ import 'package:train_libre/widgets/common/empty_states/cold_start_empty_state.d
 import 'package:train_libre/widgets/common/glass_fab.dart';
 import 'package:train_libre/widgets/common/summary_card.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 
 Widget _app(Widget child, {Locale locale = const Locale('de')}) => MaterialApp(
   locale: locale,
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  localizationsDelegates: appLocalizationDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(body: child),
 );
@@ -295,7 +296,7 @@ void main() {
             child: PlanOverviewCard(
               plan: plan,
               activeSlotIndex: 0,
-              onRoutineTap: (day, _, __, ___) => openedDay = day,
+              onRoutineTap: (day, _, _, _) => openedDay = day,
             ),
           ),
         ),

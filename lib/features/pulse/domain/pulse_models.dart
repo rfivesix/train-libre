@@ -1,3 +1,5 @@
+import 'hrv_models.dart';
+
 enum PulseScope { day, week, month }
 
 enum PulseDataQuality { ready, limited, insufficient, noData }
@@ -25,6 +27,7 @@ class PulseAnalysisWindow {
   final DateTime endUtc;
 
   Duration get duration => endUtc.difference(startUtc);
+  bool get isMultiDay => duration > const Duration(hours: 25);
 }
 
 class PulseAnalysisSummary {
@@ -39,6 +42,8 @@ class PulseAnalysisSummary {
     this.minBpm,
     this.maxBpm,
     this.restingBpm,
+    this.restingBpmIsEstimated = false,
+    this.hrv,
   });
 
   final PulseAnalysisWindow window;
@@ -51,17 +56,38 @@ class PulseAnalysisSummary {
   final double? minBpm;
   final double? maxBpm;
   final double? restingBpm;
+  final bool restingBpmIsEstimated;
+  final HrvSummary? hrv;
 
-  bool get hasData => sampleCount > 0;
+  PulseAnalysisSummary withHrv(HrvSummary? value) => copyWith(hrv: value);
 
-  bool get hasCoreMetrics =>
-      averageBpm != null &&
-      minBpm != null &&
-      maxBpm != null &&
-      restingBpm != null;
+  PulseAnalysisSummary copyWith({
+    double? restingBpm,
+    bool? restingBpmIsEstimated,
+    List<PulseSamplePoint>? chartSamples,
+    HrvSummary? hrv,
+  }) => PulseAnalysisSummary(
+    window: window,
+    samples: samples,
+    chartSamples: chartSamples ?? this.chartSamples,
+    sampleCount: sampleCount,
+    quality: quality,
+    noDataReason: noDataReason,
+    averageBpm: averageBpm,
+    minBpm: minBpm,
+    maxBpm: maxBpm,
+    restingBpm: restingBpm ?? this.restingBpm,
+    restingBpmIsEstimated: restingBpmIsEstimated ?? this.restingBpmIsEstimated,
+    hrv: hrv ?? this.hrv,
+  );
+
+  bool get hasData => sampleCount > 0 || restingBpm != null;
+
+  bool get hasPulseRange => minBpm != null && maxBpm != null;
 
   bool get canRenderChart =>
       chartSamples.isNotEmpty &&
-      quality != PulseDataQuality.noData &&
-      quality != PulseDataQuality.insufficient;
+      ((window.isMultiDay && restingBpm != null && !restingBpmIsEstimated) ||
+          (quality != PulseDataQuality.noData &&
+              quality != PulseDataQuality.insufficient));
 }

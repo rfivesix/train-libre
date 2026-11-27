@@ -18,6 +18,7 @@ import '../features/depth_scan/domain/models/depth_scale_facts.dart';
 import '../features/diary/domain/models/food_item.dart';
 import '../features/diary/domain/macro_entry_calculator.dart';
 import 'ai/apple_foundation_service.dart';
+import 'ai/ai_cancellation.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -39,10 +40,9 @@ typedef AiHttpGet = Future<http.Response> Function(
 class AiService {
   AiService._({
     FlutterSecureStorage? secureStorage,
-    DynamicModelIdsLoader? dynamicModelIdsLoader,
+    this._dynamicModelIdsLoader,
     AiHttpGet? httpGet,
   })  : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
-        _dynamicModelIdsLoader = dynamicModelIdsLoader,
         _httpGet = httpGet ?? http.get;
   static final AiService instance = AiService._();
 
@@ -110,6 +110,19 @@ class AiService {
     return prefs.getString(_mealNutritionModeKey) == 'localCatalog'
         ? AiMealNutritionMode.localCatalog
         : AiMealNutritionMode.directEstimate;
+  }
+
+  /// Effective nutrition mode for [provider] (or the active provider).
+  /// Apple Intelligence always uses direct AI estimation without local catalog
+  /// matching.
+  Future<AiMealNutritionMode> getEffectiveMealNutritionMode([
+    AiProvider? provider,
+  ]) async {
+    final resolved = provider ?? await getSelectedProvider();
+    if (resolved == AiProvider.appleFoundation) {
+      return AiMealNutritionMode.directEstimate;
+    }
+    return getMealNutritionMode();
   }
 
   Future<void> setMealNutritionMode(AiMealNutritionMode mode) async {
@@ -690,7 +703,9 @@ class AiService {
     try {
       final provider = await getSelectedProvider();
       if (provider == AiProvider.appleFoundation) {
-        final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+        final prompt = _buildAppleDirectNutritionPrompt(
+          languageCode: languageCode,
+        );
         await AppleFoundationService.instance.prewarm(systemPrompt: prompt);
       }
     } catch (_) {}
@@ -755,6 +770,12 @@ class AiService {
     return _parseMealCandidateFromContent(raw);
   }
 
+  /// Decode a recorded direct-nutrition provider response using the same parser
+  /// and nutrition preparation as the live provider path. This supports
+  /// deterministic offline demos without making a network request.
+  Future<AiMealCandidate> parseDirectNutritionProviderResponse(String content) async =>
+      _attachDirectEstimateFoods(await _parseMealCandidateFromContent(content));
+
   /// Analyzes a text-only meal description and returns an AI suggested meal candidate.
   Future<AiMealCandidate> analyzeText(
     String description, {
@@ -794,22 +815,35 @@ class AiService {
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
   }) async {
-    final attachDepthMap = depthMap != null &&
+    final provider = await getSelectedProvider();
+    final isApple = provider == AiProvider.appleFoundation;
+    final attachDepthMap = !isApple &&
+        depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
-    final prompt = _buildDirectNutritionPrompt(
-      languageCode: languageCode,
-      depthFacts: depthFacts,
-      depthMapLegend: attachDepthMap ? depthMapLegend : null,
-    );
+    final systemPrompt = isApple
+        ? _buildAppleDirectNutritionPrompt(languageCode: languageCode)
+        : '${_buildDirectNutritionPrompt(
+            languageCode: languageCode,
+            depthFacts: depthFacts,
+            depthMapLegend: attachDepthMap ? depthMapLegend : null,
+          )}${_depthPhotoContext(depthFacts, depthPhotoIndex)}';
+    final trimmedHint = textHint?.trim();
+    final userContent = isApple
+        ? (trimmedHint != null && trimmedHint.isNotEmpty
+            ? 'Meal description: $trimmedHint'
+            : 'Analyze this meal.')
+        : (trimmedHint != null && trimmedHint.isNotEmpty
+            ? 'Meal description: $trimmedHint. Estimate the visible ingredients and their nutrition.'
+            : 'Analyze the meal and estimate each ingredient and its nutrition.');
     final raw = await _callSelectedProviderRaw(
-      userContent: textHint?.trim().isNotEmpty == true
-          ? 'Meal description: $textHint. Estimate the visible ingredients and their nutrition.'
-          : 'Analyze the meal and estimate each ingredient and its nutrition.',
-      systemPrompt: '$prompt${_depthPhotoContext(depthFacts, depthPhotoIndex)}',
+      userContent: userContent,
+      systemPrompt: systemPrompt,
       images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.25,
       usageCollector: usageCollector,
+      directNutritionGuided: isApple,
+      greedy: isApple,
     );
     return _attachDirectEstimateFoods(
       await _parseMealCandidateFromContent(raw),
@@ -821,11 +855,16 @@ class AiService {
     String? languageCode,
     AiUsageCollector? usageCollector,
   }) async {
+    final isApple = await getSelectedProvider() == AiProvider.appleFoundation;
     final raw = await _callSelectedProviderRaw(
       userContent: description,
-      systemPrompt: _buildDirectNutritionPrompt(languageCode: languageCode),
+      systemPrompt: isApple
+          ? _buildAppleDirectNutritionPrompt(languageCode: languageCode)
+          : _buildDirectNutritionPrompt(languageCode: languageCode),
       temperature: 0.25,
       usageCollector: usageCollector,
+      directNutritionGuided: isApple,
+      greedy: isApple,
     );
     return _attachDirectEstimateFoods(
       await _parseMealCandidateFromContent(raw),
@@ -839,16 +878,39 @@ class AiService {
     String? languageCode,
     AiUsageCollector? usageCollector,
   }) async {
+    final isApple = await getSelectedProvider() == AiProvider.appleFoundation;
+    final previousPayload = isApple
+        ? jsonEncode(
+            previousItems
+                .map(
+                  (item) => {
+                    'name': item.name,
+                    'grams': item.servedGrams ?? item.grams,
+                    'isFluid': item.isFluid,
+                    if (item.confidence != null) 'confidence': item.confidence,
+                    if (item.nutritionPer100g != null)
+                      'nutritionPer100g': item.nutritionPer100g,
+                  },
+                )
+                .toList(growable: false),
+          )
+        : jsonEncode(
+            {'items': previousItems.map((item) => item.toJson()).toList()},
+          );
     final raw = await _callSelectedProviderRaw(
       userContent: '''Previous meal estimate:
-${jsonEncode({'items': previousItems.map((item) => item.toJson()).toList()})}
+$previousPayload
 
 User correction: $feedback
 Update the ingredient quantities and nutrient estimates to follow this correction.''',
-      systemPrompt: _buildDirectNutritionPrompt(languageCode: languageCode),
+      systemPrompt: isApple
+          ? _buildAppleDirectNutritionPrompt(languageCode: languageCode)
+          : _buildDirectNutritionPrompt(languageCode: languageCode),
       images: images,
       temperature: 0.2,
       usageCollector: usageCollector,
+      directNutritionGuided: isApple,
+      greedy: isApple,
     );
     return _attachDirectEstimateFoods(
       await _parseMealCandidateFromContent(raw),
@@ -881,9 +943,16 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
         return value;
       }
 
-      final protein = core('protein');
-      final carbs = core('carbs');
-      final fat = core('fat');
+      var protein = core('protein');
+      var carbs = core('carbs');
+      var fat = core('fat');
+      final macroSum = protein + carbs + fat;
+      if (macroSum > 100.0) {
+        final scale = 100.0 / macroSum;
+        protein = (protein * scale * 10).roundToDouble() / 10;
+        carbs = (carbs * scale * 10).roundToDouble() / 10;
+        fat = (fat * scale * 10).roundToDouble() / 10;
+      }
       final calculation = MacroEntryCalculator.calculate({
         'protein': protein,
         'carbs': carbs,
@@ -892,33 +961,41 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
       if (calculation == null || !calculation.calories.isFinite) {
         throw const AiParseException();
       }
-      double? extra(String key) {
+      double? extra(String key, {double? maxOverride}) {
         final value = nutrition[key];
         if (value == null) return null;
-        final maxValue = key == 'caffeine' ? 2000.0 : 110.0;
+        final maxValue =
+            maxOverride ?? (key == 'caffeine' ? 2000.0 : 110.0);
         if (!value.isFinite || value < 0 || value > maxValue) {
-          throw const AiParseException(
-            'The direct nutrition estimate contains invalid values.',
-          );
+          return null;
         }
         return value;
       }
 
+      final rawSugar = extra('sugar');
+      final sugar =
+          rawSugar == null ? null : (rawSugar > carbs ? carbs : rawSugar);
+      final fiber = extra('fiber');
+      final salt = extra('salt');
+      final sodium = salt != null ? (salt / 2.5 * 1000).roundToDouble() / 1000 : null;
+      final caffeine = extra('caffeine');
+
       final syntheticFood = FoodItem(
         barcode:
-            'ai-estimate-$index-${Object.hash(item.name, protein, carbs, fat, nutrition['sugar'], nutrition['fiber'], nutrition['salt'], nutrition['caffeine'], item.isFluid)}',
+            'ai-estimate-$index-${Object.hash(item.name, protein, carbs, fat, sugar, fiber, salt, caffeine, item.isFluid)}',
         name: item.name,
         nameDe: item.name,
         calories: calculation.calories.round(),
         protein: protein,
         carbs: carbs,
         fat: fat,
-        fiber: extra('fiber'),
-        sugar: extra('sugar'),
-        salt: extra('salt'),
+        fiber: fiber,
+        sugar: sugar,
+        salt: salt,
+        sodium: sodium,
         isFluid: item.isFluid,
-        caffeineMgPer100ml: item.isFluid ? extra('caffeine') : null,
-        caffeineMgPer100g: item.isFluid ? null : extra('caffeine'),
+        caffeineMgPer100ml: item.isFluid ? caffeine : null,
+        caffeineMgPer100g: item.isFluid ? null : caffeine,
       );
       items.add(item.copyWith(selectedFood: syntheticFood));
     }
@@ -926,8 +1003,28 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
   }
 
   @visibleForTesting
-  AiMealCandidate attachDirectEstimateFoodsForTesting(AiMealCandidate candidate) =>
+  AiMealCandidate attachDirectEstimateFoodsForTesting(
+          AiMealCandidate candidate) =>
       _attachDirectEstimateFoods(candidate);
+
+  /// Concise system instructions for Apple Intelligence direct nutrition
+  /// estimation. Structural JSON formatting and numeric bounds are enforced
+  /// natively via Swift `@Generable` / `@Guide` guided generation so the
+  /// compact on-device context window stays focused on food & macro accuracy.
+  String _buildAppleDirectNutritionPrompt({String? languageCode}) {
+    final language = (languageCode == null || languageCode.trim().isEmpty)
+        ? 'de'
+        : languageCode.trim();
+    return '''Estimate each visible or described food and drink component as eaten.
+Write dishType and all food names in $language.
+Rules:
+- Split composite meals into main eaten ingredients; do not invent invisible minor ingredients.
+- Respect explicit user quantities; otherwise estimate realistic eaten portions in grams (or ml when isFluid is true).
+- Estimate nutrients per 100g (or 100ml for drinks) as eaten: protein, carbs, and fat (their sum must not exceed 100g).
+- Also estimate sugar, fiber, salt (g), and caffeine (mg) whenever reasonable; use nil if unknown or not applicable.
+- Set confidence between 0 and 1.
+- If no food or drink is visible or described, return an empty items list.''';
+  }
 
   String _buildDirectNutritionPrompt({
     String? languageCode,
@@ -1080,6 +1177,10 @@ Please provide an updated analysis incorporating the user's feedback. Return the
   /// Tests whether the API key is valid by sending a minimal request.
   Future<bool> testConnection() async {
     try {
+      if (await getSelectedProvider() == AiProvider.appleFoundation) {
+        await analyzeDirectNutritionText('100g Apfel', languageCode: 'de');
+        return true;
+      }
       await analyzeText(
         'Test: reply with [{"name":"Test","estimatedGrams":1,"confidence":1.0}]',
       );
@@ -1231,11 +1332,22 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
     double temperature = 0.3,
     AiUsageCollector? usageCollector,
     bool structuredOutput = false,
+    bool directNutritionGuided = false,
+    bool greedy = false,
     bool modelRefreshAttempted = false,
   }) async {
     final usageRequestId = usageCollector?.startRequest();
     try {
+      if (AiCancellation.current?.isCancelled ?? false) {
+        throw const AiCancelledException();
+      }
       final providerEnum = await getSelectedProvider();
+      if (providerEnum == AiProvider.appleFoundation &&
+          images != null &&
+          images.isNotEmpty &&
+          !await AppleFoundationService.instance.supportsImageInput()) {
+        throw const AiUnsupportedFeatureException();
+      }
       String? apiKey;
       final isOfflineProvider = providerEnum == AiProvider.ollama ||
           providerEnum == AiProvider.custom ||
@@ -1265,15 +1377,32 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
               ),
             );
 
+      if (AiCancellation.current?.isCancelled ?? false) {
+        throw const AiCancelledException();
+      }
+
       final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.appleFoundation:
-          final response =
-              await AppleFoundationService.instance.generateMealJson(
-            prompt: userContent,
-            systemPrompt: systemPrompt,
-            imagesBase64: imageDataList,
-          );
+          final timeout = Duration(seconds: await getAiTimeoutSeconds());
+          final response = directNutritionGuided
+              ? await AppleFoundationService.instance
+                  .generateDirectMealEstimate(
+                  prompt: userContent,
+                  systemPrompt: systemPrompt,
+                  imagesBase64: imageDataList,
+                  timeout: timeout,
+                  greedy: greedy,
+                  temperature: greedy ? null : temperature,
+                )
+              : await AppleFoundationService.instance.generateMealJson(
+                  prompt: userContent,
+                  systemPrompt: systemPrompt,
+                  imagesBase64: imageDataList,
+                  timeout: timeout,
+                  temperature: temperature,
+                  greedy: greedy,
+                );
           rawResult = _AiRawResponse(response, null);
           break;
         case AiProvider.openai:

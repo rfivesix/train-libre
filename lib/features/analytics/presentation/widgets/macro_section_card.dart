@@ -2,11 +2,15 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../util/timeframe_label_formatter.dart';
+import '../../../../widgets/common/empty_states/card_empty_state_overlay.dart';
+import '../../../../widgets/common/macro_badge_row.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
@@ -21,6 +25,7 @@ class MacroSectionCard extends StatefulWidget {
   final bool isRolling;
   final String? rangeLabel;
   final VoidCallback? onTap;
+  final int refreshToken;
 
   const MacroSectionCard({
     super.key,
@@ -30,6 +35,7 @@ class MacroSectionCard extends StatefulWidget {
     this.isRolling = true,
     this.rangeLabel,
     this.onTap,
+    this.refreshToken = 0,
   });
 
   @override
@@ -39,6 +45,7 @@ class MacroSectionCard extends StatefulWidget {
 class _MacroSectionCardState extends State<MacroSectionCard> {
   MacroPeriodSummary? _summary;
   bool _isLoading = true;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -51,12 +58,14 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.activeBlockType != widget.activeBlockType ||
         oldWidget.anchorDate != widget.anchorDate ||
-        oldWidget.isRolling != widget.isRolling) {
+        oldWidget.isRolling != widget.isRolling ||
+        oldWidget.refreshToken != widget.refreshToken) {
       _load();
     }
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() => _isLoading = true);
     try {
       final bounds = widget.isRolling
@@ -66,13 +75,17 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               DateTime(2020),
             );
       final summary = await widget.adapter.fetchSummary(range: bounds);
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
+      final resolvedSummary =
+          widget.activeBlockType == TimeframeBlock.maxBlock
+          ? summary.trimmedToFirstTracked()
+          : summary;
       setState(() {
-        _summary = summary;
+        _summary = resolvedSummary;
         _isLoading = false;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _summary = null;
         _isLoading = false;
@@ -122,189 +135,214 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     final carbsColor = macroColors?.carbs ?? Colors.green.shade400;
     final fatColor = macroColors?.fat ?? Colors.purple.shade300;
 
-    final displayDays = _previewBars(_summary?.dailyIntakes ?? []);
+    final isInitialLoading = _isLoading && _summary == null;
+    final isEmpty =
+        !_isLoading && (_summary == null || _summary!.trackedDays == 0);
+    final useMockData = isInitialLoading || isEmpty;
+    final displaySummary = useMockData
+        ? MacroPeriodSummary.mockPreview(
+            widget.activeBlockType == TimeframeBlock.maxBlock
+                ? TimeframeBlock.week.getRollingBounds()
+                : (widget.isRolling
+                      ? widget.activeBlockType.getRollingBounds()
+                      : widget.activeBlockType.getBounds(
+                          widget.anchorDate ?? DateTime.now(),
+                          DateTime(2020),
+                        )),
+          )
+        : _summary!;
+
+    final displayDays = _previewBars(displaySummary.dailyIntakes);
     int maxKcal = 1;
     for (final d in displayDays) {
       if (d.calories > maxKcal) maxKcal = d.calories;
     }
-    final avgKcal = _summary?.avgCalories ?? 0;
+    final avgKcal = displaySummary.avgCalories;
+
+    Widget bodyContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Mini Bars
+        SizedBox(
+          height: 56,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(
+              displayDays.isEmpty ? 7 : displayDays.length,
+              (index) {
+                if (index >= displayDays.length) {
+                  return Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.08,
+                      ),
+                    ),
+                  );
+                }
+                final item = displayDays[index];
+                if (item.calories <= 0) {
+                  return Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.08,
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  );
+                }
+
+                final ratio = (item.calories / maxKcal).clamp(0.1, 1.0);
+                final carbsKcal = max(0.0, item.carbsGrams * 4);
+                final proteinKcal = max(0.0, item.proteinGrams * 4);
+                final fatKcal = max(0.0, item.fatGrams * 9);
+                final totalMacroKcal = carbsKcal + proteinKcal + fatKcal;
+
+                final cFlex = totalMacroKcal > 0
+                    ? max(1, (carbsKcal / totalMacroKcal * 100).round())
+                    : 33;
+                final fFlex = totalMacroKcal > 0
+                    ? max(1, (fatKcal / totalMacroKcal * 100).round())
+                    : 33;
+                final pFlex = totalMacroKcal > 0
+                    ? max(1, (proteinKcal / totalMacroKcal * 100).round())
+                    : 34;
+
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: displayDays.length <= 7
+                          ? 3.0
+                          : (displayDays.length <= 31 ? 1.0 : 0.5),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final barHeight = constraints.maxHeight * ratio;
+                        return Align(
+                          alignment: Alignment.bottomCenter,
+                          child: SizedBox(
+                            height: barHeight,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: Column(
+                                verticalDirection: VerticalDirection.up,
+                                children: [
+                                  Expanded(
+                                    flex: cFlex,
+                                    child: Container(color: carbsColor),
+                                  ),
+                                  Expanded(
+                                    flex: fFlex,
+                                    child: Container(color: fatColor),
+                                  ),
+                                  Expanded(
+                                    flex: pFlex,
+                                    child: Container(color: proteinColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+
+        // Bottom: average kcal + average P/KH/F badges
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (displaySummary.trackedDays > 0) ...[
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: MacroBadgeRow(
+                    protein: displaySummary.avgProtein,
+                    carbs: displaySummary.avgCarbs,
+                    fat: displaySummary.avgFat,
+                    useBadges: true,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+
+    if (isEmpty) {
+      bodyContent = CardEmptyStateOverlay(
+        isEmpty: true,
+        message: l10n.statisticsEmptyNutrition,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+        child: bodyContent,
+      );
+    } else if (isInitialLoading) {
+      bodyContent = Skeletonizer(
+        enabled: true,
+        child: IgnorePointer(child: bodyContent),
+      );
+    }
 
     return SummaryCard(
       margin: EdgeInsets.zero,
       padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap:
-            widget.onTap ??
-            () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => MacroStatisticsScreen(
-                    initialBlock: widget.activeBlockType,
-                    initialAnchorDate: widget.anchorDate,
-                    initialIsRolling: widget.isRolling,
-                  ),
-                ),
-              );
-            },
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        child: Padding(
-          padding: DesignConstants.cardPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AnalyticsCardBase.buildHeaderWithChevron(
-                context,
-                label: l10n.foodDetailMacronutrientsGroup,
-                chipText:
-                    widget.rangeLabel ??
-                    (widget.activeBlockType == TimeframeBlock.week
-                        ? l10n.statisticsLast7Days
-                        : widget.activeBlockType.name),
-                trailingIcon: true,
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-
-              // 7 Mini Bars
-              SizedBox(
-                height: 56,
-                child: _isLoading
-                    ? const Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: List.generate(
-                          displayDays.isEmpty ? 7 : displayDays.length,
-                          (index) {
-                            if (index >= displayDays.length) {
-                              return Expanded(
-                                child: Container(
-                                  height: 4,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 2,
-                                  ),
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                ),
-                              );
-                            }
-                            final item = displayDays[index];
-                            if (item.calories <= 0) {
-                              return Expanded(
-                                child: Container(
-                                  height: 4,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                              );
-                            }
-
-                            final ratio = (item.calories / maxKcal).clamp(
-                              0.1,
-                              1.0,
-                            );
-                            final carbsKcal = max(0.0, item.carbsGrams * 4);
-                            final proteinKcal = max(0.0, item.proteinGrams * 4);
-                            final fatKcal = max(0.0, item.fatGrams * 9);
-                            final totalMacroKcal =
-                                carbsKcal + proteinKcal + fatKcal;
-
-                            final cFlex = totalMacroKcal > 0
-                                ? max(
-                                    1,
-                                    (carbsKcal / totalMacroKcal * 100).round(),
-                                  )
-                                : 33;
-                            final fFlex = totalMacroKcal > 0
-                                ? max(
-                                    1,
-                                    (fatKcal / totalMacroKcal * 100).round(),
-                                  )
-                                : 33;
-                            final pFlex = totalMacroKcal > 0
-                                ? max(
-                                    1,
-                                    (proteinKcal / totalMacroKcal * 100)
-                                        .round(),
-                                  )
-                                : 34;
-
-                            return Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: displayDays.length <= 7
-                                      ? 3.0
-                                      : (displayDays.length <= 31 ? 1.0 : 0.5),
-                                ),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final barHeight =
-                                        constraints.maxHeight * ratio;
-                                    return Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: SizedBox(
-                                        height: barHeight,
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
-                                          child: Column(
-                                            verticalDirection:
-                                                VerticalDirection.up,
-                                            children: [
-                                              Expanded(
-                                                flex: cFlex,
-                                                child: Container(
-                                                  color: carbsColor,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                flex: fFlex,
-                                                child: Container(
-                                                  color: fatColor,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                flex: pFlex,
-                                                child: Container(
-                                                  color: proteinColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-
-              // Bottom: average kcal
-              Text(
-                avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+      onTap:
+          widget.onTap ??
+          () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MacroStatisticsScreen(
+                  initialBlock: widget.activeBlockType,
+                  initialAnchorDate: widget.anchorDate,
+                  initialIsRolling: widget.isRolling,
                 ),
               ),
-            ],
-          ),
+            );
+          },
+      child: Padding(
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnalyticsCardBase.buildHeaderWithChevron(
+              context,
+              label: l10n.foodDetailMacronutrientsGroup,
+              chipText:
+                  widget.rangeLabel ??
+                  (widget.isRolling
+                      ? TimeframeLabelFormatter.formatRelativeRolling(
+                          widget.activeBlockType,
+                          l10n,
+                        )
+                      : TimeframeLabelFormatter.format(
+                          widget.activeBlockType,
+                          widget.anchorDate ?? DateTime.now(),
+                          l10n,
+                        )),
+              trailingIcon: true,
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            bodyContent,
+          ],
         ),
       ),
     );

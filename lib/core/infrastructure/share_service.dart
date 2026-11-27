@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -192,7 +192,7 @@ class ShareService {
     final labelSleepEfficiency =
         l10n?.shareSleepEfficiency ?? '[l10n:shareSleepEfficiency]';
     final labelSleepHeartRate =
-        l10n?.shareSleepRestingHeartRate ?? '[l10n:shareSleepRestingHeartRate]';
+        l10n?.sleepDashboardNightHeartRate ?? '[l10n:sleepDashboardNightHeartRate]';
 
     final labelDailyGoal = l10n?.dailyGoalLabel ?? '[l10n:dailyGoalLabel]';
     final labelDailyLimit = l10n?.dailyLimitLabel ?? '[l10n:dailyLimitLabel]';

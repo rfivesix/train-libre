@@ -161,6 +161,12 @@ void main() {
         manager.startSetTimer(2001);
         expect(manager.activeSetTimerId, 2001);
         expect(manager.setTimerElapsedSeconds(2001), 0);
+        manager.adjustSetTimer(15);
+        expect(manager.setTimerElapsedSeconds(2001), 15);
+        manager.adjustSetTimer(-15);
+        expect(manager.setTimerElapsedSeconds(2001), 0);
+        manager.adjustSetTimer(-15);
+        expect(manager.setTimerElapsedSeconds(2001), 0);
         await Future<void>.delayed(const Duration(milliseconds: 1200));
         await manager.stopSetTimer(2001);
         final pausedSeconds = manager.setLogs[2001]!.durationSeconds!;
@@ -186,6 +192,109 @@ void main() {
         final saved = manager.setLogs[2001]!;
         expect(saved.isCompleted, isTrue);
         expect(saved.durationSeconds, greaterThanOrEqualTo(1));
+        expect(manager.activeSetTimerId, isNull);
+      },
+    );
+
+    test('finishing a workout saves an active timer as an open set', () async {
+      final log = await workoutDb.startWorkout(routineName: 'Timed finish');
+      const timedExercise = model.Exercise(
+        id: 22,
+        texts: {'en': model.ExerciseText(name: 'Plank', description: '')},
+        categoryName: 'Strength',
+        trackingType: 'time',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 220,
+          exercise: timedExercise,
+          setTemplates: [SetTemplate(id: 2201, setType: 'normal')],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.containsKey(2201));
+      manager.startSetTimer(2201);
+      manager.adjustSetTimer(15);
+      expect(manager.activeSetTimerId, 2201);
+      expect(manager.setTimerElapsedSeconds(2201), greaterThanOrEqualTo(15));
+
+      await manager.finishWorkout();
+
+      final saved = await workoutDb.getSetLogsForWorkout(log.id!);
+      expect(saved, hasLength(1));
+      expect(saved.single.durationSeconds, greaterThanOrEqualTo(15));
+      expect(saved.single.isCompleted, isFalse);
+      expect(manager.activeSetTimerId, isNull);
+    });
+
+    test(
+      'manual duration edits replace the paused timer before resuming',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Timed edits');
+        const timedExercise = model.Exercise(
+          id: 23,
+          texts: {'en': model.ExerciseText(name: 'Plank', description: '')},
+          categoryName: 'Strength',
+          trackingType: 'time',
+          primaryMuscles: [],
+          secondaryMuscles: [],
+        );
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 230,
+            exercise: timedExercise,
+            setTemplates: [SetTemplate(id: 2301, setType: 'normal')],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.containsKey(2301));
+        manager.startSetTimer(2301);
+        manager.adjustSetTimer(15);
+        await manager.stopSetTimer(2301);
+
+        await manager.updateSet(2301, duration: 32);
+        manager.startSetTimer(2301);
+        expect(manager.setTimerElapsedSeconds(2301), 32);
+        await manager.stopSetTimer(2301);
+
+        await manager.updateSet(2301, duration: 0, clearDuration: true);
+        manager.startSetTimer(2301);
+        expect(manager.setTimerElapsedSeconds(2301), 0);
+        await manager.stopSetTimer(2301);
+        expect(manager.setLogs[2301]!.durationSeconds, 0);
+      },
+    );
+
+    test(
+      'removing a timed set or its exercise clears the running timer',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Timed removal');
+        const timedExercise = model.Exercise(
+          id: 24,
+          texts: {'en': model.ExerciseText(name: 'Plank', description: '')},
+          categoryName: 'Strength',
+          trackingType: 'time',
+          primaryMuscles: [],
+          secondaryMuscles: [],
+        );
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 240,
+            exercise: timedExercise,
+            setTemplates: [
+              SetTemplate(id: 2401, setType: 'normal'),
+              SetTemplate(id: 2402, setType: 'normal'),
+            ],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.length == 2);
+        manager.startSetTimer(2401);
+        expect(manager.activeSetTimerId, 2401);
+        await manager.removeSet(2401);
+        expect(manager.activeSetTimerId, isNull);
+        manager.startSetTimer(2402);
+        expect(manager.activeSetTimerId, 2402);
+        await manager.removeExercise(240);
         expect(manager.activeSetTimerId, isNull);
       },
     );

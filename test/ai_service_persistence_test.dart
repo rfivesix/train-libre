@@ -80,6 +80,27 @@ void main() {
     expect(await service.isFastModeEnabled(), isTrue);
   });
 
+  test(
+    'Apple Intelligence always resolves to directEstimate without overwriting saved mode',
+    () async {
+      final service = _serviceWith(storage: _InMemorySecureStorage());
+      await service.setMealNutritionMode(AiMealNutritionMode.localCatalog);
+
+      expect(
+        await service.getEffectiveMealNutritionMode(AiProvider.openai),
+        AiMealNutritionMode.localCatalog,
+      );
+      expect(
+        await service.getEffectiveMealNutritionMode(AiProvider.appleFoundation),
+        AiMealNutritionMode.directEstimate,
+      );
+      expect(
+        await service.getMealNutritionMode(),
+        AiMealNutritionMode.localCatalog,
+      );
+    },
+  );
+
   group('AiService provider persistence', () {
     test('setSelectedProvider persists and loads every provider', () async {
       final storage = _InMemorySecureStorage();

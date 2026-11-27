@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 

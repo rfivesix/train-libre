@@ -7,11 +7,10 @@ import 'dart:ui' as ui;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/gestures.dart' show kTouchSlop;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -22,6 +21,8 @@ import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_meal_scan_runner.dart';
 import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_service.dart';
+import '../../../services/ai/ai_cancellation.dart';
+import 'widgets/ai_meal_error_menu.dart';
 import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_meal_context.dart';
@@ -29,7 +30,6 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../depth_scan/data/depth_map_attachment.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
-import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'ai_meal_review_reveal_route.dart';
 import 'ai_meal_review_screen.dart';
 import 'ai_meal_distance_guidance.dart';
@@ -39,12 +39,12 @@ import 'meal_editor_screen.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/camera_shutter_button.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_item.dart';
 import 'dialogs/quantity_log_flow.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
-import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/telemetry/telemetry_buckets.dart';
 import '../../../services/voice/voice_dictation_service.dart';
@@ -59,15 +59,40 @@ import '../../ai_assistant/presentation/widgets/cloud_overlay/header_glass_butto
 import 'widgets/ai_neural_cloud_orb_widget.dart';
 import 'widgets/animated_transcript_text.dart';
 
+/// Explicit camera injection for deterministic integration and production demos.
+/// Normal app navigation does not supply this override and uses the native camera.
+/// The preview and capture callback must describe the same camera frame.
+class AiMealCaptureCameraOverride {
+  const AiMealCaptureCameraOverride({
+    required this.preview,
+    required this.capture,
+  });
+
+  final Widget preview;
+  final Future<File?> Function() capture;
+}
+
 /// Screen for capturing meal input via live camera, photo(s), barcode or text (Screens A1–A6).
 class AiMealCaptureScreen extends StatefulWidget {
   final DateTime? initialDate;
   final String? initialMealType;
+  final AiMealCaptureCameraOverride? cameraOverride;
+
+  /// Optional deterministic provider for isolated demo/test runs. When absent,
+  /// the configured provider performs the request. Validation and review stay
+  /// on the normal application path.
+  final AiCandidateLoader? analysisOverride;
+
+  /// Optional explicit review time for deterministic isolated demos.
+  final DateTime? reviewTimestampOverride;
 
   const AiMealCaptureScreen({
     super.key,
     this.initialDate,
     this.initialMealType,
+    this.cameraOverride,
+    this.analysisOverride,
+    this.reviewTimestampOverride,
   });
 
   @override
@@ -106,6 +131,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// noise rather than help.
   bool _barcodeDetectionEnabled = true;
   bool _hasLidar = false;
+  bool _isAppleFoundationProvider = false;
 
   /// True once the unified native session (preview + barcodes + photo + depth)
   /// is available. Only then does the separate scanner camera stay out of the
@@ -155,7 +181,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _isAnalyzing = false;
   MealAnalysisController? _analysisController;
   Route<void>? _analysisRoute;
-  bool _analysisCancelled = false;
+  AiCancellation? _activeCancellation;
   bool _aiWaitingHapticActive = false;
   bool _showTextInput = false;
 
@@ -199,9 +225,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ),
     );
     WidgetsBinding.instance.addObserver(this);
+    AiService.instance.configurationRevision.addListener(
+      _onAiConfigurationChanged,
+    );
     _checkDbStatus();
+    unawaited(_loadSelectedProvider());
     unawaited(_prepareCamera());
-    unawaited(AiService.instance.prewarm());
 
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,
@@ -210,12 +239,50 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      unawaited(_prewarmSelectedProvider());
       final tourCompleted = await AiMealCaptureTourService.instance
           .isTourCompleted();
       if (!tourCompleted && mounted) {
         _startTour();
       }
     });
+  }
+
+  void _onAiConfigurationChanged() {
+    unawaited(_loadSelectedProvider());
+    unawaited(_prewarmSelectedProvider());
+  }
+
+  Future<void> _loadSelectedProvider() async {
+    if (widget.analysisOverride != null) return;
+    try {
+      final provider = await AiService.instance.getSelectedProvider();
+      final isApple = provider == AiProvider.appleFoundation;
+      if (!mounted) return;
+      if (_isAppleFoundationProvider != isApple) {
+        setState(() {
+          _isAppleFoundationProvider = isApple;
+          if (isApple) {
+            _distanceGuidance.update(null);
+            _distanceHint = null;
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _prewarmSelectedProvider() async {
+    if (!mounted || widget.analysisOverride != null) return;
+    try {
+      final matchingContext =
+          await AiMatchingLanguageService.resolveMatchingContext(
+            context: context,
+          );
+      if (!mounted) return;
+      await AiService.instance.prewarm(
+        languageCode: matchingContext.appLanguage,
+      );
+    } catch (_) {}
   }
 
   @override
@@ -255,11 +322,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   @override
   void dispose() {
+    _activeCancellation?.cancel();
     _cloudVisibilityLease.dispose();
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
     WidgetsBinding.instance.removeObserver(this);
+    AiService.instance.configurationRevision.removeListener(
+      _onAiConfigurationChanged,
+    );
     _stopAiWaitingHaptics();
     _voiceHoldTimer?.cancel();
     _voiceDemoTimer?.cancel();
@@ -298,6 +369,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _refreshPermissionAndResumeCamera() async {
+    if (widget.cameraOverride != null) return;
     final status = await Permission.camera.status;
     if (!mounted) return;
     if (!status.isGranted) {
@@ -380,6 +452,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// Permission first, session second — the native session cannot configure an
   /// input without camera access.
   Future<void> _prepareCamera() async {
+    if (widget.cameraOverride != null) {
+      if (mounted) setState(() => _cameraPermission = PermissionStatus.granted);
+      return;
+    }
     await _detectIosSimulator();
     await _checkPermission();
     if (!mounted || !_cameraPermission.isGranted) return;
@@ -612,6 +688,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   void _onLiveDistance(double? distanceCm) {
+    if (_isAppleFoundationProvider) {
+      _clearDistanceHint();
+      return;
+    }
     if (!mounted ||
         !_isTopRoute ||
         _isCameraSuspended ||
@@ -640,6 +720,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     _clearDistanceHint();
     HapticFeedbackService.instance.selectionFeedback();
 
+    final cameraOverride = widget.cameraOverride;
+    if (cameraOverride != null) {
+      final file = await cameraOverride.capture();
+      if (file != null && mounted) {
+        setState(() => _images.add(file));
+        _preProcessor.processImages([file]);
+      }
+      return;
+    }
+
     // The running session takes the photo — including on devices without
     // LiDAR, where it simply returns no depth map. Opening the system camera
     // on top of a live preview would be the wrong thing everywhere.
@@ -660,11 +750,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (res != null && mounted) {
         final capture = res;
         setState(() {
-          _depthCaptures[capture.imageFile.path] = capture;
+          if (!_isAppleFoundationProvider) {
+            _depthCaptures[capture.imageFile.path] = capture;
+          }
           _images.add(capture.imageFile);
         });
-        if (capture.scaleFacts?.isValid == true ||
-            capture.depthBuffer != null) {
+        if (!_isAppleFoundationProvider &&
+            (capture.scaleFacts?.isValid == true ||
+                capture.depthBuffer != null)) {
           unawaited(
             TelemetryService.instance.trackFeatureUsed(
               featureKey: FeatureKey.lidarDepthCaptured,
@@ -746,7 +839,22 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _analyze() async {
-    if (!_hasInput) return;
+    if (!_hasInput || _isAnalyzing) {
+      return;
+    }
+    final cancellation = AiCancellation();
+    _activeCancellation = cancellation;
+    await cancellation.run(_runAnalysis);
+    if (identical(_activeCancellation, cancellation)) {
+      _activeCancellation = null;
+    }
+  }
+
+  Future<void> _runAnalysis() async {
+    Object? displayedError;
+    final operation = AiCancellation.current!;
+    bool cancelled() =>
+        operation.isCancelled || !identical(_activeCancellation, operation);
     // The text field can keep the system keyboard alive while the analysis
     // route is shown. Clear focus and hide keyboard before pushing it so it stays dismissed
     // when the scan screen closes.
@@ -798,7 +906,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final hasImages = _images.isNotEmpty;
     final hasText = text.isNotEmpty;
     final hasVoice = hasText && _textCameFromVoice;
-    final hasLidar = _depthCaptures.values.any((c) => c.depthBuffer != null);
+    var hasLidar =
+        !_isAppleFoundationProvider &&
+        _depthCaptures.values.any((c) => c.depthBuffer != null);
     final inputMode = hasImages && hasText
         ? 'multimodal'
         : (hasImages ? 'photo' : 'text_only');
@@ -878,11 +988,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
+      activeModelName: widget.analysisOverride != null ? 'Demo · synthetisch' : null,
       sourceContext: _keyAnalyze.currentContext,
       sourceRect: sourceRect,
       previewImage: _images.isNotEmpty ? _images.first : null,
       onCancel: () {
-        _analysisCancelled = true;
+        operation.cancel();
         if (!completionScheduled) {
           completionScheduled = true;
           stopwatch.stop();
@@ -920,31 +1031,37 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _dismissAnalysisScreen();
       },
     );
-    _analysisCancelled = false;
     if (mounted) unawaited(Navigator.of(context).push(_analysisRoute!));
 
     try {
-      final selectedProvider = await AiService.instance.getSelectedProvider();
-      provider = selectedProvider.name;
+      final selectedProvider = widget.analysisOverride != null
+          ? AiProvider.openai
+          : await AiService.instance.getSelectedProvider();
+      final isAppleProvider = selectedProvider == AiProvider.appleFoundation;
+      if (isAppleProvider) {
+        hasLidar = false;
+      }
+      provider = widget.analysisOverride != null ? 'demo' : selectedProvider.name;
       unawaited(scanLog.setProvider(requestId, provider));
       unawaited(() async {
         try {
-          final model = await AiService.instance.getSelectedModel(
-            selectedProvider,
-          );
+          final model = widget.analysisOverride != null
+              ? 'synthetic-fixture'
+              : await AiService.instance.getSelectedModel(selectedProvider);
           await scanLog.setModel(requestId, model);
         } catch (_) {
           // Diagnostic metadata must not affect the scan.
         }
       }());
       sendRequested();
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
       final matchingContextFuture =
           AiMatchingLanguageService.resolveMatchingContext(context: context);
       final imagesReady = _images.isNotEmpty
           ? _preProcessor.waitForCompletion(_images)
           : Future<void>.value();
       final depthReady = () async {
+        if (isAppleProvider) return null;
         final enabled = await DepthScanSettings.instance.isDepthImageEnabled();
         return enabled && _lastDepthCapture != null
             ? buildDepthMapAttachment(_lastDepthCapture!)
@@ -952,12 +1069,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       }();
       await Future.wait([cameraSuspended, imagesReady]);
       final matchingContext = await matchingContextFuture;
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
 
       // Switchable so the same meal can be shot with and without the hint;
       // otherwise there is no way to tell whether the measurement helps.
-      final scaleHintEnabled = await DepthScanSettings.instance
-          .isScaleHintEnabled();
+      // Disabled for Apple Intelligence where LiDAR cues hurt on-device estimates.
+      final scaleHintEnabled =
+          !isAppleProvider &&
+          await DepthScanSettings.instance.isScaleHintEnabled();
       final depthFacts = scaleHintEnabled
           ? _lastDepthCapture?.scaleFacts
           : null;
@@ -966,18 +1085,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       // around: the band scale is fitted to the frame, so it only exists once the
       // capture it belongs to does.
       final depthMap = await depthReady;
-      final depthPhotoIndex = _lastDepthCapture == null
+      final depthPhotoIndex = isAppleProvider || _lastDepthCapture == null
           ? -1
           : _images.indexWhere(
               (image) => image.path == _lastDepthCapture!.imageFile.path,
             );
-      final depthLegend = depthMap == null || depthPhotoIndex < 0
+      final depthLegend = isAppleProvider || depthMap == null || depthPhotoIndex < 0
           ? null
           : 'This depth map corresponds to meal photo ${depthPhotoIndex + 1} '
                 '(counting meal photos in order). ${depthMap.describeForPrompt()}';
-      if (!mounted || _analysisCancelled) return;
+      if (!mounted || cancelled()) return;
 
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       controller.value = MealAnalysisPhase.analyzing;
 
       final preparationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
@@ -991,7 +1110,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
       );
       final fastMode = await AiService.instance.isFastModeEnabled();
-      final nutritionMode = await AiService.instance.getMealNutritionMode();
+      final nutritionMode = await AiService.instance
+          .getEffectiveMealNutritionMode(selectedProvider);
       final useDirectNutrition =
           nutritionMode == AiMealNutritionMode.directEstimate;
       final cloudProvider = provider != 'ollama' && provider != 'custom';
@@ -1007,7 +1127,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       unawaited(
         validationCompleter.future.then<void>(
           (_) {},
-          onError: (Object _, StackTrace __) {},
+          onError: (Object _, StackTrace _) {},
         ),
       );
       final progressiveValidation = ValueNotifier<AiValidationResult?>(null);
@@ -1019,7 +1139,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         AiValidationResult? validation,
         AiMealContext? mealContext,
       }) async {
-        if (reviewNavigated || !mounted || _analysisCancelled) return;
+        if (reviewNavigated || !mounted || cancelled()) return;
         reviewNavigated = true;
         _stopAiWaitingHaptics();
 
@@ -1027,7 +1147,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         // briefly before the reveal route disperses it into vapor. The startup
         // initializer has its own contraction timing and does not use this path.
         await controller.contractToCircle();
-        if (!mounted || _analysisCancelled) return;
+        if (!mounted || cancelled()) return;
 
         if (mounted) {
           setState(() => _isAnalyzing = false);
@@ -1042,6 +1162,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             detectedType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
+        var retryFailedReview = false;
         final reviewRoute = AiMealReviewRevealRoute<bool>(
           builder: (context) => AiMealReviewScreen(
             suggestions: items
@@ -1069,14 +1190,21 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             mealContext: mealContext,
             originalImages: _images,
             initialDate: widget.initialDate,
+            timestampOverride: widget.reviewTimestampOverride,
             initialMealType: resolvedMealType,
-            depthResult: _lastDepthCapture,
-            depthResultsByPath: _depthCaptures,
-            depthFacts: _lastDepthCapture?.scaleFacts,
+            depthResult: isAppleProvider ? null : _lastDepthCapture,
+            depthResultsByPath: isAppleProvider ? const {} : _depthCaptures,
+            depthFacts: isAppleProvider ? null : _lastDepthCapture?.scaleFacts,
             voiceTranscript: text.isNotEmpty ? text : null,
             scanRequestId: requestId,
             usageCollector: usageCollector,
             directNutritionMode: useDirectNutrition,
+            appleProvider: provider == AiProvider.appleFoundation.name,
+            onFailedScanRetry: () {
+              retryFailedReview = true;
+              Navigator.of(context).pop();
+            },
+            onFailedScanEdit: () => Navigator.of(context).pop(),
           ),
         );
 
@@ -1094,6 +1222,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             final result = await navFuture;
             await reviewRoute.completed;
             if (!savedCompleter.isCompleted) savedCompleter.complete(result);
+            if (retryFailedReview && mounted) {
+              unawaited(Future<void>(() => _analyze()));
+            }
           } catch (error, stackTrace) {
             if (!savedCompleter.isCompleted) {
               savedCompleter.completeError(error, stackTrace);
@@ -1123,9 +1254,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       }
 
       final runResult = await AiMealScanRunner(validationEngine: engine).run(
-        fastMode: fastMode && cloudProvider,
-        automaticRepair: !useDirectNutrition,
-        isCancelled: () => _analysisCancelled || !mounted,
+        fastMode: fastMode && cloudProvider && widget.analysisOverride == null,
+        automaticRepair: !useDirectNutrition && widget.analysisOverride == null,
+        isCancelled: () => cancelled() || !mounted,
         onCandidateReady: (candidate) {
           unawaited(
             navigateToReview(
@@ -1152,7 +1283,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           }
         },
         onValidating: () {
-          if (!_analysisCancelled &&
+          if (!cancelled() &&
               mounted &&
               controller.value != MealAnalysisPhase.repairing) {
             controller.value = MealAnalysisPhase.matching;
@@ -1184,7 +1315,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 ),
               );
             },
-        analyze: () => useDirectNutrition
+        analyze: widget.analysisOverride ?? () => useDirectNutrition
             ? (_images.isNotEmpty
                   ? AiService.instance.analyzeDirectNutritionImages(
                       _images,
@@ -1260,7 +1391,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       if (!mounted) return;
       // The user walked away from the wait; their result is no longer wanted.
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
 
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
         validationOutcome.validation.candidate.items.length,
@@ -1330,12 +1461,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       // Leaving the review returns to wherever the capture was started from,
       // saved or not. Dropping back into the viewfinder after reviewing a meal
       // is never what the user meant by "back".
-      if (mounted) {
+      if (mounted && !cancelled()) {
         Navigator.of(context).pop(saved == true);
       }
     } on AiKeyMissingException catch (e, stackTrace) {
       failPendingReview(e, stackTrace);
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       unawaited(
         scanLog.finish(
@@ -1368,10 +1499,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
       _dismissAnalysisScreen();
       if (!mounted) return;
-      if (!reviewNavigated) _showKeyMissingDialog();
+      if (!reviewNavigated) displayedError = e;
     } on AiServiceException catch (e, stackTrace) {
       failPendingReview(e, stackTrace);
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       unawaited(
         scanLog.finish(
@@ -1404,20 +1535,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
       _dismissAnalysisScreen();
       if (!mounted) return;
-      if (!reviewNavigated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      if (!reviewNavigated) displayedError = e;
     } catch (e, stackTrace) {
       debugPrint('[AiMealCapture] Unexpected scan failure: $e');
       debugPrintStack(stackTrace: stackTrace);
       failPendingReview(e, stackTrace);
-      if (_analysisCancelled) return;
+      if (cancelled()) return;
       stopwatch.stop();
       unawaited(
         scanLog.finish(
@@ -1450,16 +1573,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
       _dismissAnalysisScreen();
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      if (!reviewNavigated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.error),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      if (!reviewNavigated) displayedError = e;
     } finally {
       sendRequested();
       scheduleUsage();
@@ -1475,65 +1589,56 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ),
         );
       }
-      _stopAiWaitingHaptics();
-      _dismissAnalysisScreen();
-      if (mounted) {
-        setState(() {
-          _isAnalyzing = false;
-          if (!reviewNavigated && _textController.text.isNotEmpty) {
-            _showTextInput = true;
-          }
-        });
-        if (_isTopRoute && !_analysisCancelled) {
-          unawaited(_resumeCamera());
+      if (identical(_activeCancellation, operation)) {
+        _stopAiWaitingHaptics();
+        _dismissAnalysisScreen();
+        if (mounted) {
+          setState(() {
+            _isAnalyzing = false;
+            if (!reviewNavigated && _textController.text.isNotEmpty) {
+              _showTextInput = true;
+            }
+          });
+          if (_isTopRoute && !cancelled()) unawaited(_resumeCamera());
         }
       }
     }
+    if (displayedError != null && mounted && !cancelled()) {
+      await _showAnalysisError(
+        displayedError,
+        provider == AiProvider.appleFoundation.name,
+      );
+    }
   }
 
-  void _showKeyMissingDialog() async {
-    final l10n = AppLocalizations.of(context)!;
-    await _suspendCamera();
-    if (!mounted) return;
-    await showGlassBottomMenu<void>(
-      context: context,
-      title: l10n.aiValidationApiKeyRequiredTitle,
-      contentBuilder: (ctx, close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(l10n.aiErrorNoKey, textAlign: TextAlign.center),
-          const SizedBox(height: DesignConstants.spacingM),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  label: l10n.cancel,
-                  tooltip: l10n.cancel,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: AppButton.primary(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AiSettingsScreen(),
-                      ),
-                    );
-                  },
-                  label: l10n.aiSettingsTitle,
-                  tooltip: l10n.aiSettingsTitle,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-    if (mounted && _isTopRoute && !_isAnalyzing) {
-      unawaited(_resumeCamera());
+  Future<void> _showAnalysisError(Object error, bool apple) async {
+    // The analysis route must finish leaving before a root bottom sheet opens.
+    await WidgetsBinding.instance.endOfFrame;
+    while (true) {
+      if (!mounted) return;
+      final action = await showAiMealErrorMenu(
+        context: context,
+        error: error,
+        apple: apple,
+        canEdit: true,
+      );
+      if (!mounted) return;
+      if (action == AiMealErrorAction.settings) {
+        await _suspendCamera();
+        if (!mounted) return;
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
+        if (mounted && _isTopRoute) unawaited(_resumeCamera());
+        continue;
+      }
+      if (action == AiMealErrorAction.retry) {
+        // Schedule after this operation has fully unwound.
+        unawaited(Future<void>(() => _analyze()));
+      } else if (action == AiMealErrorAction.edit &&
+          _textController.text.isNotEmpty) {
+        setState(() => _showTextInput = true);
+      }
+      return;
     }
   }
 
@@ -1570,7 +1675,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             tooltip: l10n.aiCaptureTourReplayTooltip,
             onPressed: _startTour,
           ),
-          if (_hasLidar)
+          if (_hasLidar && !_isAppleFoundationProvider)
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(right: 16),
@@ -1630,7 +1735,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
-                                if (!_cameraPermission.isGranted)
+                                if (widget.cameraOverride != null)
+                                  widget.cameraOverride!.preview
+                                else if (!_cameraPermission.isGranted)
                                   const AiCameraFallbackView()
                                 else if (_isIosSimulator && !_useNativeSession)
                                   const AiSimulatorCameraDemo()
@@ -1722,7 +1829,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   child: ListView.separated(
                                     scrollDirection: Axis.horizontal,
                                     itemCount: _images.length,
-                                    separatorBuilder: (_, __) =>
+                                    separatorBuilder: (_, _) =>
                                         const SizedBox(width: 8),
                                     itemBuilder: (context, idx) {
                                       return Stack(
@@ -1760,7 +1867,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                                 tooltip: l10n.aiChatRemoveImage,
                                                 isDarkSurface: true,
                                                 foregroundColor: Colors.white,
-                                                platformViewBackdrop: true,
+                                                useCameraGlass: true,
                                                 onPressed: () =>
                                                     _removeImage(idx),
                                               ),
@@ -2131,7 +2238,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       children: [
         Opacity(
           opacity: _isDictating ? 0.42 : 1,
-          child: _buildFrostedButton(
+          child: _buildScannerActionButton(
             key: _keyGallery,
             icon: LucideIcons.image,
             onTap: _isDictating ? null : _pickFromGallery,
@@ -2141,7 +2248,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         Expanded(child: Center(child: _buildMealVoiceControl(l10n))),
         Opacity(
           opacity: _isDictating ? 0.42 : 1,
-          child: _buildFrostedButton(
+          child: _buildScannerActionButton(
             key: _keyText,
             icon: LucideIcons.pencil,
             isActive: _showTextInput || _textController.text.isNotEmpty,
@@ -2187,7 +2294,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               AnimatedOpacity(
                 opacity: _isDictating ? 0 : 1,
                 duration: const Duration(milliseconds: 220),
-                child: _buildFrostedButton(
+                child: _buildScannerActionButton(
                   icon: LucideIcons.mic,
                   isActive: _isDictating,
                   onTap: null,
@@ -2295,6 +2402,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildScannerCameraActions(AppLocalizations l10n) {
+    final hasPlatformPreview =
+        _cameraPermission.isGranted &&
+        widget.cameraOverride == null &&
+        (!_isIosSimulator || _useNativeSession);
     return Positioned.fill(
       child: Stack(
         clipBehavior: Clip.none,
@@ -2319,7 +2430,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   },
                   tooltip: l10n.aiCaptureTourStepBarcodeTitle,
                   isDarkSurface: true,
-                  platformViewBackdrop: true,
+                  useCameraGlass: true,
+                  platformViewBackdrop: hasPlatformPreview,
                   foregroundColor: _barcodeDetectionEnabled
                       ? Theme.of(context).colorScheme.onPrimary
                       : Colors.white,
@@ -2329,51 +2441,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 ),
                 Expanded(
                   child: Center(
-                    child: Semantics(
-                      button: true,
+                    child: CameraShutterButton(
+                      key: _keyShutter,
                       label: l10n.aiCaptureTourStepShutterTitle,
-                      child: GestureDetector(
-                        key: _keyShutter,
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _takeShutterPhoto,
-                        child: SizedBox.square(
-                          dimension: 76,
-                          child: GlassAdaptiveScope(
-                            maxQuality: DesignConstants.defaultGlassQuality,
-                            minQuality: DesignConstants.minGlassQuality,
-                            child: AdaptiveGlass(
-                              settings: DesignConstants.liquidGlassSettings(
-                                true,
-                              ),
-                              quality: DesignConstants.defaultGlassQuality,
-                              platformViewBackdrop: true,
-                              useOwnLayer: true,
-                              allowElevation: false,
-                              shape: const LiquidRoundedSuperellipse(
-                                borderRadius: 40,
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 58,
-                                  height: 58,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.22,
-                                        ),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      onPressed: _takeShutterPhoto,
+                      overPlatformView: hasPlatformPreview,
                     ),
                   ),
                 ),
@@ -2381,7 +2453,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
                   tooltip: l10n.aiChatFlash,
                   isDarkSurface: true,
-                  platformViewBackdrop: true,
+                  useCameraGlass: true,
+                  platformViewBackdrop: hasPlatformPreview,
                   backgroundColor: _isFlashOn
                       ? Theme.of(context).colorScheme.primary
                       : null,
@@ -2421,7 +2494,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
   }
 
-  Widget _buildFrostedButton({
+  Widget _buildScannerActionButton({
     Key? key,
     required IconData icon,
     required VoidCallback? onTap,
@@ -2441,7 +2514,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ? Colors.white
           : theme.colorScheme.onSurface,
       backgroundColor: isActive ? theme.colorScheme.primary : null,
-      platformViewBackdrop: true,
+      useCameraGlass: true,
       dimension: 44,
       onPressed: onTap,
     );

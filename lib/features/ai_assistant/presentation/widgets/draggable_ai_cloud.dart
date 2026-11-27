@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,10 +22,12 @@ import '../../../workout/domain/repositories/workout_repository.dart';
 import '../../../settings/presentation/ai_settings_screen.dart';
 import '../../application/assistant_chat_service.dart';
 import '../../../../services/voice/voice_dictation_service.dart';
+import '../../data/assistant_analytics_actions.dart';
 import '../../data/assistant_diary_actions.dart';
 import '../../data/assistant_database_snapshot_reader.dart';
 import '../../data/assistant_health_actions.dart';
 import '../../data/assistant_history_repository.dart';
+import '../../data/assistant_pulse_actions.dart';
 import '../../data/assistant_training_actions.dart';
 import '../../domain/assistant_data_action.dart';
 import '../ai_global_cloud_presentation.dart';
@@ -33,6 +35,7 @@ import '../ai_global_cloud_presentation.dart';
 import 'cloud_overlay/cloud_chat_coordinator.dart';
 import 'cloud_overlay/ai_chat_camera_screen.dart';
 import 'cloud_overlay/cloud_chat_turn_list_view.dart';
+import 'cloud_overlay/cloud_chat_dismiss_drag.dart';
 import 'cloud_overlay/cloud_docking_controller.dart';
 import 'cloud_overlay/cloud_overlay_access_audit_modal.dart';
 import 'cloud_overlay/cloud_overlay_composer.dart';
@@ -88,8 +91,11 @@ class DraggableAiCloud extends StatefulWidget {
 }
 
 class DraggableAiCloudState extends State<DraggableAiCloud>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   bool _isExpanded = false;
+  LocalHistoryEntry? _chatBackEntry;
+  ModalRoute<dynamic>? _chatBackRoute;
+  double _backGestureStartValue = 1;
   bool _isClosing = false;
   bool _isClosingFromFullscreen = false;
   bool _showChatPreview = false;
@@ -124,7 +130,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         _quickChatOpenOriginCenter == null) {
       _quickChatMenuExitGlobalCenter =
           AiGlobalCloudPresentation.quickChatActionCenter.value ??
-          _lastQuickChatActionCenter;
+              _lastQuickChatActionCenter;
       _isQuickChatMenuExitAnimating = _quickChatMenuExitGlobalCenter != null;
     } else if (isOpen) {
       _isQuickChatMenuExitAnimating = false;
@@ -205,6 +211,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _lastChatOpenRequest = AiGlobalCloudPresentation.chatOpenRequests.value;
     _wasAddMenuOpen = AiGlobalCloudPresentation.isAddMenuOpen.value;
     _lastQuickChatActionCenter =
@@ -337,13 +344,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   workouts: workouts,
                   database: database,
                 ),
-                AssistantDiaryActions(diary),
+                AssistantDiaryActions(diary, database: database),
                 AssistantHealthActions(
                   database: database,
                   steps: HealthStepsAggregationRepository(),
                   profile: profile,
                   goals: goals,
                 ),
+                AssistantPulseActions(database: database),
+                AssistantAnalyticsActions(database: database),
               ],
             ),
           ]),
@@ -377,6 +386,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    final entry = _chatBackEntry;
+    _chatBackEntry = null;
+    _chatBackRoute = null;
+    entry?.remove();
     AiGlobalCloudPresentation.isAddMenuOpen.removeListener(
       _handleAddMenuStateChanged,
     );
@@ -406,6 +420,79 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   /// Pauses the current demo response and shows a simulated permission request.
   void requestDemoPermission() => _chatCoordinator.requestDemoPermission();
 
+  void _installChatBackEntry() {
+    final navigator = widget.navigator ??
+        widget.navigatorKey?.currentState ??
+        Navigator.maybeOf(context);
+    ModalRoute<dynamic>? route;
+    navigator?.popUntil((candidate) {
+      if (candidate is ModalRoute<dynamic>) route = candidate;
+      return true;
+    });
+    if (route == null) return;
+    _chatBackRoute = route;
+    _chatBackEntry = LocalHistoryEntry(
+      impliesAppBarDismissal: false,
+      onRemove: () {
+        _notifyBackAvailability(navigator);
+        if (_chatBackEntry == null) return;
+        _chatBackEntry = null;
+        _chatBackRoute = null;
+        if (mounted && _isExpanded) _toggleExpanded();
+      },
+    );
+    route!.addLocalHistoryEntry(_chatBackEntry!);
+    _notifyBackAvailability(navigator);
+  }
+
+  // LocalHistoryEntry changes do not cause Navigator to dispatch its usual
+  // platform back notification. In particular, Android must be told that a
+  // root route with an open chat can handle back before a gesture starts.
+  void _notifyBackAvailability(NavigatorState? navigator) {
+    if (navigator == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!navigator.mounted) return;
+      Route<dynamic>? current;
+      navigator.popUntil((route) {
+        current = route;
+        return true;
+      });
+      NavigationNotification(
+        canHandlePop: navigator.canPop() ||
+            current?.popDisposition == RoutePopDisposition.doNotPop,
+      ).dispatch(navigator.context);
+    });
+  }
+
+  @override
+  bool handleStartBackGesture(PredictiveBackEvent backEvent) {
+    if (backEvent.isButtonEvent ||
+        !_isExpanded ||
+        _chatBackEntry == null ||
+        _chatBackRoute?.isCurrent != true) {
+      return false;
+    }
+    _morphAnimation.stop();
+    _backGestureStartValue = _morphAnimation.value;
+    handleUpdateBackGestureProgress(backEvent);
+    return true;
+  }
+
+  @override
+  void handleUpdateBackGestureProgress(PredictiveBackEvent backEvent) {
+    _morphAnimation.value = _backGestureStartValue * (1 - backEvent.progress);
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    if (mounted && _isExpanded) _morphAnimation.forward();
+  }
+
+  @override
+  void handleCommitBackGesture() {
+    if (mounted && _isExpanded) _toggleExpanded();
+  }
+
   void _toggleExpanded() {
     _dockingController.stopInitialDock();
     final expanding = !_isExpanded;
@@ -429,8 +516,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final openFullscreen = expanding && widget.openDirectlyFullscreen;
     final hasExistingMessages = _chatCoordinator.chatTurns.isNotEmpty;
     final hasInsertedPrompt = _chatInputController.text.trim().isNotEmpty;
-    final isWorking =
-        _chatCoordinator.isGenerating ||
+    final isWorking = _chatCoordinator.isGenerating ||
         _chatCoordinator.isLoadingCloudVisible ||
         _voiceController.isActive;
     final isNewChat = !hasExistingMessages && !hasInsertedPrompt && !isWorking;
@@ -453,6 +539,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _isFullscreen = expanding ? openFullscreen : wasFullscreen;
       _showChatPreview = expanding;
     });
+    if (expanding) {
+      _installChatBackEntry();
+    } else {
+      _chatBackEntry?.remove();
+    }
     _dockingController.onExpandToggle(expanding: expanding);
     _chatCoordinator.syncDemoWaitingHaptics();
     if (expanding) {
@@ -463,15 +554,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           ? _fullscreenAnimation.forward(from: 0)
           : Future<void>.value();
       unawaited(
-        Future.wait<void>([morphOpening, fullscreenOpening])
-            .then((_) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                unawaited(_focusNewChatComposer());
-              });
-            })
-            .catchError((_) {
-              // Animation was cancelled or interrupted.
-            }),
+        Future.wait<void>([morphOpening, fullscreenOpening]).then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            unawaited(_focusNewChatComposer());
+          });
+        }).catchError((_) {
+          // Animation was cancelled or interrupted.
+        }),
       );
     } else {
       _morphAnimation.reverse().whenComplete(() {
@@ -508,8 +597,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (_morphAnimation.value < 0.99) return;
     final hasExistingMessages = _chatCoordinator.chatTurns.isNotEmpty;
     final hasInsertedPrompt = _chatInputController.text.trim().isNotEmpty;
-    final isWorking =
-        _chatCoordinator.isGenerating ||
+    final isWorking = _chatCoordinator.isGenerating ||
         _chatCoordinator.isLoadingCloudVisible ||
         _voiceController.isActive;
     final isNewChat = !hasExistingMessages && !hasInsertedPrompt && !isWorking;
@@ -527,8 +615,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (!mounted || !_isExpanded || _isClosing || !_chatFocusNode.hasFocus) {
       return;
     }
-    final editableText = _chatFocusNode.context
-        ?.findAncestorStateOfType<EditableTextState>();
+    final editableText =
+        _chatFocusNode.context?.findAncestorStateOfType<EditableTextState>();
     if (editableText != null) {
       editableText.requestKeyboard();
     } else {
@@ -619,8 +707,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   Future<void> _startCloudHoldRecording(BuildContext sourceContext) async {
     if (!sourceContext.mounted || !_holdToTalkActivated) return;
-    final needsPermission = !await VoiceDictationService.instance
-        .hasPermissions();
+    final needsPermission =
+        !await VoiceDictationService.instance.hasPermissions();
     if (!sourceContext.mounted) return;
 
     if (needsPermission) {
@@ -830,9 +918,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         final fullscreenProgress = overlayTransitionProgress(
           _fullscreenAnimation.value,
         );
-        final rawMorphProgress = morphAnimation.value
-            .clamp(0.0, 1.0)
-            .toDouble();
+        final rawMorphProgress =
+            morphAnimation.value.clamp(0.0, 1.0).toDouble();
         final morphProgress = _morphProgressAnimation.value;
         final openingClosingProgress = math.min(
           _fullscreenAnimation.value.clamp(0.0, 1.0).toDouble(),
@@ -840,15 +927,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         );
         final isWholeCloudTransition =
             (_isFullscreen || _isClosingFromFullscreen) &&
-            morphProgress < 0.999;
+                morphProgress < 0.999;
         final appearanceProgress = isWholeCloudTransition
             ? _isClosing
-                  ? overlayTransitionProgress(openingClosingProgress)
-                  : openingAppearanceProgress(openingClosingProgress)
+                ? overlayTransitionProgress(openingClosingProgress)
+                : openingAppearanceProgress(openingClosingProgress)
             : fullscreenProgress;
 
-        final hasAttentionState =
-            _chatCoordinator.permissionPending ||
+        final hasAttentionState = _chatCoordinator.permissionPending ||
             _chatCoordinator.hasCompletedResponse;
 
         final layout = _dockingController.computeLayout(
@@ -860,13 +946,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         );
         final globalQuickChatCenter =
             AiGlobalCloudPresentation.quickChatActionCenter.value ??
-            _quickChatMenuExitGlobalCenter;
+                _quickChatMenuExitGlobalCenter;
         final cloudRenderObject = context.findRenderObject();
         final quickChatCenter = globalQuickChatCenter == null
             ? null
             : cloudRenderObject is RenderBox
-            ? cloudRenderObject.globalToLocal(globalQuickChatCenter)
-            : globalQuickChatCenter;
+                ? cloudRenderObject.globalToLocal(globalQuickChatCenter)
+                : globalQuickChatCenter;
         final isAtQuickChatAction =
             isAddMenuOpen && quickChatCenter != null && !_isExpanded;
         final hiddenLauncherCenter = Offset(
@@ -878,8 +964,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         final restingCloudCenter = widget.isLauncherEnabled
             ? layout.cloudCenter
             : hiddenLauncherCenter;
-        final isCloudVisible =
-            widget.isGloballyVisible &&
+        final isCloudVisible = widget.isGloballyVisible &&
             (widget.isLauncherEnabled ||
                 (isAtQuickChatAction && !_isQuickChatTargetStaged) ||
                 _quickChatOpenOriginCenter != null ||
@@ -887,8 +972,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 _isExpanded ||
                 _isClosing ||
                 _isClosingFromFullscreen);
-        final isReturningFromChat =
-            (_isClosing || _isClosingFromFullscreen) &&
+        final isReturningFromChat = (_isClosing || _isClosingFromFullscreen) &&
             _quickChatOpenOriginCenter != null;
         final activeCloudCenter = isReturningFromChat
             ? Offset.lerp(
@@ -897,11 +981,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 (1 - _morphProgressAnimation.value).clamp(0.0, 1.0),
               )!
             : _isQuickChatTargetStaged
-            ? restingCloudCenter
-            : _quickChatOpenOriginCenter ??
-                  (isAtQuickChatAction ? quickChatCenter : restingCloudCenter);
-        final useExplicitCloudCenter =
-            !widget.isLauncherEnabled ||
+                ? restingCloudCenter
+                : _quickChatOpenOriginCenter ??
+                    (isAtQuickChatAction
+                        ? quickChatCenter
+                        : restingCloudCenter);
+        final useExplicitCloudCenter = !widget.isLauncherEnabled ||
             _quickChatOpenOriginCenter != null ||
             isAtQuickChatAction ||
             _isQuickChatMenuExitAnimating;
@@ -950,20 +1035,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                             begin: Offset(cloudLeft, cloudTop),
                             end: Offset(cloudLeft, cloudTop),
                           ),
-                          duration:
-                              !isCloudVisible ||
+                          duration: !isCloudVisible ||
                                   _isQuickChatTargetStaged ||
                                   _isClosingFromFullscreen ||
                                   _dockingController.isDragging ||
                                   (_isClosing &&
                                       _quickChatOpenOriginCenter != null) ||
                                   _dockingController
-                                      .initialDockAnimation
-                                      .isAnimating
+                                      .initialDockAnimation.isAnimating
                               ? Duration.zero
                               : Duration(
-                                  milliseconds:
-                                      isAtQuickChatAction ||
+                                  milliseconds: isAtQuickChatAction ||
                                           _isQuickChatMenuExitAnimating
                                       ? 380
                                       : 260,
@@ -981,8 +1063,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           builder: (context, animatedOffset, _) {
                             final animatedLeft = animatedOffset.dx;
                             final animatedTop = animatedOffset.dy;
-                            final edgeHitSlop =
-                                isCloudVisible &&
+                            final edgeHitSlop = isCloudVisible &&
                                     morphAnimation.value <= 0.005 &&
                                     !isAtQuickChatAction &&
                                     !_dockingController.isDragging &&
@@ -1004,21 +1085,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 AnimatedBuilder(
                                   animation: morphAnimation,
                                   builder: (context, _) {
-                                    final isSettledOrb =
-                                        !_isExpanded &&
+                                    final isSettledOrb = !_isExpanded &&
                                         morphAnimation.value <= 0.005;
                                     // Keep the recording treatment strictly on the
                                     // settled compact orb. Disable it on the first frame
                                     // of opening and restore it only after closing ends.
                                     final showVoiceOrb =
                                         _voiceController.isActive &&
-                                        isSettledOrb;
-                                    final voiceOrbIntensity = showVoiceOrb
-                                        ? 1.0
-                                        : 0.0;
+                                            isSettledOrb;
+                                    final voiceOrbIntensity =
+                                        showVoiceOrb ? 1.0 : 0.0;
                                     final cloud = AiNeuralCloudOrbWidget(
-                                      size:
-                                          CloudDockingController.cloudSize *
+                                      size: CloudDockingController.cloudSize *
                                           _dockingController.scale *
                                           (_chatCoordinator.completionPulse &&
                                                   isSettledOrb
@@ -1044,53 +1122,55 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       flowSpeed: _dockingController.isDragging
                                           ? 1.55
                                           : _voiceController.isActive
-                                          ? 0.55 +
-                                                _voiceController
-                                                    .latestVoiceLevel
-                                          : _chatCoordinator.isGenerating
-                                          ? 0.9
-                                          : (1.0 *
-                                                    widget.liveliness.clamp(
-                                                      0.0,
-                                                      1.0,
-                                                    ))
-                                                .clamp(0.1, 1.2),
-                                      forceHighFrameRate:
-                                          _dockingController.isDragging ||
+                                              ? 0.55 +
+                                                  _voiceController
+                                                      .latestVoiceLevel
+                                              : _chatCoordinator.isGenerating
+                                                  ? 0.9
+                                                  : (1.0 *
+                                                          widget.liveliness
+                                                              .clamp(
+                                                            0.0,
+                                                            1.0,
+                                                          ))
+                                                      .clamp(0.1, 1.2),
+                                      forceHighFrameRate: _dockingController
+                                              .isDragging ||
                                           _chatCoordinator.isGenerating ||
                                           _voiceController.isActive ||
                                           _chatCoordinator.completionPulse ||
                                           !isSettledOrb,
-                                      animate: !_isClosing,
+                                      animate: isCloudVisible && !_isClosing,
                                       accentColor: showVoiceOrb
                                           ? DesignConstants.brandRedColor
                                           : _chatCoordinator
-                                                    .permissionPending &&
-                                                isSettledOrb
-                                          ? Colors.amber.shade700
-                                          : null,
+                                                      .permissionPending &&
+                                                  isSettledOrb
+                                              ? Colors.amber.shade700
+                                              : null,
                                       // Keep the normal organic cloud silhouette while
                                       // speaking; morph 0 collapses this widget to a circle.
                                       morph: 1,
                                       energy: showVoiceOrb
                                           ? _voiceController.latestVoiceLevel *
-                                                voiceOrbIntensity
+                                              voiceOrbIntensity
                                           : _chatCoordinator.completionPulse &&
-                                                isSettledOrb
-                                          ? 0.75
-                                          : 0,
+                                                  isSettledOrb
+                                              ? 0.75
+                                              : 0,
                                       tint: showVoiceOrb
                                           ? 0.4 * voiceOrbIntensity
                                           : !isSettledOrb
-                                          ? null
-                                          : _chatCoordinator.isGenerating
-                                          ? 0.4
-                                          : _chatCoordinator.permissionPending
-                                          ? 0.62
-                                          : _chatCoordinator
-                                                .hasCompletedResponse
-                                          ? 1.0
-                                          : null,
+                                              ? null
+                                              : _chatCoordinator.isGenerating
+                                                  ? 0.4
+                                                  : _chatCoordinator
+                                                          .permissionPending
+                                                      ? 0.62
+                                                      : _chatCoordinator
+                                                              .hasCompletedResponse
+                                                          ? 1.0
+                                                          : null,
                                       tintEnergyGain: showVoiceOrb
                                           ? 0.4 * voiceOrbIntensity
                                           : 0,
@@ -1114,103 +1194,101 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                 _handleCloudPointerMove,
                                             onPointerUp: (event) =>
                                                 _handleCloudPointerEnd(
-                                                  event,
-                                                  cancelled: false,
-                                                ),
+                                              event,
+                                              cancelled: false,
+                                            ),
                                             onPointerCancel: (event) =>
                                                 _handleCloudPointerEnd(
-                                                  event,
-                                                  cancelled: true,
-                                                ),
+                                              event,
+                                              cancelled: true,
+                                            ),
                                             child: GestureDetector(
                                               behavior:
                                                   HitTestBehavior.deferToChild,
                                               onTap:
                                                   morphAnimation.value > 0.001
-                                                  ? null
-                                                  : () {
-                                                      if (_suppressNextOrbTap) {
-                                                        _suppressNextOrbTap =
-                                                            false;
-                                                        return;
-                                                      }
-                                                      if (isAtQuickChatAction &&
-                                                          AiGlobalCloudPresentation
-                                                                  .onQuickChatTap !=
-                                                              null) {
-                                                        _quickChatOpenOriginCenter =
-                                                            quickChatCenter;
-                                                        setState(() {});
-                                                        AiGlobalCloudPresentation
-                                                            .onQuickChatTap!();
-                                                      } else {
-                                                        _toggleExpanded();
-                                                      }
-                                                    },
-                                              onPanStart:
-                                                  morphAnimation.value > 0.001
-                                                  ? null
-                                                  : (_) {
-                                                      if (!_holdToTalkActivated) {
-                                                        _cloudHoldTimer
-                                                            ?.cancel();
-                                                      }
-                                                      _dockingController.handleDragStart(
-                                                        initialHorizontalPosition:
-                                                            layout.position,
-                                                        initialVerticalPosition:
-                                                            layout
-                                                                .verticalPosition,
-                                                        onTakeoverAttention: () {
-                                                          if (_chatCoordinator
-                                                                  .permissionPending ||
-                                                              _chatCoordinator
-                                                                  .hasCompletedResponse) {
-                                                            _chatCoordinator
-                                                                .markAttentionPeekDismissed();
+                                                      ? null
+                                                      : () {
+                                                          if (_suppressNextOrbTap) {
+                                                            _suppressNextOrbTap =
+                                                                false;
+                                                            return;
+                                                          }
+                                                          if (isAtQuickChatAction &&
+                                                              AiGlobalCloudPresentation
+                                                                      .onQuickChatTap !=
+                                                                  null) {
+                                                            _quickChatOpenOriginCenter =
+                                                                quickChatCenter;
+                                                            setState(() {});
+                                                            AiGlobalCloudPresentation
+                                                                .onQuickChatTap!();
+                                                          } else {
+                                                            _toggleExpanded();
                                                           }
                                                         },
-                                                      );
-                                                    },
+                                              onPanStart:
+                                                  morphAnimation.value > 0.001
+                                                      ? null
+                                                      : (_) {
+                                                          if (!_holdToTalkActivated) {
+                                                            _cloudHoldTimer
+                                                                ?.cancel();
+                                                          }
+                                                          _dockingController
+                                                              .handleDragStart(
+                                                            initialHorizontalPosition:
+                                                                layout.position,
+                                                            initialVerticalPosition:
+                                                                layout
+                                                                    .verticalPosition,
+                                                            onTakeoverAttention:
+                                                                () {
+                                                              if (_chatCoordinator
+                                                                      .permissionPending ||
+                                                                  _chatCoordinator
+                                                                      .hasCompletedResponse) {
+                                                                _chatCoordinator
+                                                                    .markAttentionPeekDismissed();
+                                                              }
+                                                            },
+                                                          );
+                                                        },
                                               onPanUpdate:
                                                   morphAnimation.value > 0.001
-                                                  ? null
-                                                  : (
-                                                      details,
-                                                    ) => _dockingController
-                                                        .handleDragUpdate(
+                                                      ? null
+                                                      : (
                                                           details,
-                                                          horizontalTravelDistance:
-                                                              layout
-                                                                  .travelDistance,
-                                                          verticalTravelDistance:
-                                                              layout
-                                                                  .verticalTravelDistance,
-                                                        ),
-                                              onPanEnd:
-                                                  morphAnimation.value > 0.001
+                                                        ) =>
+                                                          _dockingController
+                                                              .handleDragUpdate(
+                                                            details,
+                                                            horizontalTravelDistance:
+                                                                layout
+                                                                    .travelDistance,
+                                                            verticalTravelDistance:
+                                                                layout
+                                                                    .verticalTravelDistance,
+                                                          ),
+                                              onPanEnd: morphAnimation.value >
+                                                      0.001
                                                   ? null
                                                   : (_) => _dockingController
-                                                        .handleDragEnd(
-                                                          minLeft:
-                                                              layout.minLeft,
-                                                          maxLeft:
-                                                              layout.maxLeft,
-                                                          isExpanded:
-                                                              _isExpanded,
-                                                        ),
-                                              onPanCancel:
-                                                  morphAnimation.value > 0.001
+                                                          .handleDragEnd(
+                                                        minLeft: layout.minLeft,
+                                                        maxLeft: layout.maxLeft,
+                                                        isExpanded: _isExpanded,
+                                                      ),
+                                              onPanCancel: morphAnimation
+                                                          .value >
+                                                      0.001
                                                   ? null
                                                   : () => _dockingController
-                                                        .handleDragEnd(
-                                                          minLeft:
-                                                              layout.minLeft,
-                                                          maxLeft:
-                                                              layout.maxLeft,
-                                                          isExpanded:
-                                                              _isExpanded,
-                                                        ),
+                                                          .handleDragEnd(
+                                                        minLeft: layout.minLeft,
+                                                        maxLeft: layout.maxLeft,
+                                                        isExpanded: _isExpanded,
+                                                      ),
                                               child: AnimatedScale(
                                                 scale: isAtQuickChatAction
                                                     ? 0.84
@@ -1259,11 +1337,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                   )
                                   .toDouble();
                           return AnimatedPositioned(
-                            duration:
-                                _dockingController.isDragging ||
+                            duration: _dockingController.isDragging ||
                                     _dockingController
-                                        .initialDockAnimation
-                                        .isAnimating
+                                        .initialDockAnimation.isAnimating
                                 ? Duration.zero
                                 : const Duration(milliseconds: 260),
                             curve: Curves.easeOutCubic,
@@ -1276,7 +1352,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                   width: badgeSize,
                                   height: badgeSize,
                                   child: Icon(
-                                    LucideIcons.shield_alert,
+                                    LucideIcons.shield_exclamation_point,
                                     size: 38,
                                     color: Colors.black,
                                   ),
@@ -1300,10 +1376,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           morphAnimation: morphAnimation,
                           onPanUpdate: (details) =>
                               _dockingController.resizeSafeSpace(
-                                SafeSpaceCorner.topLeft,
-                                details,
-                                layout.panelRect.size,
-                              ),
+                            SafeSpaceCorner.topLeft,
+                            details,
+                            layout.panelRect.size,
+                          ),
                         ),
                         CloudResizeHandle(
                           corner: SafeSpaceCorner.topRight,
@@ -1317,10 +1393,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           morphAnimation: morphAnimation,
                           onPanUpdate: (details) =>
                               _dockingController.resizeSafeSpace(
-                                SafeSpaceCorner.topRight,
-                                details,
-                                layout.panelRect.size,
-                              ),
+                            SafeSpaceCorner.topRight,
+                            details,
+                            layout.panelRect.size,
+                          ),
                         ),
                         CloudResizeHandle(
                           corner: SafeSpaceCorner.bottomLeft,
@@ -1334,10 +1410,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           morphAnimation: morphAnimation,
                           onPanUpdate: (details) =>
                               _dockingController.resizeSafeSpace(
-                                SafeSpaceCorner.bottomLeft,
-                                details,
-                                layout.panelRect.size,
-                              ),
+                            SafeSpaceCorner.bottomLeft,
+                            details,
+                            layout.panelRect.size,
+                          ),
                         ),
                         CloudResizeHandle(
                           corner: SafeSpaceCorner.bottomRight,
@@ -1351,10 +1427,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           morphAnimation: morphAnimation,
                           onPanUpdate: (details) =>
                               _dockingController.resizeSafeSpace(
-                                SafeSpaceCorner.bottomRight,
-                                details,
-                                layout.panelRect.size,
-                              ),
+                            SafeSpaceCorner.bottomRight,
+                            details,
+                            layout.panelRect.size,
+                          ),
                         ),
                       ],
                       AnimatedBuilder(
@@ -1395,9 +1471,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                     onPointerMove: (event) =>
                                         _scrollSidebarController
                                             .handleSidebarPointerMove(
-                                              event,
-                                              sidebarWidth,
-                                            ),
+                                      event,
+                                      sidebarWidth,
+                                    ),
                                     onPointerUp: _scrollSidebarController
                                         .finishSidebarPointer,
                                     onPointerCancel: _scrollSidebarController
@@ -1405,15 +1481,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                     child: Stack(
                                       children: [
                                         if (_scrollSidebarController
-                                                .sidebarAnimation
-                                                .value >
+                                                .sidebarAnimation.value >
                                             0.001)
                                           CloudOverlaySidebar(
                                             viewportWidth: layout.width,
                                             sidebarProgress:
                                                 _scrollSidebarController
-                                                    .sidebarAnimation
-                                                    .value,
+                                                    .sidebarAnimation.value,
                                             sidebarWidth: sidebarWidth,
                                             surfaceColor: overlaySurface,
                                             foregroundColor: overlayForeground,
@@ -1445,44 +1519,40 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                           child: Transform.translate(
                                             offset: Offset(
                                               _scrollSidebarController
-                                                      .sidebarAnimation
-                                                      .value *
+                                                      .sidebarAnimation.value *
                                                   sidebarWidth,
                                               0,
                                             ),
                                             child: GestureDetector(
                                               behavior: HitTestBehavior.opaque,
-                                              onTap:
-                                                  _scrollSidebarController
+                                              onTap: _scrollSidebarController
                                                           .sidebarAnimation
                                                           .value >
                                                       0
                                                   ? _scrollSidebarController
-                                                        .closeSidebar
+                                                      .closeSidebar
                                                   : null,
                                               child: ClipRRect(
                                                 borderRadius:
                                                     BorderRadius.circular(
-                                                      32 *
-                                                          _scrollSidebarController
-                                                              .sidebarAnimation
-                                                              .value,
-                                                    ),
+                                                  32 *
+                                                      _scrollSidebarController
+                                                          .sidebarAnimation
+                                                          .value,
+                                                ),
                                                 child: Transform.scale(
                                                   scale: currentMorphProgress,
                                                   alignment: Alignment(
                                                     2 *
                                                             activeCloudCenter
                                                                 .dx /
-                                                            layout
-                                                                .viewportSize
+                                                            layout.viewportSize
                                                                 .width -
                                                         1,
                                                     2 *
                                                             activeCloudCenter
                                                                 .dy /
-                                                            layout
-                                                                .viewportSize
+                                                            layout.viewportSize
                                                                 .height -
                                                         1,
                                                   ),
@@ -1510,9 +1580,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                             overlayForeground,
                                                         controlFill:
                                                             overlayControlFill(
-                                                              theme,
-                                                              appearanceProgress,
-                                                            ),
+                                                          theme,
+                                                          appearanceProgress,
+                                                        ),
                                                         isExpanded: _isExpanded,
                                                         isFullscreen:
                                                             _isFullscreen,
@@ -1526,8 +1596,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                         autoApproveDataRequests:
                                                             _chatCoordinator
                                                                 .autoApproveDataRequests,
-                                                        useStaticGlass:
-                                                            _isClosing ||
+                                                        useStaticGlass: _isClosing ||
                                                             (_isExpanded &&
                                                                 morphAnimation
                                                                         .value <
@@ -1549,7 +1618,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                               .startNewChat();
                                                           _chatInputController
                                                               .clear();
-                                                          WidgetsBinding.instance.addPostFrameCallback((
+                                                          WidgetsBinding
+                                                              .instance
+                                                              .addPostFrameCallback(
+                                                                  (
                                                             _,
                                                           ) {
                                                             if (!mounted ||
@@ -1570,9 +1642,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                         },
                                                         onToggleAutoApprove:
                                                             () => unawaited(
-                                                              _chatCoordinator
-                                                                  .toggleAutoApproveDataRequests(),
-                                                            ),
+                                                          _chatCoordinator
+                                                              .toggleAutoApproveDataRequests(),
+                                                        ),
                                                         onOpenSettings: () {
                                                           unawaited(
                                                             _navigateFromOverlay(
@@ -1592,13 +1664,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                         onHeaderDragEnd:
                                                             _scrollSidebarController
                                                                 .handleHeaderDragEnd,
+                                                        onHeaderDragCancel:
+                                                            _scrollSidebarController
+                                                                .handleHeaderDragCancel,
                                                       ),
                                                       if (_scrollSidebarController
                                                               .sidebarAnimation
                                                               .value >
                                                           0)
                                                         Positioned.fill(
-                                                          child: GestureDetector(
+                                                          child:
+                                                              GestureDetector(
                                                             behavior:
                                                                 HitTestBehavior
                                                                     .opaque,
@@ -1609,12 +1685,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                               color: Colors
                                                                   .black
                                                                   .withValues(
-                                                                    alpha:
-                                                                        0.55 *
-                                                                        _scrollSidebarController
-                                                                            .sidebarAnimation
-                                                                            .value,
-                                                                  ),
+                                                                alpha: 0.55 *
+                                                                    _scrollSidebarController
+                                                                        .sidebarAnimation
+                                                                        .value,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
@@ -1659,9 +1734,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final appIsDark = theme.brightness == Brightness.dark;
     final contrastColor = overlayForegroundColor(theme, appearanceProgress);
     final surfaceColor = overlaySurfaceColor(theme, appearanceProgress);
-    final selectionBlue = appIsDark
-        ? const Color(0xFF0A84FF)
-        : const Color(0xFF007AFF);
+    final selectionBlue =
+        appIsDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
     final cloudSurfaceDark = surfaceColor.computeLuminance() < 0.5;
     final softColor = contrastColor.withValues(
       alpha: cloudSurfaceDark ? 0.10 : 0.08,
@@ -1681,18 +1755,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final composerLeft = chatBounds.left;
     final composerRight = MediaQuery.sizeOf(context).width - chatBounds.right;
     final fullscreenContentTop = MediaQuery.paddingOf(context).top + 70;
-    final chatTop =
-        layout.safeRect.top +
+    final chatTop = layout.safeRect.top +
         16 +
         (fullscreenContentTop - layout.safeRect.top - 16) * fullscreenProgress;
     final scrollViewportTop = chatBounds.top;
-    final toolbarTop =
-        (layout.safeRect.top - 62) +
+    final toolbarTop = (layout.safeRect.top - 62) +
         (MediaQuery.paddingOf(context).top + 10 - (layout.safeRect.top - 62)) *
             fullscreenProgress;
     final toolbarButtonCenter = toolbarTop + 28;
-    final topFadeEnd =
-        toolbarButtonCenter +
+    final topFadeEnd = toolbarButtonCenter +
         (chatTop - toolbarButtonCenter) * fullscreenProgress;
     final clippedTop = layout.safeRect.top - 64;
     final topFadeStart =
@@ -1700,8 +1771,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final topFadeHoldStop = 0.45 * (1 - fullscreenProgress);
     final bottomFadeHeight = 104.0 * (1 - fullscreenProgress);
     final chatBottom = chatBounds.bottom - contentInset;
-    final contentViewportBottom =
-        chatBounds.bottom +
+    final contentViewportBottom = chatBounds.bottom +
         (layout.viewportHeight - chatBounds.bottom) * fullscreenProgress;
 
     final composerBaseColor = appIsDark
@@ -1722,8 +1792,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
     return Positioned.fill(
       child: IgnorePointer(
-        ignoring:
-            !_isExpanded ||
+        ignoring: !_isExpanded ||
             !_showChatPreview ||
             _scrollSidebarController.sidebarAnimation.value > 0.001,
         child: Stack(
@@ -1732,61 +1801,69 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               left: contentLeft,
               right: contentRight,
               top: topFadeStart,
-              bottom:
-                  layout.bottomOcclusion +
+              bottom: layout.bottomOcclusion +
                   layout.viewportHeight -
                   contentViewportBottom,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
-                    child: CloudChatTurnListView(
+                    child: CloudChatDismissDrag(
                       scrollController:
                           _scrollSidebarController.chatScrollController,
-                      latestMessageEndKey:
-                          _scrollSidebarController.latestMessageEndKey,
-                      chatTurns: _chatCoordinator.chatTurns,
-                      permissionPending: _chatCoordinator.permissionPending,
-                      permissionApproved: _chatCoordinator.permissionApproved,
-                      pendingAccess: _chatCoordinator.pendingAccess,
-                      isGenerating: _chatCoordinator.isGenerating,
-                      isLoadingCloudVisible:
-                          _chatCoordinator.isLoadingCloudVisible,
-                      loadingCloudAnimation:
-                          _chatCoordinator.loadingCloudAnimation,
-                      copiedTurn: _chatCoordinator.copiedTurn,
-                      useLiveAi: widget.useLiveAi,
-                      onNavigate: _navigateFromOverlay,
-                      theme: theme,
-                      contrastColor: contrastColor,
-                      surfaceColor: surfaceColor,
-                      softColor: softColor,
-                      chatTop: chatTop,
-                      topFadeStart: topFadeStart,
-                      topFadeEnd: topFadeEnd,
-                      topFadeHoldStop: topFadeHoldStop,
-                      chatBottom: chatBottom,
-                      bottomFadeHeight: bottomFadeHeight,
-                      fullscreenProgress: fullscreenProgress,
-                      onResolvePermission: _chatCoordinator.resolvePermission,
-                      onCopyResponse: (turn) =>
-                          _chatCoordinator.copyResponseMarkdown(turn),
-                      onCopyFullChat: _chatCoordinator.copyFullChatMarkdown,
-                      onRetryPrompt: (turn) {
-                        _chatInputController.clear();
-                        _chatCoordinator.retryTurnPrompt(turn);
-                      },
-                      onShowAccessAudit: _chatCoordinator.showAccessAudit,
-                      onResolveProposal: _chatCoordinator.resolveChangeProposal,
-                      onIncrementUserScrollRevision:
-                          _scrollSidebarController.incrementUserScrollRevision,
-                      onScrollMetricsChanged: _scrollSidebarController
-                          .refreshChatScrollStateAfterLayout,
-                      onPermissionCardSizeEnd: () {
-                        if (_scrollSidebarController.followChatTail) {
-                          _scrollSidebarController.scrollChatToBottom();
-                        }
-                      },
+                      onStart: _scrollSidebarController.handleHeaderDragStart,
+                      onUpdate: _scrollSidebarController.handleHeaderDragUpdate,
+                      onEnd: _scrollSidebarController.handleHeaderDragEnd,
+                      onCancel: _scrollSidebarController.handleHeaderDragCancel,
+                      child: CloudChatTurnListView(
+                        scrollController:
+                            _scrollSidebarController.chatScrollController,
+                        latestMessageEndKey:
+                            _scrollSidebarController.latestMessageEndKey,
+                        chatTurns: _chatCoordinator.chatTurns,
+                        permissionPending: _chatCoordinator.permissionPending,
+                        permissionApproved: _chatCoordinator.permissionApproved,
+                        pendingAccess: _chatCoordinator.pendingAccess,
+                        isGenerating: _chatCoordinator.isGenerating,
+                        isLoadingCloudVisible:
+                            _chatCoordinator.isLoadingCloudVisible,
+                        loadingCloudAnimation:
+                            _chatCoordinator.loadingCloudAnimation,
+                        copiedTurn: _chatCoordinator.copiedTurn,
+                        useLiveAi: widget.useLiveAi,
+                        onNavigate: _navigateFromOverlay,
+                        theme: theme,
+                        contrastColor: contrastColor,
+                        surfaceColor: surfaceColor,
+                        softColor: softColor,
+                        chatTop: chatTop,
+                        topFadeStart: topFadeStart,
+                        topFadeEnd: topFadeEnd,
+                        topFadeHoldStop: topFadeHoldStop,
+                        chatBottom: chatBottom,
+                        bottomFadeHeight: bottomFadeHeight,
+                        fullscreenProgress: fullscreenProgress,
+                        onResolvePermission: _chatCoordinator.resolvePermission,
+                        onCopyResponse: (turn) =>
+                            _chatCoordinator.copyResponseMarkdown(turn),
+                        onCopyFullChat: _chatCoordinator.copyFullChatMarkdown,
+                        onRetryPrompt: (turn) {
+                          _chatInputController.clear();
+                          _chatCoordinator.retryTurnPrompt(turn);
+                        },
+                        onShowAccessAudit: _chatCoordinator.showAccessAudit,
+                        onResolveProposal:
+                            _chatCoordinator.resolveChangeProposal,
+                        onIncrementUserScrollRevision: _scrollSidebarController
+                            .incrementUserScrollRevision,
+                        onScrollMetricsChanged: _scrollSidebarController
+                            .refreshChatScrollStateAfterLayout,
+                        onPermissionCardSizeEnd: () {
+                          if (_scrollSidebarController.followChatTail) {
+                            _scrollSidebarController.scrollChatToBottom();
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -1795,8 +1872,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             Positioned(
               left: composerLeft,
               right: composerRight,
-              bottom:
-                  layout.bottomOcclusion +
+              bottom: layout.bottomOcclusion +
                   layout.viewportHeight -
                   chatBounds.bottom +
                   contentInset,
@@ -1831,11 +1907,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     builder: (context, _) {
                       final showStarterPrompts =
                           _chatCoordinator.chatTurns.isEmpty &&
-                          !_chatCoordinator.isGenerating &&
-                          !_chatCoordinator.isLoadingCloudVisible &&
-                          !_voiceController.isActive &&
-                          _draftImageAttachments.isEmpty &&
-                          _chatInputController.text.trim().isEmpty;
+                              !_chatCoordinator.isGenerating &&
+                              !_chatCoordinator.isLoadingCloudVisible &&
+                              !_voiceController.isActive &&
+                              _draftImageAttachments.isEmpty &&
+                              _chatInputController.text.trim().isEmpty;
 
                       return AnimatedCrossFade(
                         duration: const Duration(milliseconds: 180),

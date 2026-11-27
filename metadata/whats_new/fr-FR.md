@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1
+
+{chart_line} Statistiques et analyse des progrès: Retrouve en un coup d’œil tes indicateurs clés et tes jours d’entraînement. Les vues repensées facilitent le suivi détaillé de ton alimentation, de tes progrès et de tes records personnels.
+
+{dumbbell} Entraînement en direct et gestion des séries: Vois les séries terminées et celles qui restent à faire pour chaque groupe musculaire. Réorganise les séries en les faisant glisser, affiche si tu le souhaites ta charge maximale estimée sur une répétition et célèbre tes nouveaux records avec une animation et un retour haptique.
+
+{moon} Analyse du sommeil et fréquence cardiaque: Le nouvel aperçu du sommeil affiche la durée, les phases et la fréquence cardiaque. Ta fréquence cardiaque au repos issue d’Apple Santé ou de Health Connect apparaît dans le journal et les statistiques. Apple Santé te permet aussi de consulter la variabilité de ta fréquence cardiaque.
+
+{sparkles} Apparence Liquid Glass personnalisable: Ajuste l’effet de verre à l’aide d’un curseur et vois le résultat dans l’aperçu. Les transitions retravaillées fluidifient le passage d’un écran à l’autre.
+
+{shield} Performances et fiabilité améliorées: Le défilement de l’aperçu des statistiques est plus fluide, les jours d’entraînement s’affichent correctement lors des changements d’heure, et le comptage des pas ainsi que le minuteur de repos ont été améliorés.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Découvrez le nouveau chat IA : Posez vos questions sur la nutrition et l’entraînement. Il peut créer des programmes, des routines et des recettes sous forme de brouillons. Vos données personnelles ne sont partagées qu’avec votre accord, et vous vérifiez les propositions avant de les appliquer.

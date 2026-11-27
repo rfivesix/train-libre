@@ -13,6 +13,21 @@ void main() {
   });
 
   group('ImportManager decodeAndGroupWorkouts tests', () {
+    test('preserves fractional RPE in CSV', () async {
+      final result = await ImportManager.decodeAndGroupWorkouts(
+        ImportBackgroundTaskParams(
+          fileBytes: Uint8List.fromList(
+            utf8.encode(
+              'title,start_time,exercise,reps,rpe\nWorkout,2026-05-20 10:00:00,Squat,8,8.5\n',
+            ),
+          ),
+          extension: 'csv',
+          isImperial: false,
+        ),
+      );
+      expect(result.single.sets.single.rpe, 8.5);
+    });
+
     test('CSV parsing with standard English headers and metrics', () async {
       final csvString =
           'title,start_time,end_time,exercise,set_type,weight,reps,distance,duration,rpe,set_notes\n'

@@ -11,6 +11,19 @@ import 'package:train_libre/features/health_export/data/health_export_status_sto
 import 'package:train_libre/features/health_export/export_service.dart';
 import 'package:train_libre/features/health_export/models/export_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_libre/services/telemetry/telemetry_service.dart';
+import 'package:train_libre/services/telemetry/telemetry_service_noop.dart';
+
+class _RecordingTelemetry extends NoOpTelemetryService {
+  final features = <String>[];
+  @override
+  Future<void> trackFeatureUsed({
+    required String featureKey,
+    Map<String, dynamic>? extraProps,
+  }) async {
+    features.add(featureKey);
+  }
+}
 
 class _FakeAdapter implements HealthExportAdapter {
   _FakeAdapter(
@@ -165,6 +178,29 @@ void main() {
 
     tearDown(() async {
       await db.close();
+    });
+
+    test('tracks only successful exports that write records', () async {
+      final telemetry = _RecordingTelemetry();
+      TelemetryService.instance = telemetry;
+      final adapter = _FakeAdapter(HealthExportPlatform.appleHealth);
+      final service = HealthExportService(
+        adapters: [adapter],
+        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+        statusStore: HealthExportStatusStore(databaseHelper: dbHelper),
+      );
+      await service.requestPermissions(HealthExportPlatform.appleHealth);
+      expect(
+        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+        isTrue,
+      );
+      expect(telemetry.features, [FeatureKey.appleHealthExported]);
+      expect(
+        (await service.exportNow(HealthExportPlatform.appleHealth)).success,
+        isTrue,
+      );
+      expect(telemetry.features, [FeatureKey.appleHealthExported]);
+      TelemetryService.instance = const NoOpTelemetryService();
     });
 
     test('tracks disabled state until permission granted', () async {

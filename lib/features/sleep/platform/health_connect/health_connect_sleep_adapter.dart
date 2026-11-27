@@ -12,11 +12,10 @@ abstract class HealthConnectDataSource {
 
 class HealthConnectSleepAdapter {
   const HealthConnectSleepAdapter({
-    required SleepPermissionsService permissionsService,
-    required HealthConnectDataSource dataSource,
+    required this._permissionsService,
+    required this._dataSource,
     this.heartRateFallbackPadding = const Duration(hours: 24),
-  }) : _permissionsService = permissionsService,
-       _dataSource = dataSource;
+  });
 
   final SleepPermissionsService _permissionsService;
   final HealthConnectDataSource _dataSource;

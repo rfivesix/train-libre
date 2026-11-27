@@ -10,11 +10,10 @@ enum SleepPeriodScope { day, week, month }
 
 class SleepDayViewModel extends ChangeNotifier {
   SleepDayViewModel({
-    required SleepDayDataRepository repository,
+    required this._repository,
     SleepImportService? syncService,
     DateTime? selectedDay,
-  }) : _repository = repository,
-       _syncService = syncService ?? SleepSyncService(),
+  }) : _syncService = syncService ?? SleepSyncService(),
        _period = SleepPeriodSelection(anchorDate: selectedDay);
 
   final SleepDayDataRepository _repository;

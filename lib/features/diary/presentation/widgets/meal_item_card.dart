@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../util/design_constants.dart';
 
@@ -23,6 +23,7 @@ class MealItemCard extends StatelessWidget {
   final VoidCallback? onShare;
   final VoidCallback onDelete;
   final VoidCallback onTap;
+  final bool compact;
 
   const MealItemCard({
     super.key,
@@ -35,6 +36,7 @@ class MealItemCard extends StatelessWidget {
     this.onShare,
     required this.onDelete,
     required this.onTap,
+    this.compact = false,
   });
 
   @override
@@ -42,14 +44,29 @@ class MealItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final color = theme.colorScheme;
     final themeService = Provider.of<ThemeService>(context);
+    final verticalPadding = compact
+        ? DesignConstants.spacingS
+        : DesignConstants.spacingL;
+    final addButton = IconButton(
+      tooltip: AppLocalizations.of(context)!.mealsAddToDiary,
+      icon: Icon(
+        compact ? LucideIcons.plus : LucideIcons.circle_plus,
+        color: color.primary,
+        size: compact ? 28 : null,
+      ),
+      onPressed: onAdd,
+    );
 
     return SummaryCard(
       onTap: onTap,
-      padding: const EdgeInsets.only(
-        left: DesignConstants.spacingL,
-        right: DesignConstants.spacingS,
-        top: DesignConstants.spacingL,
-        bottom: DesignConstants.spacingL,
+      margin: EdgeInsets.symmetric(
+        vertical: compact ? DesignConstants.spacingXS : 6,
+      ),
+      padding: EdgeInsetsDirectional.only(
+        start: DesignConstants.cardPaddingInternal,
+        end: DesignConstants.spacingS,
+        top: verticalPadding,
+        bottom: verticalPadding,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -65,7 +82,7 @@ class MealItemCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: DesignConstants.spacingXS),
+                if (!compact) const SizedBox(height: DesignConstants.spacingXS),
                 FutureBuilder<MealCardNutritionTotals>(
                   future: mealTotalsFuture,
                   builder: (_, snap) {
@@ -113,19 +130,21 @@ class MealItemCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: DesignConstants.spacingS),
-          Column(
+          Flex(
+            direction: compact ? Axis.horizontal : Axis.vertical,
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                tooltip: AppLocalizations.of(context)!.mealsAddToDiary,
-                icon: Icon(LucideIcons.circle_plus, color: color.primary),
-                onPressed: onAdd,
-              ),
+              if (!compact) addButton,
               PlatformAdaptivePopupMenu<String>(
-                icon: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(LucideIcons.ellipsis_vertical),
-                ),
+                icon: compact
+                    ? const SizedBox.square(
+                        dimension: 44,
+                        child: Icon(LucideIcons.ellipsis_vertical),
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(LucideIcons.ellipsis_vertical),
+                      ),
                 items: [
                   if (onShare != null)
                     PlatformAdaptivePopupMenuItem(
@@ -167,6 +186,7 @@ class MealItemCard extends StatelessWidget {
                   }
                 },
               ),
+              if (compact) addButton,
             ],
           ),
         ],

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -18,6 +19,7 @@ class StepsSyncService {
   static const String providerFilterKey = 'steps_provider_filter';
   static const String sourcePolicyKey = 'steps_source_policy';
   static const String lastSyncAtIsoKey = 'steps_last_sync_at_iso';
+  static const String _appleMergedMigrationKey = 'steps_apple_merged_v1';
   static final ValueNotifier<bool?> trackingEnabledListenable =
       ValueNotifier<bool?>(null);
 
@@ -26,13 +28,13 @@ class StepsSyncService {
 
   final HealthPlatformSteps _platform;
   final StepsLocalDataSource _stepsDb;
-  bool _isSyncing = false;
+  static Future<void> _syncTail = Future<void>.value();
 
   StepsSyncService({
     HealthPlatformSteps? platform,
     StepsLocalDataSource? stepsDb,
-  }) : _platform = platform ?? const HealthPlatformSteps(),
-       _stepsDb = stepsDb ?? StepsLocalDataSource.instance;
+  })  : _platform = platform ?? const HealthPlatformSteps(),
+        _stepsDb = stepsDb ?? StepsLocalDataSource.instance;
 
   Future<bool> isTrackingEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -134,18 +136,11 @@ class StepsSyncService {
     DateTime? now,
     bool forceRefresh = false,
   }) async {
-    if (_isSyncing) {
-      if (kDebugMode) {
-        debugPrint('[StepsSync] sync already in progress, skipping.');
-      }
-      return const StepsSyncResult(
-        skipped: true,
-        fetchedCount: 0,
-        upsertedCount: 0,
-      );
-    }
-
-    _isSyncing = true;
+    // Multiple screens create service instances; serialize their database replacements.
+    final previous = _syncTail;
+    final completion = Completer<void>();
+    _syncTail = completion.future;
+    await previous;
     try {
       final enabled = await isTrackingEnabled();
       if (!enabled) {
@@ -170,18 +165,34 @@ class StepsSyncService {
 
       final nowUtc = (now ?? DateTime.now()).toUtc();
       final lastSync = await getLastSyncAt();
-      final fromUtc = _resolveSyncWindowStart(
+      var fromUtc = _resolveSyncWindowStart(
         forceRefresh: forceRefresh,
         nowUtc: nowUtc,
         lastSync: lastSync,
       );
+      if (_platform.usesMergedAppleStatistics) {
+        final prefs = await SharedPreferences.getInstance();
+        if (!(prefs.getBool(_appleMergedMigrationKey) ?? false)) {
+          final earliest = await _stepsDb.getEarliestHealthStepsDateLocal(
+            providerFilter: 'apple',
+          );
+          if (earliest != null && earliest.toUtc().isBefore(fromUtc)) {
+            fromUtc = earliest.toUtc();
+          }
+        }
+        final localStart = fromUtc.toLocal();
+        fromUtc =
+            DateTime(localStart.year, localStart.month, localStart.day).toUtc();
+      }
       if (kDebugMode) {
         debugPrint(
           '[StepsSync] sync start force=$forceRefresh from=${fromUtc.toIso8601String()} to=${nowUtc.toIso8601String()} lastSync=${lastSync?.toIso8601String()}',
         );
       }
 
-      final provider = HealthPlatformSteps.providerForPlatform();
+      final provider = _platform.usesMergedAppleStatistics
+          ? 'apple_healthkit'
+          : HealthPlatformSteps.providerForPlatform();
 
       // Gracefully handle missing permissions – don't crash, just skip.
       final List<HealthStepSegmentDto> segments;
@@ -217,8 +228,8 @@ class StepsSyncService {
             .toString();
         final externalKey =
             segment.nativeId != null && segment.nativeId!.isNotEmpty
-            ? '$provider:${segment.nativeId}'
-            : '$provider:$fallback';
+                ? '$provider:${segment.nativeId}'
+                : '$provider:$fallback';
         return db.HealthStepSegmentsCompanion.insert(
           provider: provider,
           sourceId: drift.Value(segment.sourceId),
@@ -230,7 +241,23 @@ class StepsSyncService {
         );
       }).toList();
 
-      await _stepsDb.upsertHealthStepSegments(companions);
+      if (_platform.usesMergedAppleStatistics) {
+        // HealthKit can return an empty result when read access is denied.
+        // Preserve the local history until a non-empty query can replace it.
+        if (companions.isEmpty) {
+          return const StepsSyncResult(
+              skipped: true, fetchedCount: 0, upsertedCount: 0);
+        }
+        await _stepsDb.replaceAppleStepSegments(
+          start: fromUtc,
+          end: nowUtc,
+          segments: companions,
+        );
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_appleMergedMigrationKey, true);
+      } else {
+        await _stepsDb.upsertHealthStepSegments(companions);
+      }
       await _setLastSyncAt(nowUtc);
       if (kDebugMode) {
         final sourceTotals = await _stepsDb.getDailyStepsTotalsBySource(
@@ -250,7 +277,7 @@ class StepsSyncService {
         upsertedCount: companions.length,
       );
     } finally {
-      _isSyncing = false;
+      completion.complete();
     }
   }
 

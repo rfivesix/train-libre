@@ -1,8 +1,9 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 // test/features/diary/presentation/ai_meal_capture_camera_lifecycle_test.dart
 
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -112,7 +113,7 @@ void main() {
           navigatorKey: navigatorKey,
           navigatorObservers: [appRouteObserver],
           locale: const Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const AiMealCaptureScreen(),
         ),
@@ -154,7 +155,7 @@ void main() {
           navigatorKey: navigatorKey,
           navigatorObservers: [appRouteObserver],
           locale: const Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const AiMealCaptureScreen(),
         ),
@@ -184,7 +185,7 @@ void main() {
           navigatorKey: navigatorKey,
           navigatorObservers: [appRouteObserver],
           locale: const Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const AiMealCaptureScreen(),
         ),
@@ -248,7 +249,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             locale: Locale('de'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: AiMealCaptureScreen(),
           ),
@@ -291,7 +292,7 @@ void main() {
             navigatorKey: navigatorKey,
             navigatorObservers: [appRouteObserver],
             locale: const Locale('de'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: const AiMealCaptureScreen(),
           ),
@@ -364,7 +365,7 @@ void main() {
           navigatorKey: navigatorKey,
           navigatorObservers: [appRouteObserver],
           locale: const Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ScannerScreen(),
         ),
@@ -392,7 +393,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           locale: Locale('de'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: ScannerScreen(),
         ),

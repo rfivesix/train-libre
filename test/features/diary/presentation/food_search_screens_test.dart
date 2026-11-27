@@ -1,6 +1,7 @@
+import 'package:train_libre/l10n/app_localization_delegates.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,7 +81,7 @@ void main() {
             ],
             child: MaterialApp(
               locale: const Locale('de'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: picker.value,
             ),
@@ -203,7 +204,7 @@ void main() {
             ],
             child: MaterialApp(
               locale: const Locale('de'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: picker.value,
             ),

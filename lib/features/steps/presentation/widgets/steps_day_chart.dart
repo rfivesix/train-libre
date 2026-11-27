@@ -1,260 +1,57 @@
-import 'package:flutter/material.dart';
-
-import '../../../../util/design_constants.dart';
-
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../generated/app_localizations.dart';
-import '../../../../services/health/steps_sync_service.dart';
-import '../../domain/steps_models.dart';
-import 'horizontal_guide_painter.dart';
-import 'steps_chart_utils.dart';
+import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/value_summary_card.dart';
+import '../../domain/steps_models.dart';
+import 'steps_bar_chart.dart';
+import 'steps_period_summary.dart';
 
 class StepsDayChart extends StatelessWidget {
-  const StepsDayChart({
-    super.key,
-    required this.buckets,
-    required this.dailyGoal,
-    this.date,
-  });
+  const StepsDayChart({super.key, required this.data, required this.dailyGoal});
 
-  final List<StepsBucket> buckets;
+  final DayStepsAggregation? data;
   final int dailyGoal;
-  final DateTime? date;
-
-  Widget _buildTwoColumnGrid(List<Widget> items) {
-    final rows = <Widget>[];
-    for (var i = 0; i < items.length; i += 2) {
-      final left = items[i];
-      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
-      rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: left),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(child: right),
-            ],
-          ),
-        ),
-      );
-      if (i + 2 < items.length) {
-        rows.add(const SizedBox(height: DesignConstants.spacingS));
-      }
-    }
-    return Column(children: rows);
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(context).languageCode
-        .toLowerCase();
-    final numberFormat = NumberFormat.decimalPattern(localeCode);
-    final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
-    final activeHours = buckets.where((b) => b.steps > 0).length;
-    final safeGoal = dailyGoal > 0
-        ? dailyGoal
-        : StepsSyncService.defaultStepsGoal;
+    final locale = Localizations.localeOf(context).toString();
+    final numberFormat = NumberFormat.decimalPattern(locale);
+    final timeFormat = DateFormat.Hm(locale);
+    final buckets = data?.hourlyBuckets ?? const [];
 
-    StepsBucket? peakBucket;
+    final activeHours = buckets.where((bucket) => bucket.steps > 0).length;
+    StepsBucket? peak;
     for (final bucket in buckets) {
-      if (peakBucket == null || bucket.steps > peakBucket.steps) {
-        peakBucket = bucket;
-      }
+      if (bucket.steps > (peak?.steps ?? 0)) peak = bucket;
     }
-
-    int maxValue = 0;
-    for (final bucket in buckets) {
-      if (bucket.steps > maxValue) {
-        maxValue = bucket.steps;
-      }
-    }
-    if (maxValue <= 0) {
-      maxValue = 2000;
-    } else {
-      maxValue = ((maxValue + 1999) ~/ 2000) * 2000;
-    }
-    const dayChartHeight = 160.0;
-    const dayChartBottom = dayChartHeight - chartBottomInset;
-    const dayDrawableHeight = dayChartBottom - chartTopInset;
-    final dayGoalRatio = (safeGoal / maxValue).clamp(0.0, 1.0);
-    final dayGoalLineY = dayChartBottom - (dayDrawableHeight * dayGoalRatio);
-    final dayGoalLabelTop = (dayGoalLineY - 10)
-        .clamp(0.0, dayChartHeight - 16)
-        .toDouble();
-
-    final peakText = peakBucket == null || peakBucket.steps <= 0
-        ? '-'
-        : '${DateFormat.Hm(localeCode).format(peakBucket.start)} • ${numberFormat.format(peakBucket.steps)}';
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        StepsPeriodSummary(
+          total: data?.totalSteps ?? 0,
+          dailyGoal: dailyGoal,
+          firstMetric: ValueSummaryCard(
+            value: numberFormat.format(activeHours),
+            label: l10n.stepsModuleActiveHours,
+          ),
+          secondMetric: ValueSummaryCard(
+            value: peak == null
+                ? '–'
+                : '${timeFormat.format(peak.start)} · ${numberFormat.format(peak.steps)}',
+            label: l10n.stepsModulePeakHour,
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingXL),
         Text(
           l10n.stepsModuleHourlyTimeline,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        if (date != null)
-          Text(
-            DateFormat.MMMd(localeCode).format(date!),
-            style: Theme.of(context).textTheme.labelSmall
-                ?.copyWith(color: Theme.of(context).colorScheme.outline),
-          ),
         const SizedBox(height: DesignConstants.spacingM),
-        _buildTwoColumnGrid([
-          ValueSummaryCard(
-            value: numberFormat.format(total),
-            label: l10n.stepsModuleTotal,
-          ),
-          ValueSummaryCard(
-            value: activeHours.toString(),
-            label: l10n.stepsModuleActiveHours,
-          ),
-          ValueSummaryCard(value: peakText, label: l10n.stepsModulePeakHour),
-        ]),
-        const SizedBox(height: DesignConstants.spacingM),
-        SizedBox(
-          height: dayChartHeight,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: HorizontalGuidePainter(
-                    lineColor: Theme.of(context).colorScheme.outlineVariant
-                        .withValues(alpha: 0.5),
-                    goalColor: Theme.of(context).colorScheme.primary,
-                    goalRatio: (safeGoal / maxValue).clamp(0.0, 1.0),
-                    leftInset: chartLeftInset,
-                    topInset: chartTopInset,
-                    bottomInset: chartBottomInset,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: dayGoalLabelTop,
-                child: Text(
-                  compactAxisLabel(maxValue),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top:
-                    ((160 - chartBottomInset - chartTopInset) / 2) +
-                    chartTopInset -
-                    8,
-                child: Text(
-                  compactAxisLabel((maxValue / 2).round()),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: chartLeftInset,
-                    top: chartTopInset,
-                    right: DesignConstants.spacingXS,
-                    bottom: chartBottomInset,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: buckets
-                        .map((bucket) {
-                          final ratio = (bucket.steps / maxValue).clamp(
-                            0.0,
-                            1.0,
-                          );
-                          return Expanded(
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final barHeight = constraints.maxHeight * ratio;
-                                return Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: bucket.steps <= 0
-                                      ? Container(
-                                          width: 4,
-                                          height: 4,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .outlineVariant,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        )
-                                      : Container(
-                                          width: 6,
-                                          height: barHeight,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                        ),
-                                );
-                              },
-                            ),
-                          );
-                        })
-                        .toList(growable: false),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: chartLeftInset,
-                right: 4,
-                bottom: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '00',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    Text(
-                      '06',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    Text(
-                      '12',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    Text(
-                      '18',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    Text(
-                      '24',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        StepsBarChart(buckets: buckets),
       ],
     );
   }

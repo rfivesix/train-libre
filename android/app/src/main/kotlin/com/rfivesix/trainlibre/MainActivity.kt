@@ -15,6 +15,7 @@ import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.RestingHeartRateRecord
 import androidx.health.connect.client.records.HydrationRecord
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.SleepSessionRecord
@@ -85,9 +86,9 @@ class MainActivity : FlutterActivity() {
     private val requiredPermissions = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
     )
-    private val requiredHeartRatePermissions = setOf(
-        HealthPermission.getReadPermission(HeartRateRecord::class),
-    )
+    private val heartRatePermission = HealthPermission.getReadPermission(HeartRateRecord::class)
+    private val restingHeartRatePermission = HealthPermission.getReadPermission(RestingHeartRateRecord::class)
+    private val pulsePermissions = setOf(heartRatePermission, restingHeartRatePermission)
     private val requiredSleepPermissions = setOf(
         HealthPermission.getReadPermission(SleepSessionRecord::class),
         HealthPermission.getReadPermission(HeartRateRecord::class),
@@ -224,8 +225,10 @@ class MainActivity : FlutterActivity() {
                 "getAvailability" -> handleAvailability(result)
                 "requestPermissions" -> handleRequestPermissions(result)
                 "requestHeartRatePermissions" -> handleRequestHeartRatePermissions(result)
+                "checkHeartRatePermissions" -> handleCheckHeartRatePermissions(result)
                 "readStepSegments" -> handleReadSegments(call, result)
                 "readHeartRateSamples" -> handleReadHeartRateSamples(call, result)
+                "readRestingHeartRateSamples" -> handleReadRestingHeartRateSamples(call, result)
                 else -> result.notImplemented()
             }
         }
@@ -406,16 +409,57 @@ class MainActivity : FlutterActivity() {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            val alreadyGranted = hasPermissions(requiredHeartRatePermissions)
+            val alreadyGranted = hasPermissions(pulsePermissions)
             if (alreadyGranted) {
                 withContext(Dispatchers.Main) { result.success(true) }
                 return@launch
             }
 
             withContext(Dispatchers.Main) {
-                pendingPermissionResult = result
-                pendingPermissionRequestSet = requiredHeartRatePermissions
-                permissionLauncher.launch(requiredHeartRatePermissions)
+                pendingPermissionResult = object : MethodChannel.Result by result {
+                    override fun success(value: Any?) {
+                        if (value == true) {
+                            result.success(true)
+                            return
+                        }
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val granted = HealthConnectClient.getOrCreate(this@MainActivity)
+                                .permissionController.getGrantedPermissions()
+                            val hasAccess = granted.any { it in pulsePermissions }
+                            withContext(Dispatchers.Main) { result.success(hasAccess) }
+                        }
+                    }
+                }
+                pendingPermissionRequestSet = pulsePermissions
+                permissionLauncher.launch(pulsePermissions)
+            }
+        }
+    }
+
+    private fun handleCheckHeartRatePermissions(result: MethodChannel.Result) {
+        when (HealthConnectClient.getSdkStatus(this)) {
+            HealthConnectClient.SDK_AVAILABLE -> Unit
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
+                result.success("not_installed")
+                return
+            }
+            else -> {
+                result.success("unavailable")
+                return
+            }
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val granted = HealthConnectClient.getOrCreate(this@MainActivity)
+                    .permissionController.getGrantedPermissions()
+                val status = when {
+                    granted.containsAll(pulsePermissions) -> "ready"
+                    granted.any { it in pulsePermissions } -> "partial"
+                    else -> "denied"
+                }
+                withContext(Dispatchers.Main) { result.success(status) }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { result.error("query_failed", e.message, null) }
             }
         }
     }
@@ -1753,7 +1797,7 @@ class MainActivity : FlutterActivity() {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            val hasPermission = hasPermissions(requiredHeartRatePermissions)
+            val hasPermission = hasPermissions(setOf(heartRatePermission))
             if (!hasPermission) {
                 withContext(Dispatchers.Main) {
                     result.error("permission_denied", "Permissions not granted", null)
@@ -1766,9 +1810,7 @@ class MainActivity : FlutterActivity() {
                 val from = Instant.parse(fromIso)
                 val to = Instant.parse(toIso)
                 
-                val buckets = mutableMapOf<Instant, MutableList<Double>>()
-                val sources = mutableMapOf<Instant, String>()
-                val nativeIds = mutableMapOf<Instant, String>()
+                val payload = mutableListOf<Map<String, Any?>>()
                 
                 var pageToken: String? = null
                 do {
@@ -1782,27 +1824,20 @@ class MainActivity : FlutterActivity() {
                     )
                     
                     for (record in response.records) {
-                        for (sample in record.samples) {
-                            val truncated = sample.time.truncatedTo(java.time.temporal.ChronoUnit.MINUTES)
-                            buckets.getOrPut(truncated) { mutableListOf() }.add(sample.beatsPerMinute.toDouble())
-                            if (!sources.containsKey(truncated)) {
-                                sources[truncated] = record.metadata.dataOrigin.packageName
-                                nativeIds[truncated] = record.metadata.id
-                            }
+                        for ((index, sample) in record.samples.withIndex()) {
+                            payload.add(mapOf(
+                                "sampledAtUtcIso" to sample.time.toString(),
+                                "bpm" to sample.beatsPerMinute.toDouble(),
+                                "sourceId" to record.metadata.dataOrigin.packageName,
+                                "nativeId" to "${record.metadata.id}-$index",
+                            ))
                         }
                     }
                     
                     pageToken = response.pageToken
                 } while (pageToken != null)
 
-                val payload = buckets.entries.map { (time, bpms) ->
-                    mapOf(
-                        "sampledAtUtcIso" to time.toString(),
-                        "bpm" to bpms.average(),
-                        "sourceId" to (sources[time] ?: "aggregated"),
-                        "nativeId" to (nativeIds[time] ?: "aggregated"),
-                    )
-                }.sortedBy { row -> row["sampledAtUtcIso"] as String }
+                payload.sortBy { row -> row["sampledAtUtcIso"] as String }
                 
                 withContext(Dispatchers.Main) {
                     result.success(payload)
@@ -1811,6 +1846,56 @@ class MainActivity : FlutterActivity() {
                 withContext(Dispatchers.Main) {
                     result.error("query_failed", e.message, null)
                 }
+            }
+        }
+    }
+
+    private fun handleReadRestingHeartRateSamples(call: MethodCall, result: MethodChannel.Result) {
+        if (HealthConnectClient.getSdkStatus(this) != HealthConnectClient.SDK_AVAILABLE) {
+            result.error("not_available", "Health Connect not available", null)
+            return
+        }
+        val fromIso = call.argument<String>("fromUtcIso")
+        val toIso = call.argument<String>("toUtcIso")
+        if (fromIso == null || toIso == null) {
+            result.error("invalid_args", "Missing resting heart rate date range", null)
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                if (!hasPermissions(setOf(restingHeartRatePermission))) {
+                    withContext(Dispatchers.Main) {
+                        result.error("permission_denied", "Resting heart rate access not granted", null)
+                    }
+                    return@launch
+                }
+                val client = HealthConnectClient.getOrCreate(this@MainActivity)
+                val range = TimeRangeFilter.between(Instant.parse(fromIso), Instant.parse(toIso))
+                val payload = mutableListOf<Map<String, Any>>()
+                var pageToken: String? = null
+                do {
+                    val response = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = RestingHeartRateRecord::class,
+                            timeRangeFilter = range,
+                            pageToken = pageToken,
+                        ),
+                    )
+                    for (record in response.records) {
+                        payload.add(mapOf(
+                            "sampledAtUtcIso" to record.time.toString(),
+                            "bpm" to record.beatsPerMinute.toDouble(),
+                            "sourceId" to record.metadata.dataOrigin.packageName,
+                            "nativeId" to record.metadata.id,
+                        ))
+                    }
+                    pageToken = response.pageToken
+                } while (!pageToken.isNullOrEmpty())
+
+                withContext(Dispatchers.Main) { result.success(payload) }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { result.error("query_failed", e.message, null) }
             }
         }
     }

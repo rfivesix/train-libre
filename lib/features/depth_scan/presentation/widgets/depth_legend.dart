@@ -1,6 +1,6 @@
 // lib/features/depth_scan/presentation/widgets/depth_legend.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../data/depth_map_renderer.dart';
 

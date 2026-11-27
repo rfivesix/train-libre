@@ -1,13 +1,23 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/workout/domain/classification/exercise_log_mask.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
+import 'package:train_libre/features/workout/domain/models/set_template.dart';
+import 'package:train_libre/features/workout/domain/repositories/workout_repository.dart';
+import 'package:train_libre/features/workout/presentation/live_workout_view_model.dart';
+import 'package:train_libre/features/workout/presentation/widgets/live_workout_set_row.dart';
 import 'package:train_libre/features/workout/presentation/widgets/workout_log_set_row.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/unit_service.dart';
+
+class _UnusedWorkoutRepository implements IWorkoutRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// What each exercise actually renders.
 ///
@@ -54,7 +64,6 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
         child: Scaffold(
           body: WorkoutLogSetRow(
             setLog: _setLog(),
-            rowIndex: 0,
             workingSetIndex: 1,
             exerciseName: 'Test',
             isEditMode: false,
@@ -73,6 +82,183 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
 }
 
 void main() {
+  testWidgets('empty live RPE stays empty even with a routine target', (
+    tester,
+  ) async {
+    final manager = LiveWorkoutViewModel.forTesting(
+      workoutDb: _UnusedWorkoutRepository(),
+    );
+    addTearDown(manager.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: manager),
+            ChangeNotifierProvider.value(value: manager.unitService),
+            ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+          ],
+          child: Scaffold(
+            body: SizedBox(
+              width: 320,
+              child: LiveWorkoutSetRow(
+                setIndex: 0,
+                rowIndex: 0,
+                templateId: 2,
+                setLog: _setLog().copyWith(isCompleted: false),
+                lastPerfSets: const [],
+                currentSetTypes: const ['normal'],
+                template: SetTemplate(id: 2, setType: 'normal', targetRpe: 8.5),
+                manager: manager,
+                mask: ExerciseLogMask.weightAndReps,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('8.5'), findsNothing);
+    expect(find.byIcon(LucideIcons.gauge), findsOneWidget);
+  });
+  testWidgets('live set outlines track editability in both themes', (
+    tester,
+  ) async {
+    final manager = LiveWorkoutViewModel.forTesting(
+      workoutDb: _UnusedWorkoutRepository(),
+    );
+    addTearDown(manager.dispose);
+
+    Future<void> pumpRow(Brightness brightness, bool isCompleted) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MultiProvider(
+            providers: [
+              ChangeNotifierProvider.value(value: manager),
+              ChangeNotifierProvider.value(value: manager.unitService),
+              ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+            ],
+            child: Scaffold(
+              body: SizedBox(
+                width: 320,
+                child: LiveWorkoutSetRow(
+                  setIndex: 2,
+                  rowIndex: 1,
+                  templateId: 2,
+                  setLog: _setLog().copyWith(isCompleted: isCompleted),
+                  lastPerfSets: const [],
+                  currentSetTypes: const ['normal', 'normal'],
+                  template: SetTemplate(id: 2, setType: 'normal'),
+                  manager: manager,
+                  mask: ExerciseLogMask.weightAndReps,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    final fields = find.byType(TextField);
+    for (final brightness in Brightness.values) {
+      await pumpRow(brightness, false);
+      expect(fields, findsNWidgets(2));
+      expect(find.byIcon(LucideIcons.gauge), findsOneWidget);
+      for (var index = 0; index < 2; index++) {
+        final field = tester.widget<TextField>(fields.at(index));
+        expect(field.decoration!.enabledBorder, isA<OutlineInputBorder>());
+        expect(field.decoration!.focusedBorder, isA<OutlineInputBorder>());
+        if (index > 0) {
+          expect(
+            tester.getRect(fields.at(index)).left,
+            greaterThan(tester.getRect(fields.at(index - 1)).right),
+          );
+        }
+      }
+      await tester.tap(fields.first);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<EditableText>(find.byType(EditableText).first)
+            .focusNode
+            .hasFocus,
+        isTrue,
+      );
+
+      await pumpRow(brightness, true);
+      for (final field in tester.widgetList<TextField>(fields)) {
+        expect(field.enabled, isFalse);
+        expect(field.decoration!.disabledBorder, InputBorder.none);
+        expect(field.decoration!.focusedBorder, InputBorder.none);
+      }
+    }
+  });
+
+  testWidgets('live duration control has an outline while editable', (
+    tester,
+  ) async {
+    final manager = LiveWorkoutViewModel.forTesting(
+      workoutDb: _UnusedWorkoutRepository(),
+    );
+    addTearDown(manager.dispose);
+    final mask = ExerciseLogMask.forExercise(
+      _exercise(trackingType: 'distance_time'),
+    );
+
+    for (final brightness in Brightness.values) {
+      for (final completed in [false, true]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(brightness: brightness),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: manager),
+                ChangeNotifierProvider.value(value: manager.unitService),
+                ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
+              ],
+              child: Scaffold(
+                body: SizedBox(
+                  width: 320,
+                  child: LiveWorkoutSetRow(
+                    setIndex: 2,
+                    rowIndex: 1,
+                    templateId: 2,
+                    setLog: _setLog().copyWith(isCompleted: completed),
+                    lastPerfSets: const [],
+                    currentSetTypes: const ['normal', 'normal'],
+                    template: SetTemplate(id: 2, setType: 'normal'),
+                    manager: manager,
+                    mask: mask,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final durationBox = tester.widget<Container>(
+          find
+              .ancestor(
+                of: find.text('00:45'),
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        final decoration = durationBox.decoration! as BoxDecoration;
+        expect(decoration.border != null, !completed);
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
   group('ExerciseLogMask derivation', () {
     test('weight_reps shows weight and reps', () {
       final mask = ExerciseLogMask.forExercise(

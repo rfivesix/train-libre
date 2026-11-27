@@ -4,8 +4,9 @@ export 'adaptive_timeframe_picker.dart';
 export 'adaptive_duration_picker.dart';
 export 'adaptive_target_rate_picker.dart';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as flutter_material;
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -368,7 +369,9 @@ Future<DateTime?> _showGlassDatePicker({
                       padding: const EdgeInsets.symmetric(
                         horizontal: DesignConstants.spacingS,
                       ),
-                      child: TableCalendar<void>(
+                      child: flutter_material.Material(
+                        type: flutter_material.MaterialType.transparency,
+                        child: TableCalendar<void>(
                         firstDay: firstDate,
                         lastDay: lastDate,
                         focusedDay: focusedDate,
@@ -426,6 +429,7 @@ Future<DateTime?> _showGlassDatePicker({
                             color: theme.colorScheme.onPrimary,
                             fontWeight: FontWeight.w700,
                           ),
+                        ),
                         ),
                       ),
                     )
@@ -690,7 +694,9 @@ class _GlassPickerSheetContent extends StatelessWidget {
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : const Color(0xFFF2F2F7).withValues(alpha: 0.92);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
+    final Color effectiveGlass = Colors.white.withValues(
+      alpha: isDark ? 0.10 : 0.50,
+    );
     const double r = 24;
     final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
     final maxAvailableHeight =

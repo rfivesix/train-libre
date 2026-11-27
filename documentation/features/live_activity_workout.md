@@ -31,7 +31,7 @@ shade, device, and—on API 36+—whether Android promotes it to a Live Update.
 ### Set values and timer behavior
 
 For strength sets, entered values take precedence over the routine's planned weight, reps, and
-RIR. Missing required values are displayed as a dash; the feature does not invent values. The
+RPE. Missing required values are displayed as a dash; the feature does not invent values. The
 completion action is disabled or omitted until the required fields are available. On iOS, tapping
 the activity outside an enabled button opens the workout through its deep link.
 

@@ -1,6 +1,6 @@
 //bottom_content_spacer.dart
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/workout/presentation/live_workout_view_model.dart';

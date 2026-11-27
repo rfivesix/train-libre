@@ -5,8 +5,7 @@ import 'dart:async';
 
 import '../../../widgets/common/seamless_loading_overlay.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -184,7 +183,15 @@ class _GeneralFoodSelectionScreenState
     final colorScheme = Theme.of(context).colorScheme;
 
     return SummaryCard(
+      margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+      padding: EdgeInsets.zero,
       child: ListTile(
+        contentPadding: const EdgeInsetsDirectional.only(
+          start: DesignConstants.cardPaddingInternal,
+          end: DesignConstants.spacingS,
+        ),
+        minTileHeight: 64,
+        minVerticalPadding: DesignConstants.spacingS,
         title: Text(
           item.getLocalizedName(context).isNotEmpty
               ? item.getLocalizedName(context)
@@ -214,7 +221,7 @@ class _GeneralFoodSelectionScreenState
         ),
         trailing: IconButton(
           tooltip: l10n.add_button,
-          icon: Icon(LucideIcons.circle_plus, color: colorScheme.primary),
+          icon: Icon(LucideIcons.plus, color: colorScheme.primary, size: 28),
           onPressed: () => Navigator.of(context).pop(item),
         ),
         onTap: () async {

@@ -40,6 +40,7 @@ class BodyNutritionAnalyticsUtils {
           range: raw.range,
           weightPoints: raw.weightPoints,
           caloriesByDay: raw.caloriesByDay,
+          incompleteDays: raw.incompleteDays,
         );
       },
     );

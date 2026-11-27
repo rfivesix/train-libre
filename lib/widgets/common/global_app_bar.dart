@@ -1,13 +1,23 @@
 // lib/widgets/global_app_bar.dart
 
-import 'dart:ui';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
-import 'package:flutter/material.dart';
-
-/// A standardized AppBar for the application with a frosted glass background.
+/// A standardized AppBar for the application with a top-to-bottom
+/// [ProgressiveBlur] and soft fade vignette.
 ///
 /// Implements [PreferredSizeWidget] and provides a consistent look across screens.
 class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
+  /// Maximum blur sigma at the very top edge, easing to sharp at the bottom.
+  static const double _topBlurMaxSigma = 18.0;
+
+  /// Curve shaping how quickly the progressive blur eases toward the bottom.
+  static const double _topBlurFalloff = 1.4;
+
+  /// Slight downward extension past the bar bounds so the blur and scrim finish
+  /// fading just below the title/action buttons.
+  static const double _fadeBottomExtension = 8.0;
+
   /// Simple text title.
   final String? title;
 
@@ -30,7 +40,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Space between the leading widget and the title.
   final double? titleSpacing;
 
-  /// Optional content painted as an extension of the same frosted app bar.
+  /// Optional content painted as an extension of the same app bar.
   /// Its height is included in the app bar's layout and hit-test area.
   final Widget? bottom;
 
@@ -62,6 +72,8 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg = theme.scaffoldBackgroundColor;
+    final vignetteBase = isDark ? Colors.black : scaffoldBg;
 
     // Visible AppBar content (title, icons, etc.)
     final appBarContent = AppBar(
@@ -83,12 +95,6 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
     );
 
-    // Color for the translucent glass
-    final Color glassColor = isDark
-        ? Colors.black.withValues(alpha: 0.50)
-        : const Color(0xFFF2F2F7).withValues(alpha: 0.70);
-
-    // Final structure with static blur (blur sigma preserved at 14 as requested)
     // Scaffold reserves the toolbar height separately from the system inset.
     // Include that inset in the painted area so SafeArea still has room for
     // the toolbar and optional extension below it.
@@ -96,30 +102,48 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         MediaQuery.paddingOf(context).top +
         kToolbarHeight +
         (bottom == null ? 0 : bottomHeight);
+    final fadeHeight = glassHeight + _fadeBottomExtension;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Soft top fade-out vignette shadow underneath the bar (does not affect glass blur optics)
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          height: glassHeight,
-          child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    isDark
-                        ? Colors.black.withValues(alpha: 0.25)
-                        : const Color(0xFFF2F2F7).withValues(alpha: 0.50),
-                    Colors.transparent,
-                  ],
+          height: fadeHeight,
+          child: ClipRect(
+            child: Stack(
+              children: [
+                const Positioned.fill(
+                  child: IgnorePointer(
+                    child: ProgressiveBlur(
+                      maxSigma: _topBlurMaxSigma,
+                      direction: ProgressiveBlurDirection.topToBottom,
+                      falloff: _topBlurFalloff,
+                    ),
+                  ),
                 ),
-              ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            vignetteBase.withValues(alpha: isDark ? 0.38 : 0.54),
+                            vignetteBase.withValues(alpha: isDark ? 0.20 : 0.28),
+                            vignetteBase.withValues(alpha: isDark ? 0.06 : 0.08),
+                            vignetteBase.withValues(alpha: 0.0),
+                          ],
+                          stops: const [0.0, 0.44, 0.80, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -128,25 +152,15 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
           left: 0,
           right: 0,
           height: glassHeight,
-          child: ClipRect(
-            child: RepaintBoundary(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                child: Container(
-                  decoration: BoxDecoration(color: glassColor),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: kToolbarHeight, child: appBarContent),
-                        if (bottom != null)
-                          SizedBox(height: bottomHeight, child: bottom),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: kToolbarHeight, child: appBarContent),
+                if (bottom != null)
+                  SizedBox(height: bottomHeight, child: bottom),
+              ],
             ),
           ),
         ),

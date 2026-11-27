@@ -16,12 +16,14 @@ class PRAlert {
   final String recordType;
   final String achievementValue;
   final double? diff;
+  final bool celebrate;
 
   PRAlert({
     required this.exerciseName,
     required this.recordType,
     required this.achievementValue,
     this.diff,
+    this.celebrate = true,
   });
 }
 

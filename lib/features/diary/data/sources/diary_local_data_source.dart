@@ -1068,8 +1068,9 @@ class DiaryLocalDataSource {
 
   Future<FoodCaloriesByDayResult> getFoodCaloriesByDayForDateRange(
     DateTime start,
-    DateTime end,
-  ) async {
+    DateTime end, {
+    Set<DateTime> excludedDays = const {},
+  }) async {
     final productsByBarcode = _db.products.createAlias('products_by_barcode');
 
     final query = _db.select(_db.nutritionLogs).join([
@@ -1096,15 +1097,11 @@ class DiaryLocalDataSource {
 
     for (final row in rows) {
       final log = row.readTable(_db.nutritionLogs);
+      final day = log.consumedAt.dateOnly;
+      if (excludedDays.contains(day)) continue;
       final archivedProduct = row.readTableOrNull(_db.offProductsArchive);
       final productByJoin = row.readTableOrNull(_db.products);
       final productByBarcode = row.readTableOrNull(productsByBarcode);
-
-      final day = DateTime(
-        log.consumedAt.year,
-        log.consumedAt.month,
-        log.consumedAt.day,
-      );
 
       if (archivedProduct != null) {
         final ratio = log.amount / 100.0;
@@ -1126,11 +1123,8 @@ class DiaryLocalDataSource {
       _db.macroEntries,
     )..where((entry) => entry.consumedAt.isBetweenValues(start, end))).get();
     for (final entry in macroRows) {
-      final day = DateTime(
-        entry.consumedAt.year,
-        entry.consumedAt.month,
-        entry.consumedAt.day,
-      );
+      final day = entry.consumedAt.dateOnly;
+      if (excludedDays.contains(day)) continue;
       final kcal = entry.amount == null
           ? entry.calories
           : entry.calories * entry.amount! / 100;

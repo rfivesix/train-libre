@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../util/design_constants.dart';
 
@@ -27,6 +27,9 @@ class AppSectionHeader extends StatelessWidget {
   /// Optional trailing action widget (e.g. info button or action link).
   final Widget? action;
 
+  /// Vertical alignment of the title and action when an action is present.
+  final CrossAxisAlignment actionAlignment;
+
   const AppSectionHeader({
     super.key,
     required this.title,
@@ -34,6 +37,7 @@ class AppSectionHeader extends StatelessWidget {
     this.padding,
     this.isFirst = false,
     this.action,
+    this.actionAlignment = CrossAxisAlignment.center,
   });
 
   @override
@@ -68,6 +72,7 @@ class AppSectionHeader extends StatelessWidget {
           ? Align(alignment: Alignment.centerLeft, child: titleTextWidget)
           : Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: actionAlignment,
               children: [
                 Expanded(child: titleTextWidget),
                 action!,

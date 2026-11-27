@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.1
+
+{chart_line} Statistiken und Fortschrittsanalyse: Die Übersicht zeigt deine wichtigsten Kennzahlen und Trainingstage auf einen Blick. Überarbeitete Ansichten helfen dir, Ernährung, Fortschritt und persönliche Bestleistungen im Detail zu verfolgen.
+
+{dumbbell} Live-Workout und Satzverwaltung: Sieh, welche Sätze pro Muskelgruppe erledigt sind und welche noch anstehen. Sortiere Sätze per Ziehen, blende auf Wunsch dein geschätztes Maximalgewicht für eine Wiederholung ein und feiere neue Rekorde mit Animation und haptischem Feedback.
+
+{moon} Schlafanalyse und Herzfrequenz: Die neue Schlafübersicht zeigt Schlafdauer, Schlafphasen und Herzfrequenz. Dein Ruhepuls aus Apple Health oder Health Connect erscheint im Tagebuch und in der Statistik. Mit Apple Health siehst du zusätzlich deine Herzfrequenzvariabilität.
+
+{sparkles} Anpassbare Liquid-Glass-Darstellung: Passe die Glasdarstellung mit einem Regler an und sieh das Ergebnis direkt in der Vorschau. Überarbeitete Übergänge machen den Wechsel zwischen Ansichten flüssiger.
+
+{shield} Verbesserte Leistung und Zuverlässigkeit: Die Statistikübersicht scrollt flüssiger, Trainingstage erscheinen auch rund um die Zeitumstellung korrekt, und Schrittzählung sowie Pausentimer wurden verbessert.
+
 ## 1.7.0 (2026-11-03)
 
 {sparkles} Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.

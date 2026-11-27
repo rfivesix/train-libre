@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -104,7 +104,7 @@ class CloudChatTurnView extends StatelessWidget {
                       width: imageWidth,
                       height: imageHeight,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => SizedBox(
+                      errorBuilder: (_, _, _) => SizedBox(
                         width: imageWidth,
                         height: imageHeight,
                         child: ColoredBox(
@@ -732,7 +732,7 @@ class CloudChatTurnView extends StatelessWidget {
 
     final metaText = [
       if (modelLabel != null && modelLabel.isNotEmpty) modelLabel,
-      if (durationLabel != null) durationLabel,
+      ?durationLabel,
     ].join(' · ');
 
     return Padding(

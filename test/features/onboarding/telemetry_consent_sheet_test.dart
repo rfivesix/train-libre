@@ -2,7 +2,7 @@
 // what it asks: no pre-selection, both answers one tap away, and declining
 // must never be the harder path.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/onboarding/presentation/telemetry_consent_sheet.dart';
 import 'package:train_libre/generated/app_localizations.dart';

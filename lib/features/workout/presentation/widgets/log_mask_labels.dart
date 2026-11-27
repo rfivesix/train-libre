@@ -45,17 +45,14 @@ class SetRowFlex {
   /// used to get less room than the two input fields beside it. The total is
   /// unchanged, so only the split between the columns moves.
   ///
-  /// The room comes from the set number, which holds one digit and had two
-  /// shares of it, and from the distance field, which holds "0.5". Not from
-  /// the duration beside it: that one is a text field rather than a label, so
-  /// it cannot scale itself down the way the cells around it do — it just
-  /// clips, and "02:0" is not a time.
+  /// Keep the set number tile comparable in width to strength rows, while
+  /// leaving room for the longer last-performance and duration values.
   factory SetRowFlex.forMask(ExerciseLogMask mask) {
     final isCardio = mask.logsDistance && mask.logsDuration;
     return isCardio
         ? const SetRowFlex._(
-            index: 1,
-            lastTime: 5,
+            index: 2,
+            lastTime: 4,
             primary: 3,
             secondary: 4,
             intensity: 2,
