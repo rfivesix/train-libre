@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1] - 2026-11-27
 
 ### Fixed
+- Retried release builds after transient Gradle daemon connection failures.
 - Saved a running set timer when finishing a workout, preserving its elapsed time without completing the set.
 - Preserved unfinished sets with manually entered RPE and other input when finishing a workout, including sets with unconfirmed suggestions.
 - Enlarged the inline timer's play and stop icons without changing the control size.

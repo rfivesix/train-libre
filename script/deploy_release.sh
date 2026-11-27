@@ -13,19 +13,17 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Release builds must not depend on a long-lived Gradle daemon. On macOS the
-# daemon occasionally registers successfully but cannot be reached again over
-# localhost (for example after a network, VPN or Android Studio change). Keep
-# the setting scoped to this script so day-to-day Android Studio builds retain
-# their normal daemon behaviour.
+# Avoid reusing a long-lived Gradle daemon for release builds. Gradle may still
+# start a single-use daemon when the build requires different JVM settings.
+# Scope this setting to the script so Android Studio keeps its normal behavior.
 run_flutter() {
   GRADLE_OPTS="-Dorg.gradle.daemon=false${GRADLE_OPTS:+ $GRADLE_OPTS}" flutter "$@"
 }
 
-# The SQLite build hook aborts on a transient GitHub response. Retry only the
-# failed build so Flutter can reuse any native assets already downloaded.
+# Retry known transient SQLite download and Gradle daemon connection failures.
+# Retry only the failed build so Flutter can reuse downloaded native assets.
 run_flutter_build() {
-  local attempt=1 max_attempts=3 delay
+  local attempt=1 max_attempts=3 delay retry_reason
   local -a status
 
   while true; do
@@ -38,15 +36,20 @@ run_flutter_build() {
     if (( status[1] != 0 )); then
       return "${status[1]}"
     fi
-    if (( attempt >= max_attempts )) ||
-      ! grep -Fq 'https://github.com/simolus3/sqlite3.dart/releases/download/' "$FLUTTER_BUILD_LOG" ||
-      ! grep -Eq 'Unexpected response code: (408|429|500|502|503|504)([[:space:]]|$)' "$FLUTTER_BUILD_LOG"; then
+    retry_reason=''
+    if grep -Fq 'Could not connect to the Gradle daemon.' "$FLUTTER_BUILD_LOG"; then
+      retry_reason='Gradle daemon connection failed'
+    elif grep -Fq 'https://github.com/simolus3/sqlite3.dart/releases/download/' "$FLUTTER_BUILD_LOG" &&
+      grep -Eq 'Unexpected response code: (408|429|500|502|503|504)([[:space:]]|$)' "$FLUTTER_BUILD_LOG"; then
+      retry_reason='SQLite download failed temporarily'
+    fi
+    if (( attempt >= max_attempts )) || [ -z "$retry_reason" ]; then
       return "${status[0]}"
     fi
 
     delay=$((attempt * 5))
-    printf 'SQLite download failed temporarily. Retrying flutter %s in %s seconds (%s/%s).\n' \
-      "$*" "$delay" "$((attempt + 1))" "$max_attempts" >&2
+    printf '%s. Retrying flutter %s in %s seconds (%s/%s).\n' \
+      "$retry_reason" "$*" "$delay" "$((attempt + 1))" "$max_attempts" >&2
     sleep "$delay"
     attempt=$((attempt + 1))
   done
